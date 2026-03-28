@@ -9,15 +9,15 @@
 - Docker Desktop: Chỉ dùng ở bước triển khai/kiểm thử cuối cùng (không bắt buộc trong quá trình dev hằng ngày).
 - Môi trường phát triển tích hợp (IDE):
   - Đối với hệ điều hành Windows: Visual Studio 2022 hoặc JetBrains Rider.
-  - Đối với hệ điều hành Linux/macOS: JetBrains Rider hoặc Visual Studio Code (cài đặt extension C# Dev Kit).
+  - Đối với hệ điều hành Linux/macOS: JetBrains Rider hoặc Visual Studio Code (cài đặt tiện ích mở rộng C# Dev Kit).
 
 ## 2. Quy trình khởi tạo mã nguồn và cơ sở dữ liệu
 
 Bước 2.1: Sao chép mã nguồn
 Mở giao diện dòng lệnh (Terminal/PowerShell) tại thư mục lưu trữ dự án cục bộ và thực thi lệnh sau:
 
-git clone <đường-dẫn-github-của-repository>
-cd StudentOrgManager
+`git clone <đường-dẫn-github-của-repository>`
+`cd StudentOrgManager`
 
 Bước 2.2: Cấu hình Connection String bằng C# User Secrets (khuyến nghị)
 Tại thư mục dự án Backend, thiết lập connection string qua user-secrets để tránh lưu mật khẩu trong repo:
@@ -31,15 +31,15 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Po
 
 Hệ thống được thiết kế bao gồm hai phân hệ chính: Backend (Application Programming Interface) và Frontend (User Interface). Cần khởi chạy đồng thời cả hai phân hệ này để ứng dụng hoạt động hoàn chỉnh.
 
-Phương pháp 1: Khởi chạy thông qua Giao diện dòng lệnh (CLI)
+Phương pháp 1: Khởi chạy thông qua Giao diện dòng lệnh (CLI) - Nên dùng
 Sử dụng hai cửa sổ Terminal độc lập:
 - Terminal 1 (Khởi chạy Backend):
-  cd src/Org.Backend
-  dotnet run
+  `cd src/Org.Backend`
+  `dotnet run`
 
 - Terminal 2 (Khởi chạy Frontend):
-  cd src/Org.Frontend
-  dotnet run
+  `cd src/Org.Frontend`
+  `dotnet run`
 
 Phương pháp 2: Khởi chạy thông qua Visual Studio 2022 (Dành cho Windows)
 1. Mở tệp giải pháp StudentOrgManager.sln.
