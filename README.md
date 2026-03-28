@@ -1,14 +1,15 @@
-# TÀI LIỆU HƯỚNG DẪN CÀI ĐẶT VÀ VẬN HÀNH DỰ ÁN STUDENT ORG MANAGER
+# TÀI LIỆU HƯỚNG DẪN CÀI ĐẶT VÀ VẬN HÀNH DỰ ÁN
 
 ## 1. Yêu cầu tiên quyết về môi trường phát triển
 
 Để đảm bảo tính đồng nhất trong quá trình phát triển và tránh xung đột môi trường, các thành viên trong nhóm dự án yêu cầu phải cài đặt các công cụ phần mềm sau:
 
-- .NET SDK: Phiên bản 8.0 hoặc mới hơn.
-- Docker Desktop: Công cụ ảo hóa bắt buộc để triển khai cơ sở dữ liệu dùng chung. Đối với người dùng hệ điều hành Windows, yêu cầu tích hợp tính năng Windows Subsystem for Linux (WSL 2) trong quá trình cài đặt.
+- .NET SDK: Phiên bản 10.0 hoặc mới hơn (https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
+- PostgreSQL: Cài đặt bản local để phục vụ phát triển hằng ngày (https://www.postgresql.org/download/).
+- Docker Desktop: Chỉ dùng ở bước triển khai/kiểm thử cuối cùng (không bắt buộc trong quá trình dev hằng ngày).
 - Môi trường phát triển tích hợp (IDE):
-  - Đối với hệ điều hành Windows: Khuyến nghị sử dụng Visual Studio 2022 hoặc JetBrains Rider.
-  - Đối với hệ điều hành Linux/macOS: Khuyến nghị sử dụng JetBrains Rider hoặc Visual Studio Code (yêu cầu cài đặt tiện ích mở rộng C# Dev Kit).
+  - Đối với hệ điều hành Windows: Visual Studio 2022 hoặc JetBrains Rider.
+  - Đối với hệ điều hành Linux/macOS: JetBrains Rider hoặc Visual Studio Code (cài đặt extension C# Dev Kit).
 
 ## 2. Quy trình khởi tạo mã nguồn và cơ sở dữ liệu
 
@@ -18,12 +19,13 @@ Mở giao diện dòng lệnh (Terminal/PowerShell) tại thư mục lưu trữ 
 git clone <đường-dẫn-github-của-repository>
 cd StudentOrgManager
 
-Bước 2.2: Triển khai cơ sở dữ liệu qua Docker
-Đảm bảo dịch vụ Docker Desktop đang hoạt động trên hệ thống (chạy ngầm). Tại thư mục gốc của dự án (nơi chứa tệp cấu hình docker-compose.yml), thực thi lệnh:
+Bước 2.2: Cấu hình Connection String bằng C# User Secrets (khuyến nghị)
+Tại thư mục dự án Backend, thiết lập connection string qua user-secrets để tránh lưu mật khẩu trong repo:
 
-docker compose up -d
+cd src/Org.Backend
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=StudentOrgDb;Username=org_admin;Password=CHANGE_ME"
 
-*Ghi chú: Lệnh này sẽ tự động tải cấu trúc ảnh (image) và khởi tạo một máy chủ cơ sở dữ liệu PostgreSQL ảo. Các thông số về cổng kết nối (port), tài khoản và mật khẩu đã được định nghĩa sẵn trong tệp cấu hình để đảm bảo tính nhất quán cho toàn bộ nhóm.*
+*Ghi chú: Docker chỉ dùng ở bước triển khai/kiểm thử cuối cùng, không bắt buộc trong quá trình dev hằng ngày.*
 
 ## 3. Hướng dẫn khởi chạy hệ thống
 
@@ -48,16 +50,18 @@ Phương pháp 2: Khởi chạy thông qua Visual Studio 2022 (Dành cho Windows
 
 ## 4. Nguyên tắc kiến trúc và tổ chức mã nguồn
 
-Dự án này áp dụng mô hình Kiến trúc Cắt lát dọc Thực dụng (Pragmatic Vertical Slice Architecture), thay thế cho mô hình N-Tier hoặc MVC truyền thống. Nhóm phát triển cần tuân thủ nghiêm ngặt các nguyên tắc sau:
+Dự án này áp dụng mô hình Kiến trúc Cắt lát dọc Thực dụng (Pragmatic Vertical Slice Architecture), thay thế cho mô hình MVC truyền thống. Nhóm cần tuân thủ nghiêm ngặt các nguyên tắc sau:
 
 - Tầng Thực thể (Domain Entities): Toàn bộ các lớp đại diện cho cấu trúc bảng cơ sở dữ liệu (Database Schema) được quản lý tập trung tại thư mục src/Org.Backend/Domain/Entities/.
 - Tầng Nghiệp vụ (Features): Mã nguồn xử lý logic được phân chia theo từng chức năng cụ thể (Use Cases). Khi phát triển một tính năng mới, lập trình viên tạo tệp Endpoint (hoặc Handler) trực tiếp tại thư mục của phân hệ đó (Ví dụ: src/Org.Backend/Features/Tasks/). Khuyến cáo không khởi tạo các lớp Controller hay Service phân tán bên ngoài định dạng phân hệ chức năng.
 - Tầng Giao tiếp (Shared Contracts): Các đối tượng truyền tải dữ liệu (Data Transfer Objects - DTOs) dùng để giao tiếp giữa Frontend và Backend phải được định nghĩa tại src/Org.Shared/Features/ nhằm đảm bảo tính đồng bộ và an toàn kiểu dữ liệu.
 
-## 5. Quản lý tài nguyên và dọn dẹp hệ thống
+## 5. Docker (chỉ dùng ở bước cuối)
 
-Để giải phóng tài nguyên phần cứng (RAM/CPU) sau quá trình làm việc, hệ thống cơ sở dữ liệu ảo hóa cần được ngưng đọng bằng lệnh sau tại thư mục gốc:
+Khi cần triển khai/kiểm thử cuối cùng bằng Docker, dùng tệp docker-compose.yml tại thư mục gốc:
+
+docker compose up -d
+
+Để dừng dịch vụ:
 
 docker compose down
-
-*Ghi chú: Thao tác này chỉ tạm dừng và gỡ bỏ container, toàn bộ dữ liệu thực tế của cơ sở dữ liệu vẫn được lưu trữ an toàn trong phân vùng ảo (Volume) của Docker và sẽ được phục hồi nguyên vẹn trong lần khởi chạy tiếp theo.*

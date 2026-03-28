@@ -3,7 +3,11 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-# dotenv files
+# appsettings local overrides — chứa connection strings thực
+appsettings.Development.json
+appsettings.Production.json
+
+# Local environment files
 .env
 
 # User-specific files
@@ -480,3 +484,8 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+REQUIREMENT OUTLINE.md
+High-level Use Case
+TECH_STACK.md
+*.drawio
