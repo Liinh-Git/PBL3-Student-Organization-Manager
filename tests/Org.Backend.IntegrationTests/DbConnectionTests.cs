@@ -11,9 +11,10 @@ public class DbConnectionTests : IDisposable
 {
     private readonly AppDbContext _context;
 
-    // Connection string khớp với appsettings.Development.json
-    private const string ConnectionString =
-        "Host=localhost;Port=5433;Database=StudentOrgDb;Username=org_admin;Password=SecretPassword123!";
+    // Ưu tiên dùng biến môi trường khi chạy CI; fallback theo appsettings.Development.
+    private static readonly string ConnectionString =
+        Environment.GetEnvironmentVariable("TEST_DB_CONNECTION")
+        ?? "Host=localhost;Port=5432;Database=StudentOrgDb;Username=org_admin;Password=SecretPassword123!";
 
     public DbConnectionTests()
     {
@@ -59,13 +60,13 @@ public class DbConnectionTests : IDisposable
     public async Task CoreTablesExistAndAreQueryable()
     {
         // Assert — chỉ cần không ném exception là bảng tồn tại
-        var accountCount    = await _context.Accounts.CountAsync();
+        var userCount       = await _context.Users.CountAsync();
         var orgCount        = await _context.Organizations.CountAsync();
         var memberCount     = await _context.Members.CountAsync();
         var eventCount      = await _context.Events.CountAsync();
 
         // Kết quả >= 0 là hợp lệ (database mới thì == 0)
-        Assert.True(accountCount >= 0);
+        Assert.True(userCount >= 0);
         Assert.True(orgCount >= 0);
         Assert.True(memberCount >= 0);
         Assert.True(eventCount >= 0);

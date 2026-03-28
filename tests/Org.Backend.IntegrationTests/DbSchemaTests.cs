@@ -14,8 +14,9 @@ public class DbSchemaTests : IDisposable
 {
     private readonly AppDbContext _context;
 
-    private const string ConnectionString =
-        "Host=localhost;Port=5433;Database=StudentOrgDb;Username=org_admin;Password=SecretPassword123!";
+    private static readonly string ConnectionString =
+        Environment.GetEnvironmentVariable("TEST_DB_CONNECTION")
+        ?? "Host=localhost;Port=5432;Database=StudentOrgDb;Username=org_admin;Password=SecretPassword123!";
 
     public DbSchemaTests()
     {
@@ -27,51 +28,54 @@ public class DbSchemaTests : IDisposable
     }
 
     /// <summary>
-    /// Test 4: Insert Account → UserProfile, kiểm tra quan hệ 1:1.
+    /// Test 4: Insert User + Organization + Member, kiểm tra FK và navigation.
     /// </summary>
     [Fact]
-    public async Task CanInsertAccountAndUserProfile()
+    public async Task CanInsertUserOrganizationAndMember()
     {
-        // Arrange — dùng timestamp để tránh trùng username/email
         var stamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        var account = new Account
+        var user = new User
         {
-            Username     = $"testuser_{stamp}",
-            Email        = $"test_{stamp}@example.com",
+            FullName = "Nguyễn Văn Test",
+            Email = $"test_{stamp}@example.com",
             PasswordHash = "hashed_password_placeholder",
-            IsActive     = true,
-            CreatedAt    = DateTime.UtcNow,
-            IsDeleted    = false,
+            Status = UserStatus.Active,
         };
 
-        _context.Accounts.Add(account);
-        await _context.SaveChangesAsync();
-
-        var profile = new UserProfile
+        var org = new Organization
         {
-            AccountId  = account.Id,
-            FullName   = "Nguyễn Văn Test",
-            StudentId  = $"SV{stamp}",
-            CreatedAt  = DateTime.UtcNow,
-            IsDeleted  = false,
+            OrgName = $"CLB Test {stamp}",
+            Status = OrgStatus.Active,
+            Description = "Tổ chức dùng để test",
         };
 
-        // Act
-        _context.UserProfiles.Add(profile);
+        _context.Users.Add(user);
+        _context.Organizations.Add(org);
         await _context.SaveChangesAsync();
 
-        // Assert
-        var savedProfile = await _context.UserProfiles
-            .Include(u => u.Account)
-            .FirstAsync(u => u.AccountId == account.Id);
+        var member = new Member
+        {
+            UserId = user.Id,
+            OrgId = org.Id,
+        };
 
-        Assert.Equal("Nguyễn Văn Test", savedProfile.FullName);
-        Assert.Equal(account.Username, savedProfile.Account.Username);
+        _context.Members.Add(member);
+        await _context.SaveChangesAsync();
 
-        // Cleanup
-        _context.UserProfiles.Remove(profile);
-        _context.Accounts.Remove(account);
+        var savedMember = await _context.Members
+            .Include(m => m.User)
+            .Include(m => m.Organization)
+            .FirstAsync(m => m.Id == member.Id);
+
+        Assert.Equal(user.Id, savedMember.UserId);
+        Assert.Equal(org.Id, savedMember.OrgId);
+        Assert.Equal(user.Email, savedMember.User.Email);
+        Assert.Equal(org.OrgName, savedMember.Organization.OrgName);
+
+        _context.Members.Remove(member);
+        _context.Organizations.Remove(org);
+        _context.Users.Remove(user);
         await _context.SaveChangesAsync();
     }
 
@@ -86,11 +90,9 @@ public class DbSchemaTests : IDisposable
 
         var org = new Organization
         {
-            Name        = $"CLB Test {stamp}",
-            OrgType     = OrgType.Club,
+            OrgName      = $"CLB Test {stamp}",
+            Status       = OrgStatus.Active,
             Description = "Tổ chức dùng để test",
-            CreatedAt   = DateTime.UtcNow,
-            IsDeleted   = false,
         };
 
         _context.Organizations.Add(org);
@@ -98,11 +100,9 @@ public class DbSchemaTests : IDisposable
 
         var dept = new Department
         {
-            OrganizationId = org.Id,
-            Name           = "Ban Kỹ Thuật",
-            Description    = "Test department",
-            CreatedAt      = DateTime.UtcNow,
-            IsDeleted      = false,
+            OrgId = org.Id,
+            DeptName = "Ban Kỹ Thuật",
+            Function = "Test department",
         };
 
         // Act
@@ -114,8 +114,8 @@ public class DbSchemaTests : IDisposable
             .Include(d => d.Organization)
             .FirstAsync(d => d.Id == dept.Id);
 
-        Assert.Equal(org.Id, savedDept.OrganizationId);
-        Assert.Equal($"CLB Test {stamp}", savedDept.Organization.Name);
+        Assert.Equal(org.Id, savedDept.OrgId);
+        Assert.Equal($"CLB Test {stamp}", savedDept.Organization.OrgName);
 
         // Cleanup — xóa dept trước (FK), rồi org
         _context.Departments.Remove(dept);
@@ -135,10 +135,8 @@ public class DbSchemaTests : IDisposable
 
         var org = new Organization
         {
-            Name      = $"Org SoftDelete {stamp}",
-            OrgType   = OrgType.Club,
-            CreatedAt = DateTime.UtcNow,
-            IsDeleted = false,
+            OrgName = $"Org SoftDelete {stamp}",
+            Status = OrgStatus.Active,
         };
 
         _context.Organizations.Add(org);
@@ -151,7 +149,7 @@ public class DbSchemaTests : IDisposable
         // Act — query bình thường (global filter áp dụng)
         var found = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == org.Id);
 
-        // Assert — bản ghi đã bị ẩn bởi soft-delete filter
+        // Assert — bản ghi đã bị ẩn bởi global soft-delete filter
         Assert.Null(found);
 
         // Cleanup — phải bypass filter để xóa thật
@@ -160,7 +158,7 @@ public class DbSchemaTests : IDisposable
     }
 
     /// <summary>
-    /// Test 7: Kiểm tra unique index trên Accounts(Email) — không cho phép email trùng.
+    /// Test 7: Kiểm tra unique index trên Users(Email) — không cho phép email trùng.
     /// </summary>
     [Fact]
     public async Task UniqueEmailConstraintIsEnforced()
@@ -169,35 +167,33 @@ public class DbSchemaTests : IDisposable
         var stamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var email = $"unique_test_{stamp}@example.com";
 
-        var account1 = new Account
+        var user1 = new User
         {
-            Username     = $"user1_{stamp}",
-            Email        = email,
+            FullName = "User One",
+            Email = email,
             PasswordHash = "hash1",
-            CreatedAt    = DateTime.UtcNow,
-            IsDeleted    = false,
+            Status = UserStatus.Active,
         };
 
-        var account2 = new Account
+        var user2 = new User
         {
-            Username     = $"user2_{stamp}",
-            Email        = email, // email trùng!
+            FullName = "User Two",
+            Email = email, // email trùng!
             PasswordHash = "hash2",
-            CreatedAt    = DateTime.UtcNow,
-            IsDeleted    = false,
+            Status = UserStatus.Active,
         };
 
-        _context.Accounts.Add(account1);
+        _context.Users.Add(user1);
         await _context.SaveChangesAsync();
 
         // Act & Assert — phải ném exception
-        _context.Accounts.Add(account2);
-        await Assert.ThrowsAnyAsync<Exception>(() => _context.SaveChangesAsync());
+        _context.Users.Add(user2);
+        await Assert.ThrowsAnyAsync<DbUpdateException>(() => _context.SaveChangesAsync());
 
         // Cleanup
         _context.ChangeTracker.Clear();
-        var saved = await _context.Accounts.IgnoreQueryFilters().FirstAsync(a => a.Email == email);
-        _context.Accounts.Remove(saved);
+        var saved = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Email == email);
+        _context.Users.Remove(saved);
         await _context.SaveChangesAsync();
     }
 
