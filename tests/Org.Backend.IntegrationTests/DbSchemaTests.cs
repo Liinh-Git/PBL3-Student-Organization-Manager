@@ -16,7 +16,7 @@ public class DbSchemaTests : IDisposable
 
     private static readonly string ConnectionString =
         Environment.GetEnvironmentVariable("TEST_DB_CONNECTION")
-        ?? "Host=localhost;Port=5432;Database=StudentOrgDb;Username=org_admin;Password=SecretPassword123!";
+        ?? "Host=localhost;Port=5432;Database=StudentOrgDb;Username=org_admin;Password=CHANGE_ME";
 
     public DbSchemaTests()
     {
