@@ -83,6 +83,8 @@ public class AppDbContext : DbContext
              .WithMany(o => o.Roles)
              .HasForeignKey(r => r.OrgId)
              .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(r => new { r.OrgId, r.RoleName }).IsUnique();
         });
 
         // ── Permission ──────────────────────────────────────────────────────────
@@ -193,6 +195,8 @@ public class AppDbContext : DbContext
              .OnDelete(DeleteBehavior.SetNull);
 
             e.Property(r => r.Status).HasConversion<int>();
+
+            e.ToTable(t => t.HasCheckConstraint("CHK_Resource_Quantity", "\"Quantity\" >= 0"));
         });
 
         // ── EventMember ───────────────────────────────────────────────────────────
@@ -207,6 +211,8 @@ public class AppDbContext : DbContext
              .WithMany(m => m.EventMembers)
              .HasForeignKey(em => em.MemberId)
              .OnDelete(DeleteBehavior.Restrict);
+
+              e.HasIndex(em => new { em.EventId, em.MemberId }).IsUnique();
         });
 
         // ── EventReport (1:1 with Event) ─────────────────────────────────────────
