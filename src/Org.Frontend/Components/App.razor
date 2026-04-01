@@ -1,22 +1,28 @@
-﻿<!DOCTYPE html>
+﻿@* ---- Root HTML của ứng dụng Blazor: nạp CSS, head và script runtime ---- *@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
+    @* ---- Bước 1: khai báo metadata cơ bản cho trang ---- *@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    @* ---- Bước 2: nạp tài nguyên tĩnh cần dùng cho toàn app ---- *@
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["Org.Frontend.styles.css"]" />
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
-    <Routes />
+    @* ---- Bước 3: render router chính của app ở chế độ interactive server ---- *@
+    <Routes @rendermode="InteractiveServer" />
+    @* ---- Bước 4: hiển thị modal khi client bị mất kết nối SignalR ---- *@
     <ReconnectModal />
+    @* ---- Bước 5: nạp runtime của Blazor để app chạy tương tác ---- *@
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 
