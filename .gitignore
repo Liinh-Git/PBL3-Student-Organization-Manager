@@ -4,9 +4,11 @@
 ## Get latest from `dotnet new gitignore`
 
 # appsettings local overrides — chứa connection strings thực
+appsettings.json
+src/**/appsettings.json
 appsettings.Development.json
 appsettings.Production.json
-
+Properties/appsettings.json
 # Local environment files
 .env
 
