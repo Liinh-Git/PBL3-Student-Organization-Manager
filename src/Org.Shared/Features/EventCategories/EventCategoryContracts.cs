@@ -3,7 +3,6 @@ namespace Org.Shared.Features.EventCategories;
 public sealed record EventCategoryDto(
     Guid Id,
     Guid MilestoneId,
-    Guid? ParentCategoryId,
     string Name,
     string? Description,
     int SortOrder,
@@ -12,7 +11,6 @@ public sealed record EventCategoryDto(
 
 public sealed record CreateEventCategoryRequest(
     Guid MilestoneId,
-    Guid? ParentCategoryId,
     string Name,
     string? Description,
     int SortOrder);

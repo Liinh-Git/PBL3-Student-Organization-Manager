@@ -1,4 +1,4 @@
-﻿// ---- AppDbContext: khai báo DbSet và toàn bộ mapping/constraint cho database ----
+// ---- AppDbContext: khai báo DbSet và toàn bộ mapping/constraint cho database ----
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
@@ -248,11 +248,6 @@ public class AppDbContext : DbContext
              .WithMany(m => m.Categories)
              .HasForeignKey(c => c.MilestoneId)
              .OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(c => c.ParentCategory)
-             .WithMany(c => c.Children)
-             .HasForeignKey(c => c.ParentCategoryId)
-             .OnDelete(DeleteBehavior.Restrict);
 
             e.HasOne(c => c.OwnerDepartment)
              .WithMany(d => d.OwnedEventCategories)

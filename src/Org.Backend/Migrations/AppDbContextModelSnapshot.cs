@@ -279,17 +279,12 @@ namespace Org.Backend.Migrations
                     b.Property<Guid?>("OwnerDepartmentId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ParentCategoryId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerDepartmentId");
-
-                    b.HasIndex("ParentCategoryId");
 
                     b.HasIndex("MilestoneId", "CategoryName")
                         .IsUnique();
@@ -876,16 +871,9 @@ namespace Org.Backend.Migrations
                         .HasForeignKey("OwnerDepartmentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Org.Backend.Domain.Entities.EventCategory", "ParentCategory")
-                        .WithMany("Children")
-                        .HasForeignKey("ParentCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Milestone");
 
                     b.Navigation("OwnerDepartment");
-
-                    b.Navigation("ParentCategory");
                 });
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.EventMember", b =>
@@ -1080,8 +1068,6 @@ namespace Org.Backend.Migrations
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.EventCategory", b =>
                 {
-                    b.Navigation("Children");
-
                     b.Navigation("Tasks");
                 });
 
