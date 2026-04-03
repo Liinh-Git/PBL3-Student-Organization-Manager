@@ -1,13 +1,5 @@
 namespace Org.Shared.Features.Members;
 
-public enum MemberRole
-{
-    Member = 0,
-    Manager = 1,
-    VicePresident = 2,
-    President = 3
-}
-
 public sealed record MemberDto(
     Guid Id,
     Guid OrganizationId,

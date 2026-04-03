@@ -1,4 +1,5 @@
 using Org.Backend.Domain.Enums;
+using Org.Shared;
 
 namespace Org.Backend.Domain.Entities;
 

@@ -7,14 +7,14 @@ public sealed record EventDto(
     string? Description,
     DateOnly StartDate,
     DateOnly EndDate,
-    string Status,
+    EventStatus Status,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset? UpdatedAtUtc);
 
 public sealed record EventTreeNodeDto(
     Guid Id,
     string Name,
-    string Status,
+    EventStatus Status,
     DateOnly StartDate,
     DateOnly EndDate,
     int MilestoneCount,

@@ -2,7 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Domain.Enums;
-using TaskStatus = Org.Backend.Domain.Enums.TaskStatus;
+using Org.Shared;
+using TaskStatus = Org.Shared.TaskStatus;
 
 namespace Org.Backend.Infrastructure.Database;
 

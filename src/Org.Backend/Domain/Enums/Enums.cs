@@ -16,14 +16,6 @@ public enum RequestStatus     { Pending, Approved, Rejected }
 // ── Resource ──────────────────────────────────────────────
 public enum ResourceStatus    { Available, InUse, Unavailable }
 
-// ── Milestone & Task ──────────────────────────────────────
-public enum MilestoneStatus   { NotStarted, InProgress, Completed }
-public enum TaskStatus        { Todo, InProgress, Done }
-public enum TaskPriority      { Low, Medium, High }
-
-// ── Event ─────────────────────────────────────────────────
-public enum EventStatus       { Draft, Planning, Ongoing, Completed }
-
 // ── Attendee ──────────────────────────────────────────────
 public enum AttendeeStatus    { Registered, Attended, Cancelled }
 

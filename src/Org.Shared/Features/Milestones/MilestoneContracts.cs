@@ -8,7 +8,7 @@ public sealed record MilestoneDto(
     DateOnly StartDate,
     DateOnly EndDate,
     int SortOrder,
-    string Status);
+    MilestoneStatus Status);
 
 public sealed record CreateMilestoneRequest(
     Guid EventId,
