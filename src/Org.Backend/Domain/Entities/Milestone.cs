@@ -17,5 +17,9 @@ public class Milestone : BaseEntity
 
     // Navigation
     public Event Event { get; set; } = null!;
+    public ICollection<EventCategory> Categories { get; set; } = [];
     public ICollection<OrgTask> Tasks { get; set; } = [];
+
+    // TODO(BE-DAY1): Move task ownership fully to EventCategory (Milestone -> Categories -> Tasks).
+    // TODO(BE-DAY1): Add rule: DueDate must be in range [Event.StartDate, Event.EndDate].
 }

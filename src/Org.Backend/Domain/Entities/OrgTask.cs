@@ -11,6 +11,7 @@ namespace Org.Backend.Domain.Entities;
 public class OrgTask : BaseEntity
 {
     public Guid MilestoneId { get; set; }
+    public Guid? CategoryId { get; set; }
     public string TaskName { get; set; } = string.Empty;
     public Guid? AssigneeId { get; set; }   // FK → Member
     public Guid? DeptId { get; set; }        // FK → Department
@@ -21,6 +22,10 @@ public class OrgTask : BaseEntity
 
     // Navigation
     public Milestone Milestone { get; set; } = null!;
+    public EventCategory? Category { get; set; }
     public Member? Assignee { get; set; }
     public Department? Department { get; set; }
+
+    // TODO(BE-DAY1): Make CategoryId required after migration is completed.
+    // TODO(BE-DAY1): Add status transition policy (Todo -> InProgress -> Done/Blocked).
 }

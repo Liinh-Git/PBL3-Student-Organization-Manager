@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
     public DbSet<EventMember> EventMembers => Set<EventMember>();
     public DbSet<EventReport> EventReports => Set<EventReport>();
     public DbSet<Milestone> Milestones => Set<Milestone>();
+    public DbSet<EventCategory> EventCategories => Set<EventCategory>();
     public DbSet<OrgTask> Tasks => Set<OrgTask>();
     public DbSet<Attendee> Attendees => Set<Attendee>();
     public DbSet<DigitalAsset> DigitalAssets => Set<DigitalAsset>();
@@ -237,6 +238,20 @@ public class AppDbContext : DbContext
             e.Property(m => m.Status).HasConversion<int>();
         });
 
+        // ── EventCategory ────────────────────────────────────────────────────────
+        modelBuilder.Entity<EventCategory>(e =>
+        {
+            e.HasOne(c => c.Milestone)
+             .WithMany(m => m.Categories)
+             .HasForeignKey(c => c.MilestoneId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(c => c.ParentCategory)
+             .WithMany(c => c.Children)
+             .HasForeignKey(c => c.ParentCategoryId)
+             .OnDelete(DeleteBehavior.Restrict);
+        });
+
         // ── OrgTask ───────────────────────────────────────────────────────────────
         modelBuilder.Entity<OrgTask>(e =>
         {
@@ -244,6 +259,11 @@ public class AppDbContext : DbContext
              .WithMany(m => m.Tasks)
              .HasForeignKey(t => t.MilestoneId)
              .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(t => t.Category)
+             .WithMany(c => c.Tasks)
+             .HasForeignKey(t => t.CategoryId)
+             .OnDelete(DeleteBehavior.SetNull);
 
             e.HasOne(t => t.Assignee)
              .WithMany(m => m.AssignedTasks)
@@ -257,6 +277,8 @@ public class AppDbContext : DbContext
 
             e.Property(t => t.Status).HasConversion<int>();
             e.Property(t => t.Priority).HasConversion<int>();
+
+            // TODO(BE-DAY1): Switch `OnDelete` from SetNull to Restrict/Cascade after FE flow is finalized.
         });
 
         // ── Attendee ──────────────────────────────────────────────────────────────
