@@ -1,0 +1,57 @@
+@* ---- Layout cho trang login/register: bên trái hero, bên phải form ---- *@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+<div class="auth-shell">
+    @* ---- Cột trái: khu vực giới thiệu thương hiệu và số liệu nổi bật ---- *@
+    <aside class="auth-hero">
+        <div class="auth-hero-header">AcademiaCurator</div>
+
+        <div class="auth-hero-icon" aria-hidden="true">AC</div>
+
+        <h1 class="auth-hero-title">Tham gia cộng đồng của chúng tôi</h1>
+        <p class="auth-hero-subtitle">
+            Khám phá các câu lạc bộ, sự kiện và kết nối với những người có cùng sở thích
+            trong môi trường học thuật hiện đại.
+        </p>
+
+        <div class="auth-hero-stats">
+            <article>
+                <strong>500+</strong>
+                <span>Câu lạc bộ</span>
+            </article>
+            <article>
+                <strong>10k+</strong>
+                <span>Sinh viên</span>
+            </article>
+        </div>
+
+        <p class="auth-hero-proof">Tham gia cùng hàng nghìn sinh viên khác ngay hôm nay.</p>
+    </aside>
+
+    @* ---- Cột phải: khu vực form đăng nhập/đăng ký và điều hướng auth ---- *@
+    <section class="auth-stage">
+        <header class="auth-stage-topnav">
+            <a href="/login" class="@GetLinkClass("login")">Login</a>
+            <a href="/register" class="@GetLinkClass("register")">Sign Up</a>
+        </header>
+
+        <main class="auth-stage-content">
+            @Body
+        </main>
+
+        <footer class="auth-stage-footer">
+            <span>© 2026 AcademiaCurator. All rights reserved.</span>
+        </footer>
+    </section>
+</div>
+
+@code {
+    // ---- Xác định link Login/Sign Up đang active theo URL hiện tại ----
+    private string GetLinkClass(string segment)
+    {
+        var path = Navigation.ToBaseRelativePath(Navigation.Uri);
+        var isActive = path.StartsWith(segment, StringComparison.OrdinalIgnoreCase);
+        return isActive ? "auth-nav-link active" : "auth-nav-link";
+    }
+}

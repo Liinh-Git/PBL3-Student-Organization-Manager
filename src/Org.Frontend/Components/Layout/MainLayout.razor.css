@@ -36,6 +36,16 @@ main {
         text-overflow: ellipsis;
     }
 
+.top-row-user {
+    color: #2a3342;
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.top-row-action {
+    margin-left: 0.5rem;
+}
+
 @media (max-width: 640.98px) {
     .top-row {
         justify-content: space-between;

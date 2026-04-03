@@ -1,0 +1,33 @@
+@* ---- Auth guard: tự động chuyển sang /login nếu chưa đăng nhập ---- *@
+@inject NavigationManager Navigation
+@inject FrontendAuthStateProvider AuthStateProvider
+
+@code {
+    // ---- Chạy một lần để kiểm tra đăng nhập và điều hướng khi cần ----
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        // Bước 1: đảm bảo auth state đã được khởi tạo từ token
+        await AuthStateProvider.InitializeAsync();
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+            return;
+
+        // Bước 2: bỏ qua redirect nếu hiện tại đã ở trang login
+        var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (relativePath.StartsWith("login", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        // Bước 3: dựng returnUrl để sau login quay lại đúng trang trước đó
+        var returnUrl = string.IsNullOrWhiteSpace(relativePath)
+            ? "/"
+            : $"/{relativePath}";
+
+        // Bước 4: điều hướng sang login và kèm returnUrl
+        var target = $"/login?returnUrl={Uri.EscapeDataString(returnUrl)}";
+        Navigation.NavigateTo(target, forceLoad: false);
+    }
+}

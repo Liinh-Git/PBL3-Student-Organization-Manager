@@ -1,23 +1,24 @@
-using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using Org.Backend.Infrastructure.Database;
+// ---- Entry point: chỉ orchestration, logic chi tiết nằm trong Infrastructure/Startup ----
+using Org.Backend.Infrastructure.Startup;
 
+// ---- Bước 1: tạo builder và xác định có chạy seed mode hay không ----
 var builder = WebApplication.CreateBuilder(args);
+var isSeedMode = args.Contains("--seed", StringComparer.OrdinalIgnoreCase);
 
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// ---- Bước 2: đăng ký service lõi + runtime API (runtime sẽ bỏ qua khi seed mode) ----
+builder.Services
+    .AddAppCoreServices(builder)
+    .AddAppApiRuntime(isSeedMode);
 
-builder.Services.AddFastEndpoints();
-builder.Services.AddOpenApi();
-
+// ---- Bước 3: build ứng dụng ----
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// ---- Bước 4: nếu chạy seed mode thì migrate + seed + thoát ngay ----
+if (await SeedModeRunner.TryRunAsync(app, isSeedMode))
 {
-    app.MapOpenApi();
+    return;
 }
 
-app.UseHttpsRedirection();
-app.UseFastEndpoints();
-
+// ---- Bước 5: web mode bình thường, nạp middleware pipeline và chạy server ----
+app.UseAppApiPipeline();
 app.Run();

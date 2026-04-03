@@ -4,7 +4,7 @@ namespace Org.Backend.Domain.Entities;
 
 /// <summary>
 /// A milestone (phase/checkpoint) within an event.
-/// Tasks must be completed before the milestone dueDate.
+/// Categories within a milestone group tasks by workstream.
 /// orderIndex controls display order.
 /// </summary>
 public class Milestone : BaseEntity
@@ -18,8 +18,11 @@ public class Milestone : BaseEntity
     // Navigation
     public Event Event { get; set; } = null!;
     public ICollection<EventCategory> Categories { get; set; } = [];
+<<<<<<< HEAD
     public ICollection<OrgTask> Tasks { get; set; } = [];
 
     // TODO(BE-DAY1): Move task ownership fully to EventCategory (Milestone -> Categories -> Tasks).
     // TODO(BE-DAY1): Add rule: DueDate must be in range [Event.StartDate, Event.EndDate].
+=======
+>>>>>>> origin/dev
 }
