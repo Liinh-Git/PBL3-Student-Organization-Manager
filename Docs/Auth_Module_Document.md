@@ -51,10 +51,10 @@ Frontend tổ chức theo component + services:
 
 ## 3.1 Cơ chế gọi API
 Frontend dùng typed `HttpClient` (`AuthApiClient`) để gọi backend.
-Base URL được cấu hình tại:
+Base URL được cấu hình trong:
 - `src/Org.Frontend/appsettings.json`
-- `src/Org.Frontend/appsettings.Development.json`
 
+Nếu cần override cho môi trường local/development, hãy dùng user-secrets hoặc cơ chế cấu hình cục bộ tương đương; không phụ thuộc vào `src/Org.Frontend/appsettings.Development.json` trong repo.
 Ví dụ cấu hình:
 ```json
 "BackendApi": {
