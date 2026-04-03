@@ -6,7 +6,7 @@ namespace Org.Backend.Domain.Entities;
 /// <summary>
 /// A task belonging to an event category.
 /// Renamed OrgTask to avoid conflict with System.Threading.Tasks.Task.
-/// deadline must be before the parent Milestone.dueDate (enforced by application logic).
+/// Deadline must be before the due date of the milestone associated with the parent event category.
 /// </summary>
 public class OrgTask : BaseEntity
 {

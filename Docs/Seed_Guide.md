@@ -6,7 +6,7 @@ Tài liệu này hướng dẫn cách cập nhật cấu trúc database (Migrati
 
 ### 1. Điều kiện tiên quyết
 - Đã cài đặt **.NET 10 SDK**.
-- Đã cài đặt **PostgreSQL** và cấu chỉnh đúng `ConnectionStrings:DefaultConnection` trong [src/Org.Backend/appsettings.Development.json](src/Org.Backend/appsettings.Development.json) hoặc sử dụng **User Secrets**.
+- Đã cài đặt **PostgreSQL** và cấu hình `ConnectionStrings:DefaultConnection`. File có sẵn trong repo là [src/Org.Backend/appsettings.json](src/Org.Backend/appsettings.json); với cấu hình local/nhạy cảm, nên override bằng **User Secrets** hoặc **environment variables**. Tự tạo `appsettings.Development.json` ở máy local và đó là file tùy chọn, không phải file có sẵn trong repo, nếu có thêm field nào để dùng, ghi vào appsettings.json để nắm bắt cấu hình (appsettings.json ở FE và BE là khác nhau).
 - Đã cài đặt `dotnet-ef` tool:
   ```powershell
   dotnet tool install --global dotnet-ef
