@@ -1,3 +1,4 @@
+// ---- AppDbContext: khai báo DbSet và toàn bộ mapping/constraint cho database ----
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
@@ -7,6 +8,7 @@ namespace Org.Backend.Infrastructure.Database;
 
 public class AppDbContext : DbContext
 {
+    // ---- Constructor nhận DbContextOptions từ DI ----
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     // ── DbSets ──────────────────────────────────────────────────────────────────
@@ -29,11 +31,12 @@ public class AppDbContext : DbContext
     public DbSet<EventMember> EventMembers => Set<EventMember>();
     public DbSet<EventReport> EventReports => Set<EventReport>();
     public DbSet<Milestone> Milestones => Set<Milestone>();
+    public DbSet<EventCategory> EventCategories => Set<EventCategory>();
     public DbSet<OrgTask> Tasks => Set<OrgTask>();
     public DbSet<Attendee> Attendees => Set<Attendee>();
     public DbSet<DigitalAsset> DigitalAssets => Set<DigitalAsset>();
 
-    // ── Auto-set UpdatedAt on every save ────────────────────────────────────────
+    // ---- Tự động set CreatedAt/UpdatedAt cho các entity kế thừa BaseEntity ----
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
@@ -46,6 +49,7 @@ public class AppDbContext : DbContext
         return base.SaveChangesAsync(cancellationToken);
     }
 
+    // ---- Khai báo toàn bộ quan hệ FK, index, enum conversion, và check constraint ----
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -237,12 +241,29 @@ public class AppDbContext : DbContext
             e.Property(m => m.Status).HasConversion<int>();
         });
 
+        // ── EventCategory ──────────────────────────────────────────────────────
+        modelBuilder.Entity<EventCategory>(e =>
+        {
+            e.HasOne(c => c.Milestone)
+             .WithMany(m => m.Categories)
+             .HasForeignKey(c => c.MilestoneId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(c => c.OwnerDepartment)
+             .WithMany(d => d.OwnedEventCategories)
+             .HasForeignKey(c => c.OwnerDepartmentId)
+             .OnDelete(DeleteBehavior.SetNull);
+
+            e.HasIndex(c => new { c.MilestoneId, c.CategoryName }).IsUnique();
+            e.HasIndex(c => new { c.MilestoneId, c.OrderIndex });
+        });
+
         // ── OrgTask ───────────────────────────────────────────────────────────────
         modelBuilder.Entity<OrgTask>(e =>
         {
-            e.HasOne(t => t.Milestone)
-             .WithMany(m => m.Tasks)
-             .HasForeignKey(t => t.MilestoneId)
+            e.HasOne(t => t.EventCategory)
+             .WithMany(c => c.Tasks)
+             .HasForeignKey(t => t.EventCategoryId)
              .OnDelete(DeleteBehavior.Cascade);
 
             e.HasOne(t => t.Assignee)
@@ -291,13 +312,13 @@ public class AppDbContext : DbContext
             e.Property(da => da.FileType).HasConversion<int>();
         });
 
-        // ── Global soft-delete query filter for all BaseEntity subclasses ─────────
+        // ---- Áp dụng soft-delete filter cho mọi entity kế thừa BaseEntity ----
         ApplySoftDeleteFilters(modelBuilder);
     }
 
     /// <summary>
-    /// Applies a global HasQueryFilter(e => !e.IsDeleted) to every entity that
-    /// inherits from BaseEntity, so soft-deleted rows are invisible by default.
+    /// Duyệt toàn bộ entity kế thừa BaseEntity và gắn HasQueryFilter(!IsDeleted)
+    /// để dữ liệu soft-delete không xuất hiện trong truy vấn mặc định.
     /// </summary>
     private static void ApplySoftDeleteFilters(ModelBuilder modelBuilder)
     {
