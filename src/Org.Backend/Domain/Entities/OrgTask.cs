@@ -1,5 +1,6 @@
-using Org.Backend.Domain.Enums;
-using TaskStatus = Org.Backend.Domain.Enums.TaskStatus;
+﻿using Org.Backend.Domain.Enums;
+using Org.Shared;
+using TaskStatus = Org.Shared.TaskStatus;
 
 namespace Org.Backend.Domain.Entities;
 
@@ -23,4 +24,6 @@ public class OrgTask : BaseEntity
     public EventCategory EventCategory { get; set; } = null!;
     public Member? Assignee { get; set; }
     public Department? Department { get; set; }
+
+    // TODO(BE-DAY1): Add status transition policy (Todo -> InProgress -> Done/Blocked).
 }

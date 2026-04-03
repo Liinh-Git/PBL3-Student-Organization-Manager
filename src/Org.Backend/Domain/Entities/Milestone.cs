@@ -1,4 +1,5 @@
-using Org.Backend.Domain.Enums;
+﻿using Org.Backend.Domain.Enums;
+using Org.Shared;
 
 namespace Org.Backend.Domain.Entities;
 
@@ -18,4 +19,6 @@ public class Milestone : BaseEntity
     // Navigation
     public Event Event { get; set; } = null!;
     public ICollection<EventCategory> Categories { get; set; } = [];
+
+    // TODO(BE-DAY1): Add rule: DueDate must be in range [Event.StartDate, Event.EndDate].
 }
