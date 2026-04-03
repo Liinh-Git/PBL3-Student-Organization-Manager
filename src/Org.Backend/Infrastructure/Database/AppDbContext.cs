@@ -1,4 +1,4 @@
-// ---- AppDbContext: khai báo DbSet và toàn bộ mapping/constraint cho database ----
+﻿// ---- AppDbContext: khai báo DbSet và toàn bộ mapping/constraint cho database ----
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
@@ -241,11 +241,7 @@ public class AppDbContext : DbContext
             e.Property(m => m.Status).HasConversion<int>();
         });
 
-<<<<<<< HEAD
-        // ── EventCategory ────────────────────────────────────────────────────────
-=======
         // ── EventCategory ──────────────────────────────────────────────────────
->>>>>>> origin/dev
         modelBuilder.Entity<EventCategory>(e =>
         {
             e.HasOne(c => c.Milestone)
@@ -253,12 +249,11 @@ public class AppDbContext : DbContext
              .HasForeignKey(c => c.MilestoneId)
              .OnDelete(DeleteBehavior.Cascade);
 
-<<<<<<< HEAD
             e.HasOne(c => c.ParentCategory)
              .WithMany(c => c.Children)
              .HasForeignKey(c => c.ParentCategoryId)
              .OnDelete(DeleteBehavior.Restrict);
-=======
+
             e.HasOne(c => c.OwnerDepartment)
              .WithMany(d => d.OwnedEventCategories)
              .HasForeignKey(c => c.OwnerDepartmentId)
@@ -266,7 +261,6 @@ public class AppDbContext : DbContext
 
             e.HasIndex(c => new { c.MilestoneId, c.CategoryName }).IsUnique();
             e.HasIndex(c => new { c.MilestoneId, c.OrderIndex });
->>>>>>> origin/dev
         });
 
         // ── OrgTask ───────────────────────────────────────────────────────────────
@@ -276,11 +270,6 @@ public class AppDbContext : DbContext
              .WithMany(c => c.Tasks)
              .HasForeignKey(t => t.EventCategoryId)
              .OnDelete(DeleteBehavior.Cascade);
-
-            e.HasOne(t => t.Category)
-             .WithMany(c => c.Tasks)
-             .HasForeignKey(t => t.CategoryId)
-             .OnDelete(DeleteBehavior.SetNull);
 
             e.HasOne(t => t.Assignee)
              .WithMany(m => m.AssignedTasks)
@@ -294,8 +283,6 @@ public class AppDbContext : DbContext
 
             e.Property(t => t.Status).HasConversion<int>();
             e.Property(t => t.Priority).HasConversion<int>();
-
-            // TODO(BE-DAY1): Switch `OnDelete` from SetNull to Restrict/Cascade after FE flow is finalized.
         });
 
         // ── Attendee ──────────────────────────────────────────────────────────────
