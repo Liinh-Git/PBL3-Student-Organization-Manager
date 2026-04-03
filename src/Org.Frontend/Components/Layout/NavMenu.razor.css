@@ -81,6 +81,28 @@
     color: white;
 }
 
+.nav-item.nav-user {
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 0.85rem;
+}
+
+.nav-user-name {
+    color: #f7f7f7;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-button {
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
 .nav-scrollable {
     display: none;
 }

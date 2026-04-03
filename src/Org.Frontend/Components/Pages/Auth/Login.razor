@@ -1,0 +1,142 @@
+@* ---- Trang login: nhập email/mật khẩu và gọi API login ---- *@
+@page "/login"
+@layout AuthLayout
+@attribute [AllowAnonymous]
+@inject AuthApiClient AuthApiClient
+@inject FrontendAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.WebUtilities
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Đăng nhập</PageTitle>
+
+<section class="auth-form-shell">
+    <header class="auth-form-header">
+        <h2>Chào mừng trở lại</h2>
+        <p>Đăng nhập để quản lý cộng đồng và theo dõi hoạt động của bạn.</p>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="auth-alert auth-alert-error">@_errorMessage</div>
+    }
+
+    <EditForm FormName="login-form" Model="_model" OnValidSubmit="HandleSubmitAsync" class="auth-form">
+        <DataAnnotationsValidator />
+
+        <div class="auth-field-group">
+            <label for="login-email" class="auth-label">Email</label>
+            <InputText id="login-email" class="auth-input" @bind-Value="_model.Email" placeholder="email@example.com" />
+            <ValidationMessage For="() => _model.Email" class="auth-validation" />
+        </div>
+
+        <div class="auth-field-group">
+            <label for="login-password" class="auth-label">Mật khẩu</label>
+            <InputText id="login-password" type="password" class="auth-input" @bind-Value="_model.Password" placeholder="Nhập mật khẩu" />
+            <ValidationMessage For="() => _model.Password" class="auth-validation" />
+        </div>
+
+        <button type="submit" class="auth-primary-btn" disabled="@_isSubmitting">
+            @(_isSubmitting ? "Đang đăng nhập..." : "Đăng nhập")
+        </button>
+    </EditForm>
+
+    <div class="auth-divider" role="separator">HOẶC</div>
+
+    <button class="auth-google-btn" type="button" disabled title="Google OAuth sẽ được triển khai ở phase sau.">
+        Đăng nhập bằng Google (Coming soon)
+    </button>
+
+    <p class="auth-footnote">
+        Chưa có tài khoản?
+        <a href="/register">Đăng ký ngay</a>
+    </p>
+</section>
+
+@code {
+    // Model chứa dữ liệu người dùng nhập từ form
+    private readonly LoginFormModel _model = new();
+    // Cờ trạng thái để khóa nút submit khi đang gửi request
+    private bool _isSubmitting;
+    // Thông báo lỗi hiển thị trên giao diện nếu đăng nhập thất bại
+    private string? _errorMessage;
+
+    // ---- Nếu đã login thì về home, tránh mở lại trang login ----
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await AuthStateProvider.InitializeAsync();
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+            Navigation.NavigateTo("/", forceLoad: false);
+    }
+
+    // ---- Submit form: gọi API login, lưu token, redirect về returnUrl ----
+    private async Task HandleSubmitAsync()
+    {
+        // Bắt đầu submit: bật trạng thái loading và xóa lỗi cũ
+        _isSubmitting = true;
+        _errorMessage = null;
+
+        try
+        {
+            // Gọi API đăng nhập bằng email/mật khẩu từ form
+            var response = await AuthApiClient.LoginAsync(new LoginRequest
+            {
+                Email = _model.Email.Trim(),
+                Password = _model.Password
+            });
+
+            // Lưu token + cập nhật auth state rồi chuyển tới trang đích
+            await AuthStateProvider.SignInAsync(response);
+            Navigation.NavigateTo(GetReturnUrl(), forceLoad: false);
+        }
+        catch (AuthApiException ex)
+        {
+            // Map lỗi backend sang thông báo dễ hiểu cho người dùng
+            _errorMessage = ex.StatusCode switch
+            {
+                401 => "Email hoặc mật khẩu không đúng.",
+                _ => ex.Message
+            };
+        }
+        finally
+        {
+            // Kết thúc submit: mở lại nút để người dùng thao tác tiếp
+            _isSubmitting = false;
+        }
+    }
+
+    // ---- Lấy returnUrl từ query string (nếu có), fallback về '/' ----
+    private string GetReturnUrl()
+    {
+        // Đọc query string hiện tại để lấy returnUrl sau khi login
+        var currentUri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = QueryHelpers.ParseQuery(currentUri.Query);
+
+        if (query.TryGetValue("returnUrl", out var returnUrl))
+        {
+            var value = returnUrl.ToString();
+            // Chỉ chấp nhận đường dẫn nội bộ bắt đầu bằng '/' để an toàn
+            if (!string.IsNullOrWhiteSpace(value) && value.StartsWith('/'))
+                return value;
+        }
+
+        return "/";
+    }
+
+    // ---- Model cho form login (validation bằng DataAnnotations) ----
+    private sealed class LoginFormModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập email.")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
+        [MinLength(8, ErrorMessage = "Mật khẩu phải có tối thiểu 8 ký tự.")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

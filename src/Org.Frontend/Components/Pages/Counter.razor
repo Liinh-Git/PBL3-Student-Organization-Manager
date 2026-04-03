@@ -1,4 +1,6 @@
-﻿@page "/counter"
+﻿@* ---- Trang mẫu có bảo vệ auth: dùng để test render và sự kiện click ---- *@
+@page "/counter"
+@attribute [Authorize]
 @rendermode InteractiveServer
 
 <PageTitle>Counter</PageTitle>
@@ -10,8 +12,10 @@
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
 @code {
+    // ---- Lưu trạng thái bộ đếm hiện tại trên UI ----
     private int currentCount = 0;
 
+    // ---- Mỗi lần bấm nút thì tăng bộ đếm thêm 1 ----
     private void IncrementCount()
     {
         currentCount++;
