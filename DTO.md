@@ -13,9 +13,9 @@
 | Shared/Tasks | `src/Org.Shared/Features/Tasks/TaskContracts.cs` | Định nghĩa `TaskDto`, `OrgTaskStatus`, create/update status/assign, list response `{ items: [...] }`. | Done |
 | Backend/Domain | `src/Org.Backend/Domain/Entities/EventCategory.cs` | Thêm entity `EventCategory : BaseEntity`, hỗ trợ cây cha-con, TODO rule hierarchy. | Done |
 | Backend/Domain | `src/Org.Backend/Domain/Entities/Milestone.cs` | Bổ sung navigation `Categories`, TODO chuyển ownership task theo category. | Done |
-| Backend/Domain | `src/Org.Backend/Domain/Entities/OrgTask.cs` | Bổ sung `CategoryId` + navigation `Category`, TODO transition/status policy. | Done |
+| Backend/Domain | `src/Org.Backend/Domain/Entities/OrgTask.cs` | Đồng bộ ownership task theo `EventCategoryId` + navigation `EventCategory`, TODO transition/status policy. | Done |
 | Backend/Infra | `src/Org.Backend/Infrastructure/Database/AppDbContext.cs` | Thêm `DbSet<EventCategory>` + mapping quan hệ Milestone-Category-Task. | Done |
-| Backend/Migration | `src/Org.Backend/Migrations/202611010001_AddEventCategoryHierarchy_Placeholder.cs` | Tạo placeholder migration + TODO chi tiết Up/Down. | Done |
+| Backend/Migration | `src/Org.Backend/Migrations/20260402103306_AddEventCategoryHierarchy.cs`, `src/Org.Backend/Migrations/20260403163858_AddEventCategoryParentHierarchy.cs` | Migration thật cho EventCategory + FK Task + self-reference `ParentCategoryId`. | Done |
 | Backend/Feature TODO | `src/Org.Backend/Features/*/*.Todos.cs` | Tạo skeleton TODO chi tiết cho Departments/Members/Events/Milestones/Categories/Tasks. | Done |
 
 ## 2) DTO contracts đã chốt (để FE mock)
@@ -81,7 +81,7 @@
 
 ## 4) Ghi chú tiếp theo cho BE implement
 1. Wire FastEndpoints cho toàn bộ route theo skeleton TODO trong `src/Org.Backend/Features`.
-2. Hoàn thiện migration thật cho `EventCategories` + quan hệ `Tasks`.
+2. Giữ migration chain sạch: dùng `AddEventCategoryHierarchy` + `AddEventCategoryParentHierarchy`, không dùng placeholder migration.
 3. Thêm mapping giữa Domain Entity ↔ DTO (manual mapper hoặc profile).
 4. Seed data demo (1 org, 2 departments, 4 members, 1 event tree).
 5. Cập nhật tài liệu handoff endpoint cho FE (sample request/response thực tế).
