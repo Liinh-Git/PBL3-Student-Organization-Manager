@@ -12,13 +12,13 @@ public class Milestone : BaseEntity
 {
     public Guid EventId { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
     public int OrderIndex { get; set; } = 0;
-    public DateTime DueDate { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
     public MilestoneStatus Status { get; set; } = MilestoneStatus.NotStarted;
 
     // Navigation
     public Event Event { get; set; } = null!;
     public ICollection<EventCategory> Categories { get; set; } = [];
-
-    // TODO(BE-DAY1): Add rule: DueDate must be in range [Event.StartDate, Event.EndDate].
 }
