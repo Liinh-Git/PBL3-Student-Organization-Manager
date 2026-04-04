@@ -58,15 +58,30 @@ public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateM
 
         if (role is null)
         {
-            role = new Domain.Entities.Role
+            var newRole = new Domain.Entities.Role
             {
                 OrgId = member!.OrgId,
                 RoleName = roleName,
                 Description = $"Auto-generated role for {roleName}"
             };
 
-            db.Roles.Add(role);
-            await db.SaveChangesAsync(ct);
+            db.Roles.Add(newRole);
+
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                role = newRole;
+            }
+            catch (DbUpdateException)
+            {
+                db.Entry(newRole).State = EntityState.Detached;
+
+                role = await db.Roles
+                    .FirstOrDefaultAsync(x => x.OrgId == member!.OrgId && x.RoleName.ToLower() == roleName.ToLower(), ct);
+
+                if (role is null)
+                    throw;
+            }
         }
 
         member!.RoleId = role.Id;
