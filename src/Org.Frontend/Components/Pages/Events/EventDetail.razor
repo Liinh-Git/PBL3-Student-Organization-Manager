@@ -1,16 +1,12 @@
 @page "/events/{EventId:guid}"
 @rendermode InteractiveServer
 @using MudBlazor
-@using Org.Shared.Features.Events
-@using Org.Shared.Features.Milestones
-@using Org.Shared.Features.EventCategories
-@using Org.Shared.Features.Tasks
+@using Org.Frontend.ViewModels
 @using Org.Frontend.Services.Events
 @using Org.Frontend.Services.Milestones
 @using Org.Frontend.Services.EventCategories
 @using Org.Frontend.Services.Tasks
 @inject NavigationManager NavigationManager
-
 @inject IEventService EventService
 @inject IMilestoneService MilestoneService
 @inject IEventCategoryService CategoryService
@@ -50,7 +46,7 @@
                        Class="mr-1" />
                        
         <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold" Style="letter-spacing: 1px; padding-top: 2px;">
-            EVENTS <span style="color: #cbd5e1;">&gt;</span> <span style="color: #f97316;">@eventDetail.Title?.ToUpper()</span>
+            EVENTS <span style="color: #cbd5e1;">&gt;</span> <span style="color: #f97316;">@eventDetail.Name?.ToUpper()</span>
         </MudText>
     </div>
             
@@ -63,10 +59,10 @@
         <MudCard Class="banner-card pa-10 mb-6 elevation-0">
             <MudIcon Icon="@Icons.Material.Filled.Waves" Class="banner-pattern" Size="Size.Large" />
             <div class="d-flex align-center gap-3 mb-4">
-                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background-color: #f97316; color: white;" Class="fw-bold rounded-pill">@eventDetail.Status</MudChip>
-                <MudText Typo="Typo.body2" Class="opacity-70 fw-bold">@eventDetail.Date.ToString("MMM dd") - @eventDetail.EndDate.ToString("MMM dd, yyyy")</MudText>
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background-color: #f97316; color: white;" Class="fw-bold rounded-pill">@eventDetail.StatusLabel</MudChip>
+                <MudText Typo="Typo.body2" Class="opacity-70 fw-bold">@eventDetail.StartDate.ToString("MMM dd") - @eventDetail.EndDate.ToString("MMM dd, yyyy")</MudText>
             </div>
-            <MudText Typo="Typo.h3" Class="fw-800 mb-4" Style="line-height: 1.1;">@eventDetail.Title</MudText>
+            <MudText Typo="Typo.h3" Class="fw-800 mb-4" Style="line-height: 1.1;">@eventDetail.Name</MudText>
             <MudText Typo="Typo.body1" Class="opacity-70 mb-0" Style="max-width: 700px;">@eventDetail.Description</MudText>
         </MudCard>
 
@@ -75,16 +71,16 @@
                 <MudCard Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
                     <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold mb-2 d-block" Style="letter-spacing: 1px;">COMPLETION</MudText>
                     <div class="d-flex align-end gap-1 mb-2">
-                        <MudText Typo="Typo.h3" Class="fw-800">@eventDetail.CompletionPercentage%</MudText>
+                        <MudText Typo="Typo.h3" Class="fw-800">@eventDetail.CompletionLabel</MudText>
                     </div>
-                    <MudProgressLinear Value="@eventDetail.CompletionPercentage" Color="Color.Warning" Rounded="true" Size="Size.Small" />
+                    <MudProgressLinear Value="@(int.TryParse(eventDetail.CompletionLabel?.TrimEnd('%'), out var cp) ? cp : 0)" Color="Color.Warning" Rounded="true" Size="Size.Small" />
                 </MudCard>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudCard Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
                     <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold mb-2 d-block" Style="letter-spacing: 1px;">BUDGET USED</MudText>
                     <div class="d-flex align-end gap-1 mb-1">
-                        <MudText Typo="Typo.h3" Class="fw-800">@eventDetail.BudgetUsedPercentage%</MudText>
+                        <MudText Typo="Typo.h3" Class="fw-800">@eventDetail.BudgetLabel</MudText>
                     </div>
                     <MudText Typo="Typo.caption" Color="Color.Warning" Class="fw-bold">↑ Near Limit</MudText>
                 </MudCard>
@@ -93,9 +89,9 @@
                 <MudCard Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
                     <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold mb-2 d-block" Style="letter-spacing: 1px;">DAYS LEFT</MudText>
                     <div class="d-flex align-end gap-1 mb-1">
-                        <MudText Typo="Typo.h3" Class="fw-800">@((eventDetail.Date - DateTime.Today).Days)</MudText>
+                        <MudText Typo="Typo.h3" Class="fw-800">@((eventDetail.StartDate.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days)</MudText>
                     </div>
-                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold">@eventDetail.Date.ToString("MMM dd") Deadline</MudText>
+                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold">@eventDetail.StartDate.ToString("MMM dd") Deadline</MudText>
                 </MudCard>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
@@ -194,9 +190,9 @@
 @code {
     [Parameter] public Guid EventId { get; set; }
 
-    private EventDto? eventDetail;
-    private List<MilestoneDto> milestones = new();
-    private List<EventCategoryDto> allCategories = new();
+    private EventViewModel? eventDetail;
+    private List<MilestoneViewModel> milestones = new();
+    private List<EventCategoryViewModel> allCategories = new();
 
     protected override async Task OnInitializedAsync()
     {

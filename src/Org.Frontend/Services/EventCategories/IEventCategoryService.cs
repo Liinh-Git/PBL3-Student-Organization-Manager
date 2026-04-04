@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Org.Shared.Features.EventCategories;
+// ---- Interface service event categories ----
+using Org.Frontend.ViewModels;
 
-namespace Org.Frontend.Services.EventCategories
+namespace Org.Frontend.Services.EventCategories;
+
+public interface IEventCategoryService
 {
-    public interface IEventCategoryService
-    {
-        Task<List<EventCategoryDto>> GetCategoriesAsync(Guid milestoneId);
-    }
+    Task<List<EventCategoryViewModel>> GetCategoriesAsync(Guid milestoneId);
 }

@@ -1,4 +1,4 @@
-@using Org.Shared.Features.Tasks
+@using Org.Frontend.ViewModels
 @using MudBlazor
 
 <MudDialog>
@@ -14,7 +14,7 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
-    private CreateTaskRequest model = new CreateTaskRequest();
+    private CreateTaskViewModel model = new CreateTaskViewModel();
 
     private void Submit() => MudDialog?.Close(DialogResult.Ok(model));
     private void Cancel() => MudDialog?.Cancel();

@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Org.Shared.Features.Milestones;
+// ---- Interface service milestones ----
+using Org.Frontend.ViewModels;
 
-namespace Org.Frontend.Services.Milestones
+namespace Org.Frontend.Services.Milestones;
+
+public interface IMilestoneService
 {
-    public interface IMilestoneService
-    {
-        Task<List<MilestoneDto>> GetMilestonesAsync(Guid eventId);
-    }
+    Task<List<MilestoneViewModel>> GetMilestonesAsync(Guid eventId);
 }

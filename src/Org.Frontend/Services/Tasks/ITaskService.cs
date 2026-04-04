@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Org.Shared.Features.Tasks;
+// ---- Interface service tasks ----
+using Org.Frontend.ViewModels;
 
-namespace Org.Frontend.Services.Tasks
+namespace Org.Frontend.Services.Tasks;
+
+public interface ITaskService
 {
-    public interface ITaskService
-    {
-        Task<List<TaskDto>> GetTasksAsync(Guid categoryId);
-        Task UpdateTaskStatusAsync(Guid taskId, UpdateTaskStatusRequest req);
-
-        Task<TaskDto> CreateTaskAsync(Guid categoryId, CreateTaskRequest req);
-    }
+    Task<List<TaskViewModel>> GetTasksAsync(Guid categoryId);
+    Task UpdateTaskStatusAsync(Guid taskId, UpdateTaskStatusViewModel req);
+    Task<TaskViewModel> CreateTaskAsync(Guid categoryId, CreateTaskViewModel req);
 }

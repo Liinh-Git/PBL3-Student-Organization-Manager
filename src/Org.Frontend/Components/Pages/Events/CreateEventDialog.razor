@@ -1,5 +1,5 @@
-@using Org.Shared.Features.Events
 @using MudBlazor
+@using Org.Frontend.ViewModels
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -23,7 +23,7 @@
 @code {
     [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
 
-    private CreateEventRequest model = new CreateEventRequest();
+    private CreateEventViewModel model = new CreateEventViewModel();
 
     private void Submit()
     {

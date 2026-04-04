@@ -1,7 +1,7 @@
 @page "/events/{EventId:guid}/tasks/board/{CategoryId:guid}"
 @rendermode InteractiveServer
 @using MudBlazor
-@using Org.Shared.Features.Tasks
+@using Org.Frontend.ViewModels
 @using Org.Frontend.Services.Tasks
 
 @inject ITaskService TaskService
@@ -165,19 +165,19 @@
         }
         else
         {
-            <MudDropContainer T="TaskDto" Items="_tasks" ItemsSelector="@((item, dropzone) => item.Status == dropzone)" ItemDropped="TaskUpdated" Class="d-flex flex-nowrap gap-6 mt-4" Style="overflow-x: auto; padding-bottom: 20px;">
+            <MudDropContainer T="TaskViewModel" Items="_tasks" ItemsSelector="@((item, dropzone) => item.Status == dropzone)" ItemDropped="TaskUpdated" Class="d-flex flex-nowrap gap-6 mt-4" Style="overflow-x: auto; padding-bottom: 20px;">
                 <ChildContent>
                     <div class="pa-4 pb-2" style="background-color: #e2e8f0; border-radius: 12px; min-width: 320px; flex: 1;">
                         <MudText Typo="Typo.subtitle2" Class="fw-bold mb-4" Style="color: #475569;">CẦN LÀM (TODO)</MudText>
-                        <MudDropZone T="TaskDto" Identifier="TODO" Class="flex-grow-1" Style="min-height: 400px;" />
+                        <MudDropZone T="TaskViewModel" Identifier="TODO" Class="flex-grow-1" Style="min-height: 400px;" />
                     </div>
                     <div class="pa-4 pb-2" style="background-color: #e2e8f0; border-radius: 12px; min-width: 320px; flex: 1;">
                         <MudText Typo="Typo.subtitle2" Class="fw-bold mb-4" Style="color: #ea580c;">ĐANG LÀM (IN PROGRESS)</MudText>
-                        <MudDropZone T="TaskDto" Identifier="IN_PROGRESS" Class="flex-grow-1" Style="min-height: 400px;" />
+                        <MudDropZone T="TaskViewModel" Identifier="IN_PROGRESS" Class="flex-grow-1" Style="min-height: 400px;" />
                     </div>
                     <div class="pa-4 pb-2" style="background-color: #e2e8f0; border-radius: 12px; min-width: 320px; flex: 1;">
                         <MudText Typo="Typo.subtitle2" Class="fw-bold mb-4" Style="color: #059669;">ĐÃ XONG (DONE)</MudText>
-                        <MudDropZone T="TaskDto" Identifier="DONE" Class="flex-grow-1" Style="min-height: 400px;" />
+                        <MudDropZone T="TaskViewModel" Identifier="DONE" Class="flex-grow-1" Style="min-height: 400px;" />
                     </div>
                 </ChildContent>
                 <ItemRenderer>
@@ -199,7 +199,7 @@
 @code {
     [Parameter] public Guid CategoryId { get; set; }
     [Parameter] public Guid EventId { get; set; }
-    private List<TaskDto>? _tasks;
+    private List<TaskViewModel>? _tasks;
     
     // Biến này để điều khiển bật/tắt giao diện
     private bool isKanbanMode = false; 
@@ -209,12 +209,12 @@
         _tasks = await TaskService.GetTasksAsync(CategoryId);
     }
 
-    private async Task TaskUpdated(MudItemDropInfo<TaskDto> dropItem)
+    private async Task TaskUpdated(MudItemDropInfo<TaskViewModel> dropItem)
     {
         if (dropItem.Item != null && dropItem.DropzoneIdentifier != null)
         {
             dropItem.Item.Status = dropItem.DropzoneIdentifier;
-            await TaskService.UpdateTaskStatusAsync(dropItem.Item.Id, new UpdateTaskStatusRequest { Status = dropItem.DropzoneIdentifier });
+            await TaskService.UpdateTaskStatusAsync(dropItem.Item.Id, new UpdateTaskStatusViewModel { Status = dropItem.DropzoneIdentifier });
             
             // Xóa thông báo cho gọn, hoặc bồ có thể giữ lại Snackbar.Add(...) ở đây nếu muốn
         }
@@ -233,7 +233,7 @@
 
         if (result != null && !result.Canceled && result.Data != null)
         {
-            var req = (CreateTaskRequest)result.Data;
+            var req = (CreateTaskViewModel)result.Data;
             await TaskService.CreateTaskAsync(CategoryId, req);
             _tasks = await TaskService.GetTasksAsync(CategoryId); // Load lại data
             Snackbar.Add("Đã thêm task!", Severity.Success);

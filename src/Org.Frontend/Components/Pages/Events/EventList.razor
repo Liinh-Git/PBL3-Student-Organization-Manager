@@ -1,7 +1,7 @@
 @page "/events"
 @rendermode InteractiveServer
 @using MudBlazor
-@using Org.Shared.Features.Events
+@using Org.Frontend.ViewModels
 @using Org.Frontend.Services.Events
 @inject IEventService EventService
 @inject IDialogService DialogService
@@ -80,19 +80,19 @@
                         <div class="image-placeholder">
                             <MudChip T="string"
                                      Size="Size.Small"
-                                     Class="@($"status-chip status-{evt.Status?.ToLower()}")">
-                                @evt.Status
+                                     Class="@($"status-chip status-{evt.StatusLabel?.ToLower()}")">
+                                @evt.StatusLabel
                             </MudChip>
                         </div>
 
                         <MudCardContent Class="pa-5 d-flex flex-column flex-grow-1">
                             <MudText Typo="Typo.h6" Class="fw-bold event-title" Style="color: #0f172a; line-height: 1.4; font-size: 1.1rem;">
-                                @evt.Title
+                                @evt.Name
                             </MudText>
 
                             <div class="event-info mb-2">
                                 <span class="fw-bold text-muted mr-2" style="font-size: 0.85rem;">Date:</span>
-                                <span style="font-size: 0.85rem; color: #475569; font-weight: 500;">@FormatEventDate(evt.Date)</span>
+                                <span style="font-size: 0.85rem; color: #475569; font-weight: 500;">@FormatEventDate(evt.StartDate)</span>
                             </div>
 
                             <div class="event-info mb-5">
@@ -106,7 +106,7 @@
                                         @GetParticipantText(evt)
                                     </MudText>
 
-                                    @if (evt.TotalSlots > 0 || evt.Status == "COMPLETED")
+                                @if (evt.TotalSlots > 0 || evt.StatusLabel == "COMPLETED")
                                     {
                                         <MudText Typo="Typo.caption" Class="fw-bold" Style="@($"font-size: 0.75rem; {GetCapacityStyle(evt)}")">
                                             @GetCapacityText(evt)
@@ -114,15 +114,15 @@
                                     }
                                 </div>
 
-                                @if (evt.TotalSlots > 0 && evt.Status != "COMPLETED")
+                                @if (evt.TotalSlots > 0 && evt.StatusLabel != "COMPLETED")
                                 {
                                     <MudProgressLinear Value="@GetProgress(evt)"
-                                                       Color="@GetProgressColor(evt.Status)"
+                                                       Color="@GetProgressColor(evt.StatusLabel)"
                                                        Rounded="true"
                                                        Size="Size.Small" 
                                                        Class="mt-1" />
                                 }
-                                @if(evt.Status == "COMPLETED")
+                                @if(evt.StatusLabel == "COMPLETED")
                                 {
                                     <MudProgressLinear Value="100" Color="Color.Default" Rounded="true" Size="Size.Small" Class="mt-1 opacity-50" />
                                 }
@@ -298,7 +298,7 @@
 </style>
 
 @code {
-    private List<EventDto>? events;
+    private List<EventViewModel>? events;
     private Guid currentOrgId = Guid.NewGuid(); 
 
     protected override async Task OnInitializedAsync()
@@ -324,7 +324,7 @@
         // Thêm check result != null vào cụm điều kiện này
         if (result != null && !result.Canceled && result.Data != null)
         {
-            var req = (CreateEventRequest)result.Data;
+            var req = (CreateEventViewModel)result.Data;
             await EventService.CreateEventAsync(req);
             
             await LoadEvents();
@@ -333,14 +333,14 @@
         }
     }
 
-    private string FormatEventDate(DateTime date)
+    private string FormatEventDate(DateOnly date)
     {
-        if (date.Date == DateTime.Today)
-            return $"Today, {date:hh:mm tt}";
-        return $"{date:MMM dd, yyyy} • {date:hh:mm tt}";
+        if (date == DateOnly.FromDateTime(DateTime.Today))
+            return $"Today";
+        return date.ToString("MMM dd, yyyy");
     }
 
-    private double GetProgress(EventDto evt)
+    private double GetProgress(EventViewModel evt)
     {
         if (evt.TotalSlots == 0) return 0;
         return ((double)evt.RegisteredCount / evt.TotalSlots) * 100;
@@ -353,21 +353,21 @@
         _ => Color.Default
     };
 
-    private string GetParticipantText(EventDto evt) => evt.Status switch
+    private string GetParticipantText(EventViewModel evt) => evt.StatusLabel switch
     {
         "COMPLETED" => $"{evt.RegisteredCount} Attendees",
         "ONGOING" => $"{evt.RegisteredCount} Participants",
         _ => $"{evt.RegisteredCount} Registered"
     };
 
-    private string GetCapacityText(EventDto evt) => evt.Status switch
+    private string GetCapacityText(EventViewModel evt) => evt.StatusLabel switch
     {
         "COMPLETED" => "Closed",
         "ONGOING" => $"{Math.Round(GetProgress(evt))}% Capacity",
         _ => $"{evt.RegisteredCount}/{evt.TotalSlots} Slots"
     };
 
-    private string GetCapacityStyle(EventDto evt) => evt.Status switch
+    private string GetCapacityStyle(EventViewModel evt) => evt.StatusLabel switch
     {
         "ONGOING" => "color: #f97316;", 
         "COMPLETED" => "color: #94a3b8;", 
