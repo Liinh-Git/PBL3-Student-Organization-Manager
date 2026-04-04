@@ -54,8 +54,7 @@ public sealed class CreateTaskEndpoint(AppDbContext db) : Endpoint<CreateTaskReq
         db.Tasks.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        HttpContext.Response.StatusCode = StatusCodes.Status201Created;
-        await Send.OkAsync(ContractMapping.ToTaskDto(entity), ct);
+        await SendAsync(ContractMapping.ToTaskDto(entity), StatusCodes.Status201Created, ct);
     }
 }
 
