@@ -37,8 +37,7 @@ public sealed class CreateEventCategoryEndpoint(AppDbContext db) : Endpoint<Crea
         db.EventCategories.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        HttpContext.Response.StatusCode = StatusCodes.Status201Created;
-        await Send.OkAsync(ContractMapping.ToCategoryDto(entity, 0, 0), ct);
+        await SendAsync(ContractMapping.ToCategoryDto(entity, 0, 0), StatusCodes.Status201Created, ct);
     }
 }
 
