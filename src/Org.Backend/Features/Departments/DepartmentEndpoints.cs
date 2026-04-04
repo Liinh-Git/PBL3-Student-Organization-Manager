@@ -61,8 +61,7 @@ public sealed class CreateDepartmentEndpoint(AppDbContext db) : Endpoint<CreateD
         db.Departments.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        HttpContext.Response.StatusCode = StatusCodes.Status201Created;
-        await Send.OkAsync(ContractMapping.ToDepartmentDto(entity, 0), ct);
+        await SendAsync(ContractMapping.ToDepartmentDto(entity, 0), StatusCodes.Status201Created, ct);
     }
 }
 
