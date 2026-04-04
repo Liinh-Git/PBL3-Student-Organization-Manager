@@ -42,8 +42,7 @@ public sealed class CreateMilestoneEndpoint(AppDbContext db) : Endpoint<CreateMi
         db.Milestones.Add(milestone);
         await db.SaveChangesAsync(ct);
 
-        HttpContext.Response.StatusCode = StatusCodes.Status201Created;
-        await Send.OkAsync(ContractMapping.ToMilestoneDto(milestone), ct);
+        await SendAsync(ContractMapping.ToMilestoneDto(milestone), StatusCodes.Status201Created, ct);
     }
 }
 
