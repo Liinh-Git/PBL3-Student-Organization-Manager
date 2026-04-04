@@ -48,18 +48,15 @@ internal static class ContractMapping
             entity.UpdatedAt is null ? null : ToUtcOffset(entity.UpdatedAt.Value));
 
     public static MilestoneDto ToMilestoneDto(Milestone entity)
-    {
-        var dueDate = DateOnly.FromDateTime(entity.DueDate);
-        return new MilestoneDto(
+        => new(
             entity.Id,
             entity.EventId,
             entity.Title,
-            null,
-            dueDate,
-            dueDate,
+            entity.Description,
+            DateOnly.FromDateTime(entity.StartDate),
+            DateOnly.FromDateTime(entity.EndDate),
             entity.OrderIndex,
             entity.Status);
-    }
 
     public static EventCategoryDto ToCategoryDto(EventCategory category, int taskCount, int completedTaskCount)
         => new(
