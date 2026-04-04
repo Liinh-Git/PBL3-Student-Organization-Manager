@@ -1,4 +1,5 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Features.Common;
@@ -13,7 +14,7 @@ public sealed class CreateMilestoneEndpoint(AppDbContext db) : Endpoint<CreateMi
     public override void Configure()
     {
         Post("/api/events/{eventId:guid}/milestones");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CreateMilestoneRequest req, CancellationToken ct)
@@ -34,7 +35,9 @@ public sealed class CreateMilestoneEndpoint(AppDbContext db) : Endpoint<CreateMi
         {
             EventId = eventId,
             Title = req.Name.Trim(),
-            DueDate = req.EndDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
+            Description = req.Description?.Trim(),
+            StartDate = req.StartDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
+            EndDate = req.EndDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
             OrderIndex = req.SortOrder,
             Status = MilestoneStatus.NotStarted
         };
@@ -42,7 +45,7 @@ public sealed class CreateMilestoneEndpoint(AppDbContext db) : Endpoint<CreateMi
         db.Milestones.Add(milestone);
         await db.SaveChangesAsync(ct);
 
-        await SendAsync(ContractMapping.ToMilestoneDto(milestone), StatusCodes.Status201Created, ct);
+        await HttpContext.Response.SendAsync(ContractMapping.ToMilestoneDto(milestone), StatusCodes.Status201Created, cancellation: ct);
     }
 }
 
@@ -51,7 +54,7 @@ public sealed class GetMilestonesEndpoint(AppDbContext db) : EndpointWithoutRequ
     public override void Configure()
     {
         Get("/api/events/{eventId:guid}/milestones");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

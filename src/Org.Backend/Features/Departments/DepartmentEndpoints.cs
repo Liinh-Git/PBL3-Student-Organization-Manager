@@ -1,4 +1,5 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Features.Common;
 using Org.Backend.Infrastructure.Database;
@@ -11,7 +12,7 @@ public sealed class GetDepartmentsEndpoint(AppDbContext db) : EndpointWithoutReq
     public override void Configure()
     {
         Get("/api/organizations/{orgId:guid}/departments");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
@@ -42,7 +43,7 @@ public sealed class CreateDepartmentEndpoint(AppDbContext db) : Endpoint<CreateD
     public override void Configure()
     {
         Post("/api/departments");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CreateDepartmentRequest req, CancellationToken ct)
@@ -55,13 +56,14 @@ public sealed class CreateDepartmentEndpoint(AppDbContext db) : Endpoint<CreateD
         {
             OrgId = req.OrganizationId,
             DeptName = req.Name.Trim(),
+            Code = req.Code?.Trim(),
             Function = req.Description?.Trim()
         };
 
         db.Departments.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        await SendAsync(ContractMapping.ToDepartmentDto(entity, 0), StatusCodes.Status201Created, ct);
+        await HttpContext.Response.SendAsync(ContractMapping.ToDepartmentDto(entity, 0), StatusCodes.Status201Created, cancellation: ct);
     }
 }
 
@@ -70,7 +72,7 @@ public sealed class UpdateDepartmentEndpoint(AppDbContext db) : Endpoint<UpdateD
     public override void Configure()
     {
         Put("/api/departments/{id:guid}");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(UpdateDepartmentRequest req, CancellationToken ct)
@@ -80,7 +82,8 @@ public sealed class UpdateDepartmentEndpoint(AppDbContext db) : Endpoint<UpdateD
         if (department is null)
             ThrowError("Department not found.", StatusCodes.Status404NotFound);
 
-        department!.DeptName = req.Name.Trim();
+        department!.Code = req.Code?.Trim();
+        department.DeptName = req.Name.Trim();
         department.Function = req.Description?.Trim();
         department.IsDeleted = !req.IsActive;
 

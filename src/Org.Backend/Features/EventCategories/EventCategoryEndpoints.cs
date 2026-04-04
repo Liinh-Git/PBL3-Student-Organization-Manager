@@ -1,4 +1,5 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Features.Common;
@@ -13,7 +14,7 @@ public sealed class CreateEventCategoryEndpoint(AppDbContext db) : Endpoint<Crea
     public override void Configure()
     {
         Post("/api/milestones/{milestoneId:guid}/categories");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CreateEventCategoryRequest req, CancellationToken ct)
@@ -37,7 +38,7 @@ public sealed class CreateEventCategoryEndpoint(AppDbContext db) : Endpoint<Crea
         db.EventCategories.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        await SendAsync(ContractMapping.ToCategoryDto(entity, 0, 0), StatusCodes.Status201Created, ct);
+        await HttpContext.Response.SendAsync(ContractMapping.ToCategoryDto(entity, 0, 0), StatusCodes.Status201Created, cancellation: ct);
     }
 }
 
@@ -46,7 +47,7 @@ public sealed class GetEventCategoriesEndpoint(AppDbContext db) : EndpointWithou
     public override void Configure()
     {
         Get("/api/milestones/{milestoneId:guid}/categories");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

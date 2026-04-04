@@ -16,7 +16,7 @@ internal static class ContractMapping
         => new(
             department.Id,
             department.OrgId,
-            BuildDepartmentCode(department.DeptName),
+            department.Code ?? BuildDepartmentCode(department.DeptName),
             department.DeptName,
             department.Function,
             memberCount,

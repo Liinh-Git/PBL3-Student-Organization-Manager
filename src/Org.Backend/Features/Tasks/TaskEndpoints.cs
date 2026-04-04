@@ -1,4 +1,5 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Features.Common;
@@ -12,7 +13,7 @@ public sealed class CreateTaskEndpoint(AppDbContext db) : Endpoint<CreateTaskReq
     public override void Configure()
     {
         Post("/api/categories/{categoryId:guid}/tasks");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CreateTaskRequest req, CancellationToken ct)
@@ -54,7 +55,7 @@ public sealed class CreateTaskEndpoint(AppDbContext db) : Endpoint<CreateTaskReq
         db.Tasks.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        await SendAsync(ContractMapping.ToTaskDto(entity), StatusCodes.Status201Created, ct);
+        await HttpContext.Response.SendAsync(ContractMapping.ToTaskDto(entity), StatusCodes.Status201Created, cancellation: ct);
     }
 }
 
@@ -63,7 +64,7 @@ public sealed class GetTasksEndpoint(AppDbContext db) : EndpointWithoutRequest<G
     public override void Configure()
     {
         Get("/api/categories/{categoryId:guid}/tasks");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
@@ -91,7 +92,7 @@ public sealed class UpdateTaskStatusEndpoint(AppDbContext db) : Endpoint<UpdateT
     public override void Configure()
     {
         Put("/api/tasks/{taskId:guid}/status");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(UpdateTaskStatusRequest req, CancellationToken ct)
@@ -114,7 +115,7 @@ public sealed class UpdateTaskAssignEndpoint(AppDbContext db) : Endpoint<AssignT
     public override void Configure()
     {
         Put("/api/tasks/{taskId:guid}/assign");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(AssignTaskRequest req, CancellationToken ct)

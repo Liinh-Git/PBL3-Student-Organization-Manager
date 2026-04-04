@@ -8,6 +8,7 @@ public class Department : BaseEntity
 {
     public Guid OrgId { get; set; }
     public string DeptName { get; set; } = string.Empty;
+    public string? Code { get; set; }
     public Guid? ManagerId { get; set; }
     public string? Function { get; set; }
 

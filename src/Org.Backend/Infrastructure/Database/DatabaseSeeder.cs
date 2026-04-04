@@ -376,7 +376,8 @@ public static class DatabaseSeeder
                     EventId = @event.Id,
                     Title = milestoneTitle,
                     OrderIndex = i + 1,
-                    DueDate = DateTime.UtcNow.Date.AddDays(i + 7),
+                    StartDate = DateTime.UtcNow.Date.AddDays(i + 1),
+                    EndDate = DateTime.UtcNow.Date.AddDays(i + 7),
                     Status = MilestoneStatus.InProgress
                 });
             }

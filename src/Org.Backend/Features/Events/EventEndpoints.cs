@@ -1,4 +1,5 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Features.Common;
@@ -13,7 +14,7 @@ public sealed class GetOrganizationEventsEndpoint(AppDbContext db) : EndpointWit
     public override void Configure()
     {
         Get("/api/organizations/{orgId:guid}/events");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
@@ -24,16 +25,36 @@ public sealed class GetOrganizationEventsEndpoint(AppDbContext db) : EndpointWit
             .AsNoTracking()
             .Where(x => x.OrgId == orgId)
             .OrderByDescending(x => x.StartDate)
+            .Select(x => new
+            {
+                x.Id,
+                x.EventName,
+                x.Status,
+                x.StartDate,
+                x.EndDate,
+                MilestoneCount = x.Milestones.Count,
+                CategoryCount = x.Milestones.SelectMany(m => m.Categories).Count(),
+                TaskCounts = x.Milestones
+                    .SelectMany(m => m.Categories)
+                    .SelectMany(c => c.Tasks)
+                    .GroupBy(_ => 1)
+                    .Select(g => new
+                    {
+                        Total = g.Count(),
+                        Done = g.Count(t => t.Status == Org.Shared.TaskStatus.Done)
+                    })
+                    .FirstOrDefault()
+            })
             .Select(x => new EventTreeNodeDto(
                 x.Id,
                 x.EventName,
                 x.Status,
                 DateOnly.FromDateTime(x.StartDate),
                 DateOnly.FromDateTime(x.EndDate),
-                x.Milestones.Count,
-                x.Milestones.SelectMany(m => m.Categories).Count(),
-                x.Milestones.SelectMany(m => m.Categories).SelectMany(c => c.Tasks).Count(),
-                x.Milestones.SelectMany(m => m.Categories).SelectMany(c => c.Tasks).Count(t => t.Status == Org.Shared.TaskStatus.Done)))
+                x.MilestoneCount,
+                x.CategoryCount,
+                x.TaskCounts == null ? 0 : x.TaskCounts.Total,
+                x.TaskCounts == null ? 0 : x.TaskCounts.Done))
             .ToListAsync(ct);
 
         await Send.OkAsync(new GetOrganizationEventsResponse(items), ct);
@@ -45,7 +66,7 @@ public sealed class CreateEventEndpoint(AppDbContext db) : Endpoint<CreateEventR
     public override void Configure()
     {
         Post("/api/events");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CreateEventRequest req, CancellationToken ct)
@@ -70,7 +91,7 @@ public sealed class CreateEventEndpoint(AppDbContext db) : Endpoint<CreateEventR
         db.Events.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        await SendAsync(ContractMapping.ToEventDto(entity), StatusCodes.Status201Created, ct);
+        await HttpContext.Response.SendAsync(ContractMapping.ToEventDto(entity), StatusCodes.Status201Created, cancellation: ct);
     }
 }
 
@@ -79,7 +100,7 @@ public sealed class GetEventByIdEndpoint(AppDbContext db) : EndpointWithoutReque
     public override void Configure()
     {
         Get("/api/events/{id:guid}");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

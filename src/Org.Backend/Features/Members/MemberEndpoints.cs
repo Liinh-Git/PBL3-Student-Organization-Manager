@@ -1,4 +1,5 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Features.Common;
 using Org.Backend.Infrastructure.Database;
@@ -11,7 +12,7 @@ public sealed class GetMembersEndpoint(AppDbContext db) : EndpointWithoutRequest
     public override void Configure()
     {
         Get("/api/organizations/{orgId:guid}/members");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
@@ -36,7 +37,7 @@ public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateM
     public override void Configure()
     {
         Put("/api/members/{id:guid}/role");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(UpdateMemberRoleRequest req, CancellationToken ct)
@@ -97,7 +98,7 @@ public sealed class UpdateMemberDepartmentEndpoint(AppDbContext db) : Endpoint<U
     public override void Configure()
     {
         Put("/api/members/{id:guid}/department");
-        AllowAnonymous();
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
     }
 
     public override async Task HandleAsync(UpdateMemberDepartmentRequest req, CancellationToken ct)
