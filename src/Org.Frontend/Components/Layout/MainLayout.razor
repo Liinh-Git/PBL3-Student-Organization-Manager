@@ -6,13 +6,31 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+        <header class="top-row">
+            <div class="top-search-wrap">
+                <input class="top-search" type="search" placeholder="Tim kiem tai lieu, thanh vien..." />
+                <button class="top-search-button" type="button">Tim kiem</button>
+            </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
+            <div class="top-actions">
+                <button class="top-action-button" type="button" aria-label="Notifications">N</button>
+                <button class="top-action-button" type="button" aria-label="Messages">M</button>
+
+                <div class="top-profile">
+                    <div class="top-profile-meta">
+                        <strong>Kora Admin</strong>
+                        <span>Organization Lead</span>
+                    </div>
+                    <div class="top-profile-avatar">KA</div>
+                </div>
+            </div>
+        </header>
+
+        <section class="app-main-surface">
+            <article class="content">
+                @Body
+            </article>
+        </section>
     </main>
 </div>
 

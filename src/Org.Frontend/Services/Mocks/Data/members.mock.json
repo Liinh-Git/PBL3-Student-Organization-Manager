@@ -1,0 +1,29 @@
+[
+  {
+    "id": "57116de4-7b7f-4f0f-9264-6f6f8e6fe1f0",
+    "orgId": "97b12d10-8368-4c55-abdb-69490895f4f3",
+    "userId": "1f25f02f-758e-405a-8d2f-b188fd9bc4f5",
+    "displayName": "Nguyen An",
+    "departmentId": "c9981b68-7cbe-4c42-922f-06db35e77f11",
+    "roleId": "7e9e6f36-0508-4da8-adf1-c15b0cbe2f3a",
+    "joinDate": "2026-03-20T07:00:00Z"
+  },
+  {
+    "id": "f892e55b-c155-4770-a4c4-ea9a937f433a",
+    "orgId": "97b12d10-8368-4c55-abdb-69490895f4f3",
+    "userId": "82d0137e-bd37-4bb0-9787-54cfa90d1bd3",
+    "displayName": "Tran Binh",
+    "departmentId": "d42fbd2a-4dbf-4b5c-97c0-a4b17d870603",
+    "roleId": "f80bb5dc-ab54-48fa-9453-869a12a81dc8",
+    "joinDate": "2026-03-22T07:00:00Z"
+  },
+  {
+    "id": "662f502e-f3e0-463f-963d-2996e58f61b0",
+    "orgId": "97b12d10-8368-4c55-abdb-69490895f4f3",
+    "userId": "2ca2f396-31fd-473f-b57b-fd4fe4d57ef5",
+    "displayName": "Le Chi",
+    "departmentId": "7056d115-bdd8-476b-adf5-0df4e5ff58a5",
+    "roleId": null,
+    "joinDate": "2026-03-25T07:00:00Z"
+  }
+]

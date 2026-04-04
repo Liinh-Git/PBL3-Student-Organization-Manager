@@ -1,0 +1,249 @@
+@page "/members"
+@rendermode InteractiveServer
+
+@using Org.Frontend.Services.Departments
+@using Org.Frontend.Services.Members
+@using Org.Shared.Contracts
+@inject IMemberService MemberService
+@inject IDepartmentService DepartmentService
+
+<PageTitle>Thành viên</PageTitle>
+
+<section class="member-page">
+    <header class="member-hero">
+        <div class="member-hero-overlay">
+            <div class="member-hero-top">
+                <input class="member-search"
+                       placeholder="Tìm kiếm tài liệu, thành viên..."
+                       @bind="SearchTerm"
+                       @bind:event="oninput" />
+                <button class="member-search-btn">Tìm kiếm</button>
+            </div>
+
+            <div class="member-hero-main">
+                <div class="member-avatar">KC</div>
+                <div>
+                    <h2>Kora Community</h2>
+                    <p>TP. Hồ Chí Minh, Việt Nam • @Members.Count thành viên • 7 tổ chức đã kết nối</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="member-card about-card">
+        <p class="eyebrow">VỀ CHÚNG TÔI</p>
+        <h3>Thông tin tổng quan</h3>
+        <p class="about-copy">
+            Kora Community là mạng lưới sáng tạo và phát triển bền vững dành cho các chuyên gia trẻ tại Việt Nam.
+            Chúng tôi tập trung vào việc kiến tạo các không gian học tập, kết nối và triển khai các dự án có tác động xã hội tích cực.
+        </p>
+        <div class="about-grid">
+            <div>
+                <span>Sứ mệnh</span>
+                <strong>Xây dựng hệ sinh thái tri thức liên đội, nơi mỗi thành viên có thể phát huy tối đa năng lực.</strong>
+            </div>
+            <div>
+                <span>Vị trí</span>
+                <strong>Tòa nhà A1, Đại học Kiến Trúc Hà Nội, Đường Nguyễn Trãi, Thanh Xuân.</strong>
+            </div>
+            <div>
+                <span>Ngày thành lập</span>
+                <strong>15 / 05 / 2021</strong>
+            </div>
+        </div>
+    </section>
+
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <div class="member-toast">@Message</div>
+    }
+
+    <section class="member-card">
+        <div class="section-head">
+            <div>
+                <p class="eyebrow">ĐỘI NGŨ</p>
+                <h3>Quản trị viên</h3>
+            </div>
+            <span>@FilteredMembers.Count người</span>
+        </div>
+
+        <AssignRoleDialog IsOpen="ShowRoleDialog"
+                          Roles="RoleOptions"
+                          SelectedRoleId="PendingRoleId"
+                          OnConfirm="ConfirmAssignRole"
+                          OnCancel="CloseRoleDialog" />
+
+        @if (FilteredMembers.Count == 0)
+        {
+            <p>Không có thành viên phù hợp.</p>
+        }
+        else
+        {
+            <div class="member-grid">
+                @foreach (var member in FilteredMembers)
+                {
+                    <article class="admin-card">
+                        <div class="admin-head">
+                            <div class="admin-avatar">@GetAvatar(member.DisplayName)</div>
+                            <div>
+                                <h4>@member.DisplayName</h4>
+                                <p>@GetRoleName(member.RoleId)</p>
+                            </div>
+                        </div>
+
+                        <div class="admin-meta">
+                            <span>Ngày tham gia: @member.JoinDate.ToString("dd/MM/yyyy")</span>
+                            <span>Phòng ban: @GetDepartmentName(member.DepartmentId)</span>
+                        </div>
+
+                        <div class="admin-actions">
+                            <select class="form-select form-select-sm"
+                                    value="@(member.DepartmentId?.ToString() ?? string.Empty)"
+                                    @onchange="args => AssignDepartment(member.Id, args)">
+                                <option value="">Chọn phòng ban</option>
+                                @foreach (var dept in Departments)
+                                {
+                                    <option value="@dept.Id">@dept.DeptName</option>
+                                }
+                            </select>
+                            <button class="assign-btn" @onclick="() => OpenRoleDialog(member)">Gán vai trò</button>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="timeline-wrap">
+        <div>
+            <p class="eyebrow">DÒNG THỜI GIAN</p>
+            <h3>Hành trình phát triển</h3>
+        </div>
+        <div class="timeline-list">
+            <article>
+                <span>Tháng 05 / 2021</span>
+                <h4>Thành lập Kora Community</h4>
+            </article>
+            <article>
+                <span>Tháng 12 / 2022</span>
+                <h4>Mở rộng 500+ thành viên</h4>
+            </article>
+            <article>
+                <span>Tháng 01 / 2024</span>
+                <h4>Giải thưởng Kiến trúc cộng đồng</h4>
+            </article>
+        </div>
+    </section>
+</section>
+
+@code {
+    private static readonly Guid OrgId = Guid.Parse("97b12d10-8368-4c55-abdb-69490895f4f3");
+
+    private List<MemberDto> Members { get; set; } = [];
+    private List<DepartmentDto> Departments { get; set; } = [];
+
+    private bool ShowRoleDialog { get; set; }
+    private Guid? SelectedMemberId { get; set; }
+    private Guid? PendingRoleId { get; set; }
+    private string? Message { get; set; }
+    private string SearchTerm { get; set; } = string.Empty;
+
+    private List<MemberDto> FilteredMembers =>
+        string.IsNullOrWhiteSpace(SearchTerm)
+            ? Members
+            : Members.Where(x => x.DisplayName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private static readonly List<AssignRoleDialog.RoleOption> RoleOptions =
+    [
+        new() { Id = Guid.Parse("7e9e6f36-0508-4da8-adf1-c15b0cbe2f3a"), Name = "Leader" },
+        new() { Id = Guid.Parse("f80bb5dc-ab54-48fa-9453-869a12a81dc8"), Name = "Core Member" },
+        new() { Id = Guid.Parse("1a96a5f4-6dfc-42db-936d-f86ee4e35ef5"), Name = "Collaborator" }
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Reload();
+    }
+
+    private async Task Reload()
+    {
+        Departments = await DepartmentService.GetDepartments(OrgId);
+        Members = await MemberService.GetMembers(OrgId);
+    }
+
+    private void OpenRoleDialog(MemberDto member)
+    {
+        SelectedMemberId = member.Id;
+        PendingRoleId = member.RoleId;
+        ShowRoleDialog = true;
+        Message = null;
+    }
+
+    private void CloseRoleDialog()
+    {
+        ShowRoleDialog = false;
+        SelectedMemberId = null;
+        PendingRoleId = null;
+    }
+
+    private async Task ConfirmAssignRole(Guid roleId)
+    {
+        if (!SelectedMemberId.HasValue)
+        {
+            return;
+        }
+
+        await MemberService.AssignRole(SelectedMemberId.Value, roleId);
+        Message = "Role assigned.";
+        CloseRoleDialog();
+        await Reload();
+    }
+
+    private async Task AssignDepartment(Guid memberId, ChangeEventArgs args)
+    {
+        if (!Guid.TryParse(args.Value?.ToString(), out var departmentId))
+        {
+            return;
+        }
+
+        await MemberService.AssignDepartment(memberId, departmentId);
+        Message = "Department assigned.";
+        await Reload();
+    }
+
+    private static string GetRoleName(Guid? roleId)
+    {
+        if (!roleId.HasValue)
+        {
+            return "Chưa có vai trò";
+        }
+
+        return RoleOptions.FirstOrDefault(x => x.Id == roleId.Value)?.Name ?? roleId.Value.ToString();
+    }
+
+    private string GetDepartmentName(Guid? departmentId)
+    {
+        if (!departmentId.HasValue)
+        {
+            return "Chưa có phòng ban";
+        }
+
+        return Departments.FirstOrDefault(x => x.Id == departmentId.Value)?.DeptName ?? "Không xác định";
+    }
+
+    private static string GetAvatar(string displayName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return "NA";
+        }
+
+        var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1)
+        {
+            return parts[0][0].ToString().ToUpperInvariant();
+        }
+
+        return string.Concat(parts[0][0], parts[^1][0]).ToUpperInvariant();
+    }
+}
