@@ -54,7 +54,7 @@ public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateM
         var roleName = req.Role.ToString();
 
         var role = await db.Roles
-            .FirstOrDefaultAsync(x => x.OrgId == member!.OrgId && x.RoleName.ToLower() == roleName.ToLower(), ct);
+            .FirstOrDefaultAsync(x => x.OrgId == member!.OrgId && x.RoleName == roleName, ct);
 
         if (role is null)
         {
