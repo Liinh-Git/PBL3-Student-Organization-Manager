@@ -70,8 +70,7 @@ public sealed class CreateEventEndpoint(AppDbContext db) : Endpoint<CreateEventR
         db.Events.Add(entity);
         await db.SaveChangesAsync(ct);
 
-        HttpContext.Response.StatusCode = StatusCodes.Status201Created;
-        await Send.OkAsync(ContractMapping.ToEventDto(entity), ct);
+        await SendAsync(ContractMapping.ToEventDto(entity), StatusCodes.Status201Created, ct);
     }
 }
 
