@@ -4,6 +4,11 @@ using Org.Frontend.Services.Auth;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
+using Org.Frontend.Services.Events;
+using Org.Frontend.Services.Milestones;
+using Org.Frontend.Services.EventCategories;
+using Org.Frontend.Services.Tasks;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +17,10 @@ var backendApiBaseUrl = builder.Configuration["BackendApi:BaseUrl"] ?? "http://l
 
 // ---- Đăng ký Razor Components và bật chế độ interactive server ----
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options => 
+    {
+        options.DetailedErrors = true; // Bật dòng này lên
+    });
 
 // ---- Tạo typed HttpClient cho module auth, mặc định nhận JSON ----
 builder.Services.AddHttpClient<AuthApiClient>(client =>
@@ -25,6 +33,11 @@ builder.Services.AddHttpClient<AuthApiClient>(client =>
 builder.Services.AddScoped<ITokenStorage, LocalStorageTokenStorage>();
 builder.Services.AddScoped<FrontendAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<FrontendAuthStateProvider>());
+builder.Services.AddScoped<IEventService, EventMockService>();
+builder.Services.AddScoped<IMilestoneService, MilestoneMockService>();
+builder.Services.AddScoped<IEventCategoryService, EventCategoryMockService>();
+builder.Services.AddScoped<ITaskService, TaskMockService>();
+builder.Services.AddMudServices();
 
 // ---- Cấu hình cookie auth để route chưa đăng nhập chuyển về /login ----
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

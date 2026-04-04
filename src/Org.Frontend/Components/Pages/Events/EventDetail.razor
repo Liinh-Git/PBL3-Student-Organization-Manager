@@ -1,0 +1,214 @@
+@page "/events/{EventId:guid}"
+@rendermode InteractiveServer
+@using MudBlazor
+@using Org.Shared.Features.Events
+@using Org.Shared.Features.Milestones
+@using Org.Shared.Features.EventCategories
+@using Org.Shared.Features.Tasks
+@using Org.Frontend.Services.Events
+@using Org.Frontend.Services.Milestones
+@using Org.Frontend.Services.EventCategories
+@using Org.Frontend.Services.Tasks
+@inject NavigationManager NavigationManager
+
+@inject IEventService EventService
+@inject IMilestoneService MilestoneService
+@inject IEventCategoryService CategoryService
+
+<style>
+    .page-background { background-color: #f1f5f9; min-height: 100vh; }
+    .fw-800 { font-weight: 800; }
+    .text-slate-500 { color: #64748b; }
+    
+    /* Style cho banner chính */
+    .banner-card {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    .banner-pattern {
+        position: absolute; right: -50px; top: -50px; opacity: 0.1; width: 300px;
+    }
+
+    /* Style cho Timeline */
+    .mud-timeline-item-dot { border: 2px solid white; }
+</style>
+
+<div class="page-background pa-6">
+    @if (eventDetail == null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="ma-auto d-block" />
+    }
+    else
+    {
+        <div class="d-flex justify-space-between align-center mb-6">
+            <div class="d-flex align-center gap-1">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" 
+                       OnClick="@(() => NavigationManager.NavigateTo("/events"))" 
+                       Class="mr-1" />
+                       
+        <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold" Style="letter-spacing: 1px; padding-top: 2px;">
+            EVENTS <span style="color: #cbd5e1;">&gt;</span> <span style="color: #f97316;">@eventDetail.Title?.ToUpper()</span>
+        </MudText>
+    </div>
+            
+            @* ---- PHẦN NEW TASK CHO VÀO MAIN CONTENT TẠI ĐÂY ---- *@
+            <MudButton Variant="Variant.Filled" Color="Color.Dark" StartIcon="@Icons.Material.Filled.Add" Class="rounded-pill px-6 elevation-0" Style="background-color: #1e293b; text-transform: none;">
+                New Task
+            </MudButton>
+        </div>
+
+        <MudCard Class="banner-card pa-10 mb-6 elevation-0">
+            <MudIcon Icon="@Icons.Material.Filled.Waves" Class="banner-pattern" Size="Size.Large" />
+            <div class="d-flex align-center gap-3 mb-4">
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background-color: #f97316; color: white;" Class="fw-bold rounded-pill">@eventDetail.Status</MudChip>
+                <MudText Typo="Typo.body2" Class="opacity-70 fw-bold">@eventDetail.Date.ToString("MMM dd") - @eventDetail.EndDate.ToString("MMM dd, yyyy")</MudText>
+            </div>
+            <MudText Typo="Typo.h3" Class="fw-800 mb-4" Style="line-height: 1.1;">@eventDetail.Title</MudText>
+            <MudText Typo="Typo.body1" Class="opacity-70 mb-0" Style="max-width: 700px;">@eventDetail.Description</MudText>
+        </MudCard>
+
+        <MudGrid Spacing="4" Class="mb-6">
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
+                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold mb-2 d-block" Style="letter-spacing: 1px;">COMPLETION</MudText>
+                    <div class="d-flex align-end gap-1 mb-2">
+                        <MudText Typo="Typo.h3" Class="fw-800">@eventDetail.CompletionPercentage%</MudText>
+                    </div>
+                    <MudProgressLinear Value="@eventDetail.CompletionPercentage" Color="Color.Warning" Rounded="true" Size="Size.Small" />
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
+                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold mb-2 d-block" Style="letter-spacing: 1px;">BUDGET USED</MudText>
+                    <div class="d-flex align-end gap-1 mb-1">
+                        <MudText Typo="Typo.h3" Class="fw-800">@eventDetail.BudgetUsedPercentage%</MudText>
+                    </div>
+                    <MudText Typo="Typo.caption" Color="Color.Warning" Class="fw-bold">↑ Near Limit</MudText>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
+                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold mb-2 d-block" Style="letter-spacing: 1px;">DAYS LEFT</MudText>
+                    <div class="d-flex align-end gap-1 mb-1">
+                        <MudText Typo="Typo.h3" Class="fw-800">@((eventDetail.Date - DateTime.Today).Days)</MudText>
+                    </div>
+                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold">@eventDetail.Date.ToString("MMM dd") Deadline</MudText>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
+                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold mb-2 d-block" Style="letter-spacing: 1px;">RISK LEVEL</MudText>
+                    <div class="d-flex align-end gap-1 mb-1">
+                        <MudText Typo="Typo.h3" Class="fw-800" Style="color: #f97316;">@eventDetail.RiskLevel</MudText>
+                    </div>
+                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold">Stability: High</MudText>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Spacing="4">
+            <MudItem xs="12" md="8">
+                <MudPaper Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
+                    <div class="d-flex justify-space-between align-center mb-6">
+                        <MudText Typo="Typo.h6" Class="fw-800">DEPARTMENT WORKFLOWS</MudText>
+                        <MudLink Typo="Typo.button" Class="fw-bold" Style="color: #f97316; text-transform: none;">VIEW ALL TASKS</MudLink>
+                    </div>
+                    
+                    <MudTable Items="@allCategories" Dense="true" Hover="true" Elevation="0" Class="workflow-table">
+                        <HeaderContent>
+                            <MudTh Class="text-slate-500 fw-bold pa-2">DEPARTMENT</MudTh>
+                            <MudTh Class="text-slate-500 fw-bold pa-2">LEAD</MudTh>
+                            <MudTh Class="text-slate-500 fw-bold pa-2">PROGRESS</MudTh>
+                            <MudTh Class="text-slate-500 fw-bold pa-2">ACTION</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Department" Class="pa-2">
+                                <MudText Typo="Typo.body2" Class="fw-bold">@context.Name</MudText>
+                                <MudText Typo="Typo.caption" Class="text-slate-500">@context.ActiveSubtasks Active Subtasks</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Lead" Class="pa-2">
+                                <div class="d-flex align-center gap-2">
+                                    <MudAvatar Image="@context.LeadAvatarUrl" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">@context.LeadName</MudText>
+                                </div>
+                            </MudTd>
+                            <MudTd DataLabel="Progress" Class="pa-2">
+                                <MudProgressLinear Value="@context.ProgressPercentage" Color="Color.Warning" Rounded="true" Size="Size.Small" Style="width: 100px;" />
+                            </MudTd>
+                            <MudTd DataLabel="Action" Class="pa-2">
+                                <MudButton Variant="Variant.Text" Size="Size.Small" Class="fw-bold text-slate-500" Style="text-transform: none;" 
+                                    Href="@($"/events/{EventId}/tasks/board/{context.Id}")">View Details</MudButton>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudPaper Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
+                    <MudText Typo="Typo.h6" Class="fw-800 mb-6">TIMELINE MILESTONES</MudText>
+                    
+                    <MudTimeline TimelinePosition="TimelinePosition.Start" TimelineAlign="TimelineAlign.Default" Class="pa-0">
+                        @foreach (var ms in milestones.Select((value, index) => new { value, index }))
+                        {
+                            bool isCompleted = ms.index == 0; // Giả định phase đầu xong
+                            bool isCurrent = ms.index == 1; // Giả định phase 2 đang làm
+                            
+                            <MudTimelineItem Color="@(isCompleted ? Color.Success : (isCurrent ? Color.Warning : Color.Default))" Size="Size.Small">
+                                <ItemContent>
+                                    <MudText Typo="Typo.caption" Class="fw-bold" Style="@(isCompleted ? "color: #10b981;" : (isCurrent ? "color: #f97316;" : "color: #94a3b8;"))">
+                                        PHASE @(ms.index + 1): @ms.value.Name?.Split(':').Last().ToUpper()
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Class="fw-bold mb-1">@ms.value.Name?.Split(':').First()</MudText>
+                                    <MudText Typo="Typo.caption" Class="text-slate-500 d-block mb-4">@(isCompleted ? $"Completed: {ms.value.EndDate:MMM dd, yyyy}" : $"Active: Est. End {ms.value.EndDate:MMM dd}")</MudText>
+                                </ItemContent>
+                            </MudTimelineItem>
+                        }
+                    </MudTimeline>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Spacing="4" Class="mt-2">
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
+                    <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Class="text-slate-500 mb-2" Size="Size.Small" />
+                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold d-block mb-1">TOTAL FILES</MudText>
+                    <MudText Typo="Typo.h4" Class="fw-800">@eventDetail.TotalFiles</MudText>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Class="pa-6 rounded-xl elevation-0 border border-solid border-slate-200">
+                    <MudIcon Icon="@Icons.Material.Filled.MonetizationOn" Class="text-slate-500 mb-2" Size="Size.Small" />
+                    <MudText Typo="Typo.caption" Class="text-slate-500 fw-bold d-block mb-1">ACTUAL SPENDING</MudText>
+                    <MudText Typo="Typo.h4" Class="fw-800">$@eventDetail.ActualSpending.ToString("N0")</MudText>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid EventId { get; set; }
+
+    private EventDto? eventDetail;
+    private List<MilestoneDto> milestones = new();
+    private List<EventCategoryDto> allCategories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Tải dữ liệu Mock
+        eventDetail = await EventService.GetEventDetailAsync(EventId);
+        milestones = await MilestoneService.GetMilestonesAsync(EventId);
+
+        // Gom hết categories về một mối để hiện trong bảng Workflow
+        foreach (var ms in milestones)
+        {
+            var cats = await CategoryService.GetCategoriesAsync(ms.Id);
+            allCategories.AddRange(cats);
+        }
+    }
+}

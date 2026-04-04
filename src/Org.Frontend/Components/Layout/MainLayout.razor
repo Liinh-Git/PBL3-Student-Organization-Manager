@@ -1,4 +1,5 @@
-﻿@* ---- Layout chính sau đăng nhập: sidebar + topbar + vùng nội dung ---- *@
+﻿@using MudBlazor
+@* ---- Layout chính sau đăng nhập: sidebar + topbar + vùng nội dung ---- *@
 @inherits LayoutComponentBase
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
@@ -47,3 +48,8 @@
         Navigation.NavigateTo("/login", forceLoad: false);
     }
 }
+
+<MudThemeProvider @rendermode="InteractiveServer" />
+<MudDialogProvider @rendermode="InteractiveServer" />
+<MudSnackbarProvider @rendermode="InteractiveServer" />
+<MudPopoverProvider @rendermode="InteractiveServer" />
