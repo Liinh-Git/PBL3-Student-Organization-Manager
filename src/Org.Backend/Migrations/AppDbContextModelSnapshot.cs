@@ -17,7 +17,7 @@ namespace Org.Backend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -122,6 +122,9 @@ namespace Org.Backend.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -249,6 +252,49 @@ namespace Org.Backend.Migrations
                     b.HasIndex("OrgId");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("Org.Backend.Domain.Entities.EventCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("MilestoneId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("OwnerDepartmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerDepartmentId");
+
+                    b.HasIndex("MilestoneId", "CategoryName")
+                        .IsUnique();
+
+                    b.HasIndex("MilestoneId", "OrderIndex");
+
+                    b.ToTable("EventCategories");
                 });
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.EventMember", b =>
@@ -379,7 +425,10 @@ namespace Org.Backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("DueDate")
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("EventId")
@@ -390,6 +439,9 @@ namespace Org.Backend.Migrations
 
                     b.Property<int>("OrderIndex")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -426,11 +478,11 @@ namespace Org.Backend.Migrations
                     b.Property<Guid?>("DeptId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("EventCategoryId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
-
-                    b.Property<Guid>("MilestoneId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("Note")
                         .HasColumnType("text");
@@ -454,7 +506,7 @@ namespace Org.Backend.Migrations
 
                     b.HasIndex("DeptId");
 
-                    b.HasIndex("MilestoneId");
+                    b.HasIndex("EventCategoryId");
 
                     b.ToTable("Tasks", (string)null);
                 });
@@ -815,6 +867,24 @@ namespace Org.Backend.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("Org.Backend.Domain.Entities.EventCategory", b =>
+                {
+                    b.HasOne("Org.Backend.Domain.Entities.Milestone", "Milestone")
+                        .WithMany("Categories")
+                        .HasForeignKey("MilestoneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Org.Backend.Domain.Entities.Department", "OwnerDepartment")
+                        .WithMany("OwnedEventCategories")
+                        .HasForeignKey("OwnerDepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Milestone");
+
+                    b.Navigation("OwnerDepartment");
+                });
+
             modelBuilder.Entity("Org.Backend.Domain.Entities.EventMember", b =>
                 {
                     b.HasOne("Org.Backend.Domain.Entities.Event", "Event")
@@ -901,9 +971,9 @@ namespace Org.Backend.Migrations
                         .HasForeignKey("DeptId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Org.Backend.Domain.Entities.Milestone", "Milestone")
+                    b.HasOne("Org.Backend.Domain.Entities.EventCategory", "EventCategory")
                         .WithMany("Tasks")
-                        .HasForeignKey("MilestoneId")
+                        .HasForeignKey("EventCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -911,7 +981,7 @@ namespace Org.Backend.Migrations
 
                     b.Navigation("Department");
 
-                    b.Navigation("Milestone");
+                    b.Navigation("EventCategory");
                 });
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.Request", b =>
@@ -985,6 +1055,8 @@ namespace Org.Backend.Migrations
                 {
                     b.Navigation("Members");
 
+                    b.Navigation("OwnedEventCategories");
+
                     b.Navigation("Tasks");
                 });
 
@@ -1003,6 +1075,11 @@ namespace Org.Backend.Migrations
                     b.Navigation("Resources");
                 });
 
+            modelBuilder.Entity("Org.Backend.Domain.Entities.EventCategory", b =>
+                {
+                    b.Navigation("Tasks");
+                });
+
             modelBuilder.Entity("Org.Backend.Domain.Entities.Member", b =>
                 {
                     b.Navigation("AssignedTasks");
@@ -1014,7 +1091,7 @@ namespace Org.Backend.Migrations
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.Milestone", b =>
                 {
-                    b.Navigation("Tasks");
+                    b.Navigation("Categories");
                 });
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.Organization", b =>

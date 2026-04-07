@@ -1,4 +1,4 @@
-using Org.Frontend.Components;
+// ---- Điểm khởi động frontend: đăng ký service và pipeline render ----
 using Org.Frontend.Infrastructure.Startup;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -1,0 +1,243 @@
+@page "/events/{EventId:guid}/tasks/board/{CategoryId:guid}"
+@rendermode InteractiveServer
+@using MudBlazor
+@using Org.Frontend.ViewModels
+@using Org.Frontend.Services.Tasks
+
+@inject ITaskService TaskService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+@inject ISnackbar Snackbar
+
+<style>
+    .page-bg { background-color: #f1f5f9; min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .fw-800 { font-weight: 800; }
+    .text-muted { color: #64748b; }
+    
+    .card-info { background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
+    .card-members { background-color: #1e293b; color: white; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); }
+    
+    .phase-header { border-left: 4px solid #f97316; background-color: white; border-radius: 8px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+    
+    .task-row { background: white; border-radius: 12px; transition: 0.2s; border: 1px solid #f1f5f9; }
+    .task-row:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transform: translateY(-2px); border-color: #e2e8f0; }
+    
+    .table-header { font-size: 0.75rem; letter-spacing: 1px; color: #94a3b8; font-weight: 700; }
+    .fixed-fab { position: fixed; bottom: 40px; right: 40px; z-index: 100; width: 56px; height: 56px; }
+</style>
+
+<div class="page-bg pa-8">
+    <div class="d-flex justify-space-between align-start mb-8">
+        <div style="max-width: 700px;">
+            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background-color: #ffedd5; color: #f97316;" Class="fw-bold mb-3 rounded-pill px-3">URGENT TASK</MudChip>
+            <MudText Typo="Typo.h3" Class="fw-800 mb-2" Style="color: #0f172a; letter-spacing: -1px;">Chi tiết mục: Kỹ thuật</MudText>
+            <MudText Typo="Typo.body1" Class="text-muted" Style="font-size: 1.1rem;">Technical requirements for audio, visual and lighting systems architecture for the main stage.</MudText>
+        </div>
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Class="rounded-pill px-6 fw-bold elevation-0" Style="background-color: #f97316; color: white; text-transform: none;">
+            Quay lại
+        </MudButton>
+    </div>
+
+    <MudGrid Spacing="6" Class="mb-10">
+        <MudItem xs="12" md="7" lg="8">
+            <div class="card-info pa-8 h-100 position-relative overflow-hidden">
+                <div class="position-absolute" style="top: -20px; right: -20px; width: 150px; height: 150px; background-color: #fff7ed; border-radius: 50%; opacity: 0.5;"></div>
+                
+                <div class="d-flex align-center gap-2 mb-6">
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Style="color: #f97316;" Size="Size.Small" />
+                    <MudText Typo="Typo.subtitle2" Class="fw-800" Style="letter-spacing: 1px; color: #0f172a;">THÔNG TIN MỤC</MudText>
+                </div>
+                <MudText Typo="Typo.body2" Class="mb-4" Style="color: #334155; font-weight: 500;">Quản lý và vận hành toàn bộ hệ thống hạ tầng kỹ thuật bao gồm:</MudText>
+                <ul class="pl-6" style="color: #475569; line-height: 2.2;">
+                    <li>Hệ thống âm thanh hội trường 1500 chỗ (Line Array system).</li>
+                    <li>Hệ thống chiếu sáng sân khấu chuyên dụng (DMX controls).</li>
+                    <li>Thiết bị trình chiếu LED Matrix P2.5 12x4m.</li>
+                    <li>Hạ tầng mạng ổn định cho livestream 4K.</li>
+                </ul>
+            </div>
+        </MudItem>
+
+        <MudItem xs="12" md="5" lg="4">
+            <div class="card-members pa-8 h-100">
+                <div class="d-flex align-center gap-2 mb-8">
+                    <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Warning" Size="Size.Small" />
+                    <MudText Typo="Typo.subtitle2" Class="fw-800" Style="letter-spacing: 1px;">THÀNH VIÊN PHỤ TRÁCH</MudText>
+                </div>
+                
+                <div class="d-flex align-center gap-4 mb-5">
+                    <MudAvatar Image="https://randomuser.me/api/portraits/men/32.jpg" />
+                    <div>
+                        <MudText Typo="Typo.body2" Class="fw-bold">Nguyễn Văn B</MudText>
+                        <MudText Typo="Typo.caption" Style="color: #94a3b8;">Technical Lead</MudText>
+                    </div>
+                </div>
+                <div class="d-flex align-center gap-4 mb-5">
+                    <MudAvatar Image="https://randomuser.me/api/portraits/women/44.jpg" />
+                    <div>
+                        <MudText Typo="Typo.body2" Class="fw-bold">Trần Thị C</MudText>
+                        <MudText Typo="Typo.caption" Style="color: #94a3b8;">Lighting Specialist</MudText>
+                    </div>
+                </div>
+                <div class="d-flex align-center gap-4">
+                    <MudAvatar Image="https://randomuser.me/api/portraits/men/75.jpg" />
+                    <div>
+                        <MudText Typo="Typo.body2" Class="fw-bold">Lê Văn D</MudText>
+                        <MudText Typo="Typo.caption" Style="color: #94a3b8;">AV Operator</MudText>
+                    </div>
+                </div>
+            </div>
+        </MudItem>
+    </MudGrid>
+
+    <div class="d-flex justify-space-between align-center mb-6 mt-8">
+        <MudText Typo="Typo.h5" Class="fw-800" Style="color: #0f172a;">Phân chia nhiệm vụ</MudText>
+        
+        <div class="d-flex gap-4 align-center">
+            <MudToggleGroup T="bool" @bind-Value="isKanbanMode" Outline="true" Delimiters="true" Rounded="true" Size="Size.Small" Color="Color.Warning" SelectedClass="fw-bold">
+                <MudToggleItem Value="false">
+                    <div class="d-flex align-center gap-2 px-2"><MudIcon Icon="@Icons.Material.Filled.FormatListBulleted" Size="Size.Small"/> List View</div>
+                </MudToggleItem>
+                <MudToggleItem Value="true">
+                    <div class="d-flex align-center gap-2 px-2"><MudIcon Icon="@Icons.Material.Filled.ViewColumn" Size="Size.Small"/> Kanban</div>
+                </MudToggleItem>
+            </MudToggleGroup>
+
+            <MudIconButton Icon="@Icons.Material.Filled.FilterList" Variant="Variant.Outlined" Size="Size.Small" Class="bg-white rounded-circle border-slate-200 text-muted" />
+        </div>
+    </div>
+
+    @if (_tasks == null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="ma-auto d-block" />
+    }
+    else
+    {
+        @if (!isKanbanMode)
+        {
+            <div class="phase-header pa-3 mb-4 d-flex align-center shadow-sm">
+                <MudText Typo="Typo.caption" Class="fw-800 mr-4" Style="color: #f97316; letter-spacing: 1px;">PHASE 01</MudText>
+                <MudText Typo="Typo.subtitle2" Class="fw-bold" Style="color: #0f172a;">Giai đoạn 1: Lên kế hoạch & Chuẩn bị</MudText>
+            </div>
+
+            <div class="table-header d-flex px-6 py-2 mb-2">
+                <div style="width: 25%;">TASK NAME</div>
+                <div style="width: 15%;">STATUS</div>
+                <div style="width: 15%;">DEADLINE</div>
+                <div style="width: 15%;">ASSIGNEE</div>
+                <div style="width: 10%; text-align: center;">ATTACHMENTS</div>
+                <div style="width: 10%;">PROGRESS</div>
+                <div style="width: 10%;">NOTES</div>
+            </div>
+
+            @foreach (var task in _tasks)
+            {
+                <div class="task-row d-flex align-center px-6 py-5 mb-4 shadow-sm">
+                    <div style="width: 25%; padding-right: 16px;">
+                        <MudText Typo="Typo.subtitle2" Class="fw-bold" Style="color: #0f172a;">@task.Title</MudText>
+                    </div>
+                    <div style="width: 15%;">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" 
+                                 Style="@(task.Status == "TODO" ? "background-color: #f97316; color: white;" : (task.Status == "IN_PROGRESS" ? "background-color: #1e293b; color: white;" : "background-color: #10b981; color: white;"))" 
+                                 Class="fw-bold rounded">
+                            @(task.Status == "TODO" ? "TODO" : (task.Status == "IN_PROGRESS" ? "IN PROGRESS" : "COMPLETED"))
+                        </MudChip>
+                    </div>
+                    <div style="width: 15%;">
+                        <MudText Typo="Typo.body2" Class="fw-bold" Style="color: #475569;">@task.DueDate?.ToString("dd MMM yyyy")</MudText>
+                    </div>
+                    <div style="width: 15%;">
+                        <MudAvatar Size="Size.Small" Color="Color.Primary">@task.AssigneeName?.FirstOrDefault()</MudAvatar>
+                    </div>
+                    <div style="width: 10%; text-align: center;">
+                        <MudIcon Icon="@Icons.Material.Filled.AttachFile" Size="Size.Small" Class="text-muted" />
+                    </div>
+                    <div style="width: 10%; padding-right: 16px;">
+                        <MudProgressLinear Value="@(task.Status == "DONE" ? 100 : (task.Status == "IN_PROGRESS" ? 50 : 0))" Color="Color.Warning" Rounded="true" Size="Size.Small" />
+                    </div>
+                    <div style="width: 10%;">
+                        <MudText Typo="Typo.caption" Class="text-muted" Style="font-style: italic;">
+                            @(task.Status == "DONE" ? "Completed" : "Pending")
+                        </MudText>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <MudDropContainer T="TaskViewModel" Items="_tasks" ItemsSelector="@((item, dropzone) => item.Status == dropzone)" ItemDropped="TaskUpdated" Class="d-flex flex-nowrap gap-6 mt-4" Style="overflow-x: auto; padding-bottom: 20px;">
+                <ChildContent>
+                    <div class="pa-4 pb-2" style="background-color: #e2e8f0; border-radius: 12px; min-width: 320px; flex: 1;">
+                        <MudText Typo="Typo.subtitle2" Class="fw-bold mb-4" Style="color: #475569;">CẦN LÀM (TODO)</MudText>
+                        <MudDropZone T="TaskViewModel" Identifier="TODO" Class="flex-grow-1" Style="min-height: 400px;" />
+                    </div>
+                    <div class="pa-4 pb-2" style="background-color: #e2e8f0; border-radius: 12px; min-width: 320px; flex: 1;">
+                        <MudText Typo="Typo.subtitle2" Class="fw-bold mb-4" Style="color: #ea580c;">ĐANG LÀM (IN PROGRESS)</MudText>
+                        <MudDropZone T="TaskViewModel" Identifier="IN_PROGRESS" Class="flex-grow-1" Style="min-height: 400px;" />
+                    </div>
+                    <div class="pa-4 pb-2" style="background-color: #e2e8f0; border-radius: 12px; min-width: 320px; flex: 1;">
+                        <MudText Typo="Typo.subtitle2" Class="fw-bold mb-4" Style="color: #059669;">ĐÃ XONG (DONE)</MudText>
+                        <MudDropZone T="TaskViewModel" Identifier="DONE" Class="flex-grow-1" Style="min-height: 400px;" />
+                    </div>
+                </ChildContent>
+                <ItemRenderer>
+                    <div class="task-row pa-4 mb-4 shadow-sm" style="cursor: grab; border-left: 4px solid @(context.Status == "DONE" ? "#10b981" : (context.Status == "IN_PROGRESS" ? "#f97316" : "#94a3b8"));">
+                        <MudText Typo="Typo.body1" Class="fw-bold mb-3" Style="color: #0f172a;">@context.Title</MudText>
+                        <div class="d-flex justify-space-between align-center">
+                            <MudAvatar Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@context.AssigneeName?.FirstOrDefault()</MudAvatar>
+                            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Event" Variant="Variant.Text" Style="color: #64748b; font-weight: 600;">@context.DueDate?.ToString("MMM dd")</MudChip>
+                        </div>
+                    </div>
+                </ItemRenderer>
+            </MudDropContainer>
+        }
+    }
+    
+    <MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Add" Class="fixed-fab elevation-4" DisableElevation="false" @onclick="OpenCreateDialog" />
+</div>
+
+@code {
+    [Parameter] public Guid CategoryId { get; set; }
+    [Parameter] public Guid EventId { get; set; }
+    private List<TaskViewModel>? _tasks;
+    
+    // Biến này để điều khiển bật/tắt giao diện
+    private bool isKanbanMode = false; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tasks = await TaskService.GetTasksAsync(CategoryId);
+    }
+
+    private async Task TaskUpdated(MudItemDropInfo<TaskViewModel> dropItem)
+    {
+        if (dropItem.Item != null && dropItem.DropzoneIdentifier != null)
+        {
+            dropItem.Item.Status = dropItem.DropzoneIdentifier;
+            await TaskService.UpdateTaskStatusAsync(dropItem.Item.Id, new UpdateTaskStatusViewModel { Status = dropItem.DropzoneIdentifier });
+            
+            // Xóa thông báo cho gọn, hoặc bồ có thể giữ lại Snackbar.Add(...) ở đây nếu muốn
+        }
+    }
+
+   private void GoBack()
+    {
+        NavigationManager.NavigateTo($"/events/{EventId}"); 
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CreateTaskDialog>("Thêm Công Việc Mới", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data != null)
+        {
+            var req = (CreateTaskViewModel)result.Data;
+            await TaskService.CreateTaskAsync(CategoryId, req);
+            _tasks = await TaskService.GetTasksAsync(CategoryId); // Load lại data
+            Snackbar.Add("Đã thêm task!", Severity.Success);
+            StateHasChanged();
+        }
+    }
+}

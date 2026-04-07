@@ -1,7 +1,33 @@
-﻿@page "/"
+@* ---- Trang chủ sau đăng nhập: hiển thị thông tin claim lấy từ auth state ---- *@
+@* [Authorize] KHÔNG dùng ở đây: bảo vệ route do AuthorizeRouteView trong Routes.razor đảm nhiệm *@
+@* Dùng [Authorize] trên Razor component sẽ trigger ASP.NET Core Authorization Middleware (HTTP level), *@
+@* gây crash vì không có HTTP authentication scheme. Blazor dùng CascadingAuthenticationState thay thế. *@
+@page "/"
+@inject AuthenticationStateProvider AuthStateProvider
+@using System.Security.Claims
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Xin chào, @_user.Identity?.Name</h1>
 
-Welcome to your new app.
+<p>Đăng nhập thành công. Bạn đã vào vùng nội dung được bảo vệ bởi JWT.</p>
+
+<ul>
+	<li>User ID: @_user.FindFirst(ClaimTypes.NameIdentifier)?.Value</li>
+	<li>Email: @_user.FindFirst(ClaimTypes.Email)?.Value</li>
+	<li>Status: @_user.FindFirst("status")?.Value</li>
+</ul>
+
+<p>Bạn có thể mở các trang <a href="/counter">Counter</a> hoặc <a href="/weather">Weather</a> để kiểm tra route guard.</p>
+
+@code {
+	// ---- Lưu thông tin user hiện tại để hiển thị lên UI ----
+	private ClaimsPrincipal _user = new(new ClaimsIdentity());
+
+	// ---- Khi vào trang: đọc auth state và gán user từ claims ----
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+		_user = authState.User;
+	}
+}

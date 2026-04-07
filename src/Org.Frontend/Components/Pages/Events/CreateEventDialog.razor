@@ -1,0 +1,40 @@
+@using MudBlazor
+@using Org.Frontend.ViewModels
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="model.Title" Label="Tên sự kiện" Required="true" RequiredError="Bắt buộc nhập tên!" Class="mb-3"/>
+        
+        <div class="d-flex gap-4 mb-3">
+            <MudDatePicker @bind-Date="model.Date" Label="Ngày tổ chức" Class="flex-grow-1" />
+            <MudTimePicker @bind-Time="model.Time" Label="Giờ" Class="flex-grow-1" />
+        </div>
+
+        <MudTextField @bind-Value="model.Location" Label="Địa điểm" Class="mb-3" />
+        <MudNumericField @bind-Value="model.TotalSlots" Label="Số lượng slot (0 = Không giới hạn)" Min="0" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Hủy</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Tạo mới</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+
+    private CreateEventViewModel model = new CreateEventViewModel();
+
+    private void Submit()
+    {
+        if (string.IsNullOrWhiteSpace(model.Title))
+        {
+            Snackbar.Add("Vui lòng nhập tên sự kiện", Severity.Error);
+            return;
+        }
+        // Gửi data về cho trang EventList
+        MudDialog?.Close(DialogResult.Ok(model));
+    }
+
+    private void Cancel() => MudDialog?.Cancel();
+}

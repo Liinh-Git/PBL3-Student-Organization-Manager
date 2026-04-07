@@ -8,6 +8,7 @@ public class Department : BaseEntity
 {
     public Guid OrgId { get; set; }
     public string DeptName { get; set; } = string.Empty;
+    public string? Code { get; set; }
     public Guid? ManagerId { get; set; }
     public string? Function { get; set; }
 
@@ -15,5 +16,6 @@ public class Department : BaseEntity
     public Organization Organization { get; set; } = null!;
     public Member? Manager { get; set; }
     public ICollection<Member> Members { get; set; } = [];
+    public ICollection<EventCategory> OwnedEventCategories { get; set; } = [];
     public ICollection<OrgTask> Tasks { get; set; } = [];
 }

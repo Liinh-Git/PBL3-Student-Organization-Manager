@@ -1,11 +1,13 @@
-﻿@page "/weather"
+@* ---- Trang mẫu dữ liệu có bảo vệ auth: minh họa load danh sách bất đồng bộ ---- *@
+@* Bảo vệ route do AuthorizeRouteView trong Routes.razor, không dùng [Authorize] ở đây *@
+@page "/weather"
 @attribute [StreamRendering]
 
 <PageTitle>Weather</PageTitle>
 
 <h1>Weather</h1>
 
-<p>This component demonstrates showing data.</p>
+<p>Trang này minh họa cách tải và hiển thị dữ liệu dạng bảng.</p>
 
 @if (forecasts == null)
 {
@@ -37,11 +39,13 @@ else
 }
 
 @code {
+    // ---- Dữ liệu dự báo sẽ được nạp khi trang khởi tạo ----
     private WeatherForecast[]? forecasts;
 
+    // ---- Giả lập gọi dữ liệu bất đồng bộ rồi dựng danh sách mẫu ----
     protected override async Task OnInitializedAsync()
     {
-        // Simulate asynchronous loading to demonstrate streaming rendering
+        // ---- Delay ngắn để thấy trạng thái Loading khi stream render ----
         await Task.Delay(500);
 
         var startDate = DateOnly.FromDateTime(DateTime.Now);
@@ -54,11 +58,13 @@ else
         }).ToArray();
     }
 
+    // ---- Model dữ liệu thời tiết hiển thị trên bảng ----
     private class WeatherForecast
     {
         public DateOnly Date { get; set; }
         public int TemperatureC { get; set; }
         public string? Summary { get; set; }
+        // ---- Chuyển đổi nhanh từ độ C sang độ F để hiển thị ----
         public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
     }
 }

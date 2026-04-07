@@ -1,6 +1,8 @@
 using Org.Frontend.Components;
+using Org.Frontend.Services.Auth;
 using Org.Frontend.Services.Departments;
 using Org.Frontend.Services.Members;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
 
 namespace Org.Frontend.Infrastructure.Startup;
@@ -14,6 +16,17 @@ public static class FrontendStartupExtensions
 
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        services.AddHttpClient<AuthApiClient>(client =>
+        {
+            client.BaseAddress = new Uri(backendApiBaseUrl);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        });
+
+        services.AddScoped<ITokenStorage, LocalStorageTokenStorage>();
+        services.AddScoped<FrontendAuthStateProvider>();
+        services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<FrontendAuthStateProvider>());
+        services.AddAuthorizationCore();
 
         services.AddHttpClient<DepartmentApiClient>(client =>
         {
@@ -49,6 +62,10 @@ public static class FrontendStartupExtensions
         }
 
         app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+
+        // ---- Blazor Server dùng CascadingAuthenticationState + AuthorizeRouteView ----
+        // Auth được xử lý ở tầng Blazor component, không cần UseAuthentication/UseAuthorization middleware.
+        // Các Razor page được bảo vệ quà AuthorizeRouteView trong Routes.razor (không dùng [Authorize]).
         app.UseAntiforgery();
 
         app.MapStaticAssets();
