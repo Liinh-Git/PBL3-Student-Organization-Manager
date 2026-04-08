@@ -65,7 +65,7 @@ public static class FrontendStartupExtensions
 
         // ---- Blazor Server dùng CascadingAuthenticationState + AuthorizeRouteView ----
         // Auth được xử lý ở tầng Blazor component, không cần UseAuthentication/UseAuthorization middleware.
-        // Các Razor page được bảo vệ quà AuthorizeRouteView trong Routes.razor (không dùng [Authorize]).
+        // Các Razor page được bảo vệ qua AuthorizeRouteView trong Routes.razor (không dùng [Authorize]).
         app.UseAntiforgery();
 
         app.MapStaticAssets();
