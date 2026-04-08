@@ -72,6 +72,14 @@ namespace Org.Backend.Migrations
                 table: "EventCategories",
                 column: "OwnerDepartmentId");
 
+            migrationBuilder.Sql(
+                """
+                INSERT INTO "EventCategories" ("Id", "MilestoneId", "CategoryName", "OrderIndex", "Description", "OwnerDepartmentId", "CreatedAt", "UpdatedAt", "IsDeleted")
+                SELECT m."Id", m."Id", 'General', 0, 'Migrated default category', NULL, NOW(), NULL, FALSE
+                FROM "Milestones" m
+                ON CONFLICT ("Id") DO NOTHING;
+                """);
+
             migrationBuilder.AddForeignKey(
                 name: "FK_Tasks_EventCategories_EventCategoryId",
                 table: "Tasks",

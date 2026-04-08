@@ -10,7 +10,7 @@ namespace Org.Backend.Infrastructure.Database;
 public static class DatabaseSeeder
 {
     // Số lượng bản ghi chuẩn cho mỗi nhóm seed.
-    private const int SeedCount = 10;
+    private const int SeedCount = 20;
 
     // ---- Orchestrator: chạy seed theo từng stage để đảm bảo đúng thứ tự FK ----
     public static async Task SeedAsync(AppDbContext db, CancellationToken cancellationToken = default)
@@ -39,14 +39,15 @@ public static class DatabaseSeeder
             .Select(x => x.PermissionKey)
             .ToListAsync(cancellationToken);
 
-        var existingUserEmails = await db.Users
+        var existingUsers = await db.Users
             .Where(x => userEmails.Contains(x.Email))
-            .Select(x => x.Email)
             .ToListAsync(cancellationToken);
 
         var orgNameSet = existingOrgNames.ToHashSet(StringComparer.OrdinalIgnoreCase);
         var permissionKeySet = existingPermissionKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var userEmailSet = existingUserEmails.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var userEmailSet = existingUsers
+            .Select(x => x.Email)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         for (var i = 1; i <= SeedCount; i++)
         {
@@ -78,13 +79,14 @@ public static class DatabaseSeeder
             }
 
             var userEmail = $"user{i}@example.com";
+            var seedRawPassword = $"hash-user-{i}";
             if (!userEmailSet.Contains(userEmail))
             {
                 db.Users.Add(new User
                 {
                     FullName = $"User {i}",
                     Email = userEmail,
-                    PasswordHash = $"hash-user-{i}",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword),
                     PhoneNumber = $"09000000{i:00}",
                     Dob = DateTime.UtcNow.Date.AddYears(-20).AddDays(i),
                     Gender = i % 2 == 0 ? "Female" : "Male",
@@ -95,6 +97,27 @@ public static class DatabaseSeeder
                     Status = UserStatus.Active,
                     LastLogin = DateTime.UtcNow.AddHours(-i)
                 });
+            }
+
+            var existingUser = existingUsers.FirstOrDefault(x => string.Equals(x.Email, userEmail, StringComparison.OrdinalIgnoreCase));
+            if (existingUser is null)
+            {
+                continue;
+            }
+
+            var passwordMatches = false;
+            try
+            {
+                passwordMatches = BCrypt.Net.BCrypt.Verify(seedRawPassword, existingUser.PasswordHash);
+            }
+            catch
+            {
+                // Legacy format is not BCrypt; upgrade hash below.
+            }
+
+            if (!passwordMatches)
+            {
+                existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword);
             }
         }
 

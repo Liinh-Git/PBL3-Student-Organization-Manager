@@ -1,0 +1,162 @@
+@page "/departments"
+@rendermode InteractiveServer
+
+@using Org.Frontend.Services.Departments
+@using Org.Shared.Contracts
+@inject IDepartmentService DepartmentService
+
+<PageTitle>Departments</PageTitle>
+
+<section class="department-shell">
+    <header class="department-header">
+        <div>
+            <p class="dashboard-eyebrow">Module</p>
+            <h3>Departments</h3>
+        </div>
+        <button class="btn btn-success dept-primary-btn" @onclick="OpenCreate">Create Department</button>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <div class="alert alert-info department-toast">@Message</div>
+    }
+
+    @if (ShowCreateForm)
+    {
+        <DepartmentForm Model="CreateModel" SaveText="Create" OnSubmit="CreateDepartment" OnCancel="CloseForms" />
+    }
+
+    @if (EditModel is not null)
+    {
+        <DepartmentForm Model="EditModel" SaveText="Update" OnSubmit="UpdateDepartment" OnCancel="CloseForms" />
+    }
+
+    @if (Departments.Count == 0)
+    {
+        <p class="department-empty">No departments available.</p>
+    }
+    else
+    {
+        <div class="department-table-wrap">
+            <table class="table department-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Function</th>
+                        <th>ManagerId</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var dept in Departments)
+                    {
+                        <tr>
+                            <td>@dept.DeptName</td>
+                            <td>@dept.Function</td>
+                            <td class="dept-manager-id">@(dept.ManagerId?.ToString() ?? "-")</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => OpenEdit(dept)">Edit</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@code {
+    private static readonly Guid OrgId = Guid.Parse("97b12d10-8368-4c55-abdb-69490895f4f3");
+
+    private List<DepartmentDto> Departments { get; set; } = [];
+    private DepartmentForm.DepartmentFormModel CreateModel { get; set; } = new();
+    private DepartmentForm.DepartmentFormModel? EditModel { get; set; }
+    private Guid? EditingDepartmentId { get; set; }
+    private bool ShowCreateForm { get; set; }
+    private string? Message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Reload();
+    }
+
+    private async Task Reload()
+    {
+        Departments = await DepartmentService.GetDepartments(OrgId);
+    }
+
+    private void OpenCreate()
+    {
+        ShowCreateForm = true;
+        EditModel = null;
+        EditingDepartmentId = null;
+        CreateModel = new DepartmentForm.DepartmentFormModel();
+        Message = null;
+    }
+
+    private void OpenEdit(DepartmentDto dept)
+    {
+        ShowCreateForm = false;
+        EditingDepartmentId = dept.Id;
+        EditModel = new DepartmentForm.DepartmentFormModel
+        {
+            DeptName = dept.DeptName,
+            ManagerId = dept.ManagerId,
+            Function = dept.Function
+        };
+        Message = null;
+    }
+
+    private async Task CreateDepartment()
+    {
+        if (string.IsNullOrWhiteSpace(CreateModel.DeptName))
+        {
+            Message = "Department name is required.";
+            return;
+        }
+
+        await DepartmentService.CreateDepartment(new CreateDepartmentRequest
+        {
+            OrgId = OrgId,
+            DeptName = CreateModel.DeptName,
+            ManagerId = CreateModel.ManagerId,
+            Function = CreateModel.Function
+        });
+
+        Message = "Department created.";
+        ShowCreateForm = false;
+        await Reload();
+    }
+
+    private async Task UpdateDepartment()
+    {
+        if (EditModel is null || EditingDepartmentId is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(EditModel.DeptName))
+        {
+            Message = "Department name is required.";
+            return;
+        }
+
+        await DepartmentService.UpdateDepartment(EditingDepartmentId.Value, new UpdateDepartmentRequest
+        {
+            DeptName = EditModel.DeptName,
+            ManagerId = EditModel.ManagerId,
+            Function = EditModel.Function
+        });
+
+        Message = "Department updated.";
+        CloseForms();
+        await Reload();
+    }
+
+    private void CloseForms()
+    {
+        ShowCreateForm = false;
+        EditModel = null;
+        EditingDepartmentId = null;
+    }
+}

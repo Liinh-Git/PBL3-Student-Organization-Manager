@@ -1,10 +1,8 @@
-﻿@* ---- Sidebar điều hướng: đổi menu theo trạng thái đăng nhập hiện tại ---- *@
-@inject FrontendAuthStateProvider AuthStateProvider
-@inject NavigationManager Navigation
-
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">AcademiaCurator</a>
+﻿<div class="brand-shell">
+    <div class="brand-mark">AC</div>
+    <div class="brand-meta">
+        <strong>Academia Curator</strong>
+        <span>Quan ly to chuc</span>
     </div>
 </div>
 
@@ -13,64 +11,33 @@
 @* ---- Click vào menu item sẽ tự đóng menu trên màn hình nhỏ ---- *@
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
-        <AuthorizeView>
-            <Authorized Context="authContext">
-                @* ---- Bước 1: menu chức năng dành cho user đã đăng nhập ---- *@
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-                    </NavLink>
-                </div>
+        <p class="nav-section">Dieu huong chinh</p>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="events">
-                        <span class="bi bi-calendar-event" aria-hidden="true" style="margin-right: 0.5rem;"></span> Events
-                    </NavLink>
-                </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="counter">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-                    </NavLink>
-                </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="departments">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Departments
+            </NavLink>
+        </div>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="weather">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-                    </NavLink>
-                </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="members">
+                <span class="bi bi-people-fill" aria-hidden="true"></span> Members
+            </NavLink>
+        </div>
 
-                <div class="nav-item px-3 nav-user">
-                    @* ---- Hiển thị nhanh tên user và nút đăng xuất trong sidebar ---- *@
-                    <div class="nav-user-name">@authContext.User.Identity?.Name</div>
-                    <button class="nav-link nav-button" @onclick="LogoutAsync">Đăng xuất</button>
-                </div>
-            </Authorized>
-
-            <NotAuthorized>
-                @* ---- Bước 2: menu tối thiểu cho khách, chỉ có login/register ---- *@
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="login">
-                        Đăng nhập
-                    </NavLink>
-                </div>
-
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="register">
-                        Đăng ký
-                    </NavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
+        <div class="nav-footer-card px-3">
+            <div class="nav-footer-icon">M</div>
+            <div>
+                <strong>Marketing Club</strong>
+                <p>workspace active</p>
+            </div>
+        </div>
     </nav>
 </div>
-
-@code {
-    // ---- Đăng xuất từ sidebar rồi điều hướng về login ----
-    private async Task LogoutAsync()
-    {
-        await AuthStateProvider.SignOutAsync();
-        Navigation.NavigateTo("/login", forceLoad: false);
-    }
-}
 

@@ -1,0 +1,62 @@
+<EditForm Model="Model" OnValidSubmit="HandleValidSubmit" class="department-form">
+    <DataAnnotationsValidator />
+
+    <div class="department-field">
+        <label class="form-label">Department Name</label>
+        <InputText class="form-control department-input" @bind-Value="Model.DeptName" />
+    </div>
+
+    <div class="department-field">
+        <label class="form-label">Manager Id (optional)</label>
+        <InputText class="form-control department-input" @bind-Value="ManagerIdText" />
+    </div>
+
+    <div class="department-field">
+        <label class="form-label">Function</label>
+        <InputText class="form-control department-input" @bind-Value="Model.Function" />
+    </div>
+
+    <div class="department-form-actions">
+        <button type="submit" class="btn btn-primary dept-primary-btn">@SaveText</button>
+        <button type="button" class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired]
+    public DepartmentFormModel Model { get; set; } = new();
+
+    [Parameter]
+    public string SaveText { get; set; } = "Save";
+
+    [Parameter]
+    public EventCallback OnSubmit { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private string ManagerIdText
+    {
+        get => Model.ManagerId?.ToString() ?? string.Empty;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                Model.ManagerId = null;
+                return;
+            }
+
+            Model.ManagerId = Guid.TryParse(value, out var parsed) ? parsed : null;
+        }
+    }
+
+    private Task HandleValidSubmit()
+        => OnSubmit.InvokeAsync();
+
+    public sealed class DepartmentFormModel
+    {
+        public string DeptName { get; set; } = string.Empty;
+        public Guid? ManagerId { get; set; }
+        public string? Function { get; set; }
+    }
+}

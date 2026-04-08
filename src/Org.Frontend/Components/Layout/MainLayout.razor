@@ -1,36 +1,36 @@
-﻿@using MudBlazor
-@* ---- Layout chính sau đăng nhập: sidebar + topbar + vùng nội dung ---- *@
-@inherits LayoutComponentBase
-@inject FrontendAuthStateProvider AuthStateProvider
-@inject NavigationManager Navigation
+﻿@inherits LayoutComponentBase
 
 <div class="page">
-    @* ---- Cột trái: sidebar điều hướng chính của hệ thống ---- *@
     <div class="sidebar">
         <NavMenu />
     </div>
 
-    @* ---- Cột phải: topbar + vùng nội dung của trang hiện tại ---- *@
     <main>
-        <div class="top-row px-4 auth">
-            <AuthorizeView>
-                <Authorized Context="authContext">
-                    @* ---- Hiển thị tên user và nút đăng xuất khi đã đăng nhập ---- *@
-                    <span class="top-row-user">@authContext.User.Identity?.Name</span>
-                    <button class="btn btn-link top-row-action" @onclick="LogoutAsync">Đăng xuất</button>
-                </Authorized>
+        <header class="top-row">
+            <div class="top-search-wrap">
+                <input class="top-search" type="search" placeholder="Tim kiem tai lieu, thanh vien..." />
+                <button class="top-search-button" type="button">Tim kiem</button>
+            </div>
 
-                <NotAuthorized>
-                    @* ---- Fallback hiển thị link đăng nhập/đăng ký nếu chưa auth ---- *@
-                    <a href="/login">Login</a>
-                    <a href="/register">Sign Up</a>
-                </NotAuthorized>
-            </AuthorizeView>
-        </div>
+            <div class="top-actions">
+                <button class="top-action-button" type="button" aria-label="Notifications">N</button>
+                <button class="top-action-button" type="button" aria-label="Messages">M</button>
 
-        <article class="content px-4">
-            @Body
-        </article>
+                <div class="top-profile">
+                    <div class="top-profile-meta">
+                        <strong>Kora Admin</strong>
+                        <span>Organization Lead</span>
+                    </div>
+                    <div class="top-profile-avatar">KA</div>
+                </div>
+            </div>
+        </header>
+
+        <section class="app-main-surface">
+            <article class="content">
+                @Body
+            </article>
+        </section>
     </main>
 </div>
 
@@ -39,17 +39,3 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
-
-@code {
-    // ---- Đăng xuất từ topbar: xóa token/state và quay về login ----
-    private async Task LogoutAsync()
-    {
-        await AuthStateProvider.SignOutAsync();
-        Navigation.NavigateTo("/login", forceLoad: false);
-    }
-}
-
-<MudThemeProvider @rendermode="InteractiveServer" />
-<MudDialogProvider @rendermode="InteractiveServer" />
-<MudSnackbarProvider @rendermode="InteractiveServer" />
-<MudPopoverProvider @rendermode="InteractiveServer" />

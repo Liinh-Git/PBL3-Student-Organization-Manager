@@ -1,6 +1,6 @@
 # Hướng dẫn Đồng bộ Database và Dữ liệu mẫu (Seeding)
 
-Tài liệu này hướng dẫn cách cập nhật cấu trúc database (Migration) và nạp 10 bản ghi mẫu cho mỗi thực thể để phục vụ việc phát triển local.
+Tài liệu này hướng dẫn cách cập nhật cấu trúc database (Migration) và nạp 20 bản ghi mẫu cho mỗi thực thể để phục vụ việc phát triển local.
 
 ---
 
@@ -23,7 +23,7 @@ Tôi đã tạo sẵn script PowerShell để thực hiện 2 việc: Update DB 
 **Script này sẽ tự động:**
 1. Di chuyển vào thư mục `src/Org.Backend`.
 2. Chạy `dotnet ef database update` để cập nhật schema mới nhất (bao gồm `EventCategory`).
-3. Chạy `dotnet run -- --seed` để nạp 10 bản ghi mẫu (Users, Orgs, Categories, Tasks, Finance...).
+3. Chạy `dotnet run -- --seed` để nạp 20 bản ghi mẫu (Users, Orgs, Categories, Tasks, Finance...).
 
 ---
 
@@ -46,10 +46,10 @@ Nếu bạn không muốn dùng script, hãy chạy các lệnh sau theo thứ t
 
 ### 4. Kiểm tra dữ liệu
 Sau khi chạy thành công, bạn sẽ thấy log thông báo số lượng bản ghi đã tạo. Ví dụ:
-- **10 Users** (nếu có đăng ký x user thì là x + 10 mẫu).
-- **10 Organizations**.
-- **10 Event Categories** (Cấu trúc phân cấp).
-- **10 Tasks / Milestones**.
+- **20 Users** (nếu có đăng ký x user thì là x + 20 mẫu).
+- **20 Organizations**.
+- **20 Event Categories** (Cấu trúc phân cấp).
+- **20 Tasks / Milestones**.
 
 ---
 

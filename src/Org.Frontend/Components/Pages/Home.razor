@@ -1,6 +1,8 @@
-﻿@* ---- Trang chủ sau đăng nhập: hiển thị thông tin claim lấy từ auth state ---- *@
+@* ---- Trang chủ sau đăng nhập: hiển thị thông tin claim lấy từ auth state ---- *@
+@* [Authorize] KHÔNG dùng ở đây: bảo vệ route do AuthorizeRouteView trong Routes.razor đảm nhiệm *@
+@* Dùng [Authorize] trên Razor component sẽ trigger ASP.NET Core Authorization Middleware (HTTP level), *@
+@* gây crash vì không có HTTP authentication scheme. Blazor dùng CascadingAuthenticationState thay thế. *@
 @page "/"
-@attribute [Authorize]
 @inject AuthenticationStateProvider AuthStateProvider
 @using System.Security.Claims
 

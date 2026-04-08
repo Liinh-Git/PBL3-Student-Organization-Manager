@@ -1,0 +1,23 @@
+[
+  {
+    "id": "c9981b68-7cbe-4c42-922f-06db35e77f11",
+    "orgId": "97b12d10-8368-4c55-abdb-69490895f4f3",
+    "deptName": "Technical Team",
+    "managerId": "57116de4-7b7f-4f0f-9264-6f6f8e6fe1f0",
+    "function": "Build and maintain product features"
+  },
+  {
+    "id": "d42fbd2a-4dbf-4b5c-97c0-a4b17d870603",
+    "orgId": "97b12d10-8368-4c55-abdb-69490895f4f3",
+    "deptName": "Operations",
+    "managerId": "f892e55b-c155-4770-a4c4-ea9a937f433a",
+    "function": "Coordinate logistics and internal operations"
+  },
+  {
+    "id": "7056d115-bdd8-476b-adf5-0df4e5ff58a5",
+    "orgId": "97b12d10-8368-4c55-abdb-69490895f4f3",
+    "deptName": "Communications",
+    "managerId": null,
+    "function": "Content, outreach and social channels"
+  }
+]

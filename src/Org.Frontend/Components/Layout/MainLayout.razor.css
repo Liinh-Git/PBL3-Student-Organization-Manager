@@ -1,88 +1,171 @@
 .page {
-    position: relative;
     display: flex;
-    flex-direction: column;
+    min-height: 100vh;
+    background: #f6faff;
 }
 
 main {
     flex: 1;
+    min-width: 0;
+    padding: 1rem 1.5rem 2rem;
 }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    width: 280px;
+    min-height: 100vh;
 }
 
 .top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(15, 31, 41, 0.1);
+    border-radius: 0.9rem;
+    backdrop-filter: blur(6px);
+    padding: 0.8rem 1rem;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
 }
 
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
-    }
-
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-.top-row-user {
-    color: #2a3342;
-    font-weight: 600;
-    margin-right: 0.5rem;
+.top-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+    flex: 1;
 }
 
-.top-row-action {
-    margin-left: 0.5rem;
+.top-search {
+    width: min(28rem, 100%);
+    min-height: 2.35rem;
+    border: 1px solid #d8e3ef;
+    border-radius: 0.5rem;
+    padding: 0.45rem 0.8rem;
+    color: #25343f;
+    background: #ffffff;
 }
 
-@media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-    }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
-    }
+.top-search:focus {
+    outline: none;
+    border-color: #ff9b51;
+    box-shadow: 0 0 0 0.18rem rgba(255, 155, 81, 0.22);
 }
 
-@media (min-width: 641px) {
+.top-search-button {
+    min-height: 2.35rem;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.45rem 1.2rem;
+    background: #ff9b51;
+    color: #703500;
+    font-weight: 700;
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.top-action-button {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    border: 1px solid #d5dfeb;
+    background: #fff;
+    color: #25343f;
+    font-weight: 700;
+}
+
+.top-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: 0.35rem;
+}
+
+.top-profile-meta {
+    display: grid;
+    text-align: right;
+}
+
+.top-profile-meta strong {
+    color: #0f1f29;
+    font-size: 0.84rem;
+    line-height: 1.1;
+}
+
+.top-profile-meta span {
+    color: #7f8da0;
+    font-size: 0.7rem;
+}
+
+.top-profile-avatar {
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 999px;
+    border: 2px solid #d4e5f3;
+    background: linear-gradient(135deg, #25343f, #3b4d5a);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 0.78rem;
+}
+
+.app-main-surface {
+    background: #eaeff2;
+    border: 1px solid #d5e0ea;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    min-height: calc(100vh - 7rem);
+}
+
+.content {
+    padding: 0;
+}
+
+@media (max-width: 920px) {
     .page {
-        flex-direction: row;
+        flex-direction: column;
     }
 
     .sidebar {
-        width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
+        width: 100%;
+        min-height: auto;
+    }
+
+    main {
+        padding: 0.85rem;
     }
 
     .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .top-row.auth ::deep a:first-child {
+    .top-search-wrap {
+        width: 100%;
+    }
+
+    .top-search {
+        width: 100%;
+    }
+
+    .top-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .top-profile {
         flex: 1;
-        text-align: right;
-        width: 0;
+        justify-content: flex-end;
     }
 
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
+    .app-main-surface {
+        min-height: auto;
+        padding: 0.9rem;
     }
 }
 
@@ -100,9 +183,9 @@ main {
     z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
