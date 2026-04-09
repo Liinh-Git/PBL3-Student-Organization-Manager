@@ -1,5 +1,6 @@
 // ---- Gom middleware pipeline API để Program.cs ngắn gọn và dễ đọc ----
 using FastEndpoints;
+using Scalar.AspNetCore;
 
 namespace Org.Backend.Infrastructure.Startup;
 
@@ -12,6 +13,7 @@ public static class MiddlewarePipelineExtensions
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
+            app.MapScalarApiReference();
         }
 
         // ---- Thứ tự middleware quan trọng để auth và CORS hoạt động đúng ----
