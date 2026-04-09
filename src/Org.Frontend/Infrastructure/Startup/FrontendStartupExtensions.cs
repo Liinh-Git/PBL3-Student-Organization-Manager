@@ -27,18 +27,19 @@ public static class FrontendStartupExtensions
         services.AddScoped<FrontendAuthStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<FrontendAuthStateProvider>());
         services.AddAuthorizationCore();
+        services.AddTransient<AuthHeaderDelegatingHandler>();
 
         services.AddHttpClient<DepartmentApiClient>(client =>
         {
             client.BaseAddress = new Uri(backendApiBaseUrl);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        });
+        }).AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
 
         services.AddHttpClient<MemberApiClient>(client =>
         {
             client.BaseAddress = new Uri(backendApiBaseUrl);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        });
+        }).AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
 
         services.AddScoped<DepartmentMockService>();
         services.AddScoped<MemberMockService>();

@@ -6,6 +6,8 @@
 @using Org.Shared.Contracts
 @inject IMemberService MemberService
 @inject IDepartmentService DepartmentService
+@inject AuthenticationStateProvider AuthStateProvider
+@implements IDisposable
 
 <PageTitle>Thành viên</PageTitle>
 
@@ -162,7 +164,31 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await Reload();
+        AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            await Reload();
+        }
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        var authState = await task;
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            await InvokeAsync(async () =>
+            {
+                await Reload();
+                StateHasChanged();
+            });
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 
     private async Task Reload()
