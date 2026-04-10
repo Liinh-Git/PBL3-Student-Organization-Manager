@@ -11,10 +11,11 @@ public class DbConnectionTests : IDisposable
 {
     private readonly AppDbContext _context;
 
-    // Ưu tiên dùng biến môi trường khi chạy CI; fallback theo appsettings.Development.
+    // Requires TEST_DB_CONNECTION env var (e.g. set via CI secrets or user-secrets).
+    // The placeholder fallback will not connect; set the env var to run these tests.
     private static readonly string ConnectionString =
         Environment.GetEnvironmentVariable("TEST_DB_CONNECTION")
-        ?? "Host=localhost;Port=5433;Database=StudentOrgDb;Username=org_admin;Password=SecretPassword123@@";
+        ?? "Host=localhost;Port=5432;Database=StudentOrgDb;Username=org_admin;Password=CHANGE_ME";
 
     public DbConnectionTests()
     {
