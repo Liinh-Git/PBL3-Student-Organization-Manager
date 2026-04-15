@@ -3,6 +3,9 @@
 @inject FrontendAuthStateProvider AuthStateProvider
 
 @code {
+    // ---- Các route public không cần đăng nhập ----
+    private static readonly string[] PublicRoutePrefixes = ["login", "register", "not-found", "error"];
+
     // ---- Chạy một lần để kiểm tra đăng nhập và điều hướng khi cần ----
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -16,15 +19,18 @@
         if (authState.User.Identity?.IsAuthenticated == true)
             return;
 
-        // Bước 2: bỏ qua redirect nếu hiện tại đã ở trang login
+        // Bước 2: bỏ qua redirect nếu đang ở các route public
         var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
-        if (relativePath.StartsWith("login", StringComparison.OrdinalIgnoreCase))
+        var currentPath = relativePath.Split('?', '#')[0].Trim('/');
+        if (PublicRoutePrefixes.Any(prefix =>
+            currentPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
             return;
 
         // Bước 3: dựng returnUrl để sau login quay lại đúng trang trước đó
-        var returnUrl = string.IsNullOrWhiteSpace(relativePath)
+        var currentUri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var returnUrl = string.IsNullOrWhiteSpace(currentUri.PathAndQuery)
             ? "/"
-            : $"/{relativePath}";
+            : currentUri.PathAndQuery;
 
         // Bước 4: điều hướng sang login và kèm returnUrl
         var target = $"/login?returnUrl={Uri.EscapeDataString(returnUrl)}";

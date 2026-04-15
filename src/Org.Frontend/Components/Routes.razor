@@ -2,6 +2,8 @@
 <CascadingAuthenticationState>
     @* ---- Bước 1: khởi tạo auth state từ token khi app render lần đầu ---- *@
     <AuthBootstrapper />
+    @* ---- Bước 1.1: ép điều hướng về /login nếu chưa đăng nhập và đang ở route bảo vệ ---- *@
+    <RedirectToLogin />
 
     @* ---- Bước 2: map route và bọc route bằng AuthorizeRouteView ---- *@
     <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">

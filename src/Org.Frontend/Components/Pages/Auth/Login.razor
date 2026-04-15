@@ -12,8 +12,8 @@
 
 <section class="auth-form-shell">
     <header class="auth-form-header">
-        <h2>Chào mừng trở lại</h2>
-        <p>Đăng nhập để quản lý cộng đồng và theo dõi hoạt động của bạn.</p>
+        <h2>Đăng nhập</h2>
+        <p>Vui lòng nhập thông tin để đăng nhập vào hệ thống</p>
     </header>
 
     @if (!string.IsNullOrWhiteSpace(_errorMessage))
@@ -26,14 +26,28 @@
 
         <div class="auth-field-group">
             <label for="login-email" class="auth-label">Email</label>
-            <InputText id="login-email" class="auth-input" @bind-Value="_model.Email" placeholder="email@example.com" />
+            <div class="auth-input-wrapper">
+                <span class="material-symbols-outlined auth-input-icon">mail</span>
+                <InputText id="login-email" class="auth-input auth-input-with-icon" @bind-Value="_model.Email" placeholder="ten@truong.edu.vn" />
+            </div>
             <ValidationMessage For="() => _model.Email" class="auth-validation" />
         </div>
 
         <div class="auth-field-group">
             <label for="login-password" class="auth-label">Mật khẩu</label>
-            <InputText id="login-password" type="password" class="auth-input" @bind-Value="_model.Password" placeholder="Nhập mật khẩu" />
+            <div class="auth-input-wrapper">
+                <span class="material-symbols-outlined auth-input-icon">lock</span>
+                <InputText id="login-password" type="password" class="auth-input auth-input-with-icon" @bind-Value="_model.Password" placeholder="••••••••" />
+            </div>
             <ValidationMessage For="() => _model.Password" class="auth-validation" />
+        </div>
+
+        <div class="auth-remember-row">
+            <label class="auth-checkbox-row">
+                <InputCheckbox class="auth-checkbox" @bind-Value="_model.RememberMe" />
+                <span>Ghi nhớ đăng nhập</span>
+            </label>
+            <a href="#" class="auth-forgot-link">Quên mật khẩu?</a>
         </div>
 
         <button type="submit" class="auth-primary-btn" disabled="@_isSubmitting">
@@ -41,7 +55,7 @@
         </button>
     </EditForm>
 
-    <div class="auth-divider" role="separator">HOẶC</div>
+    <div class="auth-divider" role="separator">Hoặc</div>
 
     <button class="auth-google-btn" type="button" disabled title="Google OAuth sẽ được triển khai ở phase sau.">
         Đăng nhập bằng Google (Coming soon)
@@ -138,5 +152,7 @@
         [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
         [MinLength(8, ErrorMessage = "Mật khẩu phải có tối thiểu 8 ký tự.")]
         public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
     }
 }

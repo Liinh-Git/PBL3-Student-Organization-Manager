@@ -3,9 +3,11 @@
 
 @using Org.Frontend.Services.Departments
 @using Org.Frontend.Services.Members
+@using Org.Frontend.Services.Organizations
 @using Org.Shared.Contracts
 @inject IMemberService MemberService
 @inject IDepartmentService DepartmentService
+@inject IOrganizationContext OrganizationContext
 @inject AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
@@ -139,10 +141,9 @@
 </section>
 
 @code {
-    private static readonly Guid OrgId = Guid.Parse("97b12d10-8368-4c55-abdb-69490895f4f3");
-
     private List<MemberDto> Members { get; set; } = [];
     private List<DepartmentDto> Departments { get; set; } = [];
+    private Guid? CurrentOrganizationId { get; set; }
 
     private bool ShowRoleDialog { get; set; }
     private Guid? SelectedMemberId { get; set; }
@@ -193,8 +194,9 @@
 
     private async Task Reload()
     {
-        Departments = await DepartmentService.GetDepartments(OrgId);
-        Members = await MemberService.GetMembers(OrgId);
+        CurrentOrganizationId ??= await OrganizationContext.GetOrganizationIdAsync();
+        Departments = await DepartmentService.GetDepartments(CurrentOrganizationId.Value);
+        Members = await MemberService.GetMembers(CurrentOrganizationId.Value);
     }
 
     private void OpenRoleDialog(MemberDto member)
