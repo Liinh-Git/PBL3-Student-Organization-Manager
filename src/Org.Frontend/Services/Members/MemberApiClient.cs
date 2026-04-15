@@ -1,35 +1,78 @@
 using System.Net.Http.Json;
+using Org.Shared;
 using Org.Shared.Contracts;
+using FeatureGetMembersResponse = Org.Shared.Features.Members.GetMembersResponse;
+using FeatureMemberDto = Org.Shared.Features.Members.MemberDto;
+using FeatureUpdateMemberDepartmentRequest = Org.Shared.Features.Members.UpdateMemberDepartmentRequest;
+using FeatureUpdateMemberRoleRequest = Org.Shared.Features.Members.UpdateMemberRoleRequest;
 
 namespace Org.Frontend.Services.Members;
 
 public sealed class MemberApiClient(HttpClient httpClient) : IMemberService
 {
+    private static readonly Guid LeaderRoleId = Guid.Parse("7e9e6f36-0508-4da8-adf1-c15b0cbe2f3a");
+    private static readonly Guid CoreMemberRoleId = Guid.Parse("f80bb5dc-ab54-48fa-9453-869a12a81dc8");
+    private static readonly Guid CollaboratorRoleId = Guid.Parse("1a96a5f4-6dfc-42db-936d-f86ee4e35ef5");
+
     private readonly HttpClient _httpClient = httpClient;
 
     public async Task<List<MemberDto>> GetMembers(Guid orgId)
     {
-        var data = await _httpClient.GetFromJsonAsync<List<MemberDto>>($"api/organizations/{orgId}/members");
-        return data ?? [];
+        var payload = await _httpClient.GetFromJsonAsync<FeatureGetMembersResponse>($"api/organizations/{orgId}/members")
+            ?? new FeatureGetMembersResponse([]);
+
+        return payload.Items.Select(MapLegacyDto).ToList();
     }
 
     public async Task AssignRole(Guid memberId, Guid roleId)
     {
-        using var response = await _httpClient.PutAsJsonAsync($"api/members/{memberId}/role", new AssignRoleRequest
-        {
-            RoleId = roleId
-        });
+        var payload = new FeatureUpdateMemberRoleRequest(MapLegacyRoleId(roleId));
+        using var response = await _httpClient.PutAsJsonAsync($"api/members/{memberId}/role", payload);
 
         response.EnsureSuccessStatusCode();
     }
 
     public async Task AssignDepartment(Guid memberId, Guid departmentId)
     {
-        using var response = await _httpClient.PutAsJsonAsync($"api/members/{memberId}/department", new AssignDepartmentRequest
-        {
-            DepartmentId = departmentId
-        });
+        var payload = new FeatureUpdateMemberDepartmentRequest(departmentId);
+        using var response = await _httpClient.PutAsJsonAsync($"api/members/{memberId}/department", payload);
 
         response.EnsureSuccessStatusCode();
+    }
+
+    private static MemberDto MapLegacyDto(FeatureMemberDto source)
+    {
+        return new MemberDto
+        {
+            Id = source.Id,
+            OrgId = source.OrganizationId,
+            UserId = Guid.Empty,
+            DisplayName = source.FullName,
+            DepartmentId = source.DepartmentId,
+            RoleId = MapFeatureRole(source.Role),
+            JoinDate = source.JoinedAtUtc.UtcDateTime
+        };
+    }
+
+    private static Guid MapFeatureRole(MemberRole role)
+    {
+        return role switch
+        {
+            MemberRole.President => LeaderRoleId,
+            MemberRole.VicePresident => CoreMemberRoleId,
+            MemberRole.Manager => CoreMemberRoleId,
+            _ => CollaboratorRoleId
+        };
+    }
+
+    private static MemberRole MapLegacyRoleId(Guid roleId)
+    {
+        if (roleId == LeaderRoleId)
+            return MemberRole.President;
+
+        if (roleId == CoreMemberRoleId)
+            return MemberRole.Manager;
+
+        return MemberRole.Member;
     }
 }

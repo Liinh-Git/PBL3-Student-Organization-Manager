@@ -12,7 +12,7 @@
 <section class="auth-form-shell">
     <header class="auth-form-header">
         <h2>Tạo tài khoản mới</h2>
-        <p>Vui lòng điền thông tin để đăng ký và bắt đầu tham gia hệ thống.</p>
+        <p>Vui lòng điền thông tin để đăng ký</p>
     </header>
 
     @if (!string.IsNullOrWhiteSpace(_errorMessage))
@@ -25,31 +25,43 @@
 
         <div class="auth-field-group">
             <label for="register-fullname" class="auth-label">Họ và tên</label>
-            <InputText id="register-fullname" class="auth-input" @bind-Value="_model.FullName" placeholder="Nguyễn Văn A" />
+            <div class="auth-input-wrapper">
+                <span class="material-symbols-outlined auth-input-icon">person</span>
+                <InputText id="register-fullname" class="auth-input auth-input-with-icon" @bind-Value="_model.FullName" placeholder="Nguyễn Văn A" />
+            </div>
             <ValidationMessage For="() => _model.FullName" class="auth-validation" />
         </div>
 
         <div class="auth-field-group">
             <label for="register-email" class="auth-label">Email</label>
-            <InputText id="register-email" class="auth-input" @bind-Value="_model.Email" placeholder="email@example.com" />
+            <div class="auth-input-wrapper">
+                <span class="material-symbols-outlined auth-input-icon">mail</span>
+                <InputText id="register-email" class="auth-input auth-input-with-icon" @bind-Value="_model.Email" placeholder="email@example.com" />
+            </div>
             <ValidationMessage For="() => _model.Email" class="auth-validation" />
         </div>
 
         <div class="auth-field-group">
             <label for="register-password" class="auth-label">Mật khẩu</label>
-            <InputText id="register-password" type="password" class="auth-input" @bind-Value="_model.Password" placeholder="Tối thiểu 8 ký tự" />
+            <div class="auth-input-wrapper">
+                <span class="material-symbols-outlined auth-input-icon">lock</span>
+                <InputText id="register-password" type="password" class="auth-input auth-input-with-icon" @bind-Value="_model.Password" placeholder="••••••••" />
+            </div>
             <ValidationMessage For="() => _model.Password" class="auth-validation" />
         </div>
 
         <div class="auth-field-group">
             <label for="register-confirm-password" class="auth-label">Xác nhận mật khẩu</label>
-            <InputText id="register-confirm-password" type="password" class="auth-input" @bind-Value="_model.ConfirmPassword" placeholder="Nhập lại mật khẩu" />
+            <div class="auth-input-wrapper">
+                <span class="material-symbols-outlined auth-input-icon">lock_reset</span>
+                <InputText id="register-confirm-password" type="password" class="auth-input auth-input-with-icon" @bind-Value="_model.ConfirmPassword" placeholder="••••••••" />
+            </div>
             <ValidationMessage For="() => _model.ConfirmPassword" class="auth-validation" />
         </div>
 
         <label class="auth-checkbox-row" for="register-accept-terms">
             <InputCheckbox id="register-accept-terms" @bind-Value="_model.AcceptTerms" class="auth-checkbox" />
-            <span>Tôi đồng ý với điều khoản dịch vụ và chính sách quyền riêng tư.</span>
+            <span>Tôi đồng ý với các <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách quyền riêng tư</a></span>
         </label>
         <ValidationMessage For="() => _model.AcceptTerms" class="auth-validation" />
 
@@ -58,7 +70,7 @@
         </button>
     </EditForm>
 
-    <div class="auth-divider" role="separator">HOẶC</div>
+    <div class="auth-divider" role="separator">Hoặc</div>
 
     <button class="auth-google-btn" type="button" disabled title="Google OAuth sẽ được triển khai ở phase sau.">
         Đăng ký bằng Google (Coming soon)

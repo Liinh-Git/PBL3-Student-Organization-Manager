@@ -7,7 +7,9 @@
 **/appsettings.Production.json
 
 # Local environment files
-.env
+**/.env
+**/.env.*
+!.env.example
 
 # User-specific files
 *.rsuser

@@ -19,8 +19,19 @@ Mở giao diện dòng lệnh (Terminal/PowerShell) tại thư mục lưu trữ 
 `git clone <đường-dẫn-github-của-repository>`
 `cd StudentOrgManager`
 
-Bước 2.2: Cấu hình Connection String bằng C# User Secrets (khuyến nghị)
-Tại thư mục dự án Backend, thiết lập connection string qua user-secrets để tránh lưu mật khẩu trong repo:
+Bước 2.2: Cấu hình biến môi trường bằng file .env (khuyến nghị cho cả team)
+Tại thư mục gốc repository, tạo file `.env` từ file mẫu đã có sẵn:
+
+cp .env.example .env
+
+Sau đó cập nhật giá trị local của bạn trong `.env` (đặc biệt là DB password và JWT key):
+
+ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=StudentOrgDb;Username=org_admin;Password=CHANGE_ME
+Jwt__SigningKey=CHANGE_ME_TO_A_STRONG_RANDOM_SECRET_AT_LEAST_32_CHARS
+
+*Lưu ý: .NET map `ConnectionStrings__DefaultConnection` sang `ConnectionStrings:DefaultConnection`.*
+
+Nếu bạn muốn dùng User Secrets thay thế, có thể chạy:
 
 cd src/Org.Backend
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=StudentOrgDb;Username=org_admin;Password=CHANGE_ME"

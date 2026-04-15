@@ -2,8 +2,12 @@
 @rendermode InteractiveServer
 
 @using Org.Frontend.Services.Departments
+@using Org.Frontend.Services.Organizations
 @using Org.Shared.Contracts
 @inject IDepartmentService DepartmentService
+@inject IOrganizationContext OrganizationContext
+@inject AuthenticationStateProvider AuthStateProvider
+@implements IDisposable
 
 <PageTitle>Departments</PageTitle>
 
@@ -66,23 +70,47 @@
 </section>
 
 @code {
-    private static readonly Guid OrgId = Guid.Parse("97b12d10-8368-4c55-abdb-69490895f4f3");
-
     private List<DepartmentDto> Departments { get; set; } = [];
     private DepartmentForm.DepartmentFormModel CreateModel { get; set; } = new();
     private DepartmentForm.DepartmentFormModel? EditModel { get; set; }
     private Guid? EditingDepartmentId { get; set; }
+    private Guid? CurrentOrganizationId { get; set; }
     private bool ShowCreateForm { get; set; }
     private string? Message { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await Reload();
+        AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            await Reload();
+        }
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        var authState = await task;
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            await InvokeAsync(async () =>
+            {
+                await Reload();
+                StateHasChanged();
+            });
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 
     private async Task Reload()
     {
-        Departments = await DepartmentService.GetDepartments(OrgId);
+        CurrentOrganizationId ??= await OrganizationContext.GetOrganizationIdAsync();
+        Departments = await DepartmentService.GetDepartments(CurrentOrganizationId.Value);
     }
 
     private void OpenCreate()
@@ -117,7 +145,7 @@
 
         await DepartmentService.CreateDepartment(new CreateDepartmentRequest
         {
-            OrgId = OrgId,
+            OrgId = CurrentOrganizationId ?? await OrganizationContext.GetOrganizationIdAsync(),
             DeptName = CreateModel.DeptName,
             ManagerId = CreateModel.ManagerId,
             Function = CreateModel.Function

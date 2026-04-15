@@ -1,6 +1,9 @@
 // ---- Entry point: chỉ orchestration, logic chi tiết nằm trong Infrastructure/Startup ----
 using Org.Backend.Infrastructure.Startup;
 
+// ---- Nạp biến môi trường từ file .env (nếu có) trước khi tạo builder ----
+DotEnvLoader.LoadIfExists();
+
 // ---- Bước 1: tạo builder và xác định có chạy seed mode hay không ----
 var builder = WebApplication.CreateBuilder(args);
 var isSeedMode = args.Contains("--seed", StringComparer.OrdinalIgnoreCase);

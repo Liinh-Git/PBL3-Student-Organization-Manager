@@ -1,9 +1,9 @@
 .auth-shell {
-    --auth-ink: #1a1f2b;
-    --auth-muted: #5a6475;
-    --auth-brand: #f79a4f;
-    --auth-panel-bg: #f5f7fb;
-    --auth-hero-bg: radial-gradient(1200px circle at 10% -20%, #2d4e73 0%, #16293c 45%, #0f1c2d 100%);
+    --auth-ink: #25343F;
+    --auth-muted: #54626C;
+    --auth-brand: #FF9B51;
+    --auth-panel-bg: #ffffff;
+    --auth-hero-bg: radial-gradient(circle at 20% 30%, rgba(255, 155, 81, 0.05) 0%, transparent 50%), #25343F;
 
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -35,7 +35,13 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
     display: grid;
     place-items: center;
-    font-size: 1.35rem;
+    font-size: 0;
+}
+
+.auth-hero-icon .material-symbols-outlined {
+    font-size: 2rem;
+    color: #FF9B51;
+    font-variation-settings: 'FILL' 1;
 }
 
 .auth-hero-title {
@@ -73,7 +79,7 @@
 .auth-hero-stats strong {
     font-size: 1.9rem;
     line-height: 1;
-    color: #ffb069;
+    color: #FF9B51;
 }
 
 .auth-hero-stats span {

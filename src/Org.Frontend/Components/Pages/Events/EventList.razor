@@ -3,7 +3,9 @@
 @using MudBlazor
 @using Org.Frontend.ViewModels
 @using Org.Frontend.Services.Events
+@using Org.Frontend.Services.Organizations
 @inject IEventService EventService
+@inject IOrganizationContext OrganizationContext
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
@@ -299,10 +301,11 @@
 
 @code {
     private List<EventViewModel>? events;
-    private Guid currentOrgId = Guid.NewGuid(); 
+    private Guid currentOrgId;
 
     protected override async Task OnInitializedAsync()
     {
+        currentOrgId = await OrganizationContext.GetOrganizationIdAsync();
         await LoadEvents();
     }
 
