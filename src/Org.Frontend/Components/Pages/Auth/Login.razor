@@ -136,10 +136,14 @@
         if (string.IsNullOrWhiteSpace(returnUrl))
             return "/home";
 
-        if (!returnUrl.StartsWith('/') || returnUrl.StartsWith("//") || returnUrl.Contains('\\'))
+        var decodedReturnUrl = Uri.UnescapeDataString(returnUrl);
+        if (!decodedReturnUrl.StartsWith('/') || decodedReturnUrl.StartsWith("//") || decodedReturnUrl.Contains('\\'))
             return "/home";
 
-        return returnUrl;
+        if (!Uri.TryCreate(decodedReturnUrl, UriKind.Relative, out _))
+            return "/home";
+
+        return decodedReturnUrl;
     }
 
     // ---- Model cho form login (validation bằng DataAnnotations) ----
