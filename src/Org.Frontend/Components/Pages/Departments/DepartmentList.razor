@@ -1,11 +1,14 @@
 @page "/departments"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 @using Org.Frontend.Services.Departments
+@using Org.Frontend.Services.Auth
 @using Org.Frontend.Services.Organizations
 @using Org.Shared.Contracts
 @inject IDepartmentService DepartmentService
 @inject IOrganizationContext OrganizationContext
+@inject FrontendAuthStateProvider FrontendAuthStateProvider
+@inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
@@ -85,7 +88,7 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)
         {
-            await Reload();
+            await ReloadSafely();
         }
     }
 
@@ -96,7 +99,7 @@
         {
             await InvokeAsync(async () =>
             {
-                await Reload();
+                await ReloadSafely();
                 StateHasChanged();
             });
         }
@@ -111,6 +114,26 @@
     {
         CurrentOrganizationId ??= await OrganizationContext.GetOrganizationIdAsync();
         Departments = await DepartmentService.GetDepartments(CurrentOrganizationId.Value);
+    }
+
+    private async Task ReloadSafely()
+    {
+        try
+        {
+            await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            CurrentOrganizationId = null;
+            Departments = [];
+            Message = ex.Message;
+            await FrontendAuthStateProvider.SignOutAsync();
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            Message = $"Không thể tải dữ liệu departments: {ex.Message}";
+        }
     }
 
     private void OpenCreate()

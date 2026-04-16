@@ -6,4 +6,7 @@ public sealed class MockOrganizationContext : IOrganizationContext
 
     public Task<Guid> GetOrganizationIdAsync(CancellationToken ct = default)
         => Task.FromResult(MockOrganizationId);
+
+    public Task ResetAsync(CancellationToken ct = default)
+        => Task.CompletedTask;
 }

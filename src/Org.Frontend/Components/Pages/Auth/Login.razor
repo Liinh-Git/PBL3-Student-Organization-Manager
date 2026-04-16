@@ -5,7 +5,6 @@
 @inject AuthApiClient AuthApiClient
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
-@using Microsoft.AspNetCore.WebUtilities
 @using System.ComponentModel.DataAnnotations
 
 <PageTitle>Đăng nhập</PageTitle>
@@ -81,11 +80,13 @@
         if (!firstRender)
             return;
 
+        // Luôn dọn phiên cũ khi mở trang login để bắt đầu như phiên mới.
+        await AuthStateProvider.SignOutAsync();
         await AuthStateProvider.InitializeAsync();
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)
-            Navigation.NavigateTo("/", forceLoad: false);
+            Navigation.NavigateTo("/home", forceLoad: false);
     }
 
     // ---- Submit form: gọi API login, lưu token, redirect về returnUrl ----
@@ -106,7 +107,7 @@
 
             // Lưu token + cập nhật auth state rồi chuyển tới trang đích
             await AuthStateProvider.SignInAsync(response);
-            Navigation.NavigateTo(GetReturnUrl(), forceLoad: false);
+            Navigation.NavigateTo("/home", forceLoad: false);
         }
         catch (AuthApiException ex)
         {
@@ -122,24 +123,6 @@
             // Kết thúc submit: mở lại nút để người dùng thao tác tiếp
             _isSubmitting = false;
         }
-    }
-
-    // ---- Lấy returnUrl từ query string (nếu có), fallback về '/' ----
-    private string GetReturnUrl()
-    {
-        // Đọc query string hiện tại để lấy returnUrl sau khi login
-        var currentUri = Navigation.ToAbsoluteUri(Navigation.Uri);
-        var query = QueryHelpers.ParseQuery(currentUri.Query);
-
-        if (query.TryGetValue("returnUrl", out var returnUrl))
-        {
-            var value = returnUrl.ToString();
-            // Chỉ chấp nhận đường dẫn nội bộ bắt đầu bằng '/' để an toàn
-            if (!string.IsNullOrWhiteSpace(value) && value.StartsWith('/'))
-                return value;
-        }
-
-        return "/";
     }
 
     // ---- Model cho form login (validation bằng DataAnnotations) ----

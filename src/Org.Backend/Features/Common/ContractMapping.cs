@@ -19,6 +19,7 @@ internal static class ContractMapping
             department.Code ?? BuildDepartmentCode(department.DeptName),
             department.DeptName,
             department.Function,
+            department.ManagerId,
             memberCount,
             ToUtcOffset(department.CreatedAt),
             department.UpdatedAt is null ? null : ToUtcOffset(department.UpdatedAt.Value));

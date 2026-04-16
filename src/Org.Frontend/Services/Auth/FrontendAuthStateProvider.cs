@@ -1,5 +1,6 @@
 // ---- Quản lý auth state cho Blazor: khởi tạo từ token, sign in, sign out ----
 using Microsoft.AspNetCore.Components.Authorization;
+using Org.Frontend.Services.Organizations;
 using Org.Shared.Features.Auth;
 using System.Security.Claims;
 
@@ -11,16 +12,18 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
 
     private readonly AuthApiClient _authApiClient;
     private readonly ITokenStorage _tokenStorage;
+    private readonly IOrganizationContext _organizationContext;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
     private AuthenticationState _currentState = AnonymousState;
     private bool _initialized;
 
     // ---- Inject API client và token storage ----
-    public FrontendAuthStateProvider(AuthApiClient authApiClient, ITokenStorage tokenStorage)
+    public FrontendAuthStateProvider(AuthApiClient authApiClient, ITokenStorage tokenStorage, IOrganizationContext organizationContext)
     {
         _authApiClient = authApiClient;
         _tokenStorage = tokenStorage;
+        _organizationContext = organizationContext;
     }
 
     // ---- Trả về auth state hiện tại cho UI ----
@@ -79,6 +82,8 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
     // ---- Khi login thành công: lưu token và set auth state ----
     public async Task SignInAsync(LoginResponse loginResponse, CancellationToken ct = default)
     {
+        await _organizationContext.ResetAsync(ct);
+
         // Bước 1: lưu token + hạn sử dụng để giữ phiên đăng nhập
         await _tokenStorage.SaveTokenAsync(loginResponse.AccessToken, loginResponse.ExpiresAtUtc, ct);
 
@@ -107,6 +112,8 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
     // ---- Đăng xuất: xóa token và reset state ----
     public async Task SignOutAsync(CancellationToken ct = default)
     {
+        await _organizationContext.ResetAsync(ct);
+
         // Xóa dữ liệu phiên local rồi phát thông báo state mới cho UI
         await _tokenStorage.ClearAsync(ct);
         SetAnonymousState();

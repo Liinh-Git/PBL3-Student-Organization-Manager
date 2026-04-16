@@ -6,6 +6,7 @@ public sealed record DepartmentDto(
     string Code,
     string Name,
     string? Description,
+    Guid? ManagerMemberId,
     int MemberCount,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset? UpdatedAtUtc);

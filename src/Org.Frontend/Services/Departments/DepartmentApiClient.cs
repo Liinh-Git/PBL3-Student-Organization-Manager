@@ -60,7 +60,7 @@ public sealed class DepartmentApiClient(HttpClient httpClient) : IDepartmentServ
             Id = source.Id,
             OrgId = source.OrganizationId,
             DeptName = source.Name,
-            ManagerId = null,
+            ManagerId = source.ManagerMemberId,
             Function = source.Description
         };
     }
