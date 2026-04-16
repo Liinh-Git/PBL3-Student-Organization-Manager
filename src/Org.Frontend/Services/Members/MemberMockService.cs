@@ -19,6 +19,25 @@ public sealed class MemberMockService(IWebHostEnvironment env) : IMemberService
         return all.Where(x => x.OrgId == orgId).OrderBy(x => x.DisplayName).ToList();
     }
 
+    public async Task<MemberDto> CreateMember(CreateMemberRequest req)
+    {
+        var all = await LoadAll();
+
+        var dto = new MemberDto
+        {
+            Id = Guid.NewGuid(),
+            OrgId = req.OrgId,
+            UserId = Guid.NewGuid(),
+            DisplayName = req.DisplayName.Trim(),
+            DepartmentId = req.DepartmentId,
+            RoleId = null,
+            JoinDate = DateTime.UtcNow
+        };
+
+        all.Add(dto);
+        return dto;
+    }
+
     public async Task AssignRole(Guid memberId, Guid roleId)
     {
         var all = await LoadAll();
@@ -35,6 +54,14 @@ public sealed class MemberMockService(IWebHostEnvironment env) : IMemberService
             ?? throw new KeyNotFoundException($"Member {memberId} not found in mock data.");
 
         current.DepartmentId = departmentId;
+    }
+
+    public async Task DeleteMember(Guid memberId)
+    {
+        var all = await LoadAll();
+        var removed = all.RemoveAll(x => x.Id == memberId);
+        if (removed == 0)
+            throw new KeyNotFoundException($"Member {memberId} not found in mock data.");
     }
 
     private async Task<List<MemberDto>> LoadAll()

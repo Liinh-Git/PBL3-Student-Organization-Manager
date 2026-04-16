@@ -29,6 +29,7 @@ public static class FrontendStartupExtensions
         });
 
         services.AddScoped<ITokenStorage, LocalStorageTokenStorage>();
+        services.AddScoped<IAccessTokenStore, AccessTokenStore>();
         services.AddScoped<FrontendAuthStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<FrontendAuthStateProvider>());
         services.AddAuthorizationCore();

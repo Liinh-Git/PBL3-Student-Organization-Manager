@@ -19,10 +19,12 @@ public sealed record CreateDepartmentRequest(
     Guid OrganizationId,
     string Code,
     string Name,
-    string? Description);
+    string? Description,
+    Guid? ManagerMemberId);
 
 public sealed record UpdateDepartmentRequest(
     string Code,
     string Name,
     string? Description,
-    bool IsActive);
+    bool IsActive,
+    Guid? ManagerMemberId);

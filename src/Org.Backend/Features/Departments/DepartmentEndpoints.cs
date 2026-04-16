@@ -52,12 +52,22 @@ public sealed class CreateDepartmentEndpoint(AppDbContext db) : Endpoint<CreateD
         if (!orgExists)
             ThrowError("Organization not found.", StatusCodes.Status404NotFound);
 
+        if (req.ManagerMemberId is not null)
+        {
+            var managerExists = await db.Members
+                .AnyAsync(x => x.Id == req.ManagerMemberId.Value && x.OrgId == req.OrganizationId, ct);
+
+            if (!managerExists)
+                ThrowError("Manager member not found in organization.", StatusCodes.Status404NotFound);
+        }
+
         var entity = new Domain.Entities.Department
         {
             OrgId = req.OrganizationId,
             DeptName = req.Name.Trim(),
             Code = req.Code?.Trim(),
-            Function = req.Description?.Trim()
+            Function = req.Description?.Trim(),
+            ManagerId = req.ManagerMemberId
         };
 
         db.Departments.Add(entity);
@@ -82,14 +92,53 @@ public sealed class UpdateDepartmentEndpoint(AppDbContext db) : Endpoint<UpdateD
         if (department is null)
             ThrowError("Department not found.", StatusCodes.Status404NotFound);
 
+        if (req.ManagerMemberId is not null)
+        {
+            var managerExists = await db.Members
+                .AnyAsync(x => x.Id == req.ManagerMemberId.Value && x.OrgId == department!.OrgId, ct);
+
+            if (!managerExists)
+                ThrowError("Manager member not found in organization.", StatusCodes.Status404NotFound);
+        }
+
         department!.Code = req.Code?.Trim();
         department.DeptName = req.Name.Trim();
         department.Function = req.Description?.Trim();
+        department.ManagerId = req.ManagerMemberId;
         department.IsDeleted = !req.IsActive;
 
         await db.SaveChangesAsync(ct);
 
         var memberCount = await db.Members.CountAsync(x => x.DepartmentId == department.Id, ct);
         await Send.OkAsync(ContractMapping.ToDepartmentDto(department, memberCount), ct);
+    }
+}
+
+public sealed class DeleteDepartmentEndpoint(AppDbContext db) : EndpointWithoutRequest
+{
+    public override void Configure()
+    {
+        Delete("/api/departments/{id:guid}");
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
+    }
+
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var id = Route<Guid>("id");
+        var department = await db.Departments.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (department is null)
+            ThrowError("Department not found.", StatusCodes.Status404NotFound);
+
+        var members = await db.Members.Where(x => x.DepartmentId == id).ToListAsync(ct);
+        foreach (var member in members)
+        {
+            member.DepartmentId = null;
+        }
+
+        department!.ManagerId = null;
+        department.IsDeleted = true;
+
+        await db.SaveChangesAsync(ct);
+        await Send.NoContentAsync(ct);
     }
 }

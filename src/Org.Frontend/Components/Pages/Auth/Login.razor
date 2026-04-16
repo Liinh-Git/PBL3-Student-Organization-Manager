@@ -80,8 +80,6 @@
         if (!firstRender)
             return;
 
-        // Luôn dọn phiên cũ khi mở trang login để bắt đầu như phiên mới.
-        await AuthStateProvider.SignOutAsync();
         await AuthStateProvider.InitializeAsync();
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();

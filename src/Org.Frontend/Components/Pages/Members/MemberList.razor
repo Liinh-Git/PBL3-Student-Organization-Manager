@@ -12,6 +12,7 @@
 @inject FrontendAuthStateProvider FrontendAuthStateProvider
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
 @implements IDisposable
 
 <PageTitle>Thành viên</PageTitle>
@@ -68,6 +69,39 @@
     <section class="member-card">
         <div class="section-head">
             <div>
+                <p class="eyebrow">THÀNH VIÊN</p>
+                <h3>Thêm thành viên mới</h3>
+            </div>
+        </div>
+
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Họ và tên</label>
+                <input class="form-control" @bind="CreateDisplayName" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Email</label>
+                <input class="form-control" type="email" @bind="CreateEmail" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Phòng ban</label>
+                <select class="form-select" @bind="CreateDepartmentValue">
+                    <option value="">Không chọn</option>
+                    @foreach (var dept in Departments)
+                    {
+                        <option value="@dept.Id">@dept.DeptName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-1 d-grid">
+                <button class="btn btn-primary" @onclick="CreateMember">Thêm</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="member-card">
+        <div class="section-head">
+            <div>
                 <p class="eyebrow">ĐỘI NGŨ</p>
                 <h3>Quản trị viên</h3>
             </div>
@@ -114,6 +148,7 @@
                                 }
                             </select>
                             <button class="assign-btn" @onclick="() => OpenRoleDialog(member)">Gán vai trò</button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteMember(member)">Xóa</button>
                         </div>
                     </article>
                 }
@@ -153,6 +188,9 @@
     private Guid? PendingRoleId { get; set; }
     private string? Message { get; set; }
     private string SearchTerm { get; set; } = string.Empty;
+    private string CreateDisplayName { get; set; } = string.Empty;
+    private string CreateEmail { get; set; } = string.Empty;
+    private string CreateDepartmentValue { get; set; } = string.Empty;
 
     private List<MemberDto> FilteredMembers =>
         string.IsNullOrWhiteSpace(SearchTerm)
@@ -210,12 +248,7 @@
         }
         catch (AuthApiException ex) when (ex.StatusCode == 401)
         {
-            CurrentOrganizationId = null;
-            Departments = [];
-            Members = [];
-            Message = ex.Message;
-            await FrontendAuthStateProvider.SignOutAsync();
-            Navigation.NavigateTo("/login", forceLoad: true);
+            await HandleExpiredSessionAsync(ex.Message);
         }
         catch (Exception ex)
         {
@@ -245,10 +278,17 @@
             return;
         }
 
-        await MemberService.AssignRole(SelectedMemberId.Value, roleId);
-        Message = "Role assigned.";
-        CloseRoleDialog();
-        await Reload();
+        try
+        {
+            await MemberService.AssignRole(SelectedMemberId.Value, roleId);
+            Message = "Role assigned.";
+            CloseRoleDialog();
+            await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await HandleExpiredSessionAsync(ex.Message);
+        }
     }
 
     private async Task AssignDepartment(Guid memberId, ChangeEventArgs args)
@@ -258,9 +298,108 @@
             return;
         }
 
-        await MemberService.AssignDepartment(memberId, departmentId);
-        Message = "Department assigned.";
-        await Reload();
+        try
+        {
+            await MemberService.AssignDepartment(memberId, departmentId);
+            Message = "Department assigned.";
+            await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await HandleExpiredSessionAsync(ex.Message);
+        }
+    }
+
+    private async Task CreateMember()
+    {
+        if (!CurrentOrganizationId.HasValue)
+        {
+            Message = "Không tìm thấy tổ chức hiện tại.";
+            return;
+        }
+
+        var displayName = CreateDisplayName.Trim();
+        var email = CreateEmail.Trim();
+
+        if (displayName.Length < 2)
+        {
+            Message = "Tên thành viên phải có ít nhất 2 ký tự.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        {
+            Message = "Email không hợp lệ.";
+            return;
+        }
+
+        Guid? departmentId = null;
+        if (Guid.TryParse(CreateDepartmentValue, out var parsedDepartmentId))
+            departmentId = parsedDepartmentId;
+
+        try
+        {
+            await MemberService.CreateMember(new CreateMemberRequest
+            {
+                OrgId = CurrentOrganizationId.Value,
+                DisplayName = displayName,
+                Email = email,
+                DepartmentId = departmentId
+            });
+
+            CreateDisplayName = string.Empty;
+            CreateEmail = string.Empty;
+            CreateDepartmentValue = string.Empty;
+            Message = "Thêm thành viên thành công.";
+
+            await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await HandleExpiredSessionAsync(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Message = $"Không thể thêm member: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteMember(MemberDto member)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Delete member '{member.DisplayName}'?");
+        if (!confirmed)
+            return;
+
+        try
+        {
+            await MemberService.DeleteMember(member.Id);
+            if (SelectedMemberId == member.Id)
+                CloseRoleDialog();
+
+            Message = "Đã xóa thành viên.";
+            await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await HandleExpiredSessionAsync(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Message = $"Không thể xóa member: {ex.Message}";
+        }
+    }
+
+    private async Task HandleExpiredSessionAsync(string? reason = null)
+    {
+        CurrentOrganizationId = null;
+        Departments = [];
+        Members = [];
+        Message = string.IsNullOrWhiteSpace(reason)
+            ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            : reason;
+
+        await FrontendAuthStateProvider.SignOutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 
     private static string GetRoleName(Guid? roleId)
