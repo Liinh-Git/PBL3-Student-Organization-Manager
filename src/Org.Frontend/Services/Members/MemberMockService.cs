@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Org.Shared.Contracts;
+using FeatureCreateMemberRequest = Org.Shared.Features.Members.CreateMemberRequest;
 
 namespace Org.Frontend.Services.Members;
 
@@ -19,16 +20,16 @@ public sealed class MemberMockService(IWebHostEnvironment env) : IMemberService
         return all.Where(x => x.OrgId == orgId).OrderBy(x => x.DisplayName).ToList();
     }
 
-    public async Task<MemberDto> CreateMember(CreateMemberRequest req)
+    public async Task<MemberDto> CreateMember(Guid orgId, FeatureCreateMemberRequest req)
     {
         var all = await LoadAll();
 
         var dto = new MemberDto
         {
             Id = Guid.NewGuid(),
-            OrgId = req.OrgId,
+            OrgId = orgId,
             UserId = Guid.NewGuid(),
-            DisplayName = req.DisplayName.Trim(),
+            DisplayName = req.FullName.Trim(),
             DepartmentId = req.DepartmentId,
             RoleId = null,
             JoinDate = DateTime.UtcNow

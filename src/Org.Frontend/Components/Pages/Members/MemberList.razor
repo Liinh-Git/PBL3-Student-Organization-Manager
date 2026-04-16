@@ -339,13 +339,9 @@
 
         try
         {
-            await MemberService.CreateMember(new CreateMemberRequest
-            {
-                OrgId = CurrentOrganizationId.Value,
-                DisplayName = displayName,
-                Email = email,
-                DepartmentId = departmentId
-            });
+            await MemberService.CreateMember(
+                CurrentOrganizationId.Value,
+                new Org.Shared.Features.Members.CreateMemberRequest(displayName, email, departmentId));
 
             CreateDisplayName = string.Empty;
             CreateEmail = string.Empty;

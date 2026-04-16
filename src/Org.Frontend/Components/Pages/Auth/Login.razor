@@ -6,6 +6,7 @@
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.WebUtilities
 
 <PageTitle>Đăng nhập</PageTitle>
 
@@ -73,6 +74,7 @@
     private bool _isSubmitting;
     // Thông báo lỗi hiển thị trên giao diện nếu đăng nhập thất bại
     private string? _errorMessage;
+    private string _targetAfterLogin = "/home";
 
     // ---- Nếu đã login thì về home, tránh mở lại trang login ----
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -81,10 +83,11 @@
             return;
 
         await AuthStateProvider.InitializeAsync();
+        _targetAfterLogin = ResolveTargetAfterLogin();
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)
-            Navigation.NavigateTo("/home", forceLoad: false);
+            Navigation.NavigateTo(_targetAfterLogin, forceLoad: false);
     }
 
     // ---- Submit form: gọi API login, lưu token, redirect về returnUrl ----
@@ -105,7 +108,7 @@
 
             // Lưu token + cập nhật auth state rồi chuyển tới trang đích
             await AuthStateProvider.SignInAsync(response);
-            Navigation.NavigateTo("/home", forceLoad: false);
+            Navigation.NavigateTo(_targetAfterLogin, forceLoad: false);
         }
         catch (AuthApiException ex)
         {
@@ -121,6 +124,22 @@
             // Kết thúc submit: mở lại nút để người dùng thao tác tiếp
             _isSubmitting = false;
         }
+    }
+
+    private string ResolveTargetAfterLogin()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        if (!QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrlValues))
+            return "/home";
+
+        var returnUrl = returnUrlValues.ToString();
+        if (string.IsNullOrWhiteSpace(returnUrl))
+            return "/home";
+
+        if (!returnUrl.StartsWith('/') || returnUrl.StartsWith("//") || returnUrl.Contains('\\'))
+            return "/home";
+
+        return returnUrl;
     }
 
     // ---- Model cho form login (validation bằng DataAnnotations) ----
