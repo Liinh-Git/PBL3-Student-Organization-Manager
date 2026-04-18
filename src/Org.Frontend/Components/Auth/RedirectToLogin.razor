@@ -22,6 +22,11 @@
         // Bước 2: bỏ qua redirect nếu đang ở các route public
         var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
         var currentPath = relativePath.Split('?', '#')[0].Trim('/');
+
+        // Route gốc "/" được phép truy cập công khai để hiển thị giao diện chính.
+        if (string.IsNullOrWhiteSpace(currentPath))
+            return;
+
         if (PublicRoutePrefixes.Any(prefix =>
             currentPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
             return;

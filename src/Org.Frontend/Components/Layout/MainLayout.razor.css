@@ -78,6 +78,21 @@ main {
     font-weight: 700;
 }
 
+.top-logout-button {
+    min-height: 2.25rem;
+    border: 1px solid #d8e3ef;
+    border-radius: 0.5rem;
+    padding: 0.35rem 0.8rem;
+    background: #fff;
+    color: #25343f;
+    font-weight: 700;
+}
+
+.top-logout-button:hover {
+    border-color: #ff9b51;
+    color: #954900;
+}
+
 .top-profile {
     display: flex;
     align-items: center;

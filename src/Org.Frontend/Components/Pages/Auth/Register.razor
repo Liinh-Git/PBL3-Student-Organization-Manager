@@ -100,7 +100,7 @@
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)
-            Navigation.NavigateTo("/", forceLoad: false);
+            Navigation.NavigateTo("/home", forceLoad: false);
     }
 
     // ---- Submit form: register -> login -> lưu token -> redirect ----
@@ -129,7 +129,7 @@
 
             // Bước 3: lưu token, cập nhật state và chuyển về trang chủ
             await AuthStateProvider.SignInAsync(loginResponse);
-            Navigation.NavigateTo("/", forceLoad: false);
+            Navigation.NavigateTo("/home", forceLoad: false);
         }
         catch (AuthApiException ex)
         {

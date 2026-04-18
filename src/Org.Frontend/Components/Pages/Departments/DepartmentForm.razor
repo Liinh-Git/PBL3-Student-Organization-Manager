@@ -7,8 +7,14 @@
     </div>
 
     <div class="department-field">
-        <label class="form-label">Manager Id (optional)</label>
-        <InputText class="form-control department-input" @bind-Value="ManagerIdText" />
+        <label class="form-label">Manager (optional)</label>
+        <InputSelect TValue="Guid?" class="form-select department-input" @bind-Value="Model.ManagerId">
+            <option value="">No manager</option>
+            @foreach (var option in ManagerOptions)
+            {
+                <option value="@option.Id">@option.DisplayName</option>
+            }
+        </InputSelect>
     </div>
 
     <div class="department-field">
@@ -35,20 +41,8 @@
     [Parameter]
     public EventCallback OnCancel { get; set; }
 
-    private string ManagerIdText
-    {
-        get => Model.ManagerId?.ToString() ?? string.Empty;
-        set
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                Model.ManagerId = null;
-                return;
-            }
-
-            Model.ManagerId = Guid.TryParse(value, out var parsed) ? parsed : null;
-        }
-    }
+    [Parameter]
+    public IReadOnlyList<ManagerOption> ManagerOptions { get; set; } = [];
 
     private Task HandleValidSubmit()
         => OnSubmit.InvokeAsync();
@@ -58,5 +52,11 @@
         public string DeptName { get; set; } = string.Empty;
         public Guid? ManagerId { get; set; }
         public string? Function { get; set; }
+    }
+
+    public sealed class ManagerOption
+    {
+        public Guid Id { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
     }
 }

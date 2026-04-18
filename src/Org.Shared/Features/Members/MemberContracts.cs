@@ -15,6 +15,11 @@ public sealed record GetMembersRequest(Guid OrganizationId);
 
 public sealed record GetMembersResponse(IReadOnlyList<MemberDto> Items);
 
+public sealed record CreateMemberRequest(
+    string FullName,
+    string Email,
+    Guid? DepartmentId);
+
 public sealed record UpdateMemberRoleRequest(MemberRole Role);
 
 public sealed record UpdateMemberDepartmentRequest(Guid? DepartmentId);

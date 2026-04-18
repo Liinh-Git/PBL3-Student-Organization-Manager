@@ -6,6 +6,7 @@ public sealed record DepartmentDto(
     string Code,
     string Name,
     string? Description,
+    Guid? ManagerMemberId,
     int MemberCount,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset? UpdatedAtUtc);
@@ -18,10 +19,12 @@ public sealed record CreateDepartmentRequest(
     Guid OrganizationId,
     string Code,
     string Name,
-    string? Description);
+    string? Description,
+    Guid? ManagerMemberId);
 
 public sealed record UpdateDepartmentRequest(
     string Code,
     string Name,
     string? Description,
-    bool IsActive);
+    bool IsActive,
+    Guid? ManagerMemberId);

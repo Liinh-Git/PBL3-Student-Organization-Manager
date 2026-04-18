@@ -47,6 +47,14 @@ public sealed class DepartmentMockService(IWebHostEnvironment env) : IDepartment
         return current;
     }
 
+    public async Task DeleteDepartment(Guid id)
+    {
+        var all = await LoadAll();
+        var removed = all.RemoveAll(x => x.Id == id);
+        if (removed == 0)
+            throw new KeyNotFoundException($"Department {id} not found in mock data.");
+    }
+
     private async Task<List<DepartmentDto>> LoadAll()
     {
         if (_cache is not null)

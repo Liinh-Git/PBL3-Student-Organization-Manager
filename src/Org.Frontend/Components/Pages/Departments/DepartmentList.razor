@@ -1,12 +1,18 @@
 @page "/departments"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 @using Org.Frontend.Services.Departments
+@using Org.Frontend.Services.Auth
+@using Org.Frontend.Services.Members
 @using Org.Frontend.Services.Organizations
 @using Org.Shared.Contracts
 @inject IDepartmentService DepartmentService
+@inject IMemberService MemberService
 @inject IOrganizationContext OrganizationContext
+@inject FrontendAuthStateProvider FrontendAuthStateProvider
+@inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
 @implements IDisposable
 
 <PageTitle>Departments</PageTitle>
@@ -27,12 +33,20 @@
 
     @if (ShowCreateForm)
     {
-        <DepartmentForm Model="CreateModel" SaveText="Create" OnSubmit="CreateDepartment" OnCancel="CloseForms" />
+        <DepartmentForm Model="CreateModel"
+                        ManagerOptions="ManagerOptions"
+                        SaveText="Create"
+                        OnSubmit="CreateDepartment"
+                        OnCancel="CloseForms" />
     }
 
     @if (EditModel is not null)
     {
-        <DepartmentForm Model="EditModel" SaveText="Update" OnSubmit="UpdateDepartment" OnCancel="CloseForms" />
+        <DepartmentForm Model="EditModel"
+                        ManagerOptions="ManagerOptions"
+                        SaveText="Update"
+                        OnSubmit="UpdateDepartment"
+                        OnCancel="CloseForms" />
     }
 
     @if (Departments.Count == 0)
@@ -47,7 +61,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Function</th>
-                        <th>ManagerId</th>
+                        <th>Manager</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -57,9 +71,10 @@
                         <tr>
                             <td>@dept.DeptName</td>
                             <td>@dept.Function</td>
-                            <td class="dept-manager-id">@(dept.ManagerId?.ToString() ?? "-")</td>
+                            <td class="dept-manager-id">@GetManagerDisplayName(dept.ManagerId)</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary" @onclick="() => OpenEdit(dept)">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteDepartment(dept)">Delete</button>
                             </td>
                         </tr>
                     }
@@ -71,12 +86,21 @@
 
 @code {
     private List<DepartmentDto> Departments { get; set; } = [];
+    private List<MemberDto> Members { get; set; } = [];
     private DepartmentForm.DepartmentFormModel CreateModel { get; set; } = new();
     private DepartmentForm.DepartmentFormModel? EditModel { get; set; }
     private Guid? EditingDepartmentId { get; set; }
     private Guid? CurrentOrganizationId { get; set; }
     private bool ShowCreateForm { get; set; }
     private string? Message { get; set; }
+
+    private IReadOnlyList<DepartmentForm.ManagerOption> ManagerOptions => Members
+        .Select(x => new DepartmentForm.ManagerOption
+        {
+            Id = x.Id,
+            DisplayName = x.DisplayName
+        })
+        .ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,7 +109,7 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)
         {
-            await Reload();
+            await ReloadSafely();
         }
     }
 
@@ -96,7 +120,7 @@
         {
             await InvokeAsync(async () =>
             {
-                await Reload();
+                await ReloadSafely();
                 StateHasChanged();
             });
         }
@@ -110,7 +134,24 @@
     private async Task Reload()
     {
         CurrentOrganizationId ??= await OrganizationContext.GetOrganizationIdAsync();
+        Members = await MemberService.GetMembers(CurrentOrganizationId.Value);
         Departments = await DepartmentService.GetDepartments(CurrentOrganizationId.Value);
+    }
+
+    private async Task ReloadSafely()
+    {
+        try
+        {
+            await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await HandleExpiredSessionAsync(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Message = $"Không thể tải dữ liệu departments: {ex.Message}";
+        }
     }
 
     private void OpenCreate()
@@ -143,17 +184,24 @@
             return;
         }
 
-        await DepartmentService.CreateDepartment(new CreateDepartmentRequest
+        try
         {
-            OrgId = CurrentOrganizationId ?? await OrganizationContext.GetOrganizationIdAsync(),
-            DeptName = CreateModel.DeptName,
-            ManagerId = CreateModel.ManagerId,
-            Function = CreateModel.Function
-        });
+            await DepartmentService.CreateDepartment(new CreateDepartmentRequest
+            {
+                OrgId = CurrentOrganizationId ?? await OrganizationContext.GetOrganizationIdAsync(),
+                DeptName = CreateModel.DeptName,
+                ManagerId = CreateModel.ManagerId,
+                Function = CreateModel.Function
+            });
 
-        Message = "Department created.";
-        ShowCreateForm = false;
-        await Reload();
+            Message = "Department created.";
+            ShowCreateForm = false;
+            await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await HandleExpiredSessionAsync(ex.Message);
+        }
     }
 
     private async Task UpdateDepartment()
@@ -169,16 +217,36 @@
             return;
         }
 
-        await DepartmentService.UpdateDepartment(EditingDepartmentId.Value, new UpdateDepartmentRequest
+        try
         {
-            DeptName = EditModel.DeptName,
-            ManagerId = EditModel.ManagerId,
-            Function = EditModel.Function
-        });
+            await DepartmentService.UpdateDepartment(EditingDepartmentId.Value, new UpdateDepartmentRequest
+            {
+                DeptName = EditModel.DeptName,
+                ManagerId = EditModel.ManagerId,
+                Function = EditModel.Function
+            });
 
-        Message = "Department updated.";
-        CloseForms();
-        await Reload();
+            Message = "Department updated.";
+            CloseForms();
+            await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await HandleExpiredSessionAsync(ex.Message);
+        }
+    }
+
+    private async Task HandleExpiredSessionAsync(string? reason = null)
+    {
+        CurrentOrganizationId = null;
+        Members = [];
+        Departments = [];
+        Message = string.IsNullOrWhiteSpace(reason)
+            ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            : reason;
+
+        await FrontendAuthStateProvider.SignOutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 
     private void CloseForms()
@@ -186,5 +254,40 @@
         ShowCreateForm = false;
         EditModel = null;
         EditingDepartmentId = null;
+    }
+
+    private string GetManagerDisplayName(Guid? managerId)
+    {
+        if (!managerId.HasValue)
+            return "-";
+
+        return Members.FirstOrDefault(x => x.Id == managerId.Value)?.DisplayName
+            ?? managerId.Value.ToString();
+    }
+
+    private async Task DeleteDepartment(DepartmentDto department)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Delete department '{department.DeptName}'?");
+        if (!confirmed)
+            return;
+
+        try
+        {
+            await DepartmentService.DeleteDepartment(department.Id);
+
+            if (EditingDepartmentId == department.Id)
+                CloseForms();
+
+            Message = "Department deleted.";
+            await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await HandleExpiredSessionAsync(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Message = $"Không thể xóa department: {ex.Message}";
+        }
     }
 }

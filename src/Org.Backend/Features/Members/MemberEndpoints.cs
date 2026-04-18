@@ -32,6 +32,88 @@ public sealed class GetMembersEndpoint(AppDbContext db) : EndpointWithoutRequest
     }
 }
 
+public sealed class CreateMemberEndpoint(AppDbContext db) : Endpoint<CreateMemberRequest, MemberDto>
+{
+    public override void Configure()
+    {
+        Post("/api/organizations/{orgId:guid}/members");
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
+    }
+
+    public override async Task HandleAsync(CreateMemberRequest req, CancellationToken ct)
+    {
+        var orgId = Route<Guid>("orgId");
+
+        if (string.IsNullOrWhiteSpace(req.FullName) || req.FullName.Trim().Length < 2)
+            ThrowError("FullName must be at least 2 characters.", StatusCodes.Status400BadRequest);
+
+        var email = req.Email.Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+            ThrowError("Email is invalid.", StatusCodes.Status400BadRequest);
+
+        var orgExists = await db.Organizations.AnyAsync(x => x.Id == orgId, ct);
+        if (!orgExists)
+            ThrowError("Organization not found.", StatusCodes.Status404NotFound);
+
+        if (req.DepartmentId is not null)
+        {
+            var departmentExists = await db.Departments
+                .AnyAsync(x => x.Id == req.DepartmentId.Value && x.OrgId == orgId, ct);
+
+            if (!departmentExists)
+                ThrowError("Department not found in organization.", StatusCodes.Status404NotFound);
+        }
+
+        var user = await db.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(x => x.Email == email, ct);
+
+        if (user is null)
+        {
+            user = new Domain.Entities.User
+            {
+                FullName = req.FullName.Trim(),
+                Email = email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString("N")),
+                Status = Domain.Enums.UserStatus.Active
+            };
+
+            db.Users.Add(user);
+            await db.SaveChangesAsync(ct);
+        }
+        else if (user.IsDeleted)
+        {
+            user.IsDeleted = false;
+        }
+
+        var existingMember = await db.Members
+            .IgnoreQueryFilters()
+            .Include(x => x.Role)
+            .FirstOrDefaultAsync(x => x.UserId == user.Id && x.OrgId == orgId, ct);
+
+        if (existingMember is not null && !existingMember.IsDeleted)
+            ThrowError("User is already a member of this organization.", StatusCodes.Status409Conflict);
+
+        var member = existingMember ?? new Domain.Entities.Member
+        {
+            UserId = user.Id,
+            OrgId = orgId,
+            JoinDate = DateTime.UtcNow
+        };
+
+        member.IsDeleted = false;
+        member.DepartmentId = req.DepartmentId;
+        member.User = user;
+
+        if (existingMember is null)
+            db.Members.Add(member);
+
+        await db.SaveChangesAsync(ct);
+
+        await HttpContext.Response.SendAsync(ContractMapping.ToMemberDto(member), StatusCodes.Status201Created, cancellation: ct);
+    }
+}
+
 public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateMemberRoleRequest, MemberDto>
 {
     public override void Configure()
@@ -126,5 +208,38 @@ public sealed class UpdateMemberDepartmentEndpoint(AppDbContext db) : Endpoint<U
         await db.SaveChangesAsync(ct);
 
         await Send.OkAsync(ContractMapping.ToMemberDto(member), ct);
+    }
+}
+
+public sealed class DeleteMemberEndpoint(AppDbContext db) : EndpointWithoutRequest
+{
+    public override void Configure()
+    {
+        Delete("/api/members/{id:guid}");
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
+    }
+
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var memberId = Route<Guid>("id");
+
+        var member = await db.Members.FirstOrDefaultAsync(x => x.Id == memberId, ct);
+        if (member is null)
+            ThrowError("Member not found.", StatusCodes.Status404NotFound);
+
+        var managedDepartments = await db.Departments
+            .Where(x => x.ManagerId == memberId)
+            .ToListAsync(ct);
+
+        foreach (var department in managedDepartments)
+        {
+            department.ManagerId = null;
+        }
+
+        member!.IsDeleted = true;
+        member.DepartmentId = null;
+
+        await db.SaveChangesAsync(ct);
+        await Send.NoContentAsync(ct);
     }
 }

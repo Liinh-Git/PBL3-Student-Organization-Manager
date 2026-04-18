@@ -2,7 +2,7 @@
 @* [Authorize] KHÔNG dùng ở đây: bảo vệ route do AuthorizeRouteView trong Routes.razor đảm nhiệm *@
 @* Dùng [Authorize] trên Razor component sẽ trigger ASP.NET Core Authorization Middleware (HTTP level), *@
 @* gây crash vì không có HTTP authentication scheme. Blazor dùng CascadingAuthenticationState thay thế. *@
-@page "/"
+@page "/home"
 @inject AuthenticationStateProvider AuthStateProvider
 @using System.Security.Claims
 

@@ -5,8 +5,8 @@
 @inject AuthApiClient AuthApiClient
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
-@using Microsoft.AspNetCore.WebUtilities
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.WebUtilities
 
 <PageTitle>Đăng nhập</PageTitle>
 
@@ -74,6 +74,7 @@
     private bool _isSubmitting;
     // Thông báo lỗi hiển thị trên giao diện nếu đăng nhập thất bại
     private string? _errorMessage;
+    private string _targetAfterLogin = "/home";
 
     // ---- Nếu đã login thì về home, tránh mở lại trang login ----
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -82,10 +83,11 @@
             return;
 
         await AuthStateProvider.InitializeAsync();
+        _targetAfterLogin = ResolveTargetAfterLogin();
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)
-            Navigation.NavigateTo("/", forceLoad: false);
+            Navigation.NavigateTo(_targetAfterLogin, forceLoad: false);
     }
 
     // ---- Submit form: gọi API login, lưu token, redirect về returnUrl ----
@@ -106,7 +108,7 @@
 
             // Lưu token + cập nhật auth state rồi chuyển tới trang đích
             await AuthStateProvider.SignInAsync(response);
-            Navigation.NavigateTo(GetReturnUrl(), forceLoad: false);
+            Navigation.NavigateTo(_targetAfterLogin, forceLoad: false);
         }
         catch (AuthApiException ex)
         {
@@ -124,22 +126,24 @@
         }
     }
 
-    // ---- Lấy returnUrl từ query string (nếu có), fallback về '/' ----
-    private string GetReturnUrl()
+    private string ResolveTargetAfterLogin()
     {
-        // Đọc query string hiện tại để lấy returnUrl sau khi login
-        var currentUri = Navigation.ToAbsoluteUri(Navigation.Uri);
-        var query = QueryHelpers.ParseQuery(currentUri.Query);
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        if (!QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrlValues))
+            return "/home";
 
-        if (query.TryGetValue("returnUrl", out var returnUrl))
-        {
-            var value = returnUrl.ToString();
-            // Chỉ chấp nhận đường dẫn nội bộ bắt đầu bằng '/' để an toàn
-            if (!string.IsNullOrWhiteSpace(value) && value.StartsWith('/'))
-                return value;
-        }
+        var returnUrl = returnUrlValues.ToString();
+        if (string.IsNullOrWhiteSpace(returnUrl))
+            return "/home";
 
-        return "/";
+        var decodedReturnUrl = Uri.UnescapeDataString(returnUrl);
+        if (!decodedReturnUrl.StartsWith('/') || decodedReturnUrl.StartsWith("//") || decodedReturnUrl.Contains('\\'))
+            return "/home";
+
+        if (!Uri.TryCreate(decodedReturnUrl, UriKind.Relative, out _))
+            return "/home";
+
+        return decodedReturnUrl;
     }
 
     // ---- Model cho form login (validation bằng DataAnnotations) ----
