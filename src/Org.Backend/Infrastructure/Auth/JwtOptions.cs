@@ -11,7 +11,7 @@ public sealed class JwtOptions
     // Đối tượng nhận token
     public string Audience { get; set; } = "Org.Frontend";
     // Thời gian sống của access token (phút)
-    public int AccessTokenMinutes { get; set; } = 60;
+    public int AccessTokenMinutes { get; set; } = 30;
     // Khóa ký token (bắt buộc mạnh khi production)
     public string SigningKey { get; set; } = "CHANGE_ME_TO_A_STRONG_RANDOM_SECRET_AT_LEAST_32_CHARS";
 }
