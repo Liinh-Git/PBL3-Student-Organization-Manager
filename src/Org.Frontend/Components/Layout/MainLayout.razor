@@ -1,7 +1,7 @@
 @* ---- Layout chính của app: sidebar trái (NavMenu) + main area phải ----
     Sidebar = NavMenu (rail + menu pane).
     Main area thay đổi CSS class (org-main / user-main) theo workspace đang active.
-    Detect logout: subscribe LocationChanged, redirect nếu mất auth state. *@
+    LocationChanged được dùng để đồng bộ UI/workspace state của layout. *@
 @inherits LayoutComponentBase
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
