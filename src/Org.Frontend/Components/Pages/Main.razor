@@ -1,3 +1,6 @@
+@* ---- Landing page công khai (/) — giới thiệu Kora và điều hướng Login/Register ----
+    Layout dùng LandingLayout (không có sidebar).
+    Không yêu cầu auth — link điều hướng đến /login và /register. *@
 @page "/"
 @layout LandingLayout
 
@@ -34,7 +37,7 @@
 
         <div class="hero-media">
             <div class="photo-card">
-                <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80" alt="Sinh viên họp nhóm" />
+                <img src="/images/banners/org-banner.jpg" alt="Sinh vien hop nhom" />
             </div>
             <div class="quote-card">
                 <p>"Kora đã thay đổi cách chúng tôi vận hành CLB hoàn toàn."</p>
@@ -74,26 +77,26 @@
     <section class="section" id="clubs">
         <div class="section-head">
             <h2>Các câu lạc bộ nổi bật</h2>
-            <a class="btn btn-dark" href="/members">Xem tất cả</a>
+            <a class="btn btn-dark" href="/org/members">Xem tất cả</a>
         </div>
         <div class="card-row">
             <article class="club-card">
-                <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80" alt="CLB Tình nguyện" />
+                <img src="/images/banners/org-banner.jpg" alt="CLB Tinh nguyen" />
                 <h3>CLB Tình Nguyện Xanh</h3>
                 <p>Hành động vì môi trường xanh và cộng đồng bền vững.</p>
-                <a href="/members">Tham gia ngay</a>
+                <a href="/org/members">Tham gia ngay</a>
             </article>
             <article class="club-card">
-                <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80" alt="CLB Sách" />
+                <img src="/images/icons/icon1.png" alt="CLB Sach" />
                 <h3>CLB Sách và Hành Động</h3>
                 <p>Lan tỏa tri thức, truyền cảm hứng học thuật cho sinh viên.</p>
-                <a href="/members">Tham gia ngay</a>
+                <a href="/org/members">Tham gia ngay</a>
             </article>
             <article class="club-card">
-                <img src="https://images.unsplash.com/photo-1518773553398-650c184e0bb3?auto=format&fit=crop&w=900&q=80" alt="CLB Công nghệ" />
+                <img src="/images/banners/org-banner.jpg" alt="CLB Cong nghe" />
                 <h3>CLB Công Nghệ Sáng Tạo</h3>
                 <p>Không gian phát triển kỹ năng lập trình và chuyển đổi số.</p>
-                <a href="/members">Tham gia ngay</a>
+                <a href="/org/members">Tham gia ngay</a>
             </article>
         </div>
     </section>
@@ -107,19 +110,19 @@
                 <div class="event-date"><span>THÁNG 9</span><strong>20</strong></div>
                 <h3>Ngày hội tuyển CLB</h3>
                 <p>Sinh viên - Tòa A1</p>
-                <a href="/events">Tham gia ngay</a>
+                <a href="/org/events">Tham gia ngay</a>
             </article>
             <article class="event-card">
                 <div class="event-date orange"><span>THÁNG 10</span><strong>05</strong></div>
                 <h3>Workshop Kỹ năng mềm</h3>
                 <p>Phòng hội thảo 302</p>
-                <a href="/events">Đăng ký</a>
+                <a href="/org/events">Đăng ký</a>
             </article>
             <article class="event-card">
                 <div class="event-date"><span>THÁNG 11</span><strong>15</strong></div>
                 <h3>Giải đấu E-sports sinh viên</h3>
                 <p>Sảnh thi đấu Đa Năng</p>
-                <a href="/events">Xem chi tiết</a>
+                <a href="/org/events">Xem chi tiết</a>
             </article>
         </div>
     </section>
@@ -130,7 +133,7 @@
         </div>
         <div class="news-layout">
             <article class="headline">
-                <img src="https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1200&q=80" alt="Tin nổi bật" />
+                <img src="/images/banners/org-banner.jpg" alt="Tin noi bat" />
                 <h3>Làm thế nào để duy trì ngân sách CLB hiệu quả cho thành viên mới?</h3>
             </article>
             <div class="news-list">

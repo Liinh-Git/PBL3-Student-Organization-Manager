@@ -1,43 +1,269 @@
-﻿<div class="brand-shell">
-    <div class="brand-mark">AC</div>
-    <div class="brand-meta">
-        <strong>Academia Curator</strong>
-        <span>Quan ly to chuc</span>
+@* ---- Sidebar điều hướng chính: rail icon trái (user/org) + menu pane phải ----
+    Rail: click icon user → workspace cá nhân; click icon org → workspace tổ chức.
+    Menu pane: cập nhật danh sách liên kết theo workspace đang active. *@
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="nav-scrollable">
+    <div class="workspace-sidebar">
+        <aside class="workspace-rail">
+            <div class="rail-top">
+                <button class="rail-icon user-icon @(IsUserWorkspaceActive ? "active" : string.Empty)"
+                        type="button"
+                        title="Workspace nguoi dung"
+                        @onclick="ActivateUserWorkspace">
+                    <img src="/images/avatars/user.png" alt="Workspace nguoi dung" />
+                </button>
+            </div>
+
+            <div class="rail-separator"></div>
+
+            <div class="rail-org-list">
+                @foreach (var organization in OrganizationWorkspaces)
+                {
+                    <button class="rail-icon org-icon @(IsOrganizationWorkspaceActive(organization.Key) ? "active" : string.Empty)"
+                            type="button"
+                            title="@organization.DisplayName"
+                            @onclick="@(() => ActivateOrganizationWorkspace(organization))">
+                        <img src="@organization.IconPath" alt="@organization.DisplayName" />
+                    </button>
+                }
+            </div>
+        </aside>
+
+        <section class="workspace-menu-pane">
+            <header class="workspace-head">
+                <h1>@ActiveWorkspaceHeading</h1>
+            </header>
+
+            <div class="workspace-nav-margin">
+                <nav class="workspace-menu-list">
+                    @foreach (var item in ActiveMenuItems)
+                    {
+                        <button type="button"
+                                class="workspace-menu-item @(IsMenuItemActive(item.Key) ? "active" : string.Empty)"
+                                @onclick="@(() => NavigateToMenu(item))">
+                            <span class="menu-icon-box">
+                                <MudIcon Icon="@item.Icon" Class="workspace-menu-icon" />
+                            </span>
+                            <span class="menu-label">@item.Label</span>
+                        </button>
+                    }
+                </nav>
+            </div>
+
+            @if (_activeWorkspace == WorkspaceKind.Organization)
+            {
+                <div class="workspace-footer-card">
+                    <div class="workspace-footer-card-inner">
+                        <div class="workspace-footer-badge">@ActiveOrganizationShortName</div>
+                        <div class="workspace-footer-meta">
+                            <p>@ActiveWorkspaceTitle</p>
+                            <span>Organization Workspace</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </section>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+@code {
+    private enum WorkspaceKind
+    {
+        User,
+        Organization
+    }
 
-@* ---- Click vào menu item sẽ tự đóng menu trên màn hình nhỏ ---- *@
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <p class="nav-section">Dieu huong chinh</p>
+    private sealed record OrganizationWorkspace(string Key, string DisplayName, string ShortName, string DefaultRoute, string IconPath);
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
+    private sealed record WorkspaceMenuItem(string Key, string Label, string Href, string Icon);
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="departments">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Departments
-            </NavLink>
-        </div>
+    private static readonly IReadOnlyList<OrganizationWorkspace> OrganizationWorkspaces =
+    [
+        new("org-architecture", "CLB Kien truc GenZ", "KG", "/org-overview", "/images/icons/icon1.png"),
+        new("org-media", "CLB Truyen thong", "MT", "/org-overview", "/images/icons/icon1.png"),
+        new("org-volunteer", "CLB Tinh nguyen", "TN", "/org-overview", "/images/icons/icon1.png")
+    ];
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="members">
-                <span class="bi bi-people-fill" aria-hidden="true"></span> Members
-            </NavLink>
-        </div>
+    private static readonly IReadOnlyList<WorkspaceMenuItem> UserWorkspaceMenu =
+    [
+        new("user-dashboard", "Tong quan", "/home", Icons.Material.Filled.SpaceDashboard),
+        new("user-organizations", "To chuc cua toi", "/user/organizations", Icons.Material.Filled.Groups),
+        new("user-events", "Su kien cua toi", "/user/events", Icons.Material.Filled.Event),
+        new("user-settings", "Cai dat", "/user/settings", Icons.Material.Filled.Settings)
+    ];
 
-        <div class="nav-footer-card px-3">
-            <div class="nav-footer-icon">M</div>
-            <div>
-                <strong>Marketing Club</strong>
-                <p>workspace active</p>
-            </div>
-        </div>
-    </nav>
-</div>
+    private static readonly IReadOnlyList<WorkspaceMenuItem> OrganizationWorkspaceMenu =
+    [
+        new("org-overview", "Tong quan", "/org-overview", Icons.Material.Filled.SpaceDashboard),
+        new("org-members", "Thanh vien", "/org/members", Icons.Material.Filled.Group),
+        new("org-departments", "Phong ban", "/org/departments", Icons.Material.Filled.Apartment),
+        new("org-events", "Su kien", "/org/events", Icons.Material.Filled.EventNote),
+        new("org-resources", "Tai nguyen", "/org/resources", Icons.Material.Filled.Inventory2),
+        new("org-finance", "Tai chinh", "/org/finance", Icons.Material.Filled.AccountBalanceWallet),
+        new("org-requests", "Yeu cau dang cho", "/org/requests", Icons.Material.Filled.NotificationsActive),
+        new("org-reports", "Bao cao", "/org/reports", Icons.Material.Filled.QueryStats),
+    ];
+
+    private WorkspaceKind _activeWorkspace = WorkspaceKind.User;
+    private string _activeOrganizationKey = "org-architecture";
+    private string _activeUserMenuKey = "user-dashboard";
+    private string _activeOrganizationMenuKey = "org-overview";
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += HandleLocationChanged;
+
+        var currentRoute = GetCurrentRoute(Navigation.Uri);
+        SyncWorkspaceAndMenuWithRoute(currentRoute);
+    }
+
+    private IReadOnlyList<WorkspaceMenuItem> ActiveMenuItems =>
+        _activeWorkspace == WorkspaceKind.User ? UserWorkspaceMenu : OrganizationWorkspaceMenu;
+
+    private bool IsUserWorkspaceActive => _activeWorkspace == WorkspaceKind.User;
+
+    private string ActiveWorkspaceHeading =>
+        _activeWorkspace == WorkspaceKind.User
+            ? "WORKSPACE CA NHAN"
+            : ActiveWorkspaceTitle.ToUpperInvariant();
+
+    private string ActiveWorkspaceTitle
+    {
+        get
+        {
+            if (_activeWorkspace == WorkspaceKind.User)
+            {
+                return "Khong gian ca nhan";
+            }
+
+            var workspace = OrganizationWorkspaces.FirstOrDefault(x => x.Key == _activeOrganizationKey) ?? OrganizationWorkspaces[0];
+            return workspace.DisplayName;
+        }
+    }
+
+    private string ActiveOrganizationShortName =>
+        OrganizationWorkspaces.FirstOrDefault(x => x.Key == _activeOrganizationKey)?.ShortName
+        ?? "ORG";
+
+    private bool IsOrganizationWorkspaceActive(string key) =>
+        _activeWorkspace == WorkspaceKind.Organization && _activeOrganizationKey == key;
+
+    private bool IsMenuItemActive(string key) =>
+        _activeWorkspace == WorkspaceKind.User
+            ? _activeUserMenuKey == key
+            : _activeOrganizationMenuKey == key;
+
+    private void ActivateUserWorkspace()
+    {
+        _activeWorkspace = WorkspaceKind.User;
+        _activeUserMenuKey = "user-settings";
+        Navigation.NavigateTo("/user/settings");
+    }
+
+    private void ActivateOrganizationWorkspace(OrganizationWorkspace workspace)
+    {
+        _activeWorkspace = WorkspaceKind.Organization;
+        _activeOrganizationKey = workspace.Key;
+        _activeOrganizationMenuKey = "org-overview";
+        Navigation.NavigateTo(workspace.DefaultRoute);
+    }
+
+    private void NavigateToMenu(WorkspaceMenuItem item)
+    {
+        if (_activeWorkspace == WorkspaceKind.User)
+        {
+            _activeUserMenuKey = item.Key;
+        }
+        else
+        {
+            _activeOrganizationMenuKey = item.Key;
+        }
+
+        Navigation.NavigateTo(item.Href);
+    }
+
+    private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        var route = GetCurrentRoute(e.Location);
+        SyncWorkspaceAndMenuWithRoute(route);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private static bool LooksLikeOrganizationRoute(string route)
+    {
+        if (string.IsNullOrWhiteSpace(route))
+        {
+            return false;
+        }
+
+        return route.StartsWith("/org-overview", StringComparison.OrdinalIgnoreCase)
+            || route.StartsWith("/org/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetCurrentRoute(string uri)
+    {
+        var route = "/" + Navigation.ToBaseRelativePath(uri).Trim('/');
+
+        if (string.IsNullOrWhiteSpace(route))
+        {
+            return "/";
+        }
+
+        var queryIndex = route.IndexOf('?');
+        if (queryIndex >= 0)
+        {
+            route = route[..queryIndex];
+        }
+
+        var hashIndex = route.IndexOf('#');
+        if (hashIndex >= 0)
+        {
+            route = route[..hashIndex];
+        }
+
+        return string.IsNullOrWhiteSpace(route) ? "/" : route;
+    }
+
+    private void SyncWorkspaceAndMenuWithRoute(string route)
+    {
+        _activeWorkspace = LooksLikeOrganizationRoute(route)
+            ? WorkspaceKind.Organization
+            : WorkspaceKind.User;
+
+        SyncActiveMenuWithRoute(route);
+    }
+
+    private void SyncActiveMenuWithRoute(string route)
+    {
+        if (string.IsNullOrWhiteSpace(route) || route == "/")
+        {
+            return;
+        }
+
+        var normalized = route.ToLowerInvariant();
+
+        var userMatch = UserWorkspaceMenu.FirstOrDefault(item =>
+            normalized.StartsWith(item.Href.ToLowerInvariant(), StringComparison.Ordinal));
+
+        if (userMatch is not null)
+        {
+            _activeUserMenuKey = userMatch.Key;
+        }
+
+        var organizationMatch = OrganizationWorkspaceMenu.FirstOrDefault(item =>
+            normalized.StartsWith(item.Href.ToLowerInvariant(), StringComparison.Ordinal));
+
+        if (organizationMatch is not null)
+        {
+            _activeOrganizationMenuKey = organizationMatch.Key;
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
+}
 

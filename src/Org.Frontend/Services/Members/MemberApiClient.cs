@@ -1,3 +1,6 @@
+// ---- API client thực cho service thành viên — CRUD qua BE endpoint /api/members ----
+// MapLegacyDto: ánh xạ FeatureMemberDto sang MemberDto cũ; giữ Guid role củ thông qua MapFeatureRole.
+// MapLegacyRoleId / MapFeatureRole: bridge giữa MemberRole enum và Guid role củ (Contracts).
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -128,6 +131,7 @@ public sealed class MemberApiClient(
             OrgId = source.OrganizationId,
             UserId = Guid.Empty,
             DisplayName = source.FullName,
+            Email = source.Email,
             DepartmentId = source.DepartmentId,
             RoleId = MapFeatureRole(source.Role),
             JoinDate = source.JoinedAtUtc.UtcDateTime

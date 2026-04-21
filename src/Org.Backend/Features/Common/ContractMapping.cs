@@ -67,7 +67,10 @@ internal static class ContractMapping
             category.Description,
             category.OrderIndex,
             taskCount,
-            completedTaskCount);
+            completedTaskCount,
+            category.OwnerDepartmentId,
+            category.OwnerDepartment?.ManagerId,
+            category.OwnerDepartment?.Manager?.User?.FullName);
 
     public static TaskDto ToTaskDto(OrgTask task)
         => new(

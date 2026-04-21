@@ -6,7 +6,7 @@ using Org.Shared.Features.Auth;
 
 namespace Org.Frontend.Services.Auth;
 
-public sealed class AuthApiClient
+public sealed class AuthApiClient : IAuthService
 {
     private readonly HttpClient _httpClient;
 

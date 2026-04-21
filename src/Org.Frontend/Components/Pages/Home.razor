@@ -1,33 +1,553 @@
-@* ---- Trang chủ sau đăng nhập: hiển thị thông tin claim lấy từ auth state ---- *@
-@* [Authorize] KHÔNG dùng ở đây: bảo vệ route do AuthorizeRouteView trong Routes.razor đảm nhiệm *@
-@* Dùng [Authorize] trên Razor component sẽ trigger ASP.NET Core Authorization Middleware (HTTP level), *@
-@* gây crash vì không có HTTP authentication scheme. Blazor dùng CascadingAuthenticationState thay thế. *@
 @page "/home"
-@inject AuthenticationStateProvider AuthStateProvider
-@using System.Security.Claims
+@inject IUserDashboardService DashboardService
+@inject NavigationManager Navigation
+@using Org.Frontend.Services.Dashboard
+@using Org.Frontend.ViewModels
 
-<PageTitle>Home</PageTitle>
+<PageTitle>User dashboard</PageTitle>
 
-<h1>Xin chào, @_user.Identity?.Name</h1>
+<div class="home-shell">
+    @if (_isLoading)
+    {
+        <section class="dashboard-state">
+            <h1>Dang tai dashboard</h1>
+            <p>Du lieu trang ca nhan dang duoc dong bo.</p>
+        </section>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <section class="dashboard-state error">
+            <h1>Khong tai duoc dashboard</h1>
+            <p>@_errorMessage</p>
+            <button type="button" class="state-button" @onclick="ReloadAsync">Thu lai</button>
+        </section>
+    }
+    else if (_dashboard is not null)
+    {
+        <section class="welcome-banner">
+            <div class="welcome-copy">
+                <p class="welcome-kicker">TRANG TONG QUAN NGUOI DUNG</p>
+                <h1>Chao @_dashboard.DisplayName</h1>
+                <p class="welcome-sub">
+                    Theo doi cau lac bo ban dang tham gia, su kien ban da dang ky va cac goi y moi trong cung mot man hinh.
+                </p>
 
-<p>Đăng nhập thành công. Bạn đã vào vùng nội dung được bảo vệ bởi JWT.</p>
+                <div class="quick-actions">
+                    <button type="button" class="quick-button primary" @onclick="OpenMyOrganizations">Cau lac bo cua toi</button>
+                    <button type="button" class="quick-button" @onclick="OpenMyEvents">Su kien cua toi</button>
+                    <button type="button" class="quick-button ghost" @onclick="OpenSettings">Cai dat</button>
+                </div>
+            </div>
 
-<ul>
-	<li>User ID: @_user.FindFirst(ClaimTypes.NameIdentifier)?.Value</li>
-	<li>Email: @_user.FindFirst(ClaimTypes.Email)?.Value</li>
-	<li>Status: @_user.FindFirst("status")?.Value</li>
-</ul>
+            <div class="welcome-stats">
+                <article class="stat-card">
+                    <p>CLB da tham gia</p>
+                    <strong>@OrganizationCount</strong>
+                    <span>Cap nhat tu membership</span>
+                </article>
 
-<p>Bạn có thể mở các trang <a href="/counter">Counter</a> hoặc <a href="/weather">Weather</a> để kiểm tra route guard.</p>
+                <article class="stat-card">
+                    <p>Su kien da dang ky</p>
+                    <strong>@RegisteredEventCount</strong>
+                    <span>Lay tu attendee</span>
+                </article>
+
+                <article class="stat-card">
+                    <p>Su kien sap toi</p>
+                    <strong>@UpcomingEventCount</strong>
+                    <span>@(_dashboard.Email ?? "Tai khoan da xac thuc")</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-block">
+            <header class="section-head">
+                <div>
+                    <h2>Hoat dong cua toi</h2>
+                    <p>Xem nhanh nhung muc ban hay truy cap nhat.</p>
+                </div>
+                <div class="section-head-actions">
+                    <button type="button" class="head-action" @onclick="OpenMyOrganizations">Trang CLB</button>
+                    <button type="button" class="head-action" @onclick="OpenMyEvents">Trang su kien</button>
+                </div>
+            </header>
+
+            <div class="activity-tabs" role="tablist" aria-label="My activities">
+                <button type="button"
+                        class="@GetMyTabClass(MyTabOrganizations)"
+                        role="tab"
+                        aria-selected="@(_selectedMyTab == MyTabOrganizations)"
+                        @onclick="() => SelectMyTab(MyTabOrganizations)">
+                    Cau lac bo cua toi (@OrganizationCount)
+                </button>
+                <button type="button"
+                        class="@GetMyTabClass(MyTabEvents)"
+                        role="tab"
+                        aria-selected="@(_selectedMyTab == MyTabEvents)"
+                        @onclick="() => SelectMyTab(MyTabEvents)">
+                    Su kien cua toi (@RegisteredEventCount)
+                </button>
+            </div>
+
+            @if (_selectedMyTab == MyTabOrganizations)
+            {
+                @if (MyOrganizationItems.Count == 0)
+                {
+                    <div class="empty-block">
+                        <p>Ban chua tham gia cau lac bo nao. Hay kham pha de bat dau.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="my-grid organizations-grid">
+                        @foreach (var org in MyOrganizationItems)
+                        {
+                            <article class="my-card organization-card">
+                                <div class="card-media">
+                                    <img src="@ResolveImage(org.AvatarUrl, DefaultOrganizationImageUrl)" alt="@org.Name" />
+                                </div>
+
+                                <div class="card-body">
+                                    <div class="card-top-row">
+                                        <span class="soft-pill">@org.Role</span>
+                                        <span class="meta-text">Tham gia @org.JoinedAtUtc.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                    <h3>@org.Name</h3>
+                                    <p>@BuildDescription(org.Description, 120)</p>
+                                    <button type="button" class="inline-link" @onclick="() => OpenOrganizationDetail(org.OrganizationId)">Mo chi tiet</button>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                @if (MyRegisteredEventItems.Count == 0)
+                {
+                    <div class="empty-block">
+                        <p>Ban chua dang ky su kien nao.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="my-grid events-grid">
+                        @foreach (var item in MyRegisteredEventItems)
+                        {
+                            <article class="my-card event-card">
+                                <div class="event-media">
+                                    <img src="@ResolveImage(item.ImageUrl, DefaultEventImageUrl)" alt="@item.Name" />
+                                    <span class="type-chip">@BuildEventTypeLabel(item.Name)</span>
+                                </div>
+
+                                <div class="card-body">
+                                    <p class="event-org">@item.OrganizationName</p>
+                                    <h3>@item.Name</h3>
+                                    <p>@BuildDescription(item.Description, 120)</p>
+
+                                    <div class="meta-row">
+                                        <span>@ResolveLocation(item.Location)</span>
+                                        <span>@FormatDateRange(item.StartDate, item.EndDate)</span>
+                                    </div>
+
+                                    <div class="badge-row">
+                                        <span class="badge event-status @GetEventStatusClass(item.EventStatus)">@GetEventStatusLabel(item.EventStatus)</span>
+                                        <span class="badge registration-status @GetRegistrationClass(item.RegistrationStatus)">@GetRegistrationLabel(item.RegistrationStatus)</span>
+                                    </div>
+
+                                    <button type="button" class="inline-link" @onclick="() => OpenEventDetail(item.EventId)">Xem chi tiet</button>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            }
+        </section>
+
+        <section class="section-block discover-section">
+            <header class="section-head">
+                <div>
+                    <h2>Kham pha</h2>
+                    <p>Goi y cau lac bo va su kien co the phu hop voi ban.</p>
+                </div>
+            </header>
+
+            <div class="discover-panel">
+                <div class="discover-head">
+                    <div>
+                        <h3>Cau lac bo de xuat</h3>
+                        <p>Lua chon cac CLB chua tham gia va dang hoat dong.</p>
+                    </div>
+                    <div class="pager" aria-label="Suggested organizations pager">
+                        <button type="button" class="pager-button" @onclick="PreviousOrganizationPage" disabled="@(!CanGoPreviousOrganizations)">&#10094;</button>
+                        <span>@OrganizationPageDisplay/@OrganizationPageCount</span>
+                        <button type="button" class="pager-button" @onclick="NextOrganizationPage" disabled="@(!CanGoNextOrganizations)">&#10095;</button>
+                    </div>
+                </div>
+
+                @if (OrganizationDiscoverItems.Count == 0)
+                {
+                    <div class="empty-block">
+                        <p>Khong co CLB de xuat trong luc nay.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="discover-grid">
+                        @foreach (var organization in OrganizationDiscoverItems)
+                        {
+                            <article class="discover-card organization-discover-card">
+                                <div class="discover-media">
+                                    <img src="@ResolveImage(organization.ImageUrl, DefaultOrganizationImageUrl)" alt="@organization.Name" />
+                                    <span class="state-pill @GetOrganizationStateClass(organization.IsActive)">@GetOrganizationStateLabel(organization.IsActive)</span>
+                                </div>
+
+                                <div class="discover-body">
+                                    <h4>@organization.Name</h4>
+                                    <p>@BuildDescription(organization.Description, 105)</p>
+
+                                    <div class="tiny-meta">
+                                        <span>@ResolveLocation(organization.Location)</span>
+                                        <span>@organization.MemberCount thanh vien</span>
+                                    </div>
+
+                                    <div class="discover-actions">
+                                        <button type="button" class="solid-action" @onclick="() => OpenOrganizationDetail(organization.OrganizationId)">Tham gia ngay</button>
+                                        <button type="button" class="soft-action" @onclick="() => OpenOrganizationDetail(organization.OrganizationId)">Xem them</button>
+                                    </div>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="discover-panel">
+                <div class="discover-head">
+                    <div>
+                        <h3>Su kien de xuat</h3>
+                        <p>Nhung su kien sap toi ma ban chua dang ky.</p>
+                    </div>
+                    <div class="pager" aria-label="Suggested events pager">
+                        <button type="button" class="pager-button" @onclick="PreviousEventPage" disabled="@(!CanGoPreviousEvents)">&#10094;</button>
+                        <span>@EventPageDisplay/@EventPageCount</span>
+                        <button type="button" class="pager-button" @onclick="NextEventPage" disabled="@(!CanGoNextEvents)">&#10095;</button>
+                    </div>
+                </div>
+
+                @if (EventDiscoverItems.Count == 0)
+                {
+                    <div class="empty-block">
+                        <p>Khong co su kien de xuat trong luc nay.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="discover-grid">
+                        @foreach (var item in EventDiscoverItems)
+                        {
+                            <article class="discover-card event-discover-card">
+                                <div class="discover-media">
+                                    <img src="@ResolveImage(item.ImageUrl, DefaultEventImageUrl)" alt="@item.Name" />
+                                    <span class="countdown-pill">@BuildCountdownLabel(item.StartDate)</span>
+                                </div>
+
+                                <div class="discover-body">
+                                    <p class="event-org">@item.OrganizationName</p>
+                                    <h4>@item.Name</h4>
+                                    <p>@BuildDescription(item.Description, 105)</p>
+
+                                    <div class="tiny-meta">
+                                        <span>@ResolveLocation(item.Location)</span>
+                                        <span>@item.RegisteredCount da dang ky</span>
+                                    </div>
+
+                                    <div class="badge-row">
+                                        <span class="badge event-status @GetEventStatusClass(item.EventStatus)">@GetEventStatusLabel(item.EventStatus)</span>
+                                        <span class="badge event-type">@BuildEventTypeLabel(item.Name)</span>
+                                    </div>
+
+                                    <div class="discover-actions">
+                                        <button type="button" class="solid-action" @onclick="() => OpenEventDetail(item.EventId)">Dang ky</button>
+                                        <button type="button" class="soft-action" @onclick="() => OpenEventDetail(item.EventId)">Chi tiet</button>
+                                    </div>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </div>
+        </section>
+    }
+</div>
 
 @code {
-	// ---- Lưu thông tin user hiện tại để hiển thị lên UI ----
-	private ClaimsPrincipal _user = new(new ClaimsIdentity());
+    private const int DiscoverPageSize = 3;
+    private const string MyTabOrganizations = "organizations";
+    private const string MyTabEvents = "events";
+    private const string DefaultOrganizationImageUrl = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=960&q=80";
+    private const string DefaultEventImageUrl = "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80";
 
-	// ---- Khi vào trang: đọc auth state và gán user từ claims ----
-	protected override async Task OnInitializedAsync()
-	{
-		var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-		_user = authState.User;
-	}
+    private UserDashboardViewModel? _dashboard;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private string _selectedMyTab = MyTabOrganizations;
+    private int _organizationPageIndex;
+    private int _eventPageIndex;
+
+    private int OrganizationCount => _dashboard?.Organizations.Count ?? 0;
+
+    private int RegisteredEventCount => _dashboard?.RegisteredEvents.Count ?? 0;
+
+    private int UpcomingEventCount => _dashboard?.RegisteredEvents.Count(x =>
+        x.StartDate >= DateOnly.FromDateTime(DateTime.Today)
+        && !string.Equals(x.EventStatus, "COMPLETED", StringComparison.OrdinalIgnoreCase)) ?? 0;
+
+    private IReadOnlyList<UserOrganizationViewModel> MyOrganizationItems =>
+        _dashboard is null
+            ? Array.Empty<UserOrganizationViewModel>()
+            : _dashboard.Organizations.Take(4).ToList();
+
+    private IReadOnlyList<UserRegisteredEventViewModel> MyRegisteredEventItems =>
+        _dashboard is null
+            ? Array.Empty<UserRegisteredEventViewModel>()
+            : _dashboard.RegisteredEvents.Take(4).ToList();
+
+    private int OrganizationPageCount => GetPageCount(_dashboard?.SuggestedOrganizations.Count ?? 0);
+
+    private int EventPageCount => GetPageCount(_dashboard?.SuggestedEvents.Count ?? 0);
+
+    private int OrganizationPageDisplay => Math.Min(_organizationPageIndex + 1, OrganizationPageCount);
+
+    private int EventPageDisplay => Math.Min(_eventPageIndex + 1, EventPageCount);
+
+    private bool CanGoPreviousOrganizations => _organizationPageIndex > 0;
+
+    private bool CanGoNextOrganizations => _organizationPageIndex < OrganizationPageCount - 1;
+
+    private bool CanGoPreviousEvents => _eventPageIndex > 0;
+
+    private bool CanGoNextEvents => _eventPageIndex < EventPageCount - 1;
+
+    private IReadOnlyList<SuggestedOrganizationViewModel> OrganizationDiscoverItems
+    {
+        get
+        {
+            if (_dashboard is null || _dashboard.SuggestedOrganizations.Count == 0)
+                return Array.Empty<SuggestedOrganizationViewModel>();
+
+            return _dashboard.SuggestedOrganizations
+                .Skip(_organizationPageIndex * DiscoverPageSize)
+                .Take(DiscoverPageSize)
+                .ToList();
+        }
+    }
+
+    private IReadOnlyList<SuggestedEventViewModel> EventDiscoverItems
+    {
+        get
+        {
+            if (_dashboard is null || _dashboard.SuggestedEvents.Count == 0)
+                return Array.Empty<SuggestedEventViewModel>();
+
+            return _dashboard.SuggestedEvents
+                .Skip(_eventPageIndex * DiscoverPageSize)
+                .Take(DiscoverPageSize)
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            _dashboard = await DashboardService.GetDashboardAsync();
+            _selectedMyTab = MyTabOrganizations;
+            _organizationPageIndex = 0;
+            _eventPageIndex = 0;
+        }
+        catch
+        {
+            _dashboard = null;
+            _errorMessage = "He thong tam thoi khong tai duoc du lieu dashboard. Vui long thu lai.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void SelectMyTab(string tab)
+    {
+        _selectedMyTab = tab;
+    }
+
+    private void PreviousOrganizationPage()
+    {
+        if (!CanGoPreviousOrganizations)
+            return;
+
+        _organizationPageIndex--;
+    }
+
+    private void NextOrganizationPage()
+    {
+        if (!CanGoNextOrganizations)
+            return;
+
+        _organizationPageIndex++;
+    }
+
+    private void PreviousEventPage()
+    {
+        if (!CanGoPreviousEvents)
+            return;
+
+        _eventPageIndex--;
+    }
+
+    private void NextEventPage()
+    {
+        if (!CanGoNextEvents)
+            return;
+
+        _eventPageIndex++;
+    }
+
+    private void OpenMyOrganizations() => Navigation.NavigateTo("/user/organizations");
+
+    private void OpenMyEvents() => Navigation.NavigateTo("/user/events");
+
+    private void OpenSettings() => Navigation.NavigateTo("/user/settings");
+
+    private void OpenOrganizationDetail(Guid organizationId)
+        => Navigation.NavigateTo($"/user/organizations?focus={organizationId}");
+
+    private void OpenEventDetail(Guid eventId)
+        => Navigation.NavigateTo($"/user/events?focus={eventId}");
+
+    private string GetMyTabClass(string tab)
+        => _selectedMyTab == tab ? "tab-button active" : "tab-button";
+
+    private static int GetPageCount(int totalItems)
+    {
+        if (totalItems <= 0)
+            return 1;
+
+        return (int)Math.Ceiling(totalItems / (double)DiscoverPageSize);
+    }
+
+    private static string BuildDescription(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Chua co mo ta.";
+
+        var normalized = value.Trim();
+        if (normalized.Length <= maxLength)
+            return normalized;
+
+        return normalized[..maxLength].TrimEnd() + "...";
+    }
+
+    private static string ResolveImage(string? imageUrl, string fallback)
+        => string.IsNullOrWhiteSpace(imageUrl) ? fallback : imageUrl;
+
+    private static string ResolveLocation(string? location)
+        => string.IsNullOrWhiteSpace(location) ? "Dia diem se cap nhat" : location;
+
+    private static string FormatDateRange(DateOnly startDate, DateOnly endDate)
+        => $"{startDate:dd/MM} - {endDate:dd/MM/yyyy}";
+
+    private static string BuildCountdownLabel(DateOnly startDate)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var days = startDate.DayNumber - today.DayNumber;
+
+        if (days <= 0)
+            return "Dang dien ra";
+
+        if (days == 1)
+            return "Con 1 ngay";
+
+        if (days < 7)
+            return $"Con {days} ngay";
+
+        var weeks = (int)Math.Ceiling(days / 7d);
+        return $"Con {weeks} tuan";
+    }
+
+    private static string BuildEventTypeLabel(string eventName)
+    {
+        if (string.IsNullOrWhiteSpace(eventName))
+            return "Su kien";
+
+        var normalized = eventName.Trim().ToLowerInvariant();
+
+        if (normalized.Contains("workshop", StringComparison.Ordinal))
+            return "Workshop";
+
+        if (normalized.Contains("summit", StringComparison.Ordinal) || normalized.Contains("conference", StringComparison.Ordinal))
+            return "Hoi thao";
+
+        if (normalized.Contains("festival", StringComparison.Ordinal) || normalized.Contains("show", StringComparison.Ordinal))
+            return "Festival";
+
+        return "Su kien";
+    }
+
+    private static string GetOrganizationStateClass(bool isActive)
+        => isActive ? "active" : "inactive";
+
+    private static string GetOrganizationStateLabel(bool isActive)
+        => isActive ? "Dang mo" : "Tam dung";
+
+    private static string GetEventStatusClass(string status)
+    {
+        return status.Trim().ToUpperInvariant() switch
+        {
+            "ONGOING" => "ongoing",
+            "COMPLETED" => "completed",
+            "PLANNING" => "planning",
+            _ => "draft"
+        };
+    }
+
+    private static string GetEventStatusLabel(string status)
+    {
+        return status.Trim().ToUpperInvariant() switch
+        {
+            "ONGOING" => "Dang dien ra",
+            "COMPLETED" => "Da ket thuc",
+            "PLANNING" => "Dang len ke hoach",
+            _ => "Ban nhap"
+        };
+    }
+
+    private static string GetRegistrationClass(string status)
+    {
+        return status.Trim().ToUpperInvariant() switch
+        {
+            "ATTENDED" => "attended",
+            "CANCELLED" => "cancelled",
+            _ => "registered"
+        };
+    }
+
+    private static string GetRegistrationLabel(string status)
+    {
+        return status.Trim().ToUpperInvariant() switch
+        {
+            "ATTENDED" => "Da tham du",
+            "CANCELLED" => "Da huy",
+            _ => "Da dang ky"
+        };
+    }
 }

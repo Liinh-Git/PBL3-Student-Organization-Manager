@@ -76,3 +76,17 @@ docker compose up -d
 Để dừng dịch vụ:
 
 docker compose down
+
+## 6. Frontend mock data (FE-first)
+
+- Cờ chạy mock nội bộ: `FrontendData:UseMockServices` trong `src/Org.Frontend/appsettings*.json`.
+- Nguồn dữ liệu mock FE duy nhất: `src/Org.Frontend/Services/Mocks/Data`.
+- Quy ước chi tiết: `Docs/IMPLEMENTATION_GUIDES/09_FE_MOCK_DATA_GOVERNANCE.md`.
+
+## 7. Dọn artifacts local
+
+Để tránh workspace phình trong quá trình dev, có thể chạy:
+
+`./scripts/dev/cleanup-local-artifacts.ps1`
+
+Script sẽ dọn các thư mục build/cache thường gặp như `bin`, `obj`, `.vs`, `TestResults`.

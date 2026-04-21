@@ -1,0 +1,154 @@
+@page "/org/requests"
+<PageTitle>Yêu cầu đang chờ duyệt | Kora</PageTitle>
+
+<div class="requests-page-container">
+    <div class="requests-header">
+        <h1>Yêu cầu đang chờ duyệt</h1>
+        <p>Quản lý và xem xét các yêu cầu tham gia tổ chức cũng như các đề xuất từ thành viên.</p>
+    </div>
+
+    <!-- SECTION: JOIN REQUESTS -->
+    <section class="request-section">
+        <div class="section-title-wrap">
+            <h2>Yêu cầu tham gia</h2>
+            <span class="count-badge primary-badge">2 YÊU CẦU</span>
+        </div>
+
+        <div class="request-cards-grid">
+            <!-- Request Card 1 -->
+            <div class="request-card group">
+                <div class="time-stamp">12 phút trước</div>
+                <div class="card-content-top">
+                    <div class="avatar-wrap">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6Cv0aEIEOCBYYY5v4f4y_7Y6Nd4kG-xQN-uLrBDctFCbKYUWBIqZA8W81hwp4KD_Z2Z6pls9ztNy5o22YOi5P_htUIg_JQK18AhEkZbjU3Q2fN8pEaDpdhXKb7BtUEvN_mwDTSucS0ASHF_kPBS7zIRqBPi9Dw3hHd0_oAFFw88eKkaGMH351Pe0otV7UIG4Ax-O16G5oSvPsTjhOGo8XbsIetZRDK3Q5TeONZTzBD9pTHhvQj4oJ0kWIa7uCZsP6aDp_YWib8o0e" alt="Applicant" />
+                    </div>
+                    <div class="applicant-info">
+                        <h3>Nguyễn Minh Anh</h3>
+                        <p>minhanh.ng@gmail.com</p>
+                        <div class="applicant-tags">
+                            <span class="tag">Designer</span>
+                            <span class="tag">Kinh nghiệm 3 năm</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn accept-btn">Chấp nhận</button>
+                    <button class="action-btn reject-btn">Từ chối</button>
+                </div>
+            </div>
+
+            <!-- Request Card 2 -->
+            <div class="request-card group">
+                <div class="time-stamp">2 giờ trước</div>
+                <div class="card-content-top">
+                    <div class="avatar-wrap">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsrB3kJBEK6AjPPPtdojK_WCrWaN-0ix8G3GIIgbv7uOhG9DhcYuuA8HUnYDETQeaX4TifQcQdXLigUJCQSZX_oLZvb1bAeMWZ9vGeCQ3LFZkc7GDW1VA_RE90I93p4Prmz_9CL7ZZzoWV7svEZiJRn8rxLqk80XJYWnoCRNHB_HdFT4dLxKh9qgrgo8plrUPetdLqU9YJjCSroemTL4ipt-UQtrdCqsqEeDIQaQP_9sDwlnLyo2lC06lPQQquDhaLt-4uceuaMxa1" alt="Applicant" />
+                    </div>
+                    <div class="applicant-info">
+                        <h3>Trần Hoàng Long</h3>
+                        <p>hoanglong.dev@work.com</p>
+                        <div class="applicant-tags">
+                            <span class="tag">Developer</span>
+                            <span class="tag">Full-time</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn accept-btn">Chấp nhận</button>
+                    <button class="action-btn reject-btn">Từ chối</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: OTHER REQUESTS -->
+    <section class="request-section mt-16">
+        <div class="section-title-wrap">
+            <h2>Yêu cầu khác</h2>
+            <span class="count-badge default-badge">3 YÊU CẦU</span>
+        </div>
+
+        <div class="other-requests-list">
+            <!-- Other Request 1 -->
+            <div class="other-request-item">
+                <div class="item-left">
+                    <div class="icon-wrap">
+                        <span class="material-symbols-outlined">payments</span>
+                    </div>
+                    <div class="item-info">
+                        <h4>Hoàn tác chi phí sự kiện</h4>
+                        <p>Người gửi: <strong>Lê Thu Thảo</strong> • Phân loại: <em>Tài chính</em></p>
+                    </div>
+                </div>
+                <div class="item-right">
+                    <div class="price-meta">
+                        <p class="highlight-value">1.250.000 VNĐ</p>
+                        <p class="meta-desc">Sự kiện: Tech Workshop 2024</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="icon-btn accept" title="Chấp nhận">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        </button>
+                        <button class="icon-btn reject" title="Từ chối">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Request 2 -->
+            <div class="other-request-item">
+                <div class="item-left">
+                    <div class="icon-wrap">
+                        <span class="material-symbols-outlined">edit_document</span>
+                    </div>
+                    <div class="item-info">
+                        <h4>Đề xuất cập nhật điều lệ</h4>
+                        <p>Người gửi: <strong>Phạm Văn Đức</strong> • Phân loại: <em>Tài liệu</em></p>
+                    </div>
+                </div>
+                <div class="item-right">
+                    <div class="price-meta">
+                        <p class="highlight-value">v2.1 Update</p>
+                        <p class="meta-desc">Hạn chót: 30/10/2024</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="icon-btn accept" title="Chấp nhận">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        </button>
+                        <button class="icon-btn reject" title="Từ chối">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Request 3 -->
+            <div class="other-request-item">
+                <div class="item-left">
+                    <div class="icon-wrap">
+                        <span class="material-symbols-outlined">event_busy</span>
+                    </div>
+                    <div class="item-info">
+                        <h4>Yêu cầu hủy sự kiện "Outing 2024"</h4>
+                        <p>Người gửi: <strong>Quản lý Sự kiện</strong> • Phân loại: <em>Sự kiện</em></p>
+                    </div>
+                </div>
+                <div class="item-right">
+                    <div class="price-meta">
+                        <p class="highlight-value error-text">Hủy bỏ</p>
+                        <p class="meta-desc">Lý do: Thời tiết xấu</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="icon-btn accept" title="Chấp nhận">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        </button>
+                        <button class="icon-btn reject" title="Từ chối">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

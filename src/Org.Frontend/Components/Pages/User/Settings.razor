@@ -1,0 +1,565 @@
+@page "/user/settings"
+@page "/settings"
+@using Org.Frontend.Services.UserSettings
+@inject IUserSettingsService UserSettingsService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Cai dat nguoi dung</PageTitle>
+
+<div class="settings-shell">
+    @if (_isLoading)
+    {
+        <section class="settings-state">
+            <h1>Dang tai trang cai dat</h1>
+            <p>He thong dang dong bo thong tin tai khoan cua ban.</p>
+        </section>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <section class="settings-state error">
+            <h1>Khong tai duoc du lieu cai dat</h1>
+            <p>@_errorMessage</p>
+            <button type="button" class="state-button" @onclick="ReloadAsync">Thu lai</button>
+        </section>
+    }
+    else if (_settings is not null)
+    {
+        <div class="settings-grid">
+            
+            <main class="settings-main">
+                <header class="settings-head">
+                    <h1>Tai khoan</h1>
+                    <p>Quan ly thong tin ho so, bao mat va cac tuy chon he thong cua ban tai Kora.</p>
+                </header>
+
+                <section id="profile" class="settings-panel profile-panel @GetSectionClass(SectionProfile)">
+                    <div class="profile-content">
+                        <div class="profile-left">
+                            <div class="avatar-wrap">
+                                <img src="@ResolveAvatar(_settings.Profile.AvatarUrl)" alt="Avatar" />
+                                <button type="button" class="avatar-button" @onclick="CycleAvatar" aria-label="Doi avatar">
+                                    <MudIcon Icon="@Icons.Material.Outlined.PhotoCamera" />
+                                </button>
+                            </div>
+                            <div class="profile-labels">
+                                <h3>Thong tin ca nhan</h3>
+                                <p>ID: @_settings.Profile.ProfileCode</p>
+                            </div>
+                        </div>
+
+                        <div class="profile-right">
+                            <div class="profile-form-grid">
+                                <label class="field-group">
+                                    <span>Ho va ten</span>
+                                    <input type="text" @bind="_settings.Profile.FullName" />
+                                </label>
+
+                                <label class="field-group">
+                                    <span>Email</span>
+                                    <input type="email" value="@_settings.Profile.Email" readonly />
+                                </label>
+
+                                <label class="field-group">
+                                    <span>So dien thoai</span>
+                                    <input type="text" @bind="_settings.Profile.PhoneNumber" />
+                                </label>
+
+                                <label class="field-group">
+                                    <span>Ngay sinh</span>
+                                    <input type="date" value="@FormatDateForInput(_settings.Profile.DateOfBirth)" @onchange="HandleDateOfBirthChange" />
+                                </label>
+
+                                <div class="field-group gender-group">
+                                    <span>Gioi tinh</span>
+                                    <div class="gender-buttons" role="radiogroup" aria-label="Gender">
+                                        <button type="button" class="@GetGenderClass("Nam")" @onclick='() => SelectGender("Nam")'>Nam</button>
+                                        <button type="button" class="@GetGenderClass("Nu")" @onclick='() => SelectGender("Nu")'>Nu</button>
+                                        <button type="button" class="@GetGenderClass("Khac")" @onclick='() => SelectGender("Khac")'>Khac</button>
+                                    </div>
+                                </div>
+
+                                <label class="field-group">
+                                    <span>Dia chi</span>
+                                    <input type="text" @bind="_settings.Profile.Address" />
+                                </label>
+                            </div>
+
+                            <label class="field-group full-width">
+                                <span>Mo ta ngan</span>
+                                <textarea rows="3" @bind="_settings.Profile.Bio"></textarea>
+                            </label>
+
+                            <div class="panel-actions">
+                                <button type="button" class="primary-button" @onclick="SaveProfileAsync" disabled="@_isSavingProfile">
+                                    @(_isSavingProfile ? "Dang luu..." : "Luu thay doi")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="sub-grid">
+                    <section id="security" class="settings-panel security-panel @GetSectionClass(SectionSecurity)">
+                        <div class="panel-title-row">
+                            <div class="title-icon secondary">
+                                <MudIcon Icon="@Icons.Material.Outlined.LockReset" />
+                            </div>
+                            <h3>Thay doi mat khau</h3>
+                        </div>
+
+                        <div class="security-form">
+                            <label class="field-group full-width">
+                                <span>Mat khau hien tai</span>
+                                <input type="password" @bind="_passwordForm.CurrentPassword" placeholder="••••••••••••" />
+                            </label>
+
+                            <div class="security-grid">
+                                <label class="field-group">
+                                    <span>Mat khau moi</span>
+                                    <input type="password" @bind="_passwordForm.NewPassword" placeholder="Mat khau moi" />
+                                </label>
+
+                                <label class="field-group">
+                                    <span>Xac nhan mat khau</span>
+                                    <input type="password" @bind="_passwordForm.ConfirmPassword" placeholder="Nhap lai mat khau" />
+                                </label>
+                            </div>
+
+                            <div class="security-note">
+                                <MudIcon Icon="@Icons.Material.Outlined.Info" />
+                                <p>Mat khau phai bao gom it nhat 8 ky tu, bao gom chu hoa, chu thuong va chu so.</p>
+                            </div>
+                        </div>
+
+                        <div class="panel-actions">
+                            <button type="button" class="subtle-button" @onclick="SavePasswordAsync" disabled="@_isSavingPassword">
+                                @(_isSavingPassword ? "Dang cap nhat..." : "Cap nhat bao mat")
+                            </button>
+                        </div>
+                    </section>
+
+                    <section id="notifications" class="settings-panel notification-panel @GetSectionClass(SectionNotifications)">
+                        <div class="panel-title-row">
+                            <div class="title-icon primary">
+                                <MudIcon Icon="@Icons.Material.Outlined.NotificationsActive" />
+                            </div>
+                            <h3>Cai dat thong bao</h3>
+                        </div>
+
+                        <div class="notification-list">
+                            <div class="toggle-row">
+                                <div>
+                                    <p>Email Notifications</p>
+                                    <span>Cap nhat quan trong qua hop thu</span>
+                                </div>
+                                <label class="toggle-switch" aria-label="Email notifications">
+                                    <input type="checkbox" checked="@_settings.Notifications.EmailNotificationsEnabled" @onchange="OnEmailNotificationsChanged" />
+                                    <span></span>
+                                </label>
+                            </div>
+
+                            <div class="toggle-row">
+                                <div>
+                                    <p>App Push</p>
+                                    <span>Thong bao tuc thoi tren di dong</span>
+                                </div>
+                                <label class="toggle-switch" aria-label="App push notifications">
+                                    <input type="checkbox" checked="@_settings.Notifications.AppPushEnabled" @onchange="OnAppPushChanged" />
+                                    <span></span>
+                                </label>
+                            </div>
+
+                            <div class="toggle-row">
+                                <div>
+                                    <p>SMS Alerts</p>
+                                    <span>Tin nhan van ban cho bao mat</span>
+                                </div>
+                                <label class="toggle-switch" aria-label="SMS alerts">
+                                    <input type="checkbox" checked="@_settings.Notifications.SmsAlertsEnabled" @onchange="OnSmsAlertsChanged" />
+                                    <span></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="panel-actions stretch">
+                            <button type="button" class="text-button" @onclick="ResetNotificationsAsync" disabled="@_isSavingNotifications">
+                                @(_isSavingNotifications ? "Dang xu ly..." : "Thiet lap lai tat ca")
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                <section id="devices" class="settings-panel device-panel @GetSectionClass(SectionDevices)">
+                    <div class="panel-title-row compact">
+                        <h3>Thiet bi dang nhap</h3>
+                        <button type="button" class="subtle-button" @onclick="RevokeOtherSessionsAsync" disabled="@_isRevokingSessions">
+                            @(_isRevokingSessions ? "Dang thu hoi..." : "Thu hoi phien khac")
+                        </button>
+                    </div>
+
+                    <div class="device-list">
+                        @foreach (var device in _settings.Devices)
+                        {
+                            <article class="device-item @(device.IsCurrentSession ? "current" : string.Empty)">
+                                <MudIcon Icon="@(device.IsCurrentSession ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Devices)" />
+                                <div>
+                                    <strong>@device.DeviceName</strong>
+                                    <p>@device.LastActiveLabel</p>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                </section>
+
+                <section id="account" class="settings-panel account-panel @GetSectionClass(SectionAccount)">
+                    <div class="account-overlay"></div>
+                    <div class="account-content">
+                        <div>
+                            <h3>Quan ly tai khoan</h3>
+                            <p>Mot khi ban xoa tai khoan, toan bo du lieu, du an va thong tin nghien cuu se bi xoa vinh vien.</p>
+                            <span class="account-hint">@DeleteHintText</span>
+                        </div>
+                        <button type="button" class="danger-button" @onclick="HandleDeleteAccountAsync" disabled="@_isDeletingAccount">
+                            @(_isDeletingAccount ? "Dang xu ly..." : DeleteButtonText)
+                        </button>
+                    </div>
+                </section>
+
+                <div class="wordmark">KORA SYSTEM</div>
+            </main>
+        </div>
+
+        <div class="floating-help">
+            <button type="button" aria-label="Tro giup">
+                <MudIcon Icon="@Icons.Material.Outlined.Help" />
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private const string SectionProfile = "profile";
+    private const string SectionSecurity = "security";
+    private const string SectionNotifications = "notifications";
+    private const string SectionDevices = "devices";
+    private const string SectionAccount = "account";
+    private const string DefaultAvatarUrl = "https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=800&q=80";
+
+    private static readonly string[] AvatarPool =
+    [
+        "https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=800&q=80"
+    ];
+
+    private UserSettingsPageViewModel? _settings;
+    private PasswordChangeFormViewModel _passwordForm = new();
+    private bool _isLoading = true;
+    private bool _isSavingProfile;
+    private bool _isSavingPassword;
+    private bool _isSavingNotifications;
+    private bool _isRevokingSessions;
+    private bool _isDeletingAccount;
+    private bool _deleteConfirmationArmed;
+    private bool _notificationUnsupportedShown;
+    private string _activeSection = SectionProfile;
+    private string? _errorMessage;
+
+    private string DeleteButtonText => _deleteConfirmationArmed ? "Xac nhan xoa tai khoan" : "Xoa tai khoan";
+
+    private string DeleteHintText => _deleteConfirmationArmed
+        ? "Nhan lai mot lan nua de xac nhan thao tac."
+        : "Ban co the tam ngung tai khoan bat cu luc nao.";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            _settings = await UserSettingsService.GetSettingsAsync();
+            _activeSection = SectionProfile;
+            _passwordForm = new PasswordChangeFormViewModel();
+            _deleteConfirmationArmed = false;
+            _notificationUnsupportedShown = false;
+        }
+        catch
+        {
+            _settings = null;
+            _errorMessage = "He thong tam thoi khong tai duoc du lieu cai dat. Vui long thu lai.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void SelectSection(string section)
+    {
+        _activeSection = section;
+        Navigation.NavigateTo($"/user/settings#{section}", forceLoad: false);
+    }
+
+    private void NavigateDashboard()
+    {
+        Navigation.NavigateTo("/home");
+    }
+
+    private void SelectGender(string gender)
+    {
+        if (_settings is null)
+            return;
+
+        _settings.Profile.Gender = gender;
+    }
+
+    private void HandleDateOfBirthChange(ChangeEventArgs args)
+    {
+        if (_settings is null)
+            return;
+
+        var raw = args.Value?.ToString();
+        _settings.Profile.DateOfBirth = ParseDateOnly(raw);
+    }
+
+    private async Task SaveProfileAsync()
+    {
+        if (_settings is null || _isSavingProfile)
+            return;
+
+        _isSavingProfile = true;
+        try
+        {
+            var result = await UserSettingsService.SaveProfileAsync(_settings.Profile.Clone());
+            Notify(result, Severity.Success);
+        }
+        finally
+        {
+            _isSavingProfile = false;
+        }
+    }
+
+    private async Task SavePasswordAsync()
+    {
+        if (_isSavingPassword)
+            return;
+
+        _isSavingPassword = true;
+        try
+        {
+            var request = new PasswordChangeFormViewModel
+            {
+                CurrentPassword = _passwordForm.CurrentPassword,
+                NewPassword = _passwordForm.NewPassword,
+                ConfirmPassword = _passwordForm.ConfirmPassword
+            };
+
+            var result = await UserSettingsService.ChangePasswordAsync(request);
+            Notify(result, Severity.Success);
+
+            if (result.Succeeded)
+            {
+                _passwordForm = new PasswordChangeFormViewModel();
+            }
+        }
+        finally
+        {
+            _isSavingPassword = false;
+        }
+    }
+
+    private async Task OnEmailNotificationsChanged(ChangeEventArgs args)
+    {
+        if (_settings is null)
+            return;
+
+        _settings.Notifications.EmailNotificationsEnabled = ParseBoolean(args.Value);
+        await PersistNotificationsAsync();
+    }
+
+    private async Task OnAppPushChanged(ChangeEventArgs args)
+    {
+        if (_settings is null)
+            return;
+
+        _settings.Notifications.AppPushEnabled = ParseBoolean(args.Value);
+        await PersistNotificationsAsync();
+    }
+
+    private async Task OnSmsAlertsChanged(ChangeEventArgs args)
+    {
+        if (_settings is null)
+            return;
+
+        _settings.Notifications.SmsAlertsEnabled = ParseBoolean(args.Value);
+        await PersistNotificationsAsync();
+    }
+
+    private async Task ResetNotificationsAsync()
+    {
+        if (_settings is null)
+            return;
+
+        _settings.Notifications = new NotificationPreferencesViewModel
+        {
+            EmailNotificationsEnabled = true,
+            AppPushEnabled = true,
+            SmsAlertsEnabled = false
+        };
+
+        await PersistNotificationsAsync(forceNotify: true);
+    }
+
+    private async Task PersistNotificationsAsync(bool forceNotify = false)
+    {
+        if (_settings is null || _isSavingNotifications)
+            return;
+
+        _isSavingNotifications = true;
+        try
+        {
+            var result = await UserSettingsService.SaveNotificationsAsync(_settings.Notifications.Clone());
+
+            if (result.IsUnsupported)
+            {
+                if (!_notificationUnsupportedShown || forceNotify)
+                {
+                    Notify(result, Severity.Info);
+                    _notificationUnsupportedShown = true;
+                }
+
+                return;
+            }
+
+            Notify(result, Severity.Success);
+        }
+        finally
+        {
+            _isSavingNotifications = false;
+        }
+    }
+
+    private async Task RevokeOtherSessionsAsync()
+    {
+        if (_settings is null || _isRevokingSessions)
+            return;
+
+        _isRevokingSessions = true;
+        try
+        {
+            var result = await UserSettingsService.RevokeOtherSessionsAsync();
+            Notify(result, Severity.Success);
+
+            if (result.Succeeded)
+            {
+                _settings.Devices = _settings.Devices.Where(x => x.IsCurrentSession).ToList();
+            }
+        }
+        finally
+        {
+            _isRevokingSessions = false;
+        }
+    }
+
+    private async Task HandleDeleteAccountAsync()
+    {
+        if (_isDeletingAccount)
+            return;
+
+        if (!_deleteConfirmationArmed)
+        {
+            _deleteConfirmationArmed = true;
+            Snackbar.Add("Nhan lai mot lan nua de xac nhan xoa tai khoan.", Severity.Warning);
+            return;
+        }
+
+        _isDeletingAccount = true;
+        try
+        {
+            var result = await UserSettingsService.DeleteAccountAsync();
+            Notify(result, Severity.Warning);
+
+            if (result.Succeeded)
+            {
+                _deleteConfirmationArmed = false;
+            }
+        }
+        finally
+        {
+            _isDeletingAccount = false;
+        }
+    }
+
+    private void CycleAvatar()
+    {
+        if (_settings is null)
+            return;
+
+        var current = ResolveAvatar(_settings.Profile.AvatarUrl);
+        var currentIndex = Array.FindIndex(AvatarPool, x => string.Equals(x, current, StringComparison.OrdinalIgnoreCase));
+        var nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % AvatarPool.Length;
+        _settings.Profile.AvatarUrl = AvatarPool[nextIndex];
+    }
+
+    private static bool ParseBoolean(object? raw)
+    {
+        return raw switch
+        {
+            bool direct => direct,
+            string text when bool.TryParse(text, out var parsed) => parsed,
+            _ => false
+        };
+    }
+
+    private static DateOnly? ParseDateOnly(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+
+        return DateOnly.TryParse(raw, out var value) ? value : null;
+    }
+
+    private static string FormatDateForInput(DateOnly? value)
+        => value?.ToString("yyyy-MM-dd") ?? string.Empty;
+
+    private static string ResolveAvatar(string? avatarUrl)
+        => string.IsNullOrWhiteSpace(avatarUrl) ? DefaultAvatarUrl : avatarUrl;
+
+    private string GetNavClass(string section)
+        => _activeSection == section ? "sidebar-item active" : "sidebar-item";
+
+    private string GetSectionClass(string section)
+        => _activeSection == section ? "focused" : string.Empty;
+
+    private string GetGenderClass(string gender)
+    {
+        var current = _settings?.Profile.Gender?.Trim() ?? string.Empty;
+        return string.Equals(current, gender, StringComparison.OrdinalIgnoreCase)
+            ? "gender-button active"
+            : "gender-button";
+    }
+
+    private void Notify(UserSettingsOperationResult result, Severity successSeverity)
+    {
+        if (result.Succeeded)
+        {
+            Snackbar.Add(result.Message, successSeverity);
+            return;
+        }
+
+        if (result.IsUnsupported)
+        {
+            Snackbar.Add(result.Message, Severity.Info);
+            return;
+        }
+
+        Snackbar.Add(result.Message, Severity.Error);
+    }
+}

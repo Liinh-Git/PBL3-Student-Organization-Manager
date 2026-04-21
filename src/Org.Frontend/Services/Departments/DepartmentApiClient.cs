@@ -1,11 +1,16 @@
+// ---- API client thực cho service phòng ban — gọn request qua HttpClient có Bearer token ----
+// Dùng alias import để tách biệt DTO củ (Contracts/) và DTO từ Features/ của API thật.
+// MapLegacyDto: chuyển FeatureDepartmentDto sang DepartmentDto cũ mà UI đang dùng.
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Org.Frontend.Services.Auth;
+using Org.Frontend.ViewModels;
 using Org.Shared.Contracts;
 using FeatureCreateDepartmentRequest = Org.Shared.Features.Departments.CreateDepartmentRequest;
 using FeatureDepartmentDto = Org.Shared.Features.Departments.DepartmentDto;
 using FeatureGetDepartmentsResponse = Org.Shared.Features.Departments.GetDepartmentsResponse;
+using FeatureGetDepartmentTasksOverviewResponse = Org.Shared.Features.Departments.GetDepartmentTasksOverviewResponse;
 using FeatureUpdateDepartmentRequest = Org.Shared.Features.Departments.UpdateDepartmentRequest;
 
 namespace Org.Frontend.Services.Departments;
@@ -90,6 +95,38 @@ public sealed class DepartmentApiClient(
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task<DepartmentTasksOverviewViewModel> GetTasksOverviewAsync(Guid departmentId)
+    {
+        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, $"api/departments/{departmentId}/tasks/overview", CancellationToken.None);
+        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+
+        response.EnsureSuccessStatusCode();
+
+        var payload = await response.Content.ReadFromJsonAsync<FeatureGetDepartmentTasksOverviewResponse>(cancellationToken: CancellationToken.None)
+            ?? new FeatureGetDepartmentTasksOverviewResponse(departmentId, 0, 0, 0, []);
+
+        return new DepartmentTasksOverviewViewModel
+        {
+            DepartmentId = payload.DepartmentId,
+            TotalTasks = payload.TotalTasks,
+            OpenTaskCount = payload.OpenTaskCount,
+            CompletedTaskCount = payload.CompletedTaskCount,
+            Items = payload.Items
+                .Select(x => new DepartmentTaskItemViewModel
+                {
+                    TaskId = x.TaskId,
+                    Title = x.Title,
+                    Status = ToStatusText(x.Status),
+                    Priority = ToPriorityText(x.Priority),
+                    DueDate = x.DueDate?.ToDateTime(TimeOnly.MinValue),
+                    AssigneeName = x.AssigneeName
+                })
+                .ToList()
+        };
+    }
+
     private static DepartmentDto MapLegacyDto(FeatureDepartmentDto source)
     {
         return new DepartmentDto
@@ -113,6 +150,26 @@ public sealed class DepartmentApiClient(
 
         var code = compact.Length <= 8 ? compact : compact[..8];
         return code.ToUpperInvariant();
+    }
+
+    private static string ToStatusText(Org.Shared.TaskStatus status)
+    {
+        return status switch
+        {
+            Org.Shared.TaskStatus.InProgress => "IN_PROGRESS",
+            Org.Shared.TaskStatus.Done => "DONE",
+            _ => "TODO"
+        };
+    }
+
+    private static string ToPriorityText(Org.Shared.TaskPriority priority)
+    {
+        return priority switch
+        {
+            Org.Shared.TaskPriority.High => "High",
+            Org.Shared.TaskPriority.Low => "Low",
+            _ => "Medium"
+        };
     }
 
     private async Task<HttpRequestMessage> CreateAuthorizedRequestAsync(HttpMethod method, string uri, CancellationToken ct)

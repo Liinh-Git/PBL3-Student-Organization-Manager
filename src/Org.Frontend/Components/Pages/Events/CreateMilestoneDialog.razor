@@ -1,0 +1,67 @@
+@using MudBlazor
+@using Org.Frontend.ViewModels
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="model.Name"
+                      Label="Tên milestone"
+                      Required="true"
+                      RequiredError="Bắt buộc nhập tên"
+                      Class="mb-3" />
+
+        <MudDatePicker @bind-Date="model.StartDate"
+                       Label="Ngày bắt đầu"
+                       Class="mb-3" />
+
+        <MudDatePicker @bind-Date="model.EndDate"
+                       Label="Ngày kết thúc"
+                       Class="mb-3" />
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Hủy</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Tạo milestone</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter] public Guid EventId { get; set; }
+
+    private readonly CreateMilestoneViewModel model = new()
+    {
+        StartDate = DateTime.Today,
+        EndDate = DateTime.Today.AddDays(7)
+    };
+
+    private void Submit()
+    {
+        if (string.IsNullOrWhiteSpace(model.Name))
+        {
+            Snackbar.Add("Vui lòng nhập tên milestone.", Severity.Warning);
+            return;
+        }
+
+        if (!model.StartDate.HasValue || !model.EndDate.HasValue)
+        {
+            Snackbar.Add("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc.", Severity.Warning);
+            return;
+        }
+
+        if (model.EndDate.Value.Date < model.StartDate.Value.Date)
+        {
+            Snackbar.Add("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.", Severity.Warning);
+            return;
+        }
+
+        model.EventId = EventId;
+        MudDialog?.Close(DialogResult.Ok(model));
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+}
