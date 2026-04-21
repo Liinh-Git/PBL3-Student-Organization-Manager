@@ -1,3 +1,6 @@
+// ---- Các endpoint quản lý thành viên trong tổ chức ----
+// Thêm thành viên: tự tạo User nếu chưa có, hoặc tái kích hoạt nếu tài khoản đã bị xóa mềm
+// Xóa thành viên: cập nhật ManagerId = null cho các phòng ban đang quản lý
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +10,7 @@ using Org.Shared.Features.Members;
 
 namespace Org.Backend.Features.Members;
 
+// ---- GET /api/organizations/{orgId}/members — danh sách thành viên kèm user info và role ----
 public sealed class GetMembersEndpoint(AppDbContext db) : EndpointWithoutRequest<GetMembersResponse>
 {
     public override void Configure()
@@ -18,6 +22,14 @@ public sealed class GetMembersEndpoint(AppDbContext db) : EndpointWithoutRequest
     public override async Task HandleAsync(CancellationToken ct)
     {
         var orgId = Route<Guid>("orgId");
+
+        var orgExists = await db.Organizations.AnyAsync(x => x.Id == orgId, ct);
+        if (!orgExists)
+            ThrowError("Organization not found.", StatusCodes.Status404NotFound);
+
+        var callerContext = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, orgId, ct);
+        if (callerContext is null || !OrganizationAuthorization.CanRead(callerContext.Value.Role))
+            ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
 
         var members = await db.Members
             .AsNoTracking()
@@ -32,6 +44,7 @@ public sealed class GetMembersEndpoint(AppDbContext db) : EndpointWithoutRequest
     }
 }
 
+// ---- POST /api/organizations/{orgId}/members — thêm thành viên mới (tự tạo account nếu chưa có) ----
 public sealed class CreateMemberEndpoint(AppDbContext db) : Endpoint<CreateMemberRequest, MemberDto>
 {
     public override void Configure()
@@ -54,6 +67,10 @@ public sealed class CreateMemberEndpoint(AppDbContext db) : Endpoint<CreateMembe
         var orgExists = await db.Organizations.AnyAsync(x => x.Id == orgId, ct);
         if (!orgExists)
             ThrowError("Organization not found.", StatusCodes.Status404NotFound);
+
+        var callerContext = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, orgId, ct);
+        if (callerContext is null || !OrganizationAuthorization.CanPlan(callerContext.Value.Role))
+            ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
 
         if (req.DepartmentId is not null)
         {
@@ -114,6 +131,8 @@ public sealed class CreateMemberEndpoint(AppDbContext db) : Endpoint<CreateMembe
     }
 }
 
+// ---- PUT /api/members/{id}/role — gán/đổi vai trò thành viên (yêu cầu VicePresident+) ----
+// Tự tạo Role mới trong tổ chức nếu chưa có
 public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateMemberRoleRequest, MemberDto>
 {
     public override void Configure()
@@ -133,6 +152,10 @@ public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateM
 
         if (member is null)
             ThrowError("Member not found.", StatusCodes.Status404NotFound);
+
+        var callerContext = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, member!.OrgId, ct);
+        if (callerContext is null || !OrganizationAuthorization.CanDelete(callerContext.Value.Role))
+            ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
 
         var roleName = req.Role.ToString();
 
@@ -175,6 +198,7 @@ public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateM
     }
 }
 
+// ---- PUT /api/members/{id}/department — phân công thành viên vào phòng ban ----
 public sealed class UpdateMemberDepartmentEndpoint(AppDbContext db) : Endpoint<UpdateMemberDepartmentRequest, MemberDto>
 {
     public override void Configure()
@@ -195,6 +219,10 @@ public sealed class UpdateMemberDepartmentEndpoint(AppDbContext db) : Endpoint<U
         if (member is null)
             ThrowError("Member not found.", StatusCodes.Status404NotFound);
 
+        var callerContext = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, member!.OrgId, ct);
+        if (callerContext is null || !OrganizationAuthorization.CanPlan(callerContext.Value.Role))
+            ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
+
         if (req.DepartmentId is not null)
         {
             var departmentExists = await db.Departments
@@ -211,6 +239,7 @@ public sealed class UpdateMemberDepartmentEndpoint(AppDbContext db) : Endpoint<U
     }
 }
 
+// ---- DELETE /api/members/{id} — xóa mềm thành viên, giải phóng khỏi phòng ban ----
 public sealed class DeleteMemberEndpoint(AppDbContext db) : EndpointWithoutRequest
 {
     public override void Configure()
@@ -226,6 +255,10 @@ public sealed class DeleteMemberEndpoint(AppDbContext db) : EndpointWithoutReque
         var member = await db.Members.FirstOrDefaultAsync(x => x.Id == memberId, ct);
         if (member is null)
             ThrowError("Member not found.", StatusCodes.Status404NotFound);
+
+        var callerContext = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, member!.OrgId, ct);
+        if (callerContext is null || !OrganizationAuthorization.CanDelete(callerContext.Value.Role))
+            ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
 
         var managedDepartments = await db.Departments
             .Where(x => x.ManagerId == memberId)

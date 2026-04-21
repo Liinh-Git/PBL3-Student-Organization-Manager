@@ -1,0 +1,87 @@
+@using MudBlazor
+@using Org.Frontend.ViewModels
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="model.Name"
+                      Label="Tên sự kiện"
+                      Required="true"
+                      RequiredError="Bắt buộc nhập tên"
+                      Class="mb-3" />
+
+        <MudTextField @bind-Value="model.Description"
+                      Label="Mô tả"
+                      Lines="3"
+                      Variant="Variant.Outlined"
+                      Class="mb-3" />
+
+        <MudDatePicker @bind-Date="model.StartDate"
+                       Label="Ngày bắt đầu"
+                       Class="mb-3" />
+
+        <MudDatePicker @bind-Date="model.EndDate"
+                       Label="Ngày kết thúc"
+                       Class="mb-3" />
+
+        <MudTextField @bind-Value="model.Location"
+                      Label="Địa điểm"
+                      Class="mb-3" />
+
+        <MudNumericField @bind-Value="model.TotalSlots"
+                         Label="Số lượng slot"
+                         Min="0"
+                         Class="mb-3" />
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Hủy</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Lưu</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter] public UpdateEventViewModel? Model { get; set; }
+
+    private readonly UpdateEventViewModel model = new();
+
+    protected override void OnParametersSet()
+    {
+        if (Model is null)
+        {
+            return;
+        }
+
+        model.EventId = Model.EventId;
+        model.Name = Model.Name;
+        model.Description = Model.Description;
+        model.StartDate = Model.StartDate;
+        model.EndDate = Model.EndDate;
+        model.Location = Model.Location;
+        model.TotalSlots = Model.TotalSlots;
+    }
+
+    private void Submit()
+    {
+        if (string.IsNullOrWhiteSpace(model.Name))
+        {
+            Snackbar.Add("Vui lòng nhập tên sự kiện.", Severity.Warning);
+            return;
+        }
+
+        if (model.StartDate.HasValue && model.EndDate.HasValue && model.EndDate.Value.Date < model.StartDate.Value.Date)
+        {
+            Snackbar.Add("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.", Severity.Warning);
+            return;
+        }
+
+        MudDialog?.Close(DialogResult.Ok(model));
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+}

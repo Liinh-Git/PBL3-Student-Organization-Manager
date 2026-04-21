@@ -1,0 +1,458 @@
+.org-dashboard {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+@media (min-width: 1024px) {
+    .org-dashboard {
+        padding: 3rem;
+    }
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.welcome-text {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #954900;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.5rem;
+}
+
+.user-greeting {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-weight: 900;
+    color: #0f1f29;
+    margin: 0;
+    letter-spacing: -0.04em;
+}
+
+.header-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-card {
+    background-color: #ebf5ff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #43474b;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #0f1f29;
+}
+
+/* Sections */
+.org-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.org-section.mt-lg {
+    margin-top: 1rem;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.section-header h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f1f29;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.section-divider {
+    flex: 1;
+    height: 1px;
+    background-color: #ccdcea;
+}
+
+/* CARDS GRID */
+.org-grid-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .org-grid-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .org-grid-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.create-org-card {
+    border: 2px dashed #c3c7cb;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    min-height: 12rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.create-org-card:hover {
+    border-color: #ff9b51;
+    background-color: #ffffff;
+}
+
+.create-icon-wrap {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: #daeaf9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f1f29;
+    transition: all 0.2s ease;
+}
+
+.create-org-card:hover .create-icon-wrap {
+    background-color: #ff9b51;
+    color: #ffffff;
+}
+
+.create-icon-wrap .material-symbols-outlined {
+    font-size: 1.5rem;
+}
+
+.create-org-card span {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #43474b;
+    transition: color 0.2s ease;
+}
+
+.create-org-card:hover span {
+    color: #0f1f29;
+}
+
+/* ORG CARD */
+.org-card {
+    position: relative;
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 12rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.org-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.role-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+}
+
+.role-badge.admin,
+.role-badge.owner {
+    background-color: rgba(255, 155, 81, 0.1);
+    color: #954900;
+}
+
+.org-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.org-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.org-avatar.dark-blue {
+    background-color: #0f1f29;
+}
+
+.org-avatar.deep-blue {
+    background-color: #25343f;
+}
+
+.org-name {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: #0f1f29;
+    margin: 0;
+    transition: color 0.2s ease;
+}
+
+.org-card:hover .org-name {
+    color: #954900;
+}
+
+.org-desc {
+    font-size: 0.75rem;
+    color: #43474b;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.org-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ccdcea;
+}
+
+.members-overlap {
+    display: flex;
+    align-items: center;
+}
+
+.members-overlap > * {
+    margin-left: -0.5rem;
+}
+
+.members-overlap > *:first-child {
+    margin-left: 0;
+}
+
+.member-avatar {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    object-fit: cover;
+}
+
+.member-count {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background-color: #daeaf9;
+    border: 2px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: #0f1f29;
+}
+
+.project-count {
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: #43474b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* LIST GRID */
+.org-list-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .org-list-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.org-list-item {
+    background-color: #ebf5ff;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.org-list-item:hover {
+    background-color: #daeaf9;
+}
+
+.org-list-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.org-logo-wrap {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.org-logo-img {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+}
+
+.org-text-logo {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.org-text-logo.subtle-orange {
+    background-color: rgba(255, 155, 81, 0.2);
+    color: #954900;
+}
+
+.org-text-logo.subtle-blue {
+    background-color: rgba(15, 31, 41, 0.1);
+    color: #0f1f29;
+}
+
+.org-list-info h5 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #0f1f29;
+    margin: 0;
+    transition: color 0.2s ease;
+}
+
+.org-list-item:hover .org-list-info h5 {
+    color: #954900;
+}
+
+.org-list-info span {
+    display: block;
+    font-size: 0.625rem;
+    color: #43474b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.125rem;
+}
+
+.org-list-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.join-date {
+    text-align: right;
+}
+
+.date-label {
+    display: block;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: #43474b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.date-value {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #0f1f29;
+}
+
+.action-icon {
+    color: #43474b;
+    transition: transform 0.2s ease;
+}
+
+.org-list-item:hover .action-icon {
+    transform: translateX(0.25rem);
+}
+
+/* Background decorations */
+.bg-decoration {
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    filter: blur(24px);
+}
+
+.bg-decoration.top-right {
+    top: 0;
+    right: 0;
+    width: 33%;
+    height: 50%;
+    background: linear-gradient(to bottom right, #daeaf9, transparent);
+    opacity: 0.4;
+}
+
+.bg-decoration.bottom-left {
+    bottom: 0;
+    left: 0;
+    width: 25%;
+    height: 33%;
+    background: linear-gradient(to top right, rgba(255, 155, 81, 0.1), transparent);
+    opacity: 0.3;
+}

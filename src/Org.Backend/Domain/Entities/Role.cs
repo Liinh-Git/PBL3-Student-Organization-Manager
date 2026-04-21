@@ -1,14 +1,21 @@
+// ---- Vai trò trong một tổ chức — gắn với quyền (Permission) qua RolePermission ----
 namespace Org.Backend.Domain.Entities;
 
 /// <summary>
-/// A role that can be assigned to members within an organization.
-/// isDefault = true means this role is auto-assigned to new members.
+/// Đại diện cho một vai trò trong tổ chức (ví dụ: Chủ tịch, Phó chủ tịch, ...).
+/// - Mỗi tổ chức có bộ vai trò riêng (unique index OrgId+RoleName).
+/// - IsDefault = true: vai trò được tự động gán cho thành viên mới khi tham gia.
+/// - RoleName phải trùng với giá trị enum MemberRole (Member/Manager/VicePresident/President)
+///   để OrganizationAuthorization.ParseRole() hoạt động chính xác.
 /// </summary>
 public class Role : BaseEntity
 {
+    // Tên vai trò — phải khớp với enum MemberRole để authorization hoạt động
     public string RoleName { get; set; } = string.Empty;
     public string? Description { get; set; }
+    // FK → Organization
     public Guid OrgId { get; set; }
+    // true = tự động gán cho thành viên mới khi gia nhập
     public bool IsDefault { get; set; } = false;
 
     // Navigation

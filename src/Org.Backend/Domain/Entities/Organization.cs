@@ -1,19 +1,25 @@
+// ---- Thực thể tổ chức (câu lạc bộ, nhóm, ...) ----
 using Org.Backend.Domain.Enums;
 
 namespace Org.Backend.Domain.Entities;
 
 /// <summary>
-/// Represents a named organization (club, group, etc.).
-/// totalMembers is a denormalized count updated via triggers or application logic.
+/// Đại diện cho một tổ chức trong hệ thống (câu lạc bộ, nhóm sinh viên, ...).
+/// - OrgName: tên tổ chức, unique trên toàn hệ thống.
+/// - TotalMembers: số đếm được cập nhật qua application logic (không tự động qua trigger).
+/// - Status: Active/Inactive — dùng để ẩn tổ chức mà không xóa dữ liệu.
 /// </summary>
 public class Organization : BaseEntity
 {
     public string OrgName { get; set; } = string.Empty;
     public string? Description { get; set; }
+    // Đường dẫn ảnh đại diện (có thể null)
     public string? AvatarUrl { get; set; }
+    // Đường dẫn ảnh bìa (có thể null)
     public string? CoverUrl { get; set; }
     public DateTime? FoundingDate { get; set; }
     public string? Location { get; set; }
+    // Số thành viên active — được cập nhật thủ công qua application logic
     public int TotalMembers { get; set; } = 0;
     public OrgStatus Status { get; set; } = OrgStatus.Active;
 

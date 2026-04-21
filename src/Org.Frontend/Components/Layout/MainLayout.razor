@@ -1,35 +1,92 @@
+@* ---- Layout chính của app: sidebar trái (NavMenu) + main area phải ----
+    Sidebar = NavMenu (rail + menu pane).
+    Main area thay đổi CSS class (org-main / user-main) theo workspace đang active.
+    Detect logout: subscribe LocationChanged, redirect nếu mất auth state. *@
 @inherits LayoutComponentBase
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@implements IDisposable
+@using System.Security.Claims
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <div class="page">
     <div class="sidebar">
         <NavMenu />
     </div>
 
-    <main>
-        <header class="top-row">
-            <div class="top-search-wrap">
-                <input class="top-search" type="search" placeholder="Tim kiem tai lieu, thanh vien..." />
-                <button class="top-search-button" type="button">Tim kiem</button>
-            </div>
-
-            <div class="top-actions">
-                <button class="top-action-button" type="button" aria-label="Notifications">N</button>
-                <button class="top-action-button" type="button" aria-label="Messages">M</button>
-                <button class="top-logout-button" type="button" @onclick="HandleSignOut">Đăng xuất</button>
-
-                <div class="top-profile">
-                    <div class="top-profile-meta">
-                        <strong>Kora Admin</strong>
-                        <span>Organization Lead</span>
+    <main class="@(_isOrganizationWorkspace ? "org-main" : "user-main")">
+        @if (_isOrganizationWorkspace)
+        {
+            <header class="org-top-row">
+                <div class="org-top-left">
+                    <div class="org-search-wrap">
+                        <MudIcon Icon="@Icons.Material.Filled.Search" Class="org-search-icon" />
+                        <input class="org-search"
+                               type="search"
+                               placeholder="Tim kiem tai lieu, thanh vien..." />
                     </div>
-                    <div class="top-profile-avatar">KA</div>
+                    <button class="org-pill-button org-search-button" type="button">Tim kiem</button>
                 </div>
-            </div>
-        </header>
 
-        <section class="app-main-surface">
+                <div class="org-top-right">
+                    <button class="org-pill-button org-invite-button" type="button">Moi thanh vien</button>
+
+                    <div class="org-icon-group" role="group" aria-label="Organization actions">
+                        <button class="org-icon-button" type="button" aria-label="Notifications">
+                            <MudIcon Icon="@Icons.Material.Outlined.Notifications" />
+                        </button>
+                        <button class="org-icon-button" type="button" aria-label="Settings">
+                            <MudIcon Icon="@Icons.Material.Outlined.Settings" />
+                        </button>
+                    </div>
+
+                    <button type="button" class="org-profile clickable-profile" @onclick="NavigateToUserSettings">
+                        <div class="org-profile-meta">
+                            <strong>@DisplayName</strong>
+                            <span>Quan tri vien</span>
+                        </div>
+                        <div class="org-profile-avatar">
+                            <img src="/images/avatars/admin.jpg" alt="@DisplayName" />
+                        </div>
+                    </button>
+                </div>
+            </header>
+        }
+        else
+        {
+            <header class="user-top-row">
+                <div class="user-top-spacer"></div>
+
+                <div class="user-top-actions">
+                    <button class="user-icon-button" type="button" aria-label="Notifications">
+                        <MudIcon Icon="@Icons.Material.Outlined.Notifications" />
+                    </button>
+                    <button class="user-icon-button" type="button" aria-label="Messages">
+                        <MudIcon Icon="@Icons.Material.Outlined.Mail" />
+                    </button>
+                    <button class="user-logout-button" type="button" @onclick="HandleSignOut">
+                        <MudIcon Icon="@Icons.Material.Filled.Logout" Class="user-logout-icon" />
+                        <span>Dang xuat</span>
+                    </button>
+
+                    <button type="button" class="user-profile clickable-profile" @onclick="NavigateToUserSettings">
+                        <div class="user-profile-meta">
+                            <strong>@DisplayName</strong>
+                            <span>@UserWorkspaceLabel</span>
+                        </div>
+                        <div class="user-profile-avatar">
+                            <img src="/images/avatars/admin.jpg" alt="@DisplayName" />
+                        </div>
+                    </button>
+                </div>
+            </header>
+        }
+
+        <section class="app-main-surface @(_isOrganizationWorkspace ? "org-main-surface" : "user-main-surface")">
             <article class="content">
                 @Body
             </article>
@@ -44,9 +101,88 @@
 </div>
 
 @code {
+    private bool _isOrganizationWorkspace;
+    private ClaimsPrincipal _user = new(new ClaimsIdentity());
+
+    private string DisplayName =>
+        _user.Identity?.Name
+        ?? _user.FindFirst(ClaimTypes.Email)?.Value
+        ?? "Nguoi dung";
+
+    private string UserWorkspaceLabel =>
+        _user.FindFirst(ClaimTypes.Email)?.Value
+        ?? "User Workspace";
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += HandleLocationChanged;
+        UpdateWorkspaceFromUri(Navigation.Uri);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _user = authState.User;
+    }
+
     private async Task HandleSignOut()
     {
         await AuthStateProvider.SignOutAsync();
         Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    private void NavigateToUserSettings()
+        => Navigation.NavigateTo("/user/settings");
+
+    private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateWorkspaceFromUri(e.Location);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateWorkspaceFromUri(string uri)
+    {
+        var route = GetCurrentRoute(uri);
+        _isOrganizationWorkspace = IsOrganizationRoute(route);
+    }
+
+    private string GetCurrentRoute(string uri)
+    {
+        var route = "/" + Navigation.ToBaseRelativePath(uri).Trim('/');
+
+        if (string.IsNullOrWhiteSpace(route))
+        {
+            return "/";
+        }
+
+        var queryIndex = route.IndexOf('?');
+        if (queryIndex >= 0)
+        {
+            route = route[..queryIndex];
+        }
+
+        var hashIndex = route.IndexOf('#');
+        if (hashIndex >= 0)
+        {
+            route = route[..hashIndex];
+        }
+
+        return string.IsNullOrWhiteSpace(route) ? "/" : route;
+    }
+
+    private static bool IsOrganizationRoute(string route)
+    {
+        if (string.IsNullOrWhiteSpace(route))
+        {
+            return false;
+        }
+
+        return route.StartsWith("/org-overview", StringComparison.OrdinalIgnoreCase)
+            || route.StartsWith("/org/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
     }
 }

@@ -1,0 +1,68 @@
+@using MudBlazor
+@using Org.Frontend.ViewModels
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudSelect T="Guid"
+                   Label="Milestone"
+                   @bind-Value="model.MilestoneId"
+                   Class="mb-3">
+            @foreach (var milestone in Milestones)
+            {
+                <MudSelectItem Value="@milestone.Id">@milestone.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudTextField @bind-Value="model.Name"
+                      Label="Tên hạng mục"
+                      Required="true"
+                      RequiredError="Bắt buộc nhập tên"
+                      Class="mb-3" />
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Hủy</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Tạo hạng mục</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter] public List<MilestoneOption> Milestones { get; set; } = [];
+
+    private readonly CreateEventCategoryViewModel model = new();
+
+    protected override void OnParametersSet()
+    {
+        if (model.MilestoneId == Guid.Empty && Milestones.Count > 0)
+        {
+            model.MilestoneId = Milestones[0].Id;
+        }
+    }
+
+    private void Submit()
+    {
+        if (model.MilestoneId == Guid.Empty)
+        {
+            Snackbar.Add("Vui lòng chọn milestone.", Severity.Warning);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(model.Name))
+        {
+            Snackbar.Add("Vui lòng nhập tên hạng mục.", Severity.Warning);
+            return;
+        }
+
+        MudDialog?.Close(DialogResult.Ok(model));
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    public sealed record MilestoneOption(Guid Id, string Name);
+}

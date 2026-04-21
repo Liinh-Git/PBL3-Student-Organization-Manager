@@ -1,11 +1,8 @@
-@page "/departments"
+@* ---- Trang quản lý phòng ban (/org/departments) — thêm/sửa/xóa phòng ban và phân công Manager ----
+    Prerender = false vì dùng JS Interop và FrontendAuthStateProvider đọc auth tỮb localStorage. *@
+@page "/org/departments"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
-
-@using Org.Frontend.Services.Departments
-@using Org.Frontend.Services.Auth
-@using Org.Frontend.Services.Members
-@using Org.Frontend.Services.Organizations
-@using Org.Shared.Contracts
+@using Org.Frontend.ViewModels
 @inject IDepartmentService DepartmentService
 @inject IMemberService MemberService
 @inject IOrganizationContext OrganizationContext
@@ -13,86 +10,193 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JS
+@inject ISnackbar Snackbar
 @implements IDisposable
 
 <PageTitle>Departments</PageTitle>
 
-<section class="department-shell">
-    <header class="department-header">
+<section class="department-page">
+    <header class="department-page-header">
         <div>
-            <p class="dashboard-eyebrow">Module</p>
-            <h3>Departments</h3>
+            <h1>Quan ly phong ban</h1>
+            <p>Quan tri va dieu phoi cac hoat dong noi bo cua to chuc theo tung bo phan chuc nang.</p>
         </div>
-        <button class="btn btn-success dept-primary-btn" @onclick="OpenCreate">Create Department</button>
+        <button class="department-primary-cta" @onclick="OpenCreate">
+            <span class="material-symbols-outlined">add</span>
+            Tao phong ban moi
+        </button>
     </header>
 
-    @if (!string.IsNullOrWhiteSpace(Message))
-    {
-        <div class="alert alert-info department-toast">@Message</div>
-    }
 
     @if (ShowCreateForm)
     {
-        <DepartmentForm Model="CreateModel"
-                        ManagerOptions="ManagerOptions"
-                        SaveText="Create"
-                        OnSubmit="CreateDepartment"
-                        OnCancel="CloseForms" />
+        <section class="department-form-panel">
+            <header class="department-form-header">
+                <h3>Tao phong ban moi</h3>
+                <p>Khai bao bo phan va phan cong nguoi quan ly de bat dau van hanh.</p>
+            </header>
+            <DepartmentForm Model="CreateModel"
+                            ManagerOptions="ManagerOptions"
+                            SaveText="Tao"
+                            OnSubmit="CreateDepartment"
+                            OnCancel="CloseForms" />
+        </section>
     }
 
     @if (EditModel is not null)
     {
-        <DepartmentForm Model="EditModel"
-                        ManagerOptions="ManagerOptions"
-                        SaveText="Update"
-                        OnSubmit="UpdateDepartment"
-                        OnCancel="CloseForms" />
+        <section class="department-form-panel">
+            <header class="department-form-header">
+                <h3>Cap nhat phong ban</h3>
+                <p>Dong bo lai thong tin bo phan, quan ly va mo ta chuc nang.</p>
+            </header>
+            <DepartmentForm Model="EditModel"
+                            ManagerOptions="ManagerOptions"
+                            SaveText="Cap nhat"
+                            OnSubmit="UpdateDepartment"
+                            OnCancel="CloseForms" />
+        </section>
     }
 
-    @if (Departments.Count == 0)
+    @if (DepartmentCards.Count == 0)
     {
-        <p class="department-empty">No departments available.</p>
+        <section class="department-empty-state">
+            <h3>Chua co phong ban nao</h3>
+            <p>Bat dau tao phong ban dau tien de quan ly thanh vien va nhiem vu theo tung nhom.</p>
+            <button class="department-primary-cta" @onclick="OpenCreate">
+                <span class="material-symbols-outlined">add</span>
+                Tao phong ban dau tien
+            </button>
+        </section>
     }
     else
     {
-        <div class="department-table-wrap">
-            <table class="table department-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Function</th>
-                        <th>Manager</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var dept in Departments)
-                    {
-                        <tr>
-                            <td>@dept.DeptName</td>
-                            <td>@dept.Function</td>
-                            <td class="dept-manager-id">@GetManagerDisplayName(dept.ManagerId)</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary" @onclick="() => OpenEdit(dept)">Edit</button>
-                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteDepartment(dept)">Delete</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="department-board-grid">
+            @foreach (var card in DepartmentCards)
+            {
+                <article class="department-board @card.AccentClass">
+                    <header class="department-board-head">
+                        <div class="department-board-title">
+                            <h2>@card.Name</h2>
+                            <p>@GetFunctionDisplay(card.Function)</p>
+                        </div>
+                        <div class="department-head-actions">
+                            <span class="department-member-count-pill">@card.MemberCount thanh vien</span>
+
+                            <div class="department-board-tools">
+                                <button class="department-icon-btn" title="Sua phong ban" @onclick="() => OpenEditById(card.Id)">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button class="department-icon-btn department-icon-danger" title="Xoa phong ban" @onclick="() => DeleteDepartmentById(card.Id)">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <section class="department-people-row">
+                        @if (card.MemberPreview.Count == 0)
+                        {
+                            <p class="department-block-empty">Chua co thanh vien trong phong ban nay.</p>
+                        }
+                        else
+                        {
+                            <div class="department-member-stack">
+                                @foreach (var member in card.MemberPreview.Take(3))
+                                {
+                                    <span class="department-member-avatar" title="@member.DisplayName">@GetMemberInitials(member.DisplayName)</span>
+                                }
+
+                                @if (card.HiddenMemberCount > 0)
+                                {
+                                    <span class="department-member-avatar department-member-avatar-more">+@card.HiddenMemberCount</span>
+                                }
+                            </div>
+                        }
+
+                        <p class="department-manager-line">
+                            Quan ly boi: <strong>@card.ManagerName</strong>
+                        </p>
+                    </section>
+
+                    <section class="department-block department-task-block">
+                        <header class="department-block-header">
+                            <h3>NHIEM VU DANG THUC HIEN</h3>
+                        </header>
+
+                        @if (card.TaskPreview.Count == 0)
+                        {
+                            <p class="department-block-empty">Chua co nhiem vu duoc gan cho phong ban nay.</p>
+                        }
+                        else
+                        {
+                            <div class="department-task-list">
+                                @foreach (var task in card.TaskPreview)
+                                {
+                                    <article class="department-task-card">
+                                        <header class="department-task-head">
+                                            <h4>@task.Title</h4>
+                                            <div class="department-task-icons">
+                                                <button class="department-icon-btn"
+                                                        type="button"
+                                                        title="Liên kết nhiệm vụ"
+                                                        @onclick="() => NotifyTaskLinkFeature(task.Title)">
+                                                    <span class="material-symbols-outlined">link</span>
+                                                </button>
+                                                <button class="department-icon-btn"
+                                                        type="button"
+                                                        title="Tệp đính kèm"
+                                                        @onclick="() => NotifyTaskAttachmentFeature(task.Title)">
+                                                    <span class="material-symbols-outlined">attachment</span>
+                                                </button>
+                                            </div>
+                                        </header>
+
+                                        <p class="department-task-note">@task.Summary</p>
+
+                                        <footer class="department-task-meta">
+                                            <span class="department-meta-pill">
+                                                <span class="material-symbols-outlined">event</span>
+                                                @task.DueLabel
+                                            </span>
+
+                                            <span class="department-meta-pill">
+                                                <span class="material-symbols-outlined">person</span>
+                                                @task.AssigneeName
+                                            </span>
+
+                                            <span class="department-task-status @task.StatusClass">@task.StatusLabel</span>
+                                        </footer>
+                                    </article>
+                                }
+                            </div>
+                        }
+
+                        <button class="department-task-add" @onclick="() => NotifyTaskFeature(card.Name)">
+                            <span class="material-symbols-outlined">add_circle</span>
+                            Them nhiem vu moi
+                        </button>
+                    </section>
+                </article>
+            }
         </div>
+
+        <footer class="department-page-footer">
+            <p>© 2026 StudentOrg Platform</p>
+            <p>Lien he | Chinh sach bao mat | Dieu khoan su dung</p>
+        </footer>
     }
 </section>
 
 @code {
     private List<DepartmentDto> Departments { get; set; } = [];
     private List<MemberDto> Members { get; set; } = [];
+    private List<DepartmentWorkspaceCard> DepartmentCards { get; set; } = [];
     private DepartmentForm.DepartmentFormModel CreateModel { get; set; } = new();
     private DepartmentForm.DepartmentFormModel? EditModel { get; set; }
     private Guid? EditingDepartmentId { get; set; }
     private Guid? CurrentOrganizationId { get; set; }
     private bool ShowCreateForm { get; set; }
-    private string? Message { get; set; }
 
     private IReadOnlyList<DepartmentForm.ManagerOption> ManagerOptions => Members
         .Select(x => new DepartmentForm.ManagerOption
@@ -134,8 +238,12 @@
     private async Task Reload()
     {
         CurrentOrganizationId ??= await OrganizationContext.GetOrganizationIdAsync();
-        Members = await MemberService.GetMembers(CurrentOrganizationId.Value);
-        Departments = await DepartmentService.GetDepartments(CurrentOrganizationId.Value);
+        var organizationId = CurrentOrganizationId.Value;
+
+        Members = await MemberService.GetMembers(organizationId);
+        Departments = await DepartmentService.GetDepartments(organizationId);
+
+        await BuildDepartmentCardsAsync();
     }
 
     private async Task ReloadSafely()
@@ -150,7 +258,8 @@
         }
         catch (Exception ex)
         {
-            Message = $"Không thể tải dữ liệu departments: {ex.Message}";
+            Snackbar.Add($"Không thể tải dữ liệu departments: {ex.Message}", Severity.Error);
+            DepartmentCards = [];
         }
     }
 
@@ -160,7 +269,6 @@
         EditModel = null;
         EditingDepartmentId = null;
         CreateModel = new DepartmentForm.DepartmentFormModel();
-        Message = null;
     }
 
     private void OpenEdit(DepartmentDto dept)
@@ -173,14 +281,25 @@
             ManagerId = dept.ManagerId,
             Function = dept.Function
         };
-        Message = null;
+    }
+
+    private void OpenEditById(Guid departmentId)
+    {
+        var department = Departments.FirstOrDefault(x => x.Id == departmentId);
+        if (department is null)
+        {
+            Snackbar.Add("Không tìm thấy phòng ban cần chỉnh sửa.", Severity.Warning);
+            return;
+        }
+
+        OpenEdit(department);
     }
 
     private async Task CreateDepartment()
     {
         if (string.IsNullOrWhiteSpace(CreateModel.DeptName))
         {
-            Message = "Department name is required.";
+            Snackbar.Add("Tên phòng ban không được để trống.", Severity.Warning);
             return;
         }
 
@@ -194,7 +313,7 @@
                 Function = CreateModel.Function
             });
 
-            Message = "Department created.";
+            Snackbar.Add("Phòng ban đã được tạo.", Severity.Success);
             ShowCreateForm = false;
             await Reload();
         }
@@ -213,7 +332,7 @@
 
         if (string.IsNullOrWhiteSpace(EditModel.DeptName))
         {
-            Message = "Department name is required.";
+            Snackbar.Add("Tên phòng ban không được để trống.", Severity.Warning);
             return;
         }
 
@@ -226,7 +345,7 @@
                 Function = EditModel.Function
             });
 
-            Message = "Department updated.";
+            Snackbar.Add("Phòng ban đã được cập nhật.", Severity.Success);
             CloseForms();
             await Reload();
         }
@@ -241,9 +360,12 @@
         CurrentOrganizationId = null;
         Members = [];
         Departments = [];
-        Message = string.IsNullOrWhiteSpace(reason)
+        DepartmentCards = [];
+
+        var msg = string.IsNullOrWhiteSpace(reason)
             ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
             : reason;
+        Snackbar.Add(msg, Severity.Warning);
 
         await FrontendAuthStateProvider.SignOutAsync();
         Navigation.NavigateTo("/login", forceLoad: true);
@@ -278,7 +400,7 @@
             if (EditingDepartmentId == department.Id)
                 CloseForms();
 
-            Message = "Department deleted.";
+            Snackbar.Add("Phòng ban đã được xóa.", Severity.Success);
             await Reload();
         }
         catch (AuthApiException ex) when (ex.StatusCode == 401)
@@ -287,7 +409,163 @@
         }
         catch (Exception ex)
         {
-            Message = $"Không thể xóa department: {ex.Message}";
+            Snackbar.Add($"Không thể xóa department: {ex.Message}", Severity.Error);
         }
     }
+
+    private async Task DeleteDepartmentById(Guid departmentId)
+    {
+        var department = Departments.FirstOrDefault(x => x.Id == departmentId);
+        if (department is null)
+        {
+            Snackbar.Add("Không tìm thấy phòng ban cần xóa.", Severity.Warning);
+            return;
+        }
+
+        await DeleteDepartment(department);
+    }
+
+    private void NotifyTaskFeature(string departmentName)
+    {
+        Snackbar.Add($"Tính năng tạo nhiệm vụ mới cho phòng ban '{departmentName}' sẽ sớm ra mắt.", Severity.Info);
+    }
+
+    private void NotifyTaskLinkFeature(string taskTitle)
+    {
+        Snackbar.Add($"Liên kết cho nhiệm vụ '{taskTitle}' sẽ sớm ra mắt.", Severity.Info);
+    }
+
+    private void NotifyTaskAttachmentFeature(string taskTitle)
+    {
+        Snackbar.Add($"Tệp đính kèm cho nhiệm vụ '{taskTitle}' sẽ sớm ra mắt.", Severity.Info);
+    }
+
+    private async Task BuildDepartmentCardsAsync()
+    {
+        var membersByDepartment = Members
+            .Where(x => x.DepartmentId.HasValue)
+            .GroupBy(x => x.DepartmentId!.Value)
+            .ToDictionary(
+                group => group.Key,
+                group => group.OrderBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase).ToList());
+
+        var overviewTasks = await Task.WhenAll(
+            Departments.Select(async department =>
+            {
+                var overview = await DepartmentService.GetTasksOverviewAsync(department.Id);
+                return (department.Id, overview.Items);
+            }));
+
+        var tasksByDepartment = overviewTasks.ToDictionary(
+            x => x.Id,
+            x => (IReadOnlyList<DepartmentTaskItemViewModel>)x.Items);
+
+        DepartmentCards = Departments
+            .OrderBy(x => x.DeptName, StringComparer.OrdinalIgnoreCase)
+            .Select((department, index) =>
+            {
+                var departmentMembers = membersByDepartment.TryGetValue(department.Id, out var currentMembers)
+                    ? currentMembers
+                    : [];
+
+                var departmentTasks = tasksByDepartment.TryGetValue(department.Id, out var currentTasks)
+                    ? currentTasks
+                    : [];
+
+                return new DepartmentWorkspaceCard
+                {
+                    Id = department.Id,
+                    Name = department.DeptName,
+                    Function = department.Function,
+                    ManagerName = GetManagerDisplayName(department.ManagerId),
+                    MemberCount = departmentMembers.Count,
+                    MemberPreview = departmentMembers.Take(4).ToList(),
+                    TaskCount = departmentTasks.Count,
+                    AccentClass = index % 2 == 0 ? "board-accent-orange" : "board-accent-slate",
+                    TaskPreview = departmentTasks
+                        .Take(2)
+                        .Select(MapTaskCard)
+                        .ToList()
+                };
+            })
+            .ToList();
+    }
+
+    private static DepartmentTaskCard MapTaskCard(DepartmentTaskItemViewModel task)
+    {
+        var status = GetStatusBadge(task.Status);
+        var assigneeName = string.IsNullOrWhiteSpace(task.AssigneeName)
+            ? "Chua phan cong"
+            : task.AssigneeName;
+
+        return new DepartmentTaskCard
+        {
+            Title = task.Title,
+            Summary = "Theo doi va cap nhat tien do cong viec theo ke hoach phong ban.",
+            StatusLabel = status.Label,
+            StatusClass = status.CssClass,
+            DueLabel = FormatDueDate(task.DueDate),
+            AssigneeName = assigneeName
+        };
+    }
+
+    private static string GetFunctionDisplay(string? function)
+        => string.IsNullOrWhiteSpace(function) ? "Chua cap nhat mo ta chuc nang." : function;
+
+    private static string GetMemberInitials(string displayName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+            return "NA";
+
+        var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1)
+        {
+            return parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant();
+        }
+
+        return string.Concat(parts[0][0], parts[^1][0]).ToUpperInvariant();
+    }
+
+    private static string FormatDueDate(DateTime? dueDate)
+    {
+        if (!dueDate.HasValue)
+            return "Han: Chua dat";
+
+        return $"Han: {dueDate.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)}";
+    }
+
+    private static BadgeInfo GetStatusBadge(string? status)
+        => status?.ToUpperInvariant() switch
+        {
+            "DONE" => new BadgeInfo("Hoan thanh", "status-done"),
+            "IN_PROGRESS" => new BadgeInfo("Dang thuc hien", "status-active"),
+            "TODO" => new BadgeInfo("Can lam", "status-todo"),
+            _ => new BadgeInfo("Khac", "status-other")
+        };
+
+    private sealed class DepartmentWorkspaceCard
+    {
+        public Guid Id { get; init; }
+        public string Name { get; init; } = string.Empty;
+        public string? Function { get; init; }
+        public string ManagerName { get; init; } = "-";
+        public int MemberCount { get; init; }
+        public IReadOnlyList<MemberDto> MemberPreview { get; init; } = [];
+        public int HiddenMemberCount => Math.Max(0, MemberCount - MemberPreview.Count);
+        public int TaskCount { get; init; }
+        public string AccentClass { get; init; } = "board-accent-orange";
+        public IReadOnlyList<DepartmentTaskCard> TaskPreview { get; init; } = [];
+    }
+
+    private sealed class DepartmentTaskCard
+    {
+        public string Title { get; init; } = string.Empty;
+        public string Summary { get; init; } = string.Empty;
+        public string AssigneeName { get; init; } = string.Empty;
+        public string DueLabel { get; init; } = string.Empty;
+        public string StatusLabel { get; init; } = string.Empty;
+        public string StatusClass { get; init; } = string.Empty;
+    }
+
+    private sealed record BadgeInfo(string Label, string CssClass);
 }

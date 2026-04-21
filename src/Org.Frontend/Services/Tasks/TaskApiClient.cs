@@ -1,3 +1,5 @@
+// ---- API client thực cho module nhiệm vụ — ánh xạ TaskDto sang TaskViewModel ----
+// ParseStatus / ToStatusText: bridge giữa chuỗi UI (TODO/IN_PROGRESS/DONE) và enum Shared.TaskStatus.
 using System.Net.Http.Json;
 using Org.Frontend.ViewModels;
 using Org.Shared;

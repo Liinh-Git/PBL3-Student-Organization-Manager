@@ -1,11 +1,7 @@
-@page "/members"
+@* ---- Trang quản lý thành viên (/org/members) — danh sách, thêm/xóa, gán role/phòng ban ----
+    Prerender = false để tránh lỗi localStorage khi server-side render. *@
+@page "/org/members"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
-
-@using Org.Frontend.Services.Departments
-@using Org.Frontend.Services.Auth
-@using Org.Frontend.Services.Members
-@using Org.Frontend.Services.Organizations
-@using Org.Shared.Contracts
 @inject IMemberService MemberService
 @inject IDepartmentService DepartmentService
 @inject IOrganizationContext OrganizationContext
@@ -13,169 +9,162 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JS
+@inject ISnackbar Snackbar
 @implements IDisposable
 
 <PageTitle>Thành viên</PageTitle>
 
-<section class="member-page">
-    <header class="member-hero">
-        <div class="member-hero-overlay">
-            <div class="member-hero-top">
-                <input class="member-search"
-                       placeholder="Tìm kiếm tài liệu, thành viên..."
-                       @bind="SearchTerm"
-                       @bind:event="oninput" />
-                <button class="member-search-btn">Tìm kiếm</button>
-            </div>
-
-            <div class="member-hero-main">
-                <div class="member-avatar">KC</div>
-                <div>
-                    <h2>Kora Community</h2>
-                    <p>TP. Hồ Chí Minh, Việt Nam • @Members.Count thành viên • 7 tổ chức đã kết nối</p>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <section class="member-card about-card">
-        <p class="eyebrow">VỀ CHÚNG TÔI</p>
-        <h3>Thông tin tổng quan</h3>
-        <p class="about-copy">
-            Kora Community là mạng lưới sáng tạo và phát triển bền vững dành cho các chuyên gia trẻ tại Việt Nam.
-            Chúng tôi tập trung vào việc kiến tạo các không gian học tập, kết nối và triển khai các dự án có tác động xã hội tích cực.
-        </p>
-        <div class="about-grid">
-            <div>
-                <span>Sứ mệnh</span>
-                <strong>Xây dựng hệ sinh thái tri thức liên đội, nơi mỗi thành viên có thể phát huy tối đa năng lực.</strong>
-            </div>
-            <div>
-                <span>Vị trí</span>
-                <strong>Tòa nhà A1, Đại học Kiến Trúc Hà Nội, Đường Nguyễn Trãi, Thanh Xuân.</strong>
-            </div>
-            <div>
-                <span>Ngày thành lập</span>
-                <strong>15 / 05 / 2021</strong>
-            </div>
-        </div>
-    </section>
-
-    @if (!string.IsNullOrWhiteSpace(Message))
-    {
-        <div class="member-toast">@Message</div>
+<section class="member-management-page">
+    @{
+        var filteredMembers = GetFilteredMembers();
+        var pagedMembers = GetPagedMembers(filteredMembers);
+        var filteredCount = filteredMembers.Count;
+        var totalPages = GetTotalPages(filteredCount);
+        var rangeStart = GetRangeStart(filteredCount);
+        var rangeEnd = GetRangeEnd(filteredCount);
     }
 
-    <section class="member-card">
-        <div class="section-head">
-            <div>
-                <p class="eyebrow">THÀNH VIÊN</p>
-                <h3>Thêm thành viên mới</h3>
-            </div>
-        </div>
 
-        <div class="row g-2 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label">Họ và tên</label>
-                <input class="form-control" @bind="CreateDisplayName" />
+    <section class="members-kpi-grid">
+        <article class="members-kpi-card members-kpi-total">
+            <div class="members-kpi-icon">
+                <MudIcon Icon="@Icons.Material.Filled.Groups" />
             </div>
-            <div class="col-md-4">
-                <label class="form-label">Email</label>
-                <input class="form-control" type="email" @bind="CreateEmail" />
+            <div>
+                <p>TỔNG SỐ THÀNH VIÊN</p>
+                <h2>@Members.Count</h2>
             </div>
-            <div class="col-md-3">
-                <label class="form-label">Phòng ban</label>
-                <select class="form-select" @bind="CreateDepartmentValue">
-                    <option value="">Không chọn</option>
+        </article>
+
+        <article class="members-kpi-card members-kpi-active">
+            <div class="members-kpi-icon members-kpi-icon-active">
+                <MudIcon Icon="@Icons.Material.Filled.Bolt" />
+            </div>
+            <div>
+                <p>THÀNH VIÊN ĐANG HOẠT ĐỘNG</p>
+                <h2>@ActiveMembersCount</h2>
+            </div>
+        </article>
+    </section>
+
+    <section class="members-table-shell">
+        <div class="members-filter-bar">
+            <div class="members-filter-heading">
+                <MudIcon Icon="@Icons.Material.Filled.FilterList" />
+                <span>Bộ lọc danh sách</span>
+            </div>
+
+            <div class="members-filter-controls">
+                <div class="members-search-wrap">
+                    <MudIcon Icon="@Icons.Material.Filled.Search" Class="members-search-icon" />
+                    <input class="members-search-input"
+                           type="search"
+                           value="@SearchTerm"
+                           @oninput="OnSearchInput"
+                           placeholder="Tìm kiếm theo tên hoặc email..." />
+                </div>
+
+                <select class="members-filter-select"
+                        value="@SelectedRoleFilter"
+                        @onchange="OnRoleFilterChanged">
+                    <option value="all">Vai trò: Tất cả</option>
+                    <option value="admin">Quản trị viên</option>
+                    <option value="moderator">Kiểm duyệt</option>
+                    <option value="member">Thành viên</option>
+                </select>
+
+                <select class="members-filter-select"
+                        value="@SelectedDepartmentFilter"
+                        @onchange="OnDepartmentFilterChanged">
+                    <option value="all">Ban chuyên môn: Tất cả</option>
+                    <option value="none">Chưa phân ban</option>
                     @foreach (var dept in Departments)
                     {
                         <option value="@dept.Id">@dept.DeptName</option>
                     }
                 </select>
+
+                <button class="members-filter-reset" type="button" @onclick="ResetFilters">
+                    <MudIcon Icon="@Icons.Material.Filled.RestartAlt" />
+                    Đặt lại bộ lọc
+                </button>
             </div>
-            <div class="col-md-1 d-grid">
-                <button class="btn btn-primary" @onclick="CreateMember">Thêm</button>
-            </div>
+        </div>
+
+        <div class="members-table-wrap">
+            <table class="members-table">
+                <thead>
+                    <tr>
+                        <th>HỌ VÀ TÊN</th>
+                        <th>VAI TRÒ</th>
+                        <th>BAN CHUYÊN MÔN</th>
+                        <th>NGÀY GIA NHẬP</th>
+                        <th class="th-actions">THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (pagedMembers.Count == 0)
+                    {
+                        <tr class="members-empty-row">
+                            <td colspan="5">Không có thành viên phù hợp với bộ lọc hiện tại.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var member in pagedMembers)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="member-identity">
+                                        <div class="member-avatar-chip">@GetAvatar(member.DisplayName)</div>
+                                        <div class="member-identity-copy">
+                                            <p>@member.DisplayName</p>
+                                            <span>@GetMemberEmail(member)</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="member-role-badge @GetRoleBadgeClass(member.RoleId)">@GetRoleLabel(member.RoleId)</span>
+                                </td>
+                                <td>
+                                    <span class="member-department">@GetDepartmentName(member.DepartmentId)</span>
+                                </td>
+                                <td>
+                                    <span class="member-join-date">@member.JoinDate.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                </td>
+                                <td class="td-actions">
+                                    <button class="member-row-action"
+                                            type="button"
+                                            aria-label="Gán vai trò"
+                                            @onclick="() => OpenRoleDialog(member)">
+                                        <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" />
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="members-pagination">
+            <p>
+                Hiển thị <strong>@rangeStart-@rangeEnd</strong> trong <strong>@filteredCount</strong> thành viên
+            </p>
+            <MudPagination Count="totalPages"
+                           Selected="CurrentPage"
+                           SelectedChanged="GoToPage"
+                           Class="members-mud-pagination"
+                           ShowFirstButton="true"
+                           ShowLastButton="true" />
         </div>
     </section>
 
-    <section class="member-card">
-        <div class="section-head">
-            <div>
-                <p class="eyebrow">ĐỘI NGŨ</p>
-                <h3>Quản trị viên</h3>
-            </div>
-            <span>@FilteredMembers.Count người</span>
-        </div>
-
-        <AssignRoleDialog IsOpen="ShowRoleDialog"
-                          Roles="RoleOptions"
-                          SelectedRoleId="PendingRoleId"
-                          OnConfirm="ConfirmAssignRole"
-                          OnCancel="CloseRoleDialog" />
-
-        @if (FilteredMembers.Count == 0)
-        {
-            <p>Không có thành viên phù hợp.</p>
-        }
-        else
-        {
-            <div class="member-grid">
-                @foreach (var member in FilteredMembers)
-                {
-                    <article class="admin-card">
-                        <div class="admin-head">
-                            <div class="admin-avatar">@GetAvatar(member.DisplayName)</div>
-                            <div>
-                                <h4>@member.DisplayName</h4>
-                                <p>@GetRoleName(member.RoleId)</p>
-                            </div>
-                        </div>
-
-                        <div class="admin-meta">
-                            <span>Ngày tham gia: @member.JoinDate.ToString("dd/MM/yyyy")</span>
-                            <span>Phòng ban: @GetDepartmentName(member.DepartmentId)</span>
-                        </div>
-
-                        <div class="admin-actions">
-                            <select class="form-select form-select-sm"
-                                    value="@(member.DepartmentId?.ToString() ?? string.Empty)"
-                                    @onchange="args => AssignDepartment(member.Id, args)">
-                                <option value="">Chọn phòng ban</option>
-                                @foreach (var dept in Departments)
-                                {
-                                    <option value="@dept.Id">@dept.DeptName</option>
-                                }
-                            </select>
-                            <button class="assign-btn" @onclick="() => OpenRoleDialog(member)">Gán vai trò</button>
-                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteMember(member)">Xóa</button>
-                        </div>
-                    </article>
-                }
-            </div>
-        }
-    </section>
-
-    <section class="timeline-wrap">
-        <div>
-            <p class="eyebrow">DÒNG THỜI GIAN</p>
-            <h3>Hành trình phát triển</h3>
-        </div>
-        <div class="timeline-list">
-            <article>
-                <span>Tháng 05 / 2021</span>
-                <h4>Thành lập Kora Community</h4>
-            </article>
-            <article>
-                <span>Tháng 12 / 2022</span>
-                <h4>Mở rộng 500+ thành viên</h4>
-            </article>
-            <article>
-                <span>Tháng 01 / 2024</span>
-                <h4>Giải thưởng Kiến trúc cộng đồng</h4>
-            </article>
-        </div>
-    </section>
+    <AssignRoleDialog IsOpen="ShowRoleDialog"
+                      Roles="RoleOptions"
+                      SelectedRoleId="PendingRoleId"
+                      OnConfirm="ConfirmAssignRole"
+                      OnCancel="CloseRoleDialog" />
 </section>
 
 @code {
@@ -186,22 +175,25 @@
     private bool ShowRoleDialog { get; set; }
     private Guid? SelectedMemberId { get; set; }
     private Guid? PendingRoleId { get; set; }
-    private string? Message { get; set; }
+    private const int PageSize = 10;
+    private int CurrentPage { get; set; } = 1;
     private string SearchTerm { get; set; } = string.Empty;
+    private string SelectedRoleFilter { get; set; } = "all";
+    private string SelectedDepartmentFilter { get; set; } = "all";
     private string CreateDisplayName { get; set; } = string.Empty;
     private string CreateEmail { get; set; } = string.Empty;
     private string CreateDepartmentValue { get; set; } = string.Empty;
+    private int ActiveMembersCount => Members.Count;
 
-    private List<MemberDto> FilteredMembers =>
-        string.IsNullOrWhiteSpace(SearchTerm)
-            ? Members
-            : Members.Where(x => x.DisplayName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+    private static readonly Guid LeaderRoleId = Guid.Parse("7e9e6f36-0508-4da8-adf1-c15b0cbe2f3a");
+    private static readonly Guid CoreMemberRoleId = Guid.Parse("f80bb5dc-ab54-48fa-9453-869a12a81dc8");
+    private static readonly Guid CollaboratorRoleId = Guid.Parse("1a96a5f4-6dfc-42db-936d-f86ee4e35ef5");
 
     private static readonly List<AssignRoleDialog.RoleOption> RoleOptions =
     [
-        new() { Id = Guid.Parse("7e9e6f36-0508-4da8-adf1-c15b0cbe2f3a"), Name = "Leader" },
-        new() { Id = Guid.Parse("f80bb5dc-ab54-48fa-9453-869a12a81dc8"), Name = "Core Member" },
-        new() { Id = Guid.Parse("1a96a5f4-6dfc-42db-936d-f86ee4e35ef5"), Name = "Collaborator" }
+        new() { Id = LeaderRoleId, Name = "Leader" },
+        new() { Id = CoreMemberRoleId, Name = "Core Member" },
+        new() { Id = CollaboratorRoleId, Name = "Collaborator" }
     ];
 
     protected override async Task OnInitializedAsync()
@@ -238,6 +230,7 @@
         CurrentOrganizationId ??= await OrganizationContext.GetOrganizationIdAsync();
         Departments = await DepartmentService.GetDepartments(CurrentOrganizationId.Value);
         Members = await MemberService.GetMembers(CurrentOrganizationId.Value);
+        CurrentPage = 1;
     }
 
     private async Task ReloadSafely()
@@ -252,8 +245,147 @@
         }
         catch (Exception ex)
         {
-            Message = $"Không thể tải dữ liệu members: {ex.Message}";
+            Snackbar.Add($"Không thể tải dữ liệu members: {ex.Message}", Severity.Error);
         }
+    }
+
+    private void OnSearchInput(ChangeEventArgs args)
+    {
+        SearchTerm = args.Value?.ToString() ?? string.Empty;
+        CurrentPage = 1;
+    }
+
+    private void OnRoleFilterChanged(ChangeEventArgs args)
+    {
+        SelectedRoleFilter = args.Value?.ToString() ?? "all";
+        CurrentPage = 1;
+    }
+
+    private void OnDepartmentFilterChanged(ChangeEventArgs args)
+    {
+        SelectedDepartmentFilter = args.Value?.ToString() ?? "all";
+        CurrentPage = 1;
+    }
+
+    private void ResetFilters()
+    {
+        SearchTerm = string.Empty;
+        SelectedRoleFilter = "all";
+        SelectedDepartmentFilter = "all";
+        CurrentPage = 1;
+    }
+
+    private void GoToPage(int page) => CurrentPage = page;
+
+    private List<MemberDto> GetFilteredMembers()
+    {
+        var normalizedTerm = SearchTerm.Trim();
+
+        return Members
+            .Where(member => MatchesSearch(member, normalizedTerm))
+            .Where(MatchesRoleFilter)
+            .Where(MatchesDepartmentFilter)
+            .OrderBy(member => member.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private List<MemberDto> GetPagedMembers(IReadOnlyList<MemberDto> filteredMembers)
+    {
+        var totalPages = GetTotalPages(filteredMembers.Count);
+        CurrentPage = Math.Clamp(CurrentPage, 1, totalPages);
+
+        return filteredMembers
+            .Skip((CurrentPage - 1) * PageSize)
+            .Take(PageSize)
+            .ToList();
+    }
+
+    private int GetTotalPages(int totalItems) => Math.Max(1, (int)Math.Ceiling(totalItems / (double)PageSize));
+
+    private int GetRangeStart(int totalItems) => totalItems == 0 ? 0 : ((CurrentPage - 1) * PageSize) + 1;
+
+    private int GetRangeEnd(int totalItems) => totalItems == 0 ? 0 : Math.Min(totalItems, CurrentPage * PageSize);
+
+    private static string GetRoleLabel(Guid? roleId)
+    {
+        return GetRoleFilterKey(roleId) switch
+        {
+            "admin" => "QUẢN TRỊ VIÊN",
+            "moderator" => "KIỂM DUYỆT",
+            _ => "THÀNH VIÊN"
+        };
+    }
+
+    private static string GetRoleBadgeClass(Guid? roleId)
+    {
+        return GetRoleFilterKey(roleId) switch
+        {
+            "admin" => "role-admin",
+            "moderator" => "role-moderator",
+            _ => "role-member"
+        };
+    }
+
+    private bool MatchesSearch(MemberDto member, string normalizedTerm)
+    {
+        if (string.IsNullOrWhiteSpace(normalizedTerm))
+        {
+            return true;
+        }
+
+        return member.DisplayName.Contains(normalizedTerm, StringComparison.OrdinalIgnoreCase)
+            || GetMemberEmail(member).Contains(normalizedTerm, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool MatchesRoleFilter(MemberDto member)
+    {
+        if (SelectedRoleFilter == "all")
+        {
+            return true;
+        }
+
+        return GetRoleFilterKey(member.RoleId) == SelectedRoleFilter;
+    }
+
+    private bool MatchesDepartmentFilter(MemberDto member)
+    {
+        if (SelectedDepartmentFilter == "all")
+        {
+            return true;
+        }
+
+        if (SelectedDepartmentFilter == "none")
+        {
+            return !member.DepartmentId.HasValue;
+        }
+
+        return Guid.TryParse(SelectedDepartmentFilter, out var departmentId)
+            && member.DepartmentId == departmentId;
+    }
+
+    private static string GetRoleFilterKey(Guid? roleId)
+    {
+        if (!roleId.HasValue)
+        {
+            return "member";
+        }
+
+        if (roleId.Value == LeaderRoleId)
+        {
+            return "admin";
+        }
+
+        if (roleId.Value == CoreMemberRoleId)
+        {
+            return "moderator";
+        }
+
+        return "member";
+    }
+
+    private static string GetMemberEmail(MemberDto member)
+    {
+        return string.IsNullOrWhiteSpace(member.Email) ? "(chưa có email)" : member.Email;
     }
 
     private void OpenRoleDialog(MemberDto member)
@@ -261,7 +393,6 @@
         SelectedMemberId = member.Id;
         PendingRoleId = member.RoleId;
         ShowRoleDialog = true;
-        Message = null;
     }
 
     private void CloseRoleDialog()
@@ -281,7 +412,7 @@
         try
         {
             await MemberService.AssignRole(SelectedMemberId.Value, roleId);
-            Message = "Role assigned.";
+            Snackbar.Add("Đã gán vai trò thành công.", Severity.Success);
             CloseRoleDialog();
             await Reload();
         }
@@ -301,7 +432,7 @@
         try
         {
             await MemberService.AssignDepartment(memberId, departmentId);
-            Message = "Department assigned.";
+            Snackbar.Add("Đã gán phòng ban thành công.", Severity.Success);
             await Reload();
         }
         catch (AuthApiException ex) when (ex.StatusCode == 401)
@@ -314,7 +445,7 @@
     {
         if (!CurrentOrganizationId.HasValue)
         {
-            Message = "Không tìm thấy tổ chức hiện tại.";
+            Snackbar.Add("Không tìm thấy tổ chức hiện tại.", Severity.Warning);
             return;
         }
 
@@ -323,13 +454,13 @@
 
         if (displayName.Length < 2)
         {
-            Message = "Tên thành viên phải có ít nhất 2 ký tự.";
+            Snackbar.Add("Tên thành viên phải có ít nhất 2 ký tự.", Severity.Warning);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
         {
-            Message = "Email không hợp lệ.";
+            Snackbar.Add("Email không hợp lệ.", Severity.Warning);
             return;
         }
 
@@ -346,7 +477,7 @@
             CreateDisplayName = string.Empty;
             CreateEmail = string.Empty;
             CreateDepartmentValue = string.Empty;
-            Message = "Thêm thành viên thành công.";
+            Snackbar.Add("Thêm thành viên thành công.", Severity.Success);
 
             await Reload();
         }
@@ -356,7 +487,7 @@
         }
         catch (Exception ex)
         {
-            Message = $"Không thể thêm member: {ex.Message}";
+            Snackbar.Add($"Không thể thêm member: {ex.Message}", Severity.Error);
         }
     }
 
@@ -372,7 +503,7 @@
             if (SelectedMemberId == member.Id)
                 CloseRoleDialog();
 
-            Message = "Đã xóa thành viên.";
+            Snackbar.Add("Đã xóa thành viên.", Severity.Success);
             await Reload();
         }
         catch (AuthApiException ex) when (ex.StatusCode == 401)
@@ -381,7 +512,7 @@
         }
         catch (Exception ex)
         {
-            Message = $"Không thể xóa member: {ex.Message}";
+            Snackbar.Add($"Không thể xóa member: {ex.Message}", Severity.Error);
         }
     }
 
@@ -390,9 +521,11 @@
         CurrentOrganizationId = null;
         Departments = [];
         Members = [];
-        Message = string.IsNullOrWhiteSpace(reason)
+
+        var msg = string.IsNullOrWhiteSpace(reason)
             ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
             : reason;
+        Snackbar.Add(msg, Severity.Warning);
 
         await FrontendAuthStateProvider.SignOutAsync();
         Navigation.NavigateTo("/login", forceLoad: true);

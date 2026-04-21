@@ -1,0 +1,74 @@
+.org-finance-shell {
+    background: #ffffff;
+    border: 1px solid #d6e4f2;
+    border-radius: 12px;
+    padding: 28px;
+}
+
+.finance-kicker {
+    margin: 0;
+    color: #ff9b51;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+}
+
+.org-finance-shell h1 {
+    margin: 10px 0 0;
+    color: #0f1f29;
+    font-size: 36px;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+}
+
+.finance-note {
+    margin: 14px 0 0;
+    color: #445f77;
+    font-size: 16px;
+    line-height: 24px;
+    max-width: 920px;
+}
+
+.finance-grid {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.finance-grid article {
+    border: 1px solid #d9e7f5;
+    border-radius: 10px;
+    padding: 14px;
+    background: #f8fbff;
+}
+
+.finance-grid h2 {
+    margin: 0;
+    color: #1f3d57;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.finance-grid strong {
+    margin-top: 8px;
+    display: block;
+    color: #0f1f29;
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+.finance-grid p {
+    margin: 8px 0 0;
+    color: #5b7790;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+@media (max-width: 960px) {
+    .finance-grid {
+        grid-template-columns: 1fr;
+    }
+}
