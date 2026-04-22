@@ -1,310 +1,185 @@
-@page "/events"
+@page "/org/events"
 @rendermode InteractiveServer
-@using MudBlazor
-@using Org.Frontend.ViewModels
-@using Org.Frontend.Services.Events
-@using Org.Frontend.Services.Organizations
 @inject IEventService EventService
 @inject IOrganizationContext OrganizationContext
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-6 events-page">
-
-    <div class="d-flex justify-space-between align-start mb-6 flex-wrap gap-4">
-        <div>
-            <MudText Typo="Typo.h4" Class="fw-bold" Style="color: #0f172a; font-weight: 800; letter-spacing: -0.5px;">
-                Manage Events
-            </MudText>
-            <MudText Typo="Typo.caption" Class="fw-bold text-muted d-flex align-center mt-1" Style="letter-spacing: 1px; font-size: 0.7rem;">
-                DIRECTORY <span style="color: #94a3b8; margin: 0 6px;">&gt;</span> <span style="color: #0f172a;">ALL EVENTS</span>
-            </MudText>
+<div class="events-page">
+    
+    <!-- Thanh điều hướng trên cùng (Sticky Glass) -->
+    <header class="glass-header">
+        <div class="header-main">
+            <h1 class="header-title">Manage Events</h1>
+            <div class="breadcrumb">
+                <span>Directory</span>
+                <span class="material-symbols-outlined" style="font-size: 10px; font-weight: 900;">chevron_right</span>
+                <span class="breadcrumb-active">All Events</span>
+            </div>
         </div>
-
-        <div class="d-flex gap-3 align-center">
-            <MudTextField T="string"
-                          Placeholder="Search events..."
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          Class="search-box" />
-
-            <div class="mock-icon-btn">N</div>
-            <div class="mock-icon-btn">?</div>
-        </div>
-    </div>
-
-    <div class="d-flex justify-space-between align-center mb-8 flex-wrap gap-4">
         
-        <MudToggleGroup T="string"
-                        Value="@("All")"
-                        SelectionMode="SelectionMode.SingleSelection"
-                        Class="toggle-box"
-                        Color="Color.Primary">
-            <MudToggleItem Value="@("All")" Text="All Events" Class="fw-bold px-5 rounded-lg bg-white shadow-sm" Style="font-size: 0.85rem;" />
-            <MudToggleItem Value="@("Upcoming")" Text="Upcoming" Class="text-muted fw-bold px-4" Style="font-size: 0.85rem;" />
-            <MudToggleItem Value="@("Past")" Text="Past Events" Class="text-muted fw-bold px-4" Style="font-size: 0.85rem;" />
-        </MudToggleGroup>
-
-        <div class="d-flex gap-2">
-            <MudButton Variant="Variant.Outlined"
-                       Class="action-btn fw-bold text-dark px-4" Style="font-size: 0.85rem;">
-                <span class="mr-2" style="font-size: 1.1rem; line-height: 0;">≡</span> Filter
-            </MudButton>
-            <MudButton Variant="Variant.Outlined"
-                       Class="action-btn fw-bold text-dark px-4" Style="font-size: 0.85rem;">
-                <span class="mr-2" style="font-size: 1.1rem; line-height: 0;">↕</span> Sort by Date
-            </MudButton>
+        <div class="header-actions">
+            <div class="search-container">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input class="search-input" 
+                       placeholder="Search events..." 
+                       type="text"
+                       @bind="SearchTerm"
+                       @bind:event="oninput" />
+            </div>
+            <button class="icon-btn">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <button class="icon-btn">
+                <span class="material-symbols-outlined">help</span>
+            </button>
         </div>
-    </div>
+    </header>
 
-    <MudGrid Spacing="4" Class="custom-grid-fallback">
+    <!-- Nội dung trang có thể cuộn -->
+    <div class="page-content">
         
-        <MudItem xs="12" sm="6" md="4" lg="3">
-            <MudCard Class="create-card elevation-0" @onclick="OpenCreateDialog">
-                <div class="create-icon-text">+</div>
-                <MudText Typo="Typo.subtitle1" Class="fw-bold" Style="color: #0f172a;">
-                    Create New Event
-                </MudText>
-                <MudText Typo="Typo.body2" Class="text-muted mt-2 text-center px-4" Style="font-size: 0.85rem; line-height: 1.5;">
-                    Schedule a meeting,<br/>workshop, or seminar
-                </MudText>
-            </MudCard>
-        </MudItem>
+        <!-- Bộ lọc và các điều khiển phụ -->
+        <div class="controls-bar">
+            <div class="filter-capsule">
+                <button class="filter-item @(statusFilter == "All" ? "active" : "")" 
+                        @onclick='() => OnStatusFilterChanged("All")'>All Events</button>
+                <button class="filter-item @(statusFilter == "Upcoming" ? "active" : "")" 
+                        @onclick='() => OnStatusFilterChanged("Upcoming")'>Upcoming</button>
+                <button class="filter-item @(statusFilter == "Past" ? "active" : "")" 
+                        @onclick='() => OnStatusFilterChanged("Past")'>Past Events</button>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="styled-btn">
+                    <span class="material-symbols-outlined">filter_list</span>
+                    <span>Filter</span>
+                </button>
+                <button class="styled-btn">
+                    <span class="material-symbols-outlined">sort</span>
+                    <span>Sort by Date</span>
+                </button>
+            </div>
+        </div>
 
-        @if (events != null)
-        {
-            @foreach (var evt in events)
+        <!-- Bố cục lưới Bento -->
+        <div class="bento-grid">
+            
+            <!-- Thẻ "Thêm mới" theo ngữ cảnh -->
+            <div class="create-card" @onclick="OpenCreateDialog">
+                <div class="create-icon-circle">
+                    <span class="material-symbols-outlined" style="font-size: 2.5rem; font-weight: 300;">add</span>
+                </div>
+                <span style="font-weight: 800; color: var(--primary); font-size: 1.1rem;">Create New Event</span>
+                <p style="font-size: 0.85rem; color: rgba(37, 52, 63, 0.6); margin-top: 0.5rem; text-align: center; max-width: 200px;">
+                    Schedule a meeting, workshop, or seminar
+                </p>
+            </div>
+
+            @if (events != null)
             {
-                <MudItem xs="12" sm="6" md="4" lg="3">
-                    <MudCard Class="event-card elevation-0 cursor-pointer" @onclick="() => GoToDetail(evt.Id)">
-                        
-                        <div class="image-placeholder">
-                            <MudChip T="string"
-                                     Size="Size.Small"
-                                     Class="@($"status-chip status-{evt.StatusLabel?.ToLower()}")">
+                @foreach (var evt in filteredEvents)
+                {
+                    var status = evt.StatusLabel?.ToLower() ?? "upcoming";
+                    var isCompleted = status == "completed";
+                    
+                    var statusClass = status switch {
+                        "ongoing" => "status-ongoing",
+                        "upcoming" => "status-upcoming",
+                        "completed" => "status-completed",
+                        _ => "status-upcoming"
+                    };
+
+                    var imageUrl = status switch {
+                        "ongoing" => "https://lh3.googleusercontent.com/aida-public/AB6AXuAm7trA7GoMiNFIhQn-vahI6JVlgueXar2wVE7xGBo_aFHXRXCTEx6GD1aJHmD4H47UwppGYbUjlZK-zM9aIRAS_yFqcerPNrPrai4JivDhUOkLUVcmPe-VxQsuhJmWvBAVgBig-U1Q2B_iEsr6xMY69yiGhP2YVjCT3Mab9Ng2IrDqBb_EriXwHdOoJZ9cvZMp13gqDjDl2ERCP8y5CSIbd1dAbNthzLbnu3YkXRFhoXMAewGLwJrJCxculxuNYqC07Ju9a-sjbz8",
+                        "upcoming" => "https://lh3.googleusercontent.com/aida-public/AB6AXuDX6Ys69XMp7KDYA3G5O2qTstPmzQiJrhsxBL_X1ylvCPbg3o_zvPxzILHUsqkAF5an0W46ni_c6C6W4v_stR0tCVi3uD-Ao5pZFg5rNOU5VF45HG_sdIZwOo2cJEdd2XBKOo6jluOF-9F_uPyjcHgMmP-T_8LMGpCcVLEdtxA86nx2VNZjcZqVlifG6eXp5oKQXzICU7-3w9OODfn0ipHswvoBRW9EGblXa3AI3xd1BmZlgTNCcwW5KScuHUEBYvZRqoJXcJ7gra0",
+                        _ => "https://lh3.googleusercontent.com/aida-public/AB6AXuCvf7tkRB7ErTtCeY0NeuIQa7hL0UKfnth_UHT3dfXH78vXX4dHVs-x3TNAHlYCLjc3pxli16Kvo7lpwgTx7XO2h1ifLBKIy9KjuR_GAMuXf4KC-qOAzpKoKmBF5yWB3caO02xbt3NRq5VoOwZCD1uzvGm29Q1NFNBiXummFZae1rnAoo3MEwjFihaeL0AqYk_-awTqZP9TYU2-GXM-AIpKTZDtkfmP84wjhkjs47VabpGvEGd-aQ863fYpKubAWwoM3vu3C4dAVFA"
+                    };
+
+                    <div class="premium-card @(isCompleted ? "event-card-completed" : "")" @onclick="() => GoToDetail(evt.Id)">
+                        <div class="card-img-box">
+                            <img class="card-image" src="@imageUrl" alt="@evt.Name" />
+                            <div class="status-tag @statusClass">
                                 @evt.StatusLabel
-                            </MudChip>
+                            </div>
+                            
+                            <!-- Các hành động nội bộ (Sửa/Xóa) -->
+                            <div class="card-dropdown" @onclick:stopPropagation="true">
+                                <MudMenu Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Surface" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                    <MudMenuItem OnClick="@(async () => await OpenUpdateDialog(evt))">Sửa</MudMenuItem>
+                                    <MudMenuItem OnClick="@(async () => await DeleteEventAsync(evt))">Xóa</MudMenuItem>
+                                </MudMenu>
+                            </div>
                         </div>
 
-                        <MudCardContent Class="pa-5 d-flex flex-column flex-grow-1">
-                            <MudText Typo="Typo.h6" Class="fw-bold event-title" Style="color: #0f172a; line-height: 1.4; font-size: 1.1rem;">
-                                @evt.Name
-                            </MudText>
-
-                            <div class="event-info mb-2">
-                                <span class="fw-bold text-muted mr-2" style="font-size: 0.85rem;">Date:</span>
-                                <span style="font-size: 0.85rem; color: #475569; font-weight: 500;">@FormatEventDate(evt.StartDate)</span>
-                            </div>
-
-                            <div class="event-info mb-5">
-                                <span class="fw-bold text-muted mr-2" style="font-size: 0.85rem;">Loc:</span>
-                                <span style="font-size: 0.85rem; color: #475569; font-weight: 500;">@evt.Location</span>
-                            </div>
-
-                            <div class="mt-auto pt-4" style="border-top: 1px solid #f1f5f9;">
-                                <div class="d-flex justify-space-between mb-2">
-                                    <MudText Typo="Typo.caption" Class="fw-bold text-muted" Style="font-size: 0.75rem;">
-                                        @GetParticipantText(evt)
-                                    </MudText>
-
-                                @if (evt.TotalSlots > 0 || evt.StatusLabel == "COMPLETED")
-                                    {
-                                        <MudText Typo="Typo.caption" Class="fw-bold" Style="@($"font-size: 0.75rem; {GetCapacityStyle(evt)}")">
-                                            @GetCapacityText(evt)
-                                        </MudText>
-                                    }
+                        <div class="card-body">
+                            <h3 class="card-title">@evt.Name</h3>
+                            
+                            <div class="card-meta-list">
+                                <div class="meta-row">
+                                    <span class="material-symbols-outlined">calendar_today</span>
+                                    <span>@FormatEventDate(evt)</span>
                                 </div>
-
-                                @if (evt.TotalSlots > 0 && evt.StatusLabel != "COMPLETED")
-                                {
-                                    <MudProgressLinear Value="@GetProgress(evt)"
-                                                       Color="@GetProgressColor(evt.StatusLabel)"
-                                                       Rounded="true"
-                                                       Size="Size.Small" 
-                                                       Class="mt-1" />
-                                }
-                                @if(evt.StatusLabel == "COMPLETED")
-                                {
-                                    <MudProgressLinear Value="100" Color="Color.Default" Rounded="true" Size="Size.Small" Class="mt-1 opacity-50" />
-                                }
+                                <div class="meta-row">
+                                    <span class="material-symbols-outlined">location_on</span>
+                                    <span>@evt.Location</span>
+                                </div>
                             </div>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
+
+                            <div class="card-footer-box">
+                                <div class="progress-meta">
+                                    <span class="participants-count">@GetParticipantText(evt)</span>
+                                    <span class="capacity-percent text-@status">@GetCapacityText(evt)</span>
+                                </div>
+                                <div class="progress-rail-modern">
+                                    <div class="progress-fill-modern fill-@status" 
+                                         style="width: @(isCompleted ? "100%" : GetProgress(evt).ToString("F0") + "%")"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
             }
-        }
-    </MudGrid>
+        </div>
+    </div>
 
-    <MudFab Color="Color.Warning" 
-            Label="+" 
-            Class="fixed-fab fw-bold" 
-            Style="font-size: 1.5rem;"
-            DisableElevation="false" />
+    <!-- Nút hành động nổi (FAB) -->
+    <button class="context-fab" @onclick="OpenCreateDialog">
+        <span class="material-symbols-outlined" style="font-size: 2rem;">add</span>
+    </button>
+</div>
 
-</MudContainer>
-
-
-<style>
-    /* CSS DỰ PHÒNG: Ép Grid chia cột ngay cả khi MudBlazor CSS bị lỗi */
-    .custom-grid-fallback.mud-grid {
-        display: flex;
-        flex-wrap: wrap;
-        margin: -16px;
-    }
-    .custom-grid-fallback .mud-grid-item {
-        padding: 16px;
-        width: 100%;
-    }
-    @@media (min-width: 600px) { .custom-grid-fallback .mud-grid-item { width: 50%; } }
-    @@media (min-width: 960px) { .custom-grid-fallback .mud-grid-item { width: 33.333333%; } }
-    @@media (min-width: 1280px) { .custom-grid-fallback .mud-grid-item { width: 25%; } }
-
-    /* --- STYLES CHÍNH --- */
-    .events-page {
-        background: #f8fafc;
-        min-height: 100vh;
-        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .text-muted { color: #64748b !important; }
-    .text-dark { color: #0f172a !important; }
-    .fw-bold { font-weight: 700 !important; }
-
-    .search-box {
-        width: 280px;
-        background: white;
-        border-radius: 10px;
-    }
-
-    .mock-icon-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background-color: white;
-        border: 1px solid #e2e8f0;
-        color: #475569;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 0.9rem;
-        cursor: pointer;
-        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    }
-
-    .toggle-box {
-        background: #f1f5f9;
-        padding: 5px;
-        border-radius: 12px;
-    }
-
-    .action-btn {
-        background: white;
-        border-radius: 10px;
-        border: 1px solid #e2e8f0 !important;
-        text-transform: none;
-        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    }
-
-    /* Thẻ Create */
-    .create-card {
-        height: 100%;
-        min-height: 380px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border: 2px dashed #cbd5e1;
-        border-radius: 16px;
-        background-color: transparent;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-    .create-card:hover {
-        border-color: #f97316;
-        background-color: rgba(249, 115, 22, 0.02);
-    }
-    
-    .create-icon-text {
-        background: #fff7ed;
-        width: 54px;
-        height: 54px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        color: #f97316;
-        font-size: 2rem;
-        font-weight: 400;
-        margin-bottom: 20px;
-    }
-
-    /* Thẻ Event */
-    .event-card {
-        border-radius: 16px;
-        overflow: hidden;
-        border: 1px solid #f1f5f9;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05) !important;
-        transition: 0.3s ease;
-        height: 100%;
-        min-height: 380px;
-        display: flex;
-        flex-direction: column;
-    }
-    .event-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
-    }
-
-    .image-placeholder {
-        height: 170px;
-        background-color: #e2e8f0;
-        position: relative;
-        width: 100%;
-        flex-shrink: 0;
-    }
-
-    /* Status Badge */
-    .status-chip {
-        position: absolute;
-        top: 14px;
-        left: 14px;
-        font-size: 0.65rem;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-        padding: 0 10px;
-        border-radius: 6px;
-    }
-    .status-ongoing { background-color: #f97316 !important; color: white !important; }
-    .status-upcoming { background-color: #1e293b !important; color: white !important; }
-    .status-completed { background-color: #64748b !important; color: white !important; }
-
-    .event-title {
-        margin-bottom: 16px;
-        min-height: 48px;
-    }
-
-    .event-info {
-        display: flex;
-        align-items: center;
-    }
-
-    .fixed-fab {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        z-index: 100;
-        box-shadow: 0 4px 14px 0 rgba(249, 115, 22, 0.39);
-    }
-</style>
 
 @code {
     private List<EventViewModel>? events;
+    private List<EventViewModel> filteredEvents = [];
+    private string searchTerm = string.Empty;
+    private string statusFilter = "All";
     private Guid currentOrgId;
+    private bool _isOrganizationRoute;
+
+    private string SearchTerm
+    {
+        get => searchTerm;
+        set
+        {
+            if (string.Equals(searchTerm, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            searchTerm = value;
+            ApplyFilters();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        var currentRoute = "/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Trim('/');
+        _isOrganizationRoute = currentRoute.StartsWith("/org/", StringComparison.OrdinalIgnoreCase);
+
         currentOrgId = await OrganizationContext.GetOrganizationIdAsync();
         await LoadEvents();
     }
@@ -312,6 +187,38 @@
     private async Task LoadEvents()
     {
         events = await EventService.GetEventsAsync(currentOrgId);
+        ApplyFilters();
+    }
+
+    private void OnStatusFilterChanged(string value)
+    {
+        statusFilter = string.IsNullOrWhiteSpace(value) ? "All" : value;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        if (events is null)
+        {
+            filteredEvents = [];
+            return;
+        }
+
+        var normalizedSearch = searchTerm.Trim();
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        filteredEvents = events
+            .Where(evt => string.IsNullOrWhiteSpace(normalizedSearch)
+                || evt.Name.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase))
+            .Where(evt => statusFilter switch
+            {
+                "Past" => string.Equals(evt.StatusLabel, "COMPLETED", StringComparison.OrdinalIgnoreCase)
+                    || evt.EndDate < today,
+                "Upcoming" => !(string.Equals(evt.StatusLabel, "COMPLETED", StringComparison.OrdinalIgnoreCase)
+                    || evt.EndDate < today),
+                _ => true
+            })
+            .ToList();
     }
 
     private async Task OpenCreateDialog()
@@ -319,12 +226,10 @@
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = await DialogService.ShowAsync<CreateEventDialog>("Tạo Chiến Dịch/Sự Kiện", options);
         
-        // Thêm dòng này để C# biết chắc chắn dialog không bị null
         if (dialog == null) return;
 
         var result = await dialog.Result;
 
-        // Thêm check result != null vào cụm điều kiện này
         if (result != null && !result.Canceled && result.Data != null)
         {
             var req = (CreateEventViewModel)result.Data;
@@ -336,11 +241,58 @@
         }
     }
 
-    private string FormatEventDate(DateOnly date)
+    private async Task OpenUpdateDialog(EventViewModel evt)
     {
-        if (date == DateOnly.FromDateTime(DateTime.Today))
-            return $"Today";
-        return date.ToString("MMM dd, yyyy");
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters
+        {
+            ["Model"] = new UpdateEventViewModel
+            {
+                EventId = evt.Id,
+                Name = evt.Name,
+                Description = evt.Description,
+                StartDate = evt.StartDate.ToDateTime(TimeOnly.MinValue),
+                EndDate = evt.EndDate.ToDateTime(TimeOnly.MinValue),
+                Location = evt.Location,
+                TotalSlots = evt.TotalSlots
+            }
+        };
+
+        var dialog = await DialogService.ShowAsync<UpdateEventDialog>("Cập nhật sự kiện", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled || result.Data is not UpdateEventViewModel req)
+        {
+            return;
+        }
+
+        await EventService.UpdateEventAsync(evt.Id, req);
+        await LoadEvents();
+        Snackbar.Add("Cập nhật sự kiện thành công.", Severity.Success);
+    }
+
+    private async Task DeleteEventAsync(EventViewModel evt)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Xóa sự kiện '{evt.Name}'?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        await EventService.DeleteEventAsync(evt.Id);
+        await LoadEvents();
+        Snackbar.Add("Đã xóa sự kiện.", Severity.Success);
+    }
+
+    private string FormatEventDate(EventViewModel evt)
+    {
+        if (evt.StatusLabel == "ONGOING")
+            return "Today, 09:00 AM";
+            
+        if (evt.StartDate == DateOnly.FromDateTime(DateTime.Today))
+            return "Today";
+            
+        return evt.StartDate.ToString("MMM dd, yyyy") + " • 02:00 PM";
     }
 
     private double GetProgress(EventViewModel evt)
@@ -348,13 +300,6 @@
         if (evt.TotalSlots == 0) return 0;
         return ((double)evt.RegisteredCount / evt.TotalSlots) * 100;
     }
-
-    private Color GetProgressColor(string? status) => status switch
-    {
-        "ONGOING" => Color.Warning,   
-        "UPCOMING" => Color.Dark,     
-        _ => Color.Default
-    };
 
     private string GetParticipantText(EventViewModel evt) => evt.StatusLabel switch
     {
@@ -370,16 +315,9 @@
         _ => $"{evt.RegisteredCount}/{evt.TotalSlots} Slots"
     };
 
-    private string GetCapacityStyle(EventViewModel evt) => evt.StatusLabel switch
-    {
-        "ONGOING" => "color: #f97316;", 
-        "COMPLETED" => "color: #94a3b8;", 
-        _ => "color: #0f172a;" 
-    };
-
     private void GoToDetail(Guid eventId)
     {
-        // Chuyển hướng sang trang Event Detail với ID tương ứng
-        NavigationManager.NavigateTo($"/events/{eventId}");
+        const string eventsBaseRoute = "/org/events";
+        NavigationManager.NavigateTo($"{eventsBaseRoute}/{eventId}");
     }
 }

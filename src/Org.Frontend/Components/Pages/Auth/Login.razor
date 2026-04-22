@@ -2,7 +2,7 @@
 @page "/login"
 @layout AuthLayout
 @attribute [AllowAnonymous]
-@inject AuthApiClient AuthApiClient
+@inject IAuthService AuthService
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @using System.ComponentModel.DataAnnotations
@@ -100,7 +100,7 @@
         try
         {
             // Gọi API đăng nhập bằng email/mật khẩu từ form
-            var response = await AuthApiClient.LoginAsync(new LoginRequest
+            var response = await AuthService.LoginAsync(new LoginRequest
             {
                 Email = _model.Email.Trim(),
                 Password = _model.Password
@@ -109,6 +109,10 @@
             // Lưu token + cập nhật auth state rồi chuyển tới trang đích
             await AuthStateProvider.SignInAsync(response);
             Navigation.NavigateTo(_targetAfterLogin, forceLoad: false);
+        }
+        catch (HttpRequestException)
+        {
+            _errorMessage = "Không thể thực hiện đăng nhập lúc này. Vui lòng thử lại.";
         }
         catch (AuthApiException ex)
         {

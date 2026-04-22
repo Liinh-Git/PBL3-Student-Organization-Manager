@@ -1,0 +1,211 @@
+// ---- Mock service cho dashboard user: đọc dữ liệu từ mock dataset, dùng Attendee semantics ----
+using System.Security.Claims;
+using Microsoft.AspNetCore.Components.Authorization;
+using Org.Frontend.Services.Mocks;
+using Org.Frontend.Services.Mocks.Models;
+using Org.Frontend.ViewModels;
+
+namespace Org.Frontend.Services.Dashboard;
+
+public sealed class UserDashboardMockService(
+    FrontendMockDataStore mockDataStore,
+    AuthenticationStateProvider authStateProvider) : IUserDashboardService
+{
+    private const string DefaultOrganizationImageUrl = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=960&q=80";
+    private const string DefaultEventImageUrl = "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80";
+
+    private readonly FrontendMockDataStore _mockDataStore = mockDataStore;
+    private readonly AuthenticationStateProvider _authStateProvider = authStateProvider;
+
+    public async Task<UserDashboardViewModel> GetDashboardAsync(CancellationToken ct = default)
+    {
+        var authState = await _authStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var userIdText = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = Guid.TryParse(userIdText, out var parsedUserId)
+            ? parsedUserId
+            : (Guid?)null;
+
+        return await _mockDataStore.UseAsync(data =>
+        {
+            var organizations = userId is null
+                ? []
+                : data.Members
+                    .Where(x => x.UserId == userId.Value)
+                    .OrderByDescending(x => x.JoinDate)
+                    .Select(x =>
+                    {
+                        var org = data.Organizations.FirstOrDefault(o => o.Id == x.OrgId);
+                        if (org is null)
+                        {
+                            return null;
+                        }
+
+                        return new UserOrganizationViewModel
+                        {
+                            OrganizationId = org.Id,
+                            Name = org.OrgName,
+                            Description = org.Description,
+                            AvatarUrl = ResolveOrganizationImage(org),
+                            JoinedAtUtc = new DateTimeOffset(DateTime.SpecifyKind(x.JoinDate, DateTimeKind.Utc)),
+                            Role = "Member"
+                        };
+                    })
+                    .Where(x => x is not null)
+                    .Select(x => x!)
+                    .ToList();
+
+            var registeredEvents = userId is null
+                ? []
+                : data.Attendees
+                    .Where(x => x.UserId == userId.Value && !string.Equals(x.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(x => x.CreatedAt)
+                    .GroupBy(x => x.EventId)
+                    .Select(g => g.First())
+                    .Select(x =>
+                    {
+                        var eventItem = data.Events.FirstOrDefault(e => e.Id == x.EventId);
+                        if (eventItem is null)
+                        {
+                            return null;
+                        }
+
+                        var organization = data.Organizations.FirstOrDefault(o => o.Id == eventItem.OrgId);
+                        return new UserRegisteredEventViewModel
+                        {
+                            EventId = eventItem.Id,
+                            OrganizationId = eventItem.OrgId,
+                            OrganizationName = organization?.OrgName ?? "Organization",
+                            Name = eventItem.Name,
+                            Description = eventItem.Description,
+                            StartDate = eventItem.StartDate,
+                            EndDate = eventItem.EndDate,
+                            EventStatus = NormalizeEventStatus(eventItem.StatusLabel),
+                            RegistrationStatus = NormalizeRegistrationStatus(x.Status),
+                            RegisteredAtUtc = new DateTimeOffset(DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc)),
+                            Location = eventItem.Location,
+                            ImageUrl = ResolveEventImage(eventItem, organization)
+                        };
+                    })
+                    .Where(x => x is not null)
+                    .Select(x => x!)
+                    .OrderBy(x => x.StartDate)
+                    .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+            var joinedOrganizationIds = organizations
+                .Select(x => x.OrganizationId)
+                .ToHashSet();
+
+            var suggestedOrganizations = data.Organizations
+                .Where(x => !joinedOrganizationIds.Contains(x.Id))
+                .Select(x => new SuggestedOrganizationViewModel
+                {
+                    OrganizationId = x.Id,
+                    Name = x.OrgName,
+                    Description = x.Description,
+                    ImageUrl = ResolveOrganizationImage(x),
+                    MemberCount = x.TotalMembers > 0
+                        ? x.TotalMembers
+                        : data.Members.Count(m => m.OrgId == x.Id),
+                    Location = x.Location,
+                    IsActive = x.Status == 0
+                })
+                .OrderByDescending(x => x.IsActive)
+                .ThenByDescending(x => x.MemberCount)
+                .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                .Take(12)
+                .ToList();
+
+            var registeredEventIds = registeredEvents
+                .Select(x => x.EventId)
+                .ToHashSet();
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var suggestedEvents = data.Events
+                .Where(x => !registeredEventIds.Contains(x.Id) && x.EndDate >= today)
+                .Select(x =>
+                {
+                    var organization = data.Organizations.FirstOrDefault(o => o.Id == x.OrgId);
+                    return new SuggestedEventViewModel
+                    {
+                        EventId = x.Id,
+                        OrganizationId = x.OrgId,
+                        OrganizationName = organization?.OrgName ?? "Organization",
+                        Name = x.Name,
+                        Description = x.Description,
+                        StartDate = x.StartDate,
+                        EndDate = x.EndDate,
+                        EventStatus = NormalizeEventStatus(x.StatusLabel),
+                        Location = x.Location,
+                        ImageUrl = ResolveEventImage(x, organization),
+                        RegisteredCount = data.Attendees.Count(a =>
+                            a.EventId == x.Id
+                            && !string.Equals(a.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase))
+                    };
+                })
+                .OrderBy(x => x.StartDate < today ? 1 : 0)
+                .ThenBy(x => x.StartDate)
+                .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                .Take(12)
+                .ToList();
+
+            return new UserDashboardViewModel
+            {
+                DisplayName = user.Identity?.Name?.Trim() ?? "Nguoi dung",
+                Email = user.FindFirst(ClaimTypes.Email)?.Value,
+                Organizations = organizations,
+                RegisteredEvents = registeredEvents,
+                SuggestedOrganizations = suggestedOrganizations,
+                SuggestedEvents = suggestedEvents
+            };
+        }, ct);
+    }
+
+    private static string ResolveOrganizationImage(MockOrganization organization)
+    {
+        if (!string.IsNullOrWhiteSpace(organization.AvatarUrl))
+            return organization.AvatarUrl;
+
+        if (!string.IsNullOrWhiteSpace(organization.CoverUrl))
+            return organization.CoverUrl;
+
+        return DefaultOrganizationImageUrl;
+    }
+
+    private static string ResolveEventImage(MockEvent eventItem, MockOrganization? organization)
+    {
+        if (!string.IsNullOrWhiteSpace(eventItem.ImageUrl))
+            return eventItem.ImageUrl;
+
+        if (!string.IsNullOrWhiteSpace(organization?.CoverUrl))
+            return organization.CoverUrl;
+
+        if (!string.IsNullOrWhiteSpace(organization?.AvatarUrl))
+            return organization.AvatarUrl;
+
+        return DefaultEventImageUrl;
+    }
+
+    private static string NormalizeEventStatus(string? statusLabel)
+    {
+        return statusLabel?.Trim().ToUpperInvariant() switch
+        {
+            "ONGOING" => "ONGOING",
+            "COMPLETED" => "COMPLETED",
+            "PLANNING" => "PLANNING",
+            _ => "DRAFT"
+        };
+    }
+
+    private static string NormalizeRegistrationStatus(string? status)
+    {
+        return status?.Trim().ToUpperInvariant() switch
+        {
+            "ATTENDED" => "ATTENDED",
+            "CANCELLED" => "CANCELLED",
+            _ => "REGISTERED"
+        };
+    }
+}

@@ -8,4 +8,6 @@ public interface IEventService
     Task<List<EventViewModel>> GetEventsAsync(Guid orgId);
     Task<EventViewModel> CreateEventAsync(CreateEventViewModel request);
     Task<EventViewModel?> GetEventDetailAsync(Guid eventId);
+    Task<EventViewModel> UpdateEventAsync(Guid eventId, UpdateEventViewModel req);
+    Task DeleteEventAsync(Guid eventId);
 }

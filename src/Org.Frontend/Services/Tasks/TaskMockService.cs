@@ -1,41 +1,91 @@
 // ---- TaskMockService ----
+using Org.Frontend.Services.Mocks;
+using Org.Frontend.Services.Mocks.Models;
 using Org.Frontend.ViewModels;
 
 namespace Org.Frontend.Services.Tasks;
 
-public class TaskMockService : ITaskService
+public sealed class TaskMockService(FrontendMockDataStore mockDataStore) : ITaskService
 {
-    // Static để data không bị reset khi chuyển trang
-    private static List<TaskViewModel> _tasks = new()
-    {
-        new() { Id = Guid.NewGuid(), CategoryId = Guid.Empty, Title = "Lên kịch bản MC",                Status = "TODO",        AssigneeName = "Sarah J.", DueDate = DateTime.Today.AddDays(2) },
-        new() { Id = Guid.NewGuid(), CategoryId = Guid.Empty, Title = "Thiết kế Backdrop",              Status = "TODO",        AssigneeName = "Marcus V.", DueDate = DateTime.Today.AddDays(3) },
-        new() { Id = Guid.NewGuid(), CategoryId = Guid.Empty, Title = "Thuê dàn âm thanh ánh sáng",    Status = "IN_PROGRESS", AssigneeName = "David C.",  DueDate = DateTime.Today.AddDays(1) },
-        new() { Id = Guid.NewGuid(), CategoryId = Guid.Empty, Title = "Khảo sát hội trường",           Status = "DONE",        AssigneeName = "David C.",  DueDate = DateTime.Today.AddDays(-1) }
-    };
+    private readonly FrontendMockDataStore _mockDataStore = mockDataStore;
 
     public Task<List<TaskViewModel>> GetTasksAsync(Guid categoryId)
-        => Task.FromResult(_tasks.ToList());
-
-    public Task UpdateTaskStatusAsync(Guid taskId, UpdateTaskStatusViewModel req)
     {
-        var task = _tasks.FirstOrDefault(t => t.Id == taskId);
-        if (task != null) task.Status = req.Status;
-        return Task.CompletedTask;
+        return _mockDataStore.UseAsync(data => data.Tasks
+            .Where(x => x.CategoryId == categoryId)
+            .OrderBy(x => x.DueDate ?? DateTime.MaxValue)
+            .ThenBy(x => x.Title, StringComparer.OrdinalIgnoreCase)
+            .Select(x => MapTask(data, x))
+            .ToList());
+    }
+
+    public async Task UpdateTaskStatusAsync(Guid taskId, UpdateTaskStatusViewModel req)
+    {
+        await _mockDataStore.UseAsync(data =>
+        {
+            var task = data.Tasks.FirstOrDefault(x => x.Id == taskId)
+                ?? throw new KeyNotFoundException($"Task {taskId} not found in mock data.");
+
+            task.Status = NormalizeStatus(req.Status);
+            return 0;
+        });
     }
 
     public Task<TaskViewModel> CreateTaskAsync(Guid categoryId, CreateTaskViewModel req)
     {
-        var newTask = new TaskViewModel
+        return _mockDataStore.UseAsync(data =>
         {
-            Id = Guid.NewGuid(),
-            CategoryId = categoryId,
-            Title = req.Title ?? "New Task",
-            Status = "TODO",
-            AssigneeName = "Chưa gán",
-            DueDate = req.DueDate
+            if (!data.EventCategories.Any(x => x.Id == categoryId))
+            {
+                throw new KeyNotFoundException($"Category {categoryId} not found in mock data.");
+            }
+
+            var item = new MockTask
+            {
+                Id = Guid.NewGuid(),
+                CategoryId = categoryId,
+                Title = NormalizeTitle(req.Title),
+                Status = "TODO",
+                AssigneeMemberId = null,
+                DueDate = req.DueDate,
+                Note = null
+            };
+
+            data.Tasks.Insert(0, item);
+            return MapTask(data, item);
+        });
+    }
+
+    private static TaskViewModel MapTask(MockDataSet data, MockTask source)
+    {
+        var assigneeName = "Unassigned";
+        if (source.AssigneeMemberId.HasValue)
+        {
+            assigneeName = data.Members.FirstOrDefault(x => x.Id == source.AssigneeMemberId.Value)?.DisplayName
+                ?? "Unassigned";
+        }
+
+        return new TaskViewModel
+        {
+            Id = source.Id,
+            CategoryId = source.CategoryId,
+            Title = source.Title,
+            Status = NormalizeStatus(source.Status),
+            AssigneeName = assigneeName,
+            DueDate = source.DueDate
         };
-        _tasks.Insert(0, newTask);
-        return Task.FromResult(newTask);
+    }
+
+    private static string NormalizeTitle(string? title)
+        => string.IsNullOrWhiteSpace(title) ? "New Task" : title.Trim();
+
+    private static string NormalizeStatus(string? status)
+    {
+        return status?.Trim().ToUpperInvariant() switch
+        {
+            "IN_PROGRESS" => "IN_PROGRESS",
+            "DONE" => "DONE",
+            _ => "TODO"
+        };
     }
 }

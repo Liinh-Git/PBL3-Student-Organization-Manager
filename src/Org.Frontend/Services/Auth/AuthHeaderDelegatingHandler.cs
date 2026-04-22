@@ -1,3 +1,6 @@
+// ---- DelegatingHandler tự động gắn Bearer token vào mọi request API ----
+// Ưu tiên đọc từ AccessTokenStore (memory) trước, fallback sang localStorage nếu chưa có.
+// Nếu token hết hạn hoặc server trả 401 → xóa token và ném AuthApiException.
 using Microsoft.JSInterop;
 using System.Net;
 using System.Net.Http.Headers;
@@ -9,6 +12,7 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
     private readonly ITokenStorage _tokenStorage;
     private readonly IAccessTokenStore _accessTokenStore;
 
+    // ---- Inject token storage (localStorage) và in-memory token store ----
     public AuthHeaderDelegatingHandler(ITokenStorage tokenStorage, IAccessTokenStore accessTokenStore)
     {
         _tokenStorage = tokenStorage;

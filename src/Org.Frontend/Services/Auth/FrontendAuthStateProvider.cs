@@ -11,7 +11,7 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
 {
     private static readonly AuthenticationState AnonymousState = new(new ClaimsPrincipal(new ClaimsIdentity()));
 
-    private readonly AuthApiClient _authApiClient;
+    private readonly IAuthService _authService;
     private readonly ITokenStorage _tokenStorage;
     private readonly IAccessTokenStore _accessTokenStore;
     private readonly IOrganizationContext _organizationContext;
@@ -22,12 +22,12 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
 
     // ---- Inject API client và token storage ----
     public FrontendAuthStateProvider(
-        AuthApiClient authApiClient,
+        IAuthService authService,
         ITokenStorage tokenStorage,
         IAccessTokenStore accessTokenStore,
         IOrganizationContext organizationContext)
     {
-        _authApiClient = authApiClient;
+        _authService = authService;
         _tokenStorage = tokenStorage;
         _accessTokenStore = accessTokenStore;
         _organizationContext = organizationContext;
@@ -71,7 +71,7 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
                 SetInMemoryToken(token, expiresAtUtc.Value);
 
                 // Bước 3: token hợp lệ thì gọi /me để dựng claims chuẩn
-                var me = await _authApiClient.GetMeAsync(token, ct);
+                var me = await _authService.GetMeAsync(token, ct);
                 SetAuthenticatedState(BuildClaimsPrincipal(me));
             }
             catch (AuthApiException)
@@ -103,7 +103,7 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
         try
         {
             // Bước 2: ưu tiên gọi /me để lấy profile mới nhất từ backend
-            profile = await _authApiClient.GetMeAsync(loginResponse.AccessToken, ct);
+            profile = await _authService.GetMeAsync(loginResponse.AccessToken, ct);
         }
         catch (AuthApiException)
         {

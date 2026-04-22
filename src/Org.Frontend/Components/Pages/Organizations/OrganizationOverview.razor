@@ -1,0 +1,231 @@
+@* ---- Trang tổng quan tổ chức (/org-overview) — hiển thị banner, thông tin, team và cột mốc ----
+    Hiện sử dụng dữ liệu cứng (chuẩn bị cho kết nối API thảt sau). *@
+@page "/org-overview"
+
+<PageTitle>Tong quan to chuc</PageTitle>
+
+<div class="org-overview-page">
+    <section class="org-banner">
+        <img class="org-banner-image" src="/images/banners/org-banner.jpg" alt="Organization banner" />
+        <div class="org-banner-overlay">
+            <div class="org-banner-brand">
+                <div class="org-brand-avatar">
+                    <img src="/images/icons/icon1.png" alt="Kora logo" />
+                </div>
+
+                <div class="org-brand-content">
+                    <h1>Kora Community</h1>
+                    <div class="org-brand-meta">
+                        <span>
+                            <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Class="meta-icon" />
+                            TP. Ho Chi Minh, Viet Nam
+                        </span>
+                        <span>
+                            <MudIcon Icon="@Icons.Material.Outlined.People" Class="meta-icon" />
+                            2,480 thanh vien
+                        </span>
+                        <span>
+                            <MudIcon Icon="@Icons.Material.Outlined.Visibility" Class="meta-icon" />
+                            To chuc da xac thuc
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="org-content">
+        <section class="org-card about-card">
+            <p class="section-kicker">Ve chung toi</p>
+            <h2>Thong tin tong quan</h2>
+            <p class="about-text">
+                Kora Community la mang luoi sang tao va phat trien ben vung danh cho cac chuyen gia tre tai Viet Nam.
+                Chung toi tap trung vao viec kien tao khong gian hoc tap, ket noi va trien khai cac du an co tac dong xa hoi
+                tich cuc thong qua cong nghe va nghe thuat. Duoc thanh lap tu nam 2018, Kora da tro thanh diem den tin cay
+                cho hon 2,000 thanh vien uu tu.
+            </p>
+
+            <div class="about-grid">
+                <article>
+                    <h3>Su menh</h3>
+                    <p>
+                        Xay dung he sinh thai tri thuc hien dai, noi moi sinh vien GenZ co the phat huy toi da tu duy kien truc va
+                        ky nang quan ly chuyen nghiep.
+                    </p>
+                </article>
+                <article>
+                    <h3>Vi tri</h3>
+                    <p>
+                        Toa nha A1, Dai hoc Kien truc Ha Noi
+                        Km 10, Duong Nguyen Trai, Thanh Xuan
+                    </p>
+                </article>
+                <article>
+                    <h3>Ngay thanh lap</h3>
+                    <div class="founded-row">
+                        <MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Class="founded-icon" />
+                        <strong>15/05/2021</strong>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="team-section">
+            <div class="section-head">
+                <div>
+                    <p class="section-kicker">Doi ngu</p>
+                    <h2>Quan tri vien</h2>
+                </div>
+                <a href="/org/members">Xem tat ca</a>
+            </div>
+
+            <div class="admin-grid">
+                @foreach (var admin in Admins)
+                {
+                    <article class="admin-card">
+                        <img src="@admin.Avatar" alt="@admin.Name" />
+                        <div>
+                            <h3>@admin.Name</h3>
+                            <p>@admin.Role</p>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+
+        <section class="timeline-section">
+            <div class="timeline-intro">
+                <p class="section-kicker">Dong thoi gian</p>
+                <h2>Hanh trinh phat trien</h2>
+                <p>
+                    Tu nhung buoc chan dau tien den mot cong dong kien truc vung manh.
+                </p>
+                <a href="/org/reports">Xem chi tiet lich su</a>
+            </div>
+
+            <div class="timeline-list">
+                @for (var i = 0; i < Timeline.Count; i++)
+                {
+                    var item = Timeline[i];
+                    var active = i == 0;
+
+                    <article class="timeline-item @(active ? "active" : string.Empty)">
+                        <div class="timeline-node @(active ? "active" : string.Empty)"></div>
+                        <div class="timeline-card">
+                            <p class="timeline-month">@item.Month</p>
+                            <h3>@item.Title</h3>
+                            <p>@item.Description</p>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+
+        <section class="event-section">
+            <p class="section-kicker">Lich trinh</p>
+            <h2>Su kien sap toi</h2>
+            <article class="upcoming-card">
+                <div class="upcoming-media">
+                    <img src="/images/avatars/admin.jpg" alt="Upcoming event" />
+                </div>
+                <div class="upcoming-content">
+                    <div class="event-tags">
+                        <span class="tag cool">Cong nghe</span>
+                        <span class="tag hot">Hot</span>
+                    </div>
+                    <h3>UI/UX Summit: Kien tao Trai nghiem so 2024</h3>
+                    <p>
+                        Su kien thuong nien lon nhat cua Kora danh cho cac nha thiet ke san pham, tap trung vao xu huong
+                        thiet ke ben vung va AI-driven.
+                    </p>
+                    <div class="upcoming-meta">
+                        <span><MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Class="meta-icon" />25 Thang 6, 2024</span>
+                        <span><MudIcon Icon="@Icons.Material.Outlined.Schedule" Class="meta-icon" />08:00 - 17:00</span>
+                    </div>
+                </div>
+                <a class="go-button" href="/org/events" aria-label="Mo trang su kien">
+                    <MudIcon Icon="@Icons.Material.Outlined.ArrowForward" />
+                </a>
+            </article>
+        </section>
+
+        <section class="event-section">
+            <p class="section-kicker">Live</p>
+            <h2>Su kien dang dien ra</h2>
+            <article class="live-card">
+                <div class="live-top">
+                    <div>
+                        <h3>Hackathon: Green Future</h3>
+                        <p>Cuoc thi lap trinh giai phap bao ve moi truong</p>
+                    </div>
+                    <span class="live-badge">Truc tiep</span>
+                </div>
+                <div class="live-progress-head">
+                    <span>Tien do ky luat</span>
+                    <strong>65%</strong>
+                </div>
+                <div class="live-progress-track">
+                    <div class="live-progress-fill"></div>
+                </div>
+                <div class="live-bottom">
+                    <div class="live-members">
+                        <img src="/images/avatars/user.png" alt="Member A" />
+                        <img src="/images/avatars/admin.jpg" alt="Member B" />
+                        <span>+12</span>
+                    </div>
+                    <a href="/org/events" class="join-button">Tham gia ngay</a>
+                </div>
+            </article>
+        </section>
+
+        <section class="event-section">
+            <p class="section-kicker">Kho luu tru</p>
+            <h2>Su kien da qua</h2>
+            <div class="past-grid">
+                @foreach (var item in PastEvents)
+                {
+                    <article class="past-card">
+                        <img src="@item.Image" alt="@item.Title" />
+                        <h3>@item.Title</h3>
+                        <p>@item.Description</p>
+                        <span>@item.Date</span>
+                    </article>
+                }
+            </div>
+        </section>
+    </div>
+
+    <footer class="org-footer">
+        <p>© 2024 Kora Community - The Academic Architect System</p>
+    </footer>
+</div>
+
+@code {
+    private static readonly IReadOnlyList<AdminProfile> Admins =
+    [
+        new("Tran Ha", "Ban lanh dao", "/images/avatars/admin.jpg"),
+        new("Lam Anh", "Chien luoc", "/images/avatars/user.png"),
+        new("Mai Vy", "Cong dong", "/images/avatars/user.png"),
+        new("Quoc Duy", "Truyen thong", "/images/icons/icon1.png")
+    ];
+
+    private static readonly IReadOnlyList<TimelineItem> Timeline =
+    [
+        new("Thang 05/2021", "Thanh lap Kora Community", "Khoi xuong du an voi 5 thanh vien sang lap tai Dai hoc Kien truc, tap trung vao mo hinh hoc thuat chia se."),
+        new("Thang 12/2022", "Mo rong 500+ thanh vien", "Dat cot moc quan trong ve quy mo thanh vien, chinh thuc ra mat nen tang quan ly tai nguyen so."),
+        new("Thang 01/2024", "Giai thuong Kien truc Cong dong", "Duoc vinh danh la To chuc Sinh vien Sang tao nhat nam voi du an Kien truc Xanh GenZ.")
+    ];
+
+    private static readonly IReadOnlyList<PastEventItem> PastEvents =
+    [
+        new("/images/banners/org-banner.jpg", "Trien lam Nghe thuat Gay quy 2023", "Da quyen gop duoc 150 trieu VND cho quy tre em vung cao.", "16 Thang 10, 2023"),
+        new("/images/icons/icon1.png", "Dem khoi nghiep: Connect & Pitch", "Hon 50 y tuong khoi nghiep da tim duoc nha dau tu thien than.", "02 Thang 11, 2023"),
+        new("/images/avatars/admin.jpg", "Workshop: Tu duy Thiet ke", "Buoi thuc hanh danh cho cac quan ly san pham cap cao.", "20 Thang 9, 2023")
+    ];
+
+    private sealed record AdminProfile(string Name, string Role, string Avatar);
+
+    private sealed record TimelineItem(string Month, string Title, string Description);
+
+    private sealed record PastEventItem(string Image, string Title, string Description, string Date);
+}

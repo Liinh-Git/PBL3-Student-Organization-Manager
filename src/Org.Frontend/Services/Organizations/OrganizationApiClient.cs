@@ -1,3 +1,6 @@
+// ---- API client cho context tổ chức — resolve orgId từ endpoint /organizations/default ----
+// Cache orgId trong memory (SemaphoreSlim double-check) sau khi resolve lần đầu.
+// Độc lập token thủ công (không dùng AuthHeaderDelegatingHandler) vì tầng đaầu app render.
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;

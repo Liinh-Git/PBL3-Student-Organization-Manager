@@ -2,7 +2,7 @@
 @page "/register"
 @layout AuthLayout
 @attribute [AllowAnonymous]
-@inject AuthApiClient AuthApiClient
+@inject IAuthService AuthService
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @using System.ComponentModel.DataAnnotations
@@ -113,7 +113,7 @@
         try
         {
             // Bước 1: gọi API đăng ký tài khoản mới
-            await AuthApiClient.RegisterAsync(new RegisterRequest
+            await AuthService.RegisterAsync(new RegisterRequest
             {
                 FullName = _model.FullName.Trim(),
                 Email = _model.Email.Trim(),
@@ -121,7 +121,7 @@
             });
 
             // Bước 2: tự động đăng nhập ngay sau khi đăng ký thành công
-            var loginResponse = await AuthApiClient.LoginAsync(new LoginRequest
+            var loginResponse = await AuthService.LoginAsync(new LoginRequest
             {
                 Email = _model.Email.Trim(),
                 Password = _model.Password

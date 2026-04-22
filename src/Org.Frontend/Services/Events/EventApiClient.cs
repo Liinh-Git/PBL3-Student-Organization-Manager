@@ -1,3 +1,6 @@
+// ---- API client thực cho module sự kiện — ánh xạ EventDto sang EventViewModel ----
+// BuildDetailFromEventDtoAsync: tải lazy Milestone → Category để tính % hoàn thành.
+// ToStatusLabel: map EventStatus enum sang chuỗi UI (ONGOING / UPCOMING / COMPLETED).
 using System.Net;
 using System.Net.Http.Json;
 using Org.Frontend.Services.Organizations;
@@ -56,6 +59,46 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
             ?? throw new InvalidOperationException("API returned no event detail payload.");
 
         return await BuildDetailFromEventDtoAsync(payload.Data);
+    }
+
+    public async Task<EventViewModel> UpdateEventAsync(Guid eventId, UpdateEventViewModel req)
+    {
+        var current = await _httpClient.GetFromJsonAsync<GetEventByIdResponse>($"api/events/{eventId}")
+            ?? throw new InvalidOperationException("API returned no event detail payload.");
+
+        var startDate = req.StartDate.HasValue
+            ? DateOnly.FromDateTime(req.StartDate.Value.Date)
+            : current.Data.StartDate;
+
+        var endDate = req.EndDate.HasValue
+            ? DateOnly.FromDateTime(req.EndDate.Value.Date)
+            : current.Data.EndDate;
+
+        if (endDate < startDate)
+        {
+            endDate = startDate;
+        }
+
+        var payload = new UpdateEventRequest(
+            string.IsNullOrWhiteSpace(req.Name) ? current.Data.Name : req.Name.Trim(),
+            req.Description?.Trim() ?? current.Data.Description,
+            startDate,
+            endDate,
+            current.Data.Status);
+
+        using var response = await _httpClient.PutAsJsonAsync($"api/events/{eventId}", payload);
+        response.EnsureSuccessStatusCode();
+
+        var updated = await response.Content.ReadFromJsonAsync<EventDto>()
+            ?? throw new InvalidOperationException("API returned no event payload.");
+
+        return await BuildDetailFromEventDtoAsync(updated);
+    }
+
+    public async Task DeleteEventAsync(Guid eventId)
+    {
+        using var response = await _httpClient.DeleteAsync($"api/events/{eventId}");
+        response.EnsureSuccessStatusCode();
     }
 
     private async Task<EventViewModel> BuildDetailFromEventDtoAsync(EventDto dto)
