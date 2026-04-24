@@ -9,6 +9,7 @@ using Org.Frontend.Services.Events;
 using Org.Frontend.Services.Members;
 using Org.Frontend.Services.Mocks;
 using Org.Frontend.Services.Organizations;
+using Org.Frontend.Services.Requests;
 using Org.Frontend.Services.Tasks;
 using Org.Frontend.Services.UserSettings;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -94,6 +95,7 @@ public static class FrontendStartupExtensions
         services.AddScoped<UserDashboardMockService>();
         services.AddScoped<UserSettingsMockService>();
         services.AddScoped<MockOrganizationContext>();
+        services.AddScoped<RequestMockService>();
 
         // ---- Chọn implementation thực hoặc mock theo cấu hình FrontendData:UseMockServices ----
         services.AddScoped<IAuthService>(sp =>
@@ -125,6 +127,9 @@ public static class FrontendStartupExtensions
 
         services.AddScoped<IUserSettingsService>(sp =>
             useMockServices ? sp.GetRequiredService<UserSettingsMockService>() : sp.GetRequiredService<UserSettingsApiClient>());
+
+        services.AddScoped<IRequestService>(sp =>
+            sp.GetRequiredService<RequestMockService>());
 
         return services;
     }

@@ -212,7 +212,7 @@
                                     </div>
 
                                     <div class="discover-actions">
-                                        <button type="button" class="solid-action" @onclick="() => OpenOrganizationDetail(organization.OrganizationId)">Tham gia ngay</button>
+                                        <button type="button" class="solid-action" @onclick="() => OpenJoinModal(organization.OrganizationId, organization.Name)">Tham gia ngay</button>
                                         <button type="button" class="soft-action" @onclick="() => OpenOrganizationDetail(organization.OrganizationId)">Xem them</button>
                                     </div>
                                 </div>
@@ -281,6 +281,16 @@
     }
 </div>
 
+@* ---- Modal đăng ký tham gia CLB ---- *@
+@if (_showJoinModal)
+{
+    <Org.Frontend.Components.Pages.Organizations.JoinOrganizationModal
+        OrganizationId="@_joinModalOrgId"
+        OrganizationName="@_joinModalOrgName"
+        OnClose="CloseJoinModal"
+        OnSubmitted="OnJoinSubmitted" />
+}
+
 @code {
     private const int DiscoverPageSize = 3;
     private const string MyTabOrganizations = "organizations";
@@ -294,6 +304,11 @@
     private string _selectedMyTab = MyTabOrganizations;
     private int _organizationPageIndex;
     private int _eventPageIndex;
+
+    // ---- Join modal state ----
+    private bool _showJoinModal;
+    private Guid _joinModalOrgId;
+    private string _joinModalOrgName = "";
 
     private int OrganizationCount => _dashboard?.Organizations.Count ?? 0;
 
@@ -433,6 +448,24 @@
 
     private void OpenEventDetail(Guid eventId)
         => Navigation.NavigateTo($"/user/events?focus={eventId}");
+
+    private void OpenJoinModal(Guid orgId, string orgName)
+    {
+        _joinModalOrgId = orgId;
+        _joinModalOrgName = orgName;
+        _showJoinModal = true;
+    }
+
+    private void CloseJoinModal()
+    {
+        _showJoinModal = false;
+    }
+
+    private async Task OnJoinSubmitted()
+    {
+        // Reload dashboard để cập nhật suggested orgs
+        await ReloadAsync();
+    }
 
     private string GetMyTabClass(string tab)
         => _selectedMyTab == tab ? "tab-button active" : "tab-button";
