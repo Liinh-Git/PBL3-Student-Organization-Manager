@@ -93,9 +93,9 @@
                     };
 
                     var imageUrl = status switch {
-                        "ongoing" => "https://lh3.googleusercontent.com/aida-public/AB6AXuAm7trA7GoMiNFIhQn-vahI6JVlgueXar2wVE7xGBo_aFHXRXCTEx6GD1aJHmD4H47UwppGYbUjlZK-zM9aIRAS_yFqcerPNrPrai4JivDhUOkLUVcmPe-VxQsuhJmWvBAVgBig-U1Q2B_iEsr6xMY69yiGhP2YVjCT3Mab9Ng2IrDqBb_EriXwHdOoJZ9cvZMp13gqDjDl2ERCP8y5CSIbd1dAbNthzLbnu3YkXRFhoXMAewGLwJrJCxculxuNYqC07Ju9a-sjbz8",
-                        "upcoming" => "https://lh3.googleusercontent.com/aida-public/AB6AXuDX6Ys69XMp7KDYA3G5O2qTstPmzQiJrhsxBL_X1ylvCPbg3o_zvPxzILHUsqkAF5an0W46ni_c6C6W4v_stR0tCVi3uD-Ao5pZFg5rNOU5VF45HG_sdIZwOo2cJEdd2XBKOo6jluOF-9F_uPyjcHgMmP-T_8LMGpCcVLEdtxA86nx2VNZjcZqVlifG6eXp5oKQXzICU7-3w9OODfn0ipHswvoBRW9EGblXa3AI3xd1BmZlgTNCcwW5KScuHUEBYvZRqoJXcJ7gra0",
-                        _ => "https://lh3.googleusercontent.com/aida-public/AB6AXuCvf7tkRB7ErTtCeY0NeuIQa7hL0UKfnth_UHT3dfXH78vXX4dHVs-x3TNAHlYCLjc3pxli16Kvo7lpwgTx7XO2h1ifLBKIy9KjuR_GAMuXf4KC-qOAzpKoKmBF5yWB3caO02xbt3NRq5VoOwZCD1uzvGm29Q1NFNBiXummFZae1rnAoo3MEwjFihaeL0AqYk_-awTqZP9TYU2-GXM-AIpKTZDtkfmP84wjhkjs47VabpGvEGd-aQ863fYpKubAWwoM3vu3C4dAVFA"
+                        "ongoing" => "/images/mockimages/Messenger_creation_579B0B6A-530E-4262-BA4C-19752EAE6395.jpeg",
+                        "upcoming" => "/images/mockimages/Messenger_creation_9429B1FE-35C0-4741-9B7F-227691AD73C7.jpeg",
+                        _ => "/images/mockimages/Messenger_creation_EFE1EA93-20EE-4EDA-8412-6C714ED80C8C.jpeg"
                     };
 
                     <div class="premium-card @(isCompleted ? "event-card-completed" : "")" @onclick="() => GoToDetail(evt.Id)">

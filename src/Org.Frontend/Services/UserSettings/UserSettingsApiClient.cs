@@ -7,7 +7,7 @@ namespace Org.Frontend.Services.UserSettings;
 
 public sealed class UserSettingsApiClient(HttpClient httpClient) : IUserSettingsService
 {
-    private const string DefaultAvatarUrl = "https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=800&q=80";
+    private const string DefaultAvatarUrl = "/images/mockimages/FB_IMG_1744903311334.jpg";
 
     private readonly HttpClient _httpClient = httpClient;
 

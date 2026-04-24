@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "id": "2c771b37-6ea7-4dd5-a9ef-4f327b944694",
     "orgId": "c78af9dc-7a03-49bf-98c1-0572112b57ab",
@@ -9,7 +9,7 @@
     "statusLabel": "PLANNING",
     "location": "Innovation Hall A",
     "totalSlots": 220,
-    "imageUrl": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=80",
+    "imageUrl": "/images/mockimages/IMG_20260301_060428.jpg",
     "completionLabel": "42%",
     "budgetLabel": "58%",
     "riskLevel": "Medium",
@@ -26,7 +26,7 @@
     "statusLabel": "PLANNING",
     "location": "Tech Lab Complex",
     "totalSlots": 160,
-    "imageUrl": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80",
+    "imageUrl": "/images/mockimages/IMG_20260301_060443.jpg",
     "completionLabel": "35%",
     "budgetLabel": "41%",
     "riskLevel": "Low",
@@ -43,7 +43,7 @@
     "statusLabel": "PLANNING",
     "location": "Main Auditorium",
     "totalSlots": 300,
-    "imageUrl": "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80",
+    "imageUrl": "/images/mockimages/IMG_20260301_061030.jpg",
     "completionLabel": "18%",
     "budgetLabel": "25%",
     "riskLevel": "Medium",
@@ -60,7 +60,7 @@
     "statusLabel": "PLANNING",
     "location": "South Campus Plaza",
     "totalSlots": 180,
-    "imageUrl": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1200&q=80",
+    "imageUrl": "/images/mockimages/IMG_20260320_060502.jpg",
     "completionLabel": "54%",
     "budgetLabel": "62%",
     "riskLevel": "Low",
