@@ -35,6 +35,7 @@ public sealed class CreateEventViewModel
     public TimeSpan? Time { get; set; } = new TimeSpan(8, 0, 0);
     public string? Location { get; set; }
     public int TotalSlots { get; set; }
+    public string? Description { get; set; }
 }
 
 /// <summary>
