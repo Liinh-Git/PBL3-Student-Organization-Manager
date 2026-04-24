@@ -1,71 +1,3 @@
-FE → BE: MAPPING CÁC PHẦN CẦN HOÀN THÀNH
-Ngày: 2026-04-24
-=========================================
-
-
-1. OrganizationRequests.razor — Kết nối nút Chấp nhận / Từ chối
-----------------------------------------------------------------
-FE cần: Gọi API khi nhấn nút, load data thật thay vì hardcode.
-
-BE cần xây:
-  GET    /api/organizations/{orgId}/requests   -> Lấy danh sách requests (filter status=Pending)
-  PUT    /api/requests/{id}/approve            -> Chấp nhận request
-  PUT    /api/requests/{id}/reject             -> Từ chối request
-  GET    /api/requests/{id}                   -> Chi tiết request (optional)
-
-Ghi chú: Entity Request + Enum RequestStatus, RequestType đã có sẵn trong DB.
-         Chỉ cần viết endpoints.
-
-
-2. OrganizationResources.razor — Toàn bộ UI mới
-------------------------------------------------
-FE cần: Dựng hoàn toàn từ đầu: danh sách, form thêm/sửa, nút xóa.
-
-BE cần xây:
-  GET    /api/organizations/{orgId}/resources  -> Danh sách tài nguyên
-  POST   /api/organizations/{orgId}/resources  -> Thêm tài nguyên
-  PUT    /api/resources/{id}                   -> Sửa (tên, số lượng, vị trí, status)
-  DELETE /api/resources/{id}                   -> Xóa
-
-Ghi chú: Entity Resource + Enum ResourceStatus (Available/InUse/Unavailable) đã có sẵn.
-
-
-3. OrganizationReports.razor — Toàn bộ UI mới (Báo cáo & Thống kê)
---------------------------------------------------------------------
-FE cần: Dựng 2 phần: báo cáo sự kiện (EventReport) + thống kê tổng quan (Statistics).
-
-BE cần xây:
-  GET    /api/organizations/{orgId}/statistics -> Thống kê: số thành viên, sự kiện, task...
-  POST   /api/events/{eventId}/report          -> Tạo báo cáo sự kiện
-  GET    /api/events/{eventId}/report          -> Lấy báo cáo
-
-Ghi chú: Entity EventReport và ActivityHistory đã có trong DB.
-
-
-4. MemberList.razor — Nút "Thêm" và "Xóa" thành viên
-------------------------------------------------------
-FE cần: Thêm nút + dialog thêm thành viên, thêm nút xóa trên mỗi dòng.
-
-BE: ĐÃ CÓ ĐẦY ĐỦ — chỉ cần kết nối FE:
-  POST   /api/organizations/{orgId}/members    -> [DONE] Thêm thành viên
-  DELETE /api/members/{id}                     -> [DONE] Xóa thành viên
-
-Ghi chú: KHÔNG cần làm BE. Code CreateMember() + DeleteMember() đã có trong razor,
-         chỉ cần FE thêm nút và hiển thị dialog.
-
-
-5. TaskBoard.razor — Upload minh chứng & Export PDF
-----------------------------------------------------
-FE cần: Nút upload file trên mỗi task, nút Export PDF trên header.
-
-BE cần xây:
-  POST   /api/tasks/{taskId}/evidence          -> Upload minh chứng (multipart/form-data)
-  GET    /api/tasks/{taskId}/evidence          -> Lấy danh sách file đã upload
-  GET    /api/events/{eventId}/report/export   -> Xuất PDF báo cáo
-
-Ghi chú: Entity DigitalAsset (FileType: Image/Document) đã có.
-         Cần thêm endpoint upload + lưu URL file.
-
 
 6. EventList.razor — Nút Đăng ký / Hủy sự kiện
 ------------------------------------------------
@@ -80,26 +12,13 @@ BE cần xây:
 Ghi chú: Entity Attendee + Enum AttendeeStatus đã có.
          GET /api/users/me/events đã có sẵn.
 
+4. MemberList.razor — Nút "Thêm" và "Xóa" thành viên
+------------------------------------------------------
+FE cần: Thêm nút + dialog thêm thành viên, thêm nút xóa trên mỗi dòng.
 
-7. EventDetail.razor — Kết nối "Generate Summary" → EventReport
-----------------------------------------------------------------
-FE cần: Nút "Generate Summary" gọi API tạo báo cáo, hiển thị kết quả.
+BE: ĐÃ CÓ ĐẦY ĐỦ — chỉ cần kết nối FE:
+  POST   /api/organizations/{orgId}/members    -> [DONE] Thêm thành viên
+  DELETE /api/members/{id}                     -> [DONE] Xóa thành viên
 
-BE cần xây: (trùng với mục 3)
-  POST   /api/events/{eventId}/report          -> Tạo/cập nhật báo cáo tổng kết
-  GET    /api/events/{eventId}/report          -> Lấy báo cáo để hiển thị
-
-
-=========================================
-TÓM TẮT: THỨ TỰ ƯU TIÊN LÀM BE
-=========================================
-
-Thứ tự | Module BE              | Phục vụ FE                    | Độ phức tạp
--------|------------------------|-------------------------------|-------------
-  1    | Request (approve/reject)| OrganizationRequests.razor    | Thấp  - entity đã có
-  2    | Attendee (register/cancel)| EventList.razor             | Thấp  - entity đã có
-  3    | Resource (CRUD)        | OrganizationResources.razor   | Trung - entity đã có
-  4    | EventReport (create/get)| EventDetail + Reports        | Trung
-  5    | DigitalAsset (upload)  | TaskBoard.razor               | Trung - cần xử lý file
-  6    | Statistics             | OrganizationReports.razor     | Trung - cần aggregate query
-  7    | MemberList nút         | MemberList.razor              | KHÔNG cần BE - chỉ làm FE
+Ghi chú: KHÔNG cần làm BE. Code CreateMember() + DeleteMember() đã có trong razor,
+         chỉ cần FE thêm nút và hiển thị dialog.
