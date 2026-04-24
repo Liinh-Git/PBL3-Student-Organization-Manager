@@ -213,10 +213,6 @@
                                     </div>
 
                                     <div class="discover-actions">
-<<<<<<< HEAD
-                                        <button type="button" class="solid-action" @onclick="() => OpenJoinModal(organization.OrganizationId, organization.Name)">Tham gia ngay</button>
-                                        <button type="button" class="soft-action" @onclick="() => OpenOrganizationDetail(organization.OrganizationId)">Xem them</button>
-=======
                                         <div class="member-bubbles" aria-hidden="true">
                                             @foreach (var bubble in BuildMemberBubbles(organization.Name, organization.MemberCount))
                                             {
@@ -224,7 +220,6 @@
                                             }
                                         </div>
                                         <button type="button" class="solid-action" @onclick="() => OpenOrganizationDetail(organization.OrganizationId)">Xem chi tiet</button>
->>>>>>> 6b8730c7e815b337cb4eaa275591062c9c608875
                                     </div>
                                 </div>
                             </article>

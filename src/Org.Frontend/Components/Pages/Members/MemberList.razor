@@ -171,23 +171,6 @@
                                     <span class="member-join-date">@member.JoinDate.ToLocalTime().ToString("dd/MM/yyyy")</span>
                                 </td>
                                 <td class="td-actions">
-<<<<<<< HEAD
-                                    <div class="member-action-group" @onclick:stopPropagation="true">
-                                        <MudMenu Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Default" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                                            <MudMenuItem OnClick="@(() => OpenRoleDialog(member))">
-                                                <div style="display:flex;align-items:center;gap:0.5rem">
-                                                    <MudIcon Icon="@Icons.Material.Filled.Badge" Style="font-size:1.1rem" />
-                                                    Gan vai tro
-                                                </div>
-                                            </MudMenuItem>
-                                            <MudMenuItem OnClick="@(async () => await DeleteMember(member))">
-                                                <div style="display:flex;align-items:center;gap:0.5rem;color:#dc2626">
-                                                    <MudIcon Icon="@Icons.Material.Filled.PersonRemove" Style="font-size:1.1rem;color:#dc2626" />
-                                                    Xoa thanh vien
-                                                </div>
-                                            </MudMenuItem>
-                                        </MudMenu>
-=======
                                     <div class="member-actions-group">
                                         <MudTooltip Text="Xem chi tiết (Tính năng đang phát triển)">
                                             <button class="member-row-action action-view"
@@ -204,7 +187,6 @@
                                                 <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
                                             </button>
                                         </MudTooltip>
->>>>>>> 6b8730c7e815b337cb4eaa275591062c9c608875
                                     </div>
                                 </td>
                             </tr>
