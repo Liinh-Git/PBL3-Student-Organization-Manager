@@ -1,0 +1,274 @@
+@page "/events/{EventId:guid}"
+@attribute [AllowAnonymous]
+@inject IEventService EventService
+@inject IUserDashboardService DashboardService
+@inject NavigationManager Navigation
+@using Org.Frontend.Services.Dashboard
+
+<PageTitle>Chi tiet su kien</PageTitle>
+
+<div class="public-event-page">
+    @if (_isLoading)
+    {
+        <section class="state-card">
+            <h1>Dang tai su kien</h1>
+            <p>Du lieu su kien dang duoc dong bo.</p>
+        </section>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <section class="state-card error">
+            <h1>Khong mo duoc su kien</h1>
+            <p>@_errorMessage</p>
+            <button type="button" class="ghost-btn" @onclick="LoadAsync">Thu lai</button>
+        </section>
+    }
+    else if (_event is null)
+    {
+        <section class="state-card">
+            <h1>Su kien khong ton tai</h1>
+            <p>Khong tim thay thong tin su kien ban vua chon.</p>
+            <button type="button" class="ghost-btn" @onclick='() => Navigation.NavigateTo("/home")'>Quay ve Home</button>
+        </section>
+    }
+    else
+    {
+        <section class="hero-block">
+            <img src="@ResolveImage(_event.ImageUrl)" alt="@_event.Name" class="hero-image" />
+            <div class="hero-overlay"></div>
+
+            <div class="hero-content">
+                <p class="hero-kicker">SU KIEN DE XUAT</p>
+                <h1>@_event.Name</h1>
+                <p>@BuildMainDescription(_event.Description)</p>
+                <div class="org-chip">
+                    <img src="@_organizationLogo" alt="@_organizationName" />
+                    <span>@_organizationName</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="action-summary">
+            <div class="summary-grid">
+                <article>
+                    <p>Thoi gian</p>
+                    <h3>@FormatEventDate(_event.StartDate) - @FormatEventDate(_event.EndDate)</h3>
+                    <span>08:00 - 18:00</span>
+                </article>
+                <article>
+                    <p>Dia diem</p>
+                    <h3>@ResolveLocation(_event.Location)</h3>
+                    <span>@ResolveAddress(_event.Location)</span>
+                </article>
+                <article>
+                    <p>So luong</p>
+                    <h3>@_registeredCount / @ResolveTotalSlots(_event.TotalSlots)</h3>
+                    <span>@(_isRegistered ? "Ban da dang ky" : "Con cho trong")</span>
+                </article>
+            </div>
+
+            <button type="button" class="main-cta" @onclick="ToggleRegistration">
+                @(_isRegistered ? "Huy dang ky" : "Dang ky ngay")
+            </button>
+        </section>
+
+        <section class="content-grid">
+            <article class="content-card">
+                <h2>Muc dich va y nghia</h2>
+                <p>@BuildPurposeText(_event.Name, _event.Description)</p>
+
+                <h3>Dien gia</h3>
+                <ul>
+                    @foreach (var speaker in BuildSpeakers(_event.Name))
+                    {
+                        <li>@speaker</li>
+                    }
+                </ul>
+
+                <h3>Lich trinh (Agenda)</h3>
+                <div class="agenda-list">
+                    @foreach (var row in BuildAgenda(_event.Name))
+                    {
+                        <div class="agenda-row">
+                            <span>@row.Time</span>
+                            <p>@row.Activity</p>
+                        </div>
+                    }
+                </div>
+
+                <h3>Loi ich khi tham gia</h3>
+                <ul>
+                    @foreach (var benefit in BuildBenefits(_event.Name))
+                    {
+                        <li>@benefit</li>
+                    }
+                </ul>
+            </article>
+
+            <aside class="content-card map-card">
+                <h2>Ban do dia diem</h2>
+                <iframe
+                    title="Google map"
+                    src="@BuildMapUrl(_event.Location)"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+
+                <div class="mini-info">
+                    <p>To chuc</p>
+                    <strong>@_organizationName</strong>
+                    <span>@ResolveAddress(_event.Location)</span>
+                </div>
+            </aside>
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid EventId { get; set; }
+
+    private EventViewModel? _event;
+    private bool _isLoading = true;
+    private bool _isRegistered;
+    private int _registeredCount;
+    private string? _errorMessage;
+    private string _organizationName = "Cau lac bo";
+    private string _organizationLogo = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=220&q=80";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            _event = await EventService.GetEventDetailAsync(EventId);
+            if (_event is null)
+            {
+                _isLoading = false;
+                return;
+            }
+
+            _registeredCount = _event.RegisteredCount;
+            await ResolveOrganizationAndRegistrationAsync();
+        }
+        catch
+        {
+            _event = null;
+            _errorMessage = "He thong tam thoi khong tai duoc trang su kien. Vui long thu lai.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ResolveOrganizationAndRegistrationAsync()
+    {
+        try
+        {
+            var dashboard = await DashboardService.GetDashboardAsync();
+            var matchedRegistered = dashboard.RegisteredEvents.FirstOrDefault(x => x.EventId == EventId);
+            var matchedSuggested = dashboard.SuggestedEvents.FirstOrDefault(x => x.EventId == EventId);
+
+            if (matchedRegistered is not null)
+            {
+                _isRegistered = !string.Equals(matchedRegistered.RegistrationStatus, "CANCELLED", StringComparison.OrdinalIgnoreCase);
+                _organizationName = matchedRegistered.OrganizationName;
+            }
+            else
+            {
+                _isRegistered = false;
+                _organizationName = matchedSuggested?.OrganizationName ?? _organizationName;
+            }
+
+            var orgId = matchedRegistered?.OrganizationId ?? matchedSuggested?.OrganizationId;
+            if (orgId.HasValue)
+            {
+                var joinedOrg = dashboard.Organizations.FirstOrDefault(x => x.OrganizationId == orgId.Value);
+                var suggestedOrg = dashboard.SuggestedOrganizations.FirstOrDefault(x => x.OrganizationId == orgId.Value);
+
+                _organizationLogo = ResolveImage(joinedOrg?.AvatarUrl ?? suggestedOrg?.ImageUrl);
+            }
+        }
+        catch
+        {
+            _isRegistered = false;
+        }
+    }
+
+    private void ToggleRegistration()
+    {
+        if (_event is null)
+            return;
+
+        _isRegistered = !_isRegistered;
+        _registeredCount = _isRegistered ? _registeredCount + 1 : Math.Max(0, _registeredCount - 1);
+    }
+
+    private static int ResolveTotalSlots(int totalSlots) => totalSlots <= 0 ? 120 : totalSlots;
+
+    private static string ResolveImage(string? imageUrl)
+        => string.IsNullOrWhiteSpace(imageUrl)
+            ? "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1500&q=80"
+            : imageUrl;
+
+    private static string ResolveLocation(string? location)
+        => string.IsNullOrWhiteSpace(location) ? "Dia diem se cap nhat" : location;
+
+    private static string ResolveAddress(string? location)
+        => string.IsNullOrWhiteSpace(location)
+            ? "Toa nha A1, Khu do thi Dai hoc, Viet Nam"
+            : $"{location}, Dai hoc Kora";
+
+    private static string FormatEventDate(DateOnly value)
+        => value.ToDateTime(TimeOnly.MinValue).ToString("dd/MM/yyyy");
+
+    private static string BuildMainDescription(string? description)
+    {
+        if (!string.IsNullOrWhiteSpace(description))
+            return description;
+
+        return "Chuoi hoat dong mo rong trai nghiem hoc tap, ket noi va phat trien ky nang cho sinh vien.";
+    }
+
+    private static string BuildPurposeText(string eventName, string? description)
+    {
+        var fallback = BuildMainDescription(description);
+        return $"{fallback} Su kien {eventName} huong toi tao ra mot khong gian ket noi tri thuc va trai nghiem thuc te, giup nguoi tham gia mo rong mang luoi va nang luc ca nhan.";
+    }
+
+    private static IReadOnlyList<string> BuildSpeakers(string eventName) =>
+    [
+        $"Dai dien ban to chuc {eventName}",
+        "Khach moi tu cong dong cuu thanh vien",
+        "Chuyen gia thuc chien tu doanh nghiep doi tac"
+    ];
+
+    private static IReadOnlyList<(string Time, string Activity)> BuildAgenda(string eventName) =>
+    [
+        ("08:00 - 08:30", "Don tiep, check-in va ket noi"),
+        ("08:30 - 10:00", $"Phien mo dau: Tong quan {eventName}"),
+        ("10:15 - 11:45", "Toa dam chuyen de va hoi dap"),
+        ("13:30 - 15:30", "Workshop / thuc hanh nhom"),
+        ("15:45 - 17:00", "Trinh bay ket qua va ket noi co hoi hop tac")
+    ];
+
+    private static IReadOnlyList<string> BuildBenefits(string eventName) =>
+    [
+        "Nhan tai lieu va bo mau thuc hanh sau su kien.",
+        $"Mo rong networking voi thanh vien va dien gia cua {eventName}.",
+        "Duoc cong diem ren luyen / chung nhan tham gia (neu co)."
+    ];
+
+    private static string BuildMapUrl(string? location)
+    {
+        var query = Uri.EscapeDataString(ResolveLocation(location));
+        return $"https://www.google.com/maps?q={query}&output=embed";
+    }
+}

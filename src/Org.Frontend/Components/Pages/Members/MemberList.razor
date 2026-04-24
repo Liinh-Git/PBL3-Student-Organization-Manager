@@ -125,7 +125,7 @@
                                 </td>
                                 <td>
                                     <span class="member-role-badge @GetRoleBadgeClass(member.RoleId)">@GetRoleLabel(member.RoleId)</span>
-                                </td>
+                                </td>   
                                 <td>
                                     <span class="member-department">@GetDepartmentName(member.DepartmentId)</span>
                                 </td>
@@ -133,12 +133,23 @@
                                     <span class="member-join-date">@member.JoinDate.ToLocalTime().ToString("dd/MM/yyyy")</span>
                                 </td>
                                 <td class="td-actions">
-                                    <button class="member-row-action"
-                                            type="button"
-                                            aria-label="Gán vai trò"
-                                            @onclick="() => OpenRoleDialog(member)">
-                                        <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" />
-                                    </button>
+                                    <div class="member-actions-group">
+                                        <MudTooltip Text="Xem chi tiết (Tính năng đang phát triển)">
+                                            <button class="member-row-action action-view"
+                                                    type="button"
+                                                    aria-label="Xem chi tiết">
+                                                <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
+                                            </button>
+                                        </MudTooltip>
+
+                                        <MudTooltip Text="Xóa thành viên (Tính năng đang phát triển)">
+                                            <button class="member-row-action action-delete"
+                                                    type="button"
+                                                    aria-label="Xóa thành viên">
+                                                <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+                                            </button>
+                                        </MudTooltip>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -189,6 +200,7 @@
     private static readonly Guid CoreMemberRoleId = Guid.Parse("f80bb5dc-ab54-48fa-9453-869a12a81dc8");
     private static readonly Guid CollaboratorRoleId = Guid.Parse("1a96a5f4-6dfc-42db-936d-f86ee4e35ef5");
 
+// CẦN LƯU Ý XÓA
     private static readonly List<AssignRoleDialog.RoleOption> RoleOptions =
     [
         new() { Id = LeaderRoleId, Name = "Leader" },

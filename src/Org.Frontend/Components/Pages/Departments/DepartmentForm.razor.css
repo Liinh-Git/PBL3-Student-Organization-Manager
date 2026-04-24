@@ -1,0 +1,104 @@
+.dept-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 19, 30, 0.48);
+  display: grid;
+  place-items: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.dept-dialog-panel {
+  width: min(680px, 100%);
+  border-radius: 14px;
+  border: 1px solid #d8e4f2;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(21, 37, 60, 0.28);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.dept-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dept-dialog-title-wrap h2 {
+  margin: 0;
+  color: #20344b;
+  font-size: 1.12rem;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.dept-dialog-title-wrap p {
+  margin: 4px 0 0;
+  color: #63778e;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.dept-dialog-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #d4e2ef;
+  border-radius: 8px;
+  background: #f8fbff;
+  color: #5d7188;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.dept-dialog-close:hover {
+  background: #edf4fc;
+}
+
+.department-form {
+  display: grid;
+  gap: 12px;
+}
+
+.department-field {
+  display: grid;
+  gap: 6px;
+}
+
+.form-label {
+  color: #2a4058;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.department-input {
+  border-radius: 9px;
+  border: 1px solid #cfe0f0;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  color: #20364f;
+}
+
+.department-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  .dept-dialog-panel {
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .department-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .department-form-actions button {
+    width: 100%;
+  }
+}
