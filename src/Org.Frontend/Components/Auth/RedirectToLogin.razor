@@ -4,7 +4,7 @@
 
 @code {
     // ---- Các route public không cần đăng nhập ----
-    private static readonly string[] PublicRoutePrefixes = ["login", "register", "not-found", "error"];
+    private static readonly string[] PublicRoutePrefixes = ["login", "register", "not-found", "error", "events"];
 
     // ---- Chạy một lần để kiểm tra đăng nhập và điều hướng khi cần ----
     protected override async Task OnAfterRenderAsync(bool firstRender)

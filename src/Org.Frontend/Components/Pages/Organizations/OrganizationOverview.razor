@@ -1,6 +1,9 @@
 @* ---- Trang tổng quan tổ chức (/org-overview) — hiển thị banner, thông tin, team và cột mốc ----
     Hiện sử dụng dữ liệu cứng (chuẩn bị cho kết nối API thảt sau). *@
 @page "/org-overview"
+@inject IDialogService DialogService
+@inject IUserDashboardService DashboardService
+@using Org.Frontend.Services.Dashboard
 
 <PageTitle>Tong quan to chuc</PageTitle>
 
@@ -14,7 +17,7 @@
                 </div>
 
                 <div class="org-brand-content">
-                    <h1>Kora Community</h1>
+                    <h1>@_organizationName</h1>
                     <div class="org-brand-meta">
                         <span>
                             <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Class="meta-icon" />
@@ -29,6 +32,10 @@
                             To chuc da xac thuc
                         </span>
                     </div>
+                    @if (!_isMember)
+                    {
+                        <button type="button" class="join-org-button" @onclick="OpenJoinDialogAsync">Tham gia CLB</button>
+                    }
                 </div>
             </div>
         </div>
@@ -76,7 +83,10 @@
                     <p class="section-kicker">Doi ngu</p>
                     <h2>Quan tri vien</h2>
                 </div>
-                <a href="/org/members">Xem tat ca</a>
+                @if (_isMember)
+                {
+                    <a href="/org/members">Xem tat ca</a>
+                }
             </div>
 
             <div class="admin-grid">
@@ -100,7 +110,10 @@
                 <p>
                     Tu nhung buoc chan dau tien den mot cong dong kien truc vung manh.
                 </p>
-                <a href="/org/reports">Xem chi tiet lich su</a>
+                @if (_isMember)
+                {
+                    <a href="/org/reports">Xem chi tiet lich su</a>
+                }
             </div>
 
             <div class="timeline-list">
@@ -143,9 +156,18 @@
                         <span><MudIcon Icon="@Icons.Material.Outlined.Schedule" Class="meta-icon" />08:00 - 17:00</span>
                     </div>
                 </div>
-                <a class="go-button" href="/org/events" aria-label="Mo trang su kien">
-                    <MudIcon Icon="@Icons.Material.Outlined.ArrowForward" />
-                </a>
+                @if (_isMember)
+                {
+                    <a class="go-button" href="/org/events" aria-label="Mo trang su kien">
+                        <MudIcon Icon="@Icons.Material.Outlined.ArrowForward" />
+                    </a>
+                }
+                else
+                {
+                    <button type="button" class="go-button" aria-label="Dang ky tham gia CLB" @onclick="OpenJoinDialogAsync">
+                        <MudIcon Icon="@Icons.Material.Outlined.GroupAdd" />
+                    </button>
+                }
             </article>
         </section>
 
@@ -173,7 +195,14 @@
                         <img src="/images/avatars/admin.jpg" alt="Member B" />
                         <span>+12</span>
                     </div>
-                    <a href="/org/events" class="join-button">Tham gia ngay</a>
+                    @if (_isMember)
+                    {
+                        <a href="/org/events" class="join-button">Tham gia ngay</a>
+                    }
+                    else
+                    {
+                        <button type="button" class="join-button" @onclick="OpenJoinDialogAsync">Dang ky tham gia</button>
+                    }
                 </div>
             </article>
         </section>
@@ -201,6 +230,12 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "orgId")]
+    public Guid? OrganizationId { get; set; }
+
+    private bool _isMember = true;
+    private string _organizationName = "Kora Community";
+
     private static readonly IReadOnlyList<AdminProfile> Admins =
     [
         new("Tran Ha", "Ban lanh dao", "/images/avatars/admin.jpg"),
@@ -222,6 +257,72 @@
         new("/images/icons/icon1.png", "Dem khoi nghiep: Connect & Pitch", "Hon 50 y tuong khoi nghiep da tim duoc nha dau tu thien than.", "02 Thang 11, 2023"),
         new("/images/avatars/admin.jpg", "Workshop: Tu duy Thiet ke", "Buoi thuc hanh danh cho cac quan ly san pham cap cao.", "20 Thang 9, 2023")
     ];
+
+    private static readonly IReadOnlyList<string> PreferredDepartments =
+    [
+        "Ban truyen thong",
+        "Ban su kien",
+        "Ban ky thuat",
+        "Ban nhan su",
+        "Ban tai chinh"
+    ];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ResolveMembershipAsync();
+    }
+
+    private async Task ResolveMembershipAsync()
+    {
+        if (!OrganizationId.HasValue)
+        {
+            _isMember = true;
+            _organizationName = "Kora Community";
+            return;
+        }
+
+        try
+        {
+            var dashboard = await DashboardService.GetDashboardAsync();
+            var joined = dashboard.Organizations.FirstOrDefault(x => x.OrganizationId == OrganizationId.Value);
+            var suggested = dashboard.SuggestedOrganizations.FirstOrDefault(x => x.OrganizationId == OrganizationId.Value);
+
+            _isMember = joined is not null;
+            _organizationName = joined?.Name ?? suggested?.Name ?? "Kora Community";
+        }
+        catch
+        {
+            _isMember = false;
+            _organizationName = "Kora Community";
+        }
+    }
+
+    private async Task OpenJoinDialogAsync()
+    {
+        var parameters = new DialogParameters
+        {
+            [nameof(JoinOrganizationDialog.OrganizationName)] = _organizationName,
+            [nameof(JoinOrganizationDialog.PreferredDepartments)] = PreferredDepartments,
+            [nameof(JoinOrganizationDialog.Prefill)] = new JoinOrganizationDialog.JoinOrganizationRequest
+            {
+                PreferredDepartment = PreferredDepartments[0],
+                DesiredPosition = "Cong tac vien",
+                Experience = "Da tham gia hoat dong CLB tai truong va co kinh nghiem phoi hop doi nhom.",
+                Strengths = "Giao tiep, to chuc cong viec, lam viec nhom va xu ly van de.",
+                Reason = $"Toi muon dong gop cho {_organizationName} va phat trien ban than qua cac du an cua CLB."
+            }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseOnEscapeKey = true
+        };
+
+        var dialog = await DialogService.ShowAsync<JoinOrganizationDialog>("Dang ky tham gia", parameters, options);
+        await dialog.Result;
+    }
 
     private sealed record AdminProfile(string Name, string Role, string Avatar);
 

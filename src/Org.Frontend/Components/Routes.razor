@@ -4,6 +4,8 @@
     <AuthBootstrapper />
     @* ---- Bước 1.1: ép điều hướng về /login nếu chưa đăng nhập và đang ở route bảo vệ ---- *@
     <RedirectToLogin />
+    @* ---- Bước 1.2: chặn route nội bộ tổ chức nếu user chưa tham gia org đang xem ---- *@
+    <OrganizationRouteGuard />
 
     @* ---- Bước 2: map route và bọc route bằng AuthorizeRouteView ---- *@
     <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">

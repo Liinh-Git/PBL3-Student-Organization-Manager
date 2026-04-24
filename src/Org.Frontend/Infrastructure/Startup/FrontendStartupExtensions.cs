@@ -104,6 +104,8 @@ public static class FrontendStartupExtensions
         services.AddScoped<IOrganizationContext>(sp =>
             useMockServices ? sp.GetRequiredService<MockOrganizationContext>() : sp.GetRequiredService<OrganizationApiClient>());
 
+        services.AddScoped<IOrganizationRouteAccessGate, OrganizationRouteAccessGate>();
+
         services.AddScoped<IDepartmentService>(sp =>
             useMockServices ? sp.GetRequiredService<DepartmentMockService>() : sp.GetRequiredService<DepartmentApiClient>());
 

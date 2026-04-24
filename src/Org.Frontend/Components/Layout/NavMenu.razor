@@ -2,6 +2,7 @@
     Rail: click icon user → workspace cá nhân; click icon org → workspace tổ chức.
     Menu pane: cập nhật danh sách liên kết theo workspace đang active. *@
 @inject NavigationManager Navigation
+@inject IOrganizationRouteAccessGate OrganizationRouteAccessGate
 @implements IDisposable
 
 <div class="nav-scrollable">
@@ -119,6 +120,19 @@
         SyncWorkspaceAndMenuWithRoute(currentRoute);
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
+        var currentRoute = GetCurrentRoute(Navigation.Uri);
+        SyncWorkspaceAndMenuWithRoute(currentRoute);
+        await InvokeAsync(StateHasChanged);
+    }
+
     private IReadOnlyList<WorkspaceMenuItem> ActiveMenuItems =>
         _activeWorkspace == WorkspaceKind.User ? UserWorkspaceMenu : OrganizationWorkspaceMenu;
 
@@ -164,6 +178,12 @@
 
     private void ActivateOrganizationWorkspace(OrganizationWorkspace workspace)
     {
+        if (OrganizationRouteAccessGate.HasRestrictedPublicOrganization)
+        {
+            Navigation.NavigateTo(OrganizationRouteAccessGate.BuildRestrictedOverviewRoute());
+            return;
+        }
+
         _activeWorkspace = WorkspaceKind.Organization;
         _activeOrganizationKey = workspace.Key;
         _activeOrganizationMenuKey = "org-overview";
@@ -172,6 +192,14 @@
 
     private void NavigateToMenu(WorkspaceMenuItem item)
     {
+        if (_activeWorkspace == WorkspaceKind.Organization
+            && OrganizationRouteAccessGate.HasRestrictedPublicOrganization
+            && item.Href.StartsWith("/org/", StringComparison.OrdinalIgnoreCase))
+        {
+            Navigation.NavigateTo(OrganizationRouteAccessGate.BuildRestrictedOverviewRoute());
+            return;
+        }
+
         if (_activeWorkspace == WorkspaceKind.User)
         {
             _activeUserMenuKey = item.Key;
@@ -186,9 +214,13 @@
 
     private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        var route = GetCurrentRoute(e.Location);
-        SyncWorkspaceAndMenuWithRoute(route);
-        _ = InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(async () =>
+        {
+            await OrganizationRouteAccessGate.SyncFromUriAsync(e.Location);
+            var route = GetCurrentRoute(e.Location);
+            SyncWorkspaceAndMenuWithRoute(route);
+            StateHasChanged();
+        });
     }
 
     private static bool LooksLikeOrganizationRoute(string route)
@@ -228,7 +260,7 @@
 
     private void SyncWorkspaceAndMenuWithRoute(string route)
     {
-        _activeWorkspace = LooksLikeOrganizationRoute(route)
+        _activeWorkspace = OrganizationRouteAccessGate.ShouldUseOrganizationWorkspace(route)
             ? WorkspaceKind.Organization
             : WorkspaceKind.User;
 
