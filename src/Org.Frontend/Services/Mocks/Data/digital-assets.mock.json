@@ -1,0 +1,232 @@
+[
+  {
+    "id": "66fe9e23-a820-4c12-aade-22f269442eb4-avt",
+    "ownerId": "66fe9e23-a820-4c12-aade-22f269442eb4",
+    "ownerType": "User",
+    "ownerName": "Nguyen Van A",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80",
+    "note": "Avatar Nguyen Van A - user chinh (caibutbi2.0@gmail.com)"
+  },
+  {
+    "id": "99c1b021-a76f-426f-9bab-2a3fec50927d-avt",
+    "ownerId": "99c1b021-a76f-426f-9bab-2a3fec50927d",
+    "ownerType": "User",
+    "ownerName": "Tran Minh Khang",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80",
+    "note": "Avatar Tran Minh Khang - Leader (user1@example.com)"
+  },
+  {
+    "id": "0d05f0f2-ad18-419e-aed2-649f54bccf5f-avt",
+    "ownerId": "0d05f0f2-ad18-419e-aed2-649f54bccf5f",
+    "ownerType": "User",
+    "ownerName": "Le Hoang Nam",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=256&q=80",
+    "note": "Avatar Le Hoang Nam (user2@example.com)"
+  },
+  {
+    "id": "1be29aeb-da93-4568-bd74-90077cd7354e-avt",
+    "ownerId": "1be29aeb-da93-4568-bd74-90077cd7354e",
+    "ownerType": "User",
+    "ownerName": "Pham Gia Han",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=256&q=80",
+    "note": "Avatar Pham Gia Han (user4@example.com)"
+  },
+  {
+    "id": "8cd328ff-330b-4df7-92da-5d8ae9098056-avt",
+    "ownerId": "8cd328ff-330b-4df7-92da-5d8ae9098056",
+    "ownerType": "User",
+    "ownerName": "Vo Duc Anh",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&q=80",
+    "note": "Avatar Vo Duc Anh (user7@example.com)"
+  },
+  {
+    "id": "fefa174f-e933-4d4f-b7a9-6e1587fbea3b-avt",
+    "ownerId": "fefa174f-e933-4d4f-b7a9-6e1587fbea3b",
+    "ownerType": "User",
+    "ownerName": "Do Thi Mai",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=256&q=80",
+    "note": "Avatar Do Thi Mai (user5@example.com)"
+  },
+  {
+    "id": "e3ee97bd-c4d6-4789-99b8-7299722d3f0e-avt",
+    "ownerId": "e3ee97bd-c4d6-4789-99b8-7299722d3f0e",
+    "ownerType": "User",
+    "ownerName": "Bui Quang Huy",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=256&q=80",
+    "note": "Avatar Bui Quang Huy (user11@example.com)"
+  },
+  {
+    "id": "de400dfd-4d38-4745-80be-62937e489538-avt",
+    "ownerId": "de400dfd-4d38-4745-80be-62937e489538",
+    "ownerType": "User",
+    "ownerName": "Nguyen Thu Trang",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=256&q=80",
+    "note": "Avatar Nguyen Thu Trang (user16@example.com)"
+  },
+  {
+    "id": "2c771b37-6ea7-4dd5-a9ef-4f327b944694-banner",
+    "ownerId": "2c771b37-6ea7-4dd5-a9ef-4f327b944694",
+    "ownerType": "Event",
+    "ownerName": "Orientation Week 2026",
+    "purpose": "event-banner",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=80",
+    "note": "Anh bia su kien Orientation Week 2026"
+  },
+  {
+    "id": "b23923f3-e6cc-4810-b728-184abf9d556a-banner",
+    "ownerId": "b23923f3-e6cc-4810-b728-184abf9d556a",
+    "ownerType": "Event",
+    "ownerName": "Hackathon Night",
+    "purpose": "event-banner",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80",
+    "note": "Anh bia su kien Hackathon Night"
+  },
+  {
+    "id": "cf8a2ffa-8c58-4d2e-a9d8-162bfc2f45fb-banner",
+    "ownerId": "cf8a2ffa-8c58-4d2e-a9d8-162bfc2f45fb",
+    "ownerType": "Event",
+    "ownerName": "Career Networking Day",
+    "purpose": "event-banner",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80",
+    "note": "Anh bia su kien Career Networking Day"
+  },
+  {
+    "id": "0e7f57d2-4f65-4e3c-b29b-bf428dc80703-banner",
+    "ownerId": "0e7f57d2-4f65-4e3c-b29b-bf428dc80703",
+    "ownerType": "Event",
+    "ownerName": "Cultural Exchange Fair",
+    "purpose": "event-banner",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1200&q=80",
+    "note": "Anh bia su kien Cultural Exchange Fair"
+  },
+  {
+    "id": "guest-nguyen-minh-anh-avt",
+    "ownerId": null,
+    "ownerType": "Guest",
+    "ownerName": "Nguyen Minh Anh",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuD6Cv0aEIEOCBYYY5v4f4y_7Y6Nd4kG-xQN-uLrBDctFCbKYUWBIqZA8W81hwp4KD_Z2Z6pls9ztNy5o22YOi5P_htUIg_JQK18AhEkZbjU3Q2fN8pEaDpdhXKb7BtUEvN_mwDTSucS0ASHF_kPBS7zIRqBPi9Dw3hHd0_oAFFw88eKkaGMH351Pe0otV7UIG4Ax-O16G5oSvPsTjhOGo8XbsIetZRDK3Q5TeONZTzBD9pTHhvQj4oJ0kWIa7uCZsP6aDp_YWib8o0e",
+    "note": "Avatar guest Nguyen Minh Anh - hien thi trong OrganizationRequests join request (chua co tai khoan)"
+  },
+  {
+    "id": "guest-tran-hoang-long-avt",
+    "ownerId": null,
+    "ownerType": "Guest",
+    "ownerName": "Tran Hoang Long",
+    "purpose": "avatar",
+    "fileType": "Image",
+    "fileUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuDsrB3kJBEK6AjPPPtdojK_WCrWaN-0ix8G3GIIgbv7uOhG9DhcYuuA8HUnYDETQeaX4TifQcQdXLigUJCQSZX_oLZvb1bAeMWZ9vGeCQ3LFZkc7GDW1VA_RE90I93p4Prmz_9CL7ZZzoWV7svEZiJRn8rxLqk80XJYWnoCRNHB_HdFT4dLxKh9qgrgo8plrUPetdLqU9YJjCSroemTL4ipt-UQtrdCqsqEeDIQaQP_9sDwlnLyo2lC06lPQQquDhaLt-4uceuaMxa1",
+    "note": "Avatar guest Tran Hoang Long - hien thi trong OrganizationRequests join request (chua co tai khoan)"
+  },
+  {
+    "id": "taskboard-expert-sarah-avt",
+    "ownerId": null,
+    "ownerType": "Placeholder",
+    "ownerName": "Sarah Jenkins",
+    "purpose": "expert-avatar",
+    "fileType": "Image",
+    "fileUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBvyogx2dDPlPfJJOjOtbPw8Kaeq3AKxZ2d3R9ouIto7Ihfr50B_W_-rqa6AerwMC0i1bSL5GDO7aWKYKSucZ8LkvoSwkFNjM-gPWlAoCWOK-SfVnRwUuSnQpnGcMMT9RrAsSaPCa-8_tt9-Bm-Yy6wdTanDwExbIPHBMkDLKcbcWddUZQdUIn44r4uEdP1_g8O2lMWXR9dE16YNDW_-q1uAI3hJZn3yx9QGhxcsgU0-k-9ljKOLBj70wHTyo61TC08aAjHJfyp8kJg",
+    "note": "Avatar Sarah Jenkins (Systems Engineer) - TaskBoard Expert Assignment panel. Can thay bang anh that tu MockMember."
+  },
+  {
+    "id": "taskboard-expert-marcus-avt",
+    "ownerId": null,
+    "ownerType": "Placeholder",
+    "ownerName": "Marcus Wong",
+    "purpose": "expert-avatar",
+    "fileType": "Image",
+    "fileUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBJT0qRnMmZVLYRg6Ln-eykYIvGwzzuvPvxCuBLQMNsuJnzeOSyE9ikYRxC5AjlaxBsJ9G7ZSdF_rqRSypSKlXYCHnyiTpA3AshO7sjVkv4yuf1mzJ7kO57W1gvK7u9uG7SSopOxx65QTfpRG7DUQDPNk_hjfqgqzpxlcvIXlo4d6vH9xd2wYYD-FMuG7sOp0l3exUQNpwmSrWRxOvHIkG6ja58mr78WG5Sjwgoi4792M8hPtYOnnGGf-yZCj2xohb2ABLqbTAuJIID",
+    "note": "Avatar Marcus Wong (Network Specialist) - TaskBoard Expert Assignment panel. Can thay bang anh that tu MockMember."
+  },
+  {
+    "id": "event-detail-hero-default",
+    "ownerId": null,
+    "ownerType": "System",
+    "ownerName": "EventDetail Hero Banner",
+    "purpose": "event-hero",
+    "fileType": "Image",
+    "fileUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuABr2iOHd5LvrL8ehdrMPT_dH6PBMT27uvRJdi3NnEH-QmorPbWrPyZp-Cr1_5yH1-ki4c4MZryMuDRD-PJe4-xqgfLDMGUIZiy179Hb9-SJgQ3V7l-BmDKiq7nanXNgi0qWjkASuU46UnxXhI04lY-35yrmV_fKBk1_TCQoYLm2hgnt07gADn_USCQcMf5SOJxqfPTplwBSjZSdQAv8B7kVXIpMeDtR93Ezu_qO0EsLMcO1P78qPtmYCRi-kD-hkdm25CWkpOgy5w",
+    "note": "Anh hero banner mac dinh trong EventDetail.razor khi su kien chua co DigitalAsset rieng"
+  },
+  {
+    "id": "eventlist-thumb-ongoing",
+    "ownerId": null,
+    "ownerType": "System",
+    "ownerName": "Event Card Thumbnail - ONGOING",
+    "purpose": "event-card-thumbnail",
+    "fileType": "Image",
+    "fileUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAm7trA7GoMiNFIhQn-vahI6JVlgueXar2wVE7xGBo_aFHXRXCTEx6GD1aJHmD4H47UwppGYbUjlZK-zM9aIRAS_yFqcerPNrPrai4JivDhUOkLUVcmPe-VxQsuhJmWvBAVgBig-U1Q2B_iEsr6xMY69yiGhP2YVjCT3Mab9Ng2IrDqBb_EriXwHdOoJZ9cvZMp13gqDjDl2ERCP8y5CSIbd1dAbNthzLbnu3YkXRFhoXMAewGLwJrJCxculxuNYqC07Ju9a-sjbz8",
+    "note": "Thumbnail mac dinh cho event card status ONGOING trong EventList.razor"
+  },
+  {
+    "id": "eventlist-thumb-upcoming",
+    "ownerId": null,
+    "ownerType": "System",
+    "ownerName": "Event Card Thumbnail - UPCOMING",
+    "purpose": "event-card-thumbnail",
+    "fileType": "Image",
+    "fileUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuDX6Ys69XMp7KDYA3G5O2qTstPmzQiJrhsxBL_X1ylvCPbg3o_zvPxzILHUsqkAF5an0W46ni_c6C6W4v_stR0tCVi3uD-Ao5pZFg5rNOU5VF45HG_sdIZwOo2cJEdd2XBKOo6jluOF-9F_uPyjcHgMmP-T_8LMGpCcVLEdtxA86nx2VNZjcZqVlifG6eXp5oKQXzICU7-3w9OODfn0ipHswvoBRW9EGblXa3AI3xd1BmZlgTNCcwW5KScuHUEBYvZRqoJXcJ7gra0",
+    "note": "Thumbnail mac dinh cho event card status UPCOMING trong EventList.razor"
+  },
+  {
+    "id": "eventlist-thumb-completed",
+    "ownerId": null,
+    "ownerType": "System",
+    "ownerName": "Event Card Thumbnail - COMPLETED",
+    "purpose": "event-card-thumbnail",
+    "fileType": "Image",
+    "fileUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuCvf7tkRB7ErTtCeY0NeuIQa7hL0UKfnth_UHT3dfXH78vXX4dHVs-x3TNAHlYCLjc3pxli16Kvo7lpwgTx7XO2h1ifLBKIy9KjuR_GAMuXf4KC-qOAzpKoKmBF5yWB3caO02xbt3NRq5VoOwZCD1uzvGm29Q1NFNBiXummFZae1rnAoo3MEwjFihaeL0AqYk_-awTqZP9TYU2-GXM-AIpKTZDtkfmP84wjhkjs47VabpGvEGd-aQ863fYpKubAWwoM3vu3C4dAVFA",
+    "note": "Thumbnail mac dinh cho event card status COMPLETED trong EventList.razor"
+  },
+  {
+    "id": "avatar-pool-1",
+    "ownerId": null,
+    "ownerType": "System",
+    "ownerName": "Avatar Pool",
+    "purpose": "avatar-pool",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=800&q=80",
+    "note": "Avatar mac dinh #1 trong pool - Settings.razor cho phep user chon"
+  },
+  {
+    "id": "avatar-pool-2",
+    "ownerId": null,
+    "ownerType": "System",
+    "ownerName": "Avatar Pool",
+    "purpose": "avatar-pool",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
+    "note": "Avatar mac dinh #2 trong pool - Settings.razor"
+  },
+  {
+    "id": "avatar-pool-3",
+    "ownerId": null,
+    "ownerType": "System",
+    "ownerName": "Avatar Pool",
+    "purpose": "avatar-pool",
+    "fileType": "Image",
+    "fileUrl": "https://images.unsplash.com/photo-1521119989659-a83eee488004?auto=format&fit=crop&w=800&q=80",
+    "note": "Avatar mac dinh #3 trong pool - Settings.razor"
+  }
+]
