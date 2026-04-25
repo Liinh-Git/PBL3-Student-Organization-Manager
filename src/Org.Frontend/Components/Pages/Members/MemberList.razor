@@ -47,6 +47,44 @@
         </article>
     </section>
 
+    <div class="members-add-bar">
+        <button class="members-add-btn" type="button" @onclick="ToggleCreateDialog">
+            <MudIcon Icon="@Icons.Material.Filled.PersonAdd" />
+            <span>Them thanh vien</span>
+        </button>
+    </div>
+
+    @if (ShowCreateDialog)
+    {
+        <div class="members-create-dialog">
+            <h3>Them thanh vien moi</h3>
+            <div class="create-form-grid">
+                <div class="create-field">
+                    <label>Ten hien thi *</label>
+                    <input type="text" @bind="CreateDisplayName" placeholder="VD: Nguyen Van A" class="create-input" />
+                </div>
+                <div class="create-field">
+                    <label>Email *</label>
+                    <input type="email" @bind="CreateEmail" placeholder="email@example.com" class="create-input" />
+                </div>
+                <div class="create-field">
+                    <label>Ban chuyen mon</label>
+                    <select @bind="CreateDepartmentValue" class="create-select">
+                        <option value="">-- Khong chon --</option>
+                        @foreach (var dept in Departments)
+                        {
+                            <option value="@dept.Id">@dept.DeptName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="create-actions">
+                <button class="create-cancel-btn" type="button" @onclick="ToggleCreateDialog">Huy</button>
+                <button class="create-submit-btn" type="button" @onclick="CreateMember">Them</button>
+            </div>
+        </div>
+    }
+
     <section class="members-table-shell">
         <div class="members-filter-bar">
             <div class="members-filter-heading">
@@ -194,6 +232,7 @@
     private string CreateDisplayName { get; set; } = string.Empty;
     private string CreateEmail { get; set; } = string.Empty;
     private string CreateDepartmentValue { get; set; } = string.Empty;
+    private bool ShowCreateDialog { get; set; }
     private int ActiveMembersCount => Members.Count;
 
     private static readonly Guid LeaderRoleId = Guid.Parse("7e9e6f36-0508-4da8-adf1-c15b0cbe2f3a");
@@ -453,6 +492,17 @@
         }
     }
 
+    private void ToggleCreateDialog()
+    {
+        ShowCreateDialog = !ShowCreateDialog;
+        if (!ShowCreateDialog)
+        {
+            CreateDisplayName = string.Empty;
+            CreateEmail = string.Empty;
+            CreateDepartmentValue = string.Empty;
+        }
+    }
+
     private async Task CreateMember()
     {
         if (!CurrentOrganizationId.HasValue)
@@ -489,6 +539,7 @@
             CreateDisplayName = string.Empty;
             CreateEmail = string.Empty;
             CreateDepartmentValue = string.Empty;
+            ShowCreateDialog = false;
             Snackbar.Add("Thêm thành viên thành công.", Severity.Success);
 
             await Reload();

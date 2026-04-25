@@ -82,7 +82,8 @@ public sealed class FrontendMockDataStore(IWebHostEnvironment env, ILogger<Front
             Attendees = await ReadDomainAsync<MockAttendee>("attendees.mock.json", ct),
             Milestones = await ReadDomainAsync<MockMilestone>("milestones.mock.json", ct),
             EventCategories = await ReadDomainAsync<MockEventCategory>("event-categories.mock.json", ct),
-            Tasks = await ReadDomainAsync<MockTask>("tasks.mock.json", ct)
+            Tasks = await ReadDomainAsync<MockTask>("tasks.mock.json", ct),
+            Requests = await ReadDomainAsync<MockRequest>("requests.mock.json", ct)
         };
     }
 

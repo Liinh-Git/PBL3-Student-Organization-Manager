@@ -11,6 +11,7 @@ public static class DatabaseSeeder
 {
     // Số lượng bản ghi chuẩn cho mỗi nhóm seed.
     private const int SeedCount = 20;
+    private const int Example1ExtraCount = 10;
 
     // ---- Orchestrator: chạy seed theo từng stage để đảm bảo đúng thứ tự FK ----
     public static async Task SeedAsync(AppDbContext db, CancellationToken cancellationToken = default)
@@ -27,6 +28,7 @@ public static class DatabaseSeeder
         var orgNames = Enumerable.Range(1, SeedCount).Select(i => $"Organization {i}").ToList();
         var permissionKeys = Enumerable.Range(1, SeedCount).Select(i => $"module.permission.{i}").ToList();
         var userEmails = Enumerable.Range(1, SeedCount).Select(i => $"user{i}@example.com").ToList();
+        userEmails.AddRange(Enumerable.Range(1, Example1ExtraCount).Select(i => $"example1.member{i}@example.com"));
 
         // Tải khóa hiện có một lần để tránh gọi AnyAsync lặp theo từng dòng.
         var existingOrgNames = await db.Organizations
@@ -96,6 +98,52 @@ public static class DatabaseSeeder
                     SocialLinks = "{\"facebook\":\"https://facebook.com/example\",\"linkedin\":\"https://linkedin.com\"}",
                     Status = UserStatus.Active,
                     LastLogin = DateTime.UtcNow.AddHours(-i)
+                });
+            }
+
+            var existingUser = existingUsers.FirstOrDefault(x => string.Equals(x.Email, userEmail, StringComparison.OrdinalIgnoreCase));
+            if (existingUser is null)
+            {
+                continue;
+            }
+
+            var passwordMatches = false;
+            try
+            {
+                passwordMatches = BCrypt.Net.BCrypt.Verify(seedRawPassword, existingUser.PasswordHash);
+            }
+            catch
+            {
+                // Legacy format is not BCrypt; upgrade hash below.
+            }
+
+            if (!passwordMatches)
+            {
+                existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword);
+            }
+        }
+
+        // Seed thêm user test cho Organization 1 (example 1).
+        for (var i = 1; i <= Example1ExtraCount; i++)
+        {
+            var userEmail = $"example1.member{i}@example.com";
+            var seedRawPassword = $"hash-example1-{i}";
+
+            if (!userEmailSet.Contains(userEmail))
+            {
+                db.Users.Add(new User
+                {
+                    FullName = $"Example1 Member {i}",
+                    Email = userEmail,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword),
+                    PhoneNumber = $"09110000{i:00}",
+                    Dob = DateTime.UtcNow.Date.AddYears(-21).AddDays(i),
+                    Gender = i % 2 == 0 ? "Female" : "Male",
+                    Address = $"Example 1 Address {i}",
+                    AvatarUrl = $"https://example.com/example1-member-{i}.png",
+                    Bio = $"Extra member for Organization 1 - {i}",
+                    Status = UserStatus.Active,
+                    LastLogin = DateTime.UtcNow.AddMinutes(-i)
                 });
             }
 
@@ -292,6 +340,30 @@ public static class DatabaseSeeder
             }
         }
 
+        var example1Org = seedContext.Organizations
+            .FirstOrDefault(x => string.Equals(x.OrgName, "Organization 1", StringComparison.OrdinalIgnoreCase));
+
+        if (example1Org is not null)
+        {
+            for (var i = 1; i <= Example1ExtraCount; i++)
+            {
+                var departmentName = $"Department 1 - Extra {i}";
+                var departmentKey = CompositeKey(example1Org.Id, departmentName);
+                expectedDepartmentKeys.Add(departmentKey);
+
+                if (!departmentKeySet.Contains(departmentKey))
+                {
+                    db.Departments.Add(new Department
+                    {
+                        OrgId = example1Org.Id,
+                        DeptName = departmentName,
+                        Code = $"ORG1X{i:00}",
+                        Function = $"Extra testing department {i} for Organization 1"
+                    });
+                }
+            }
+        }
+
         await db.SaveChangesAsync(cancellationToken);
 
         var roles = await db.Roles.Where(x => orgIds.Contains(x.OrgId)).ToListAsync(cancellationToken);
@@ -403,6 +475,46 @@ public static class DatabaseSeeder
                     EndDate = DateTime.UtcNow.Date.AddDays(i + 7),
                     Status = MilestoneStatus.InProgress
                 });
+            }
+        }
+
+        var example1Org = seedContext.Organizations
+            .FirstOrDefault(x => string.Equals(x.OrgName, "Organization 1", StringComparison.OrdinalIgnoreCase));
+
+        if (example1Org is not null)
+        {
+            var example1Role = seedContext.Roles.FirstOrDefault(x => x.OrgId == example1Org.Id);
+
+            var extraDepartments = seedContext.Departments
+                .Where(x => x.OrgId == example1Org.Id && x.DeptName.StartsWith("Department 1 - Extra ", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.DeptName)
+                .ToList();
+
+            var extraUsers = seedContext.Users
+                .Where(x => x.Email.StartsWith("example1.member", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.Email)
+                .ToList();
+
+            var pairCount = Math.Min(extraDepartments.Count, extraUsers.Count);
+            for (var i = 0; i < pairCount; i++)
+            {
+                var user = extraUsers[i];
+                var department = extraDepartments[i];
+
+                var memberKey = CompositeKey(user.Id, example1Org.Id);
+                expectedMemberKeys.Add(memberKey);
+
+                if (!memberKeySet.Contains(memberKey))
+                {
+                    db.Members.Add(new Member
+                    {
+                        UserId = user.Id,
+                        OrgId = example1Org.Id,
+                        DepartmentId = department.Id,
+                        RoleId = example1Role?.Id,
+                        JoinDate = DateTime.UtcNow.Date.AddDays(-10 + i)
+                    });
+                }
             }
         }
 

@@ -464,3 +464,130 @@
     align-items: flex-start;
   }
 }
+
+/* ---- Add Member Bar ---- */
+.members-add-bar {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.members-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    background: #0f1f29;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.members-add-btn:hover {
+    background: #1a3040;
+    box-shadow: 0 4px 12px rgba(15, 31, 41, 0.2);
+}
+
+/* ---- Create Member Dialog (Inline) ---- */
+.members-create-dialog {
+    background: #fff;
+    border: 1px solid #deebf6;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(14, 29, 39, 0.08);
+}
+
+.members-create-dialog h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f1f29;
+    margin: 0 0 1rem;
+}
+
+.create-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 920px) {
+    .create-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.create-field label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #54626c;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.create-input,
+.create-select {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.85rem;
+    border: 1.5px solid #d9e5ef;
+    border-radius: 0.5rem;
+    background: #fff;
+    color: #0f1f29;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.create-input:focus,
+.create-select:focus {
+    outline: none;
+    border-color: #ff9b51;
+    box-shadow: 0 0 0 3px rgba(255, 155, 81, 0.12);
+}
+
+.create-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    margin-top: 1rem;
+}
+
+.create-cancel-btn,
+.create-submit-btn {
+    padding: 0.55rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+}
+
+.create-cancel-btn {
+    background: #f0f5fa;
+    color: #54626c;
+}
+
+.create-cancel-btn:hover {
+    background: #e0e8f0;
+}
+
+.create-submit-btn {
+    background: #ff9b51;
+    color: #fff;
+}
+
+.create-submit-btn:hover {
+    background: #e88a42;
+}
+
+.member-action-group {
+    display: flex;
+    justify-content: flex-end;
+}
+

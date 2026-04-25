@@ -1,4 +1,8 @@
 @page "/org/requests"
+@inject Org.Frontend.Services.Requests.IRequestService RequestService
+@inject Org.Frontend.Services.Organizations.IOrganizationContext OrgContext
+@using Org.Frontend.ViewModels
+
 <PageTitle>Yêu cầu đang chờ duyệt | Kora</PageTitle>
 
 <div class="requests-page-container">
@@ -7,148 +11,215 @@
         <p>Quản lý và xem xét các yêu cầu tham gia tổ chức cũng như các đề xuất từ thành viên.</p>
     </div>
 
-    <!-- SECTION: JOIN REQUESTS -->
-    <section class="request-section">
-        <div class="section-title-wrap">
-            <h2>Yêu cầu tham gia</h2>
-            <span class="count-badge primary-badge">2 YÊU CẦU</span>
-        </div>
+    @if (_isLoading)
+    {
+        <p class="loading-text">Dang tai du lieu...</p>
+    }
+    else
+    {
+        @* ---- SECTION: JOIN REQUESTS ---- *@
+        <section class="request-section">
+            <div class="section-title-wrap">
+                <h2>Yêu cầu tham gia</h2>
+                <span class="count-badge primary-badge">@_joinRequests.Count YÊU CẦU</span>
+            </div>
 
-        <div class="request-cards-grid">
-            <!-- Request Card 1 -->
-            <div class="request-card group">
-                <div class="time-stamp">12 phút trước</div>
-                <div class="card-content-top">
-                    <div class="avatar-wrap">
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6Cv0aEIEOCBYYY5v4f4y_7Y6Nd4kG-xQN-uLrBDctFCbKYUWBIqZA8W81hwp4KD_Z2Z6pls9ztNy5o22YOi5P_htUIg_JQK18AhEkZbjU3Q2fN8pEaDpdhXKb7BtUEvN_mwDTSucS0ASHF_kPBS7zIRqBPi9Dw3hHd0_oAFFw88eKkaGMH351Pe0otV7UIG4Ax-O16G5oSvPsTjhOGo8XbsIetZRDK3Q5TeONZTzBD9pTHhvQj4oJ0kWIa7uCZsP6aDp_YWib8o0e" alt="Applicant" />
-                    </div>
-                    <div class="applicant-info">
-                        <h3>Nguyễn Minh Anh</h3>
-                        <p>minhanh.ng@gmail.com</p>
-                        <div class="applicant-tags">
-                            <span class="tag">Designer</span>
-                            <span class="tag">Kinh nghiệm 3 năm</span>
+            <div class="request-cards-grid">
+                @if (_joinRequests.Count == 0)
+                {
+                    <p class="empty-text">Khong co yeu cau tham gia nao dang cho duyet.</p>
+                }
+                else
+                {
+                    @foreach (var req in _joinRequests)
+                    {
+                        <div class="request-card">
+                            <div class="card-top">
+                                <div class="avatar-wrap">
+                                    <img src="@(req.AvatarUrl ?? "/images/mockimages/FB_IMG_1744903311334.jpg")" alt="@req.UserName" />
+                                </div>
+                                <div class="applicant-info">
+                                    <h3>@req.UserName</h3>
+                                    @if (!string.IsNullOrWhiteSpace(req.DesiredDepartment))
+                                    {
+                                        <span class="dept-label">@req.DesiredDepartment.ToUpperInvariant()</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(req.DesiredPosition))
+                                    {
+                                        <span class="position-badge">@req.DesiredPosition.ToUpperInvariant()</span>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(req.Experience))
+                            {
+                                <p class="experience-text"><strong>KN:</strong> @TruncateText(req.Experience, 60)</p>
+                            }
+
+                            <button class="detail-link" @onclick="() => OpenDetail(req.Id)">
+                                <span class="material-symbols-outlined">description</span>
+                                Xem chi tiet don dang ky
+                            </button>
+
+                            <div class="card-actions">
+                                <button class="action-btn accept-btn" @onclick="() => Approve(req.Id)">CHAP NHAN</button>
+                                <button class="action-btn reject-btn" @onclick="() => Reject(req.Id)">TU CHOI</button>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <button class="action-btn accept-btn">Chấp nhận</button>
-                    <button class="action-btn reject-btn">Từ chối</button>
-                </div>
+                    }
+                }
+            </div>
+        </section>
+
+        @* ---- SECTION: OTHER REQUESTS ---- *@
+        <section class="request-section mt-16">
+            <div class="section-title-wrap">
+                <h2>Yêu cầu khác</h2>
+                <span class="count-badge default-badge">@_otherRequests.Count YÊU CẦU</span>
             </div>
 
-            <!-- Request Card 2 -->
-            <div class="request-card group">
-                <div class="time-stamp">2 giờ trước</div>
-                <div class="card-content-top">
-                    <div class="avatar-wrap">
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsrB3kJBEK6AjPPPtdojK_WCrWaN-0ix8G3GIIgbv7uOhG9DhcYuuA8HUnYDETQeaX4TifQcQdXLigUJCQSZX_oLZvb1bAeMWZ9vGeCQ3LFZkc7GDW1VA_RE90I93p4Prmz_9CL7ZZzoWV7svEZiJRn8rxLqk80XJYWnoCRNHB_HdFT4dLxKh9qgrgo8plrUPetdLqU9YJjCSroemTL4ipt-UQtrdCqsqEeDIQaQP_9sDwlnLyo2lC06lPQQquDhaLt-4uceuaMxa1" alt="Applicant" />
-                    </div>
-                    <div class="applicant-info">
-                        <h3>Trần Hoàng Long</h3>
-                        <p>hoanglong.dev@work.com</p>
-                        <div class="applicant-tags">
-                            <span class="tag">Developer</span>
-                            <span class="tag">Full-time</span>
+            <div class="other-requests-list">
+                @if (_otherRequests.Count == 0)
+                {
+                    <p class="empty-text">Khong co yeu cau nao khac.</p>
+                }
+                else
+                {
+                    @foreach (var req in _otherRequests)
+                    {
+                        <div class="other-request-item">
+                            <div class="item-left">
+                                <div class="icon-wrap">
+                                    <span class="material-symbols-outlined">@GetRequestIcon(req.Title)</span>
+                                </div>
+                                <div class="item-info">
+                                    <h4>@req.Title</h4>
+                                    <p>Người gửi: <strong>@req.UserName</strong></p>
+                                </div>
+                            </div>
+                            <div class="item-right">
+                                <div class="price-meta">
+                                    <p class="meta-desc">@req.Message</p>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="icon-btn accept" title="Chấp nhận" @onclick="() => Approve(req.Id)">
+                                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                    </button>
+                                    <button class="icon-btn reject" title="Từ chối" @onclick="() => Reject(req.Id)">
+                                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <button class="action-btn accept-btn">Chấp nhận</button>
-                    <button class="action-btn reject-btn">Từ chối</button>
-                </div>
+                    }
+                }
             </div>
-        </div>
-    </section>
-
-    <!-- SECTION: OTHER REQUESTS -->
-    <section class="request-section mt-16">
-        <div class="section-title-wrap">
-            <h2>Yêu cầu khác</h2>
-            <span class="count-badge default-badge">3 YÊU CẦU</span>
-        </div>
-
-        <div class="other-requests-list">
-            <!-- Other Request 1 -->
-            <div class="other-request-item">
-                <div class="item-left">
-                    <div class="icon-wrap">
-                        <span class="material-symbols-outlined">payments</span>
-                    </div>
-                    <div class="item-info">
-                        <h4>Hoàn tác chi phí sự kiện</h4>
-                        <p>Người gửi: <strong>Lê Thu Thảo</strong> • Phân loại: <em>Tài chính</em></p>
-                    </div>
-                </div>
-                <div class="item-right">
-                    <div class="price-meta">
-                        <p class="highlight-value">1.250.000 VNĐ</p>
-                        <p class="meta-desc">Sự kiện: Tech Workshop 2024</p>
-                    </div>
-                    <div class="item-actions">
-                        <button class="icon-btn accept" title="Chấp nhận">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                        </button>
-                        <button class="icon-btn reject" title="Từ chối">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Other Request 2 -->
-            <div class="other-request-item">
-                <div class="item-left">
-                    <div class="icon-wrap">
-                        <span class="material-symbols-outlined">edit_document</span>
-                    </div>
-                    <div class="item-info">
-                        <h4>Đề xuất cập nhật điều lệ</h4>
-                        <p>Người gửi: <strong>Phạm Văn Đức</strong> • Phân loại: <em>Tài liệu</em></p>
-                    </div>
-                </div>
-                <div class="item-right">
-                    <div class="price-meta">
-                        <p class="highlight-value">v2.1 Update</p>
-                        <p class="meta-desc">Hạn chót: 30/10/2024</p>
-                    </div>
-                    <div class="item-actions">
-                        <button class="icon-btn accept" title="Chấp nhận">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                        </button>
-                        <button class="icon-btn reject" title="Từ chối">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Other Request 3 -->
-            <div class="other-request-item">
-                <div class="item-left">
-                    <div class="icon-wrap">
-                        <span class="material-symbols-outlined">event_busy</span>
-                    </div>
-                    <div class="item-info">
-                        <h4>Yêu cầu hủy sự kiện "Outing 2024"</h4>
-                        <p>Người gửi: <strong>Quản lý Sự kiện</strong> • Phân loại: <em>Sự kiện</em></p>
-                    </div>
-                </div>
-                <div class="item-right">
-                    <div class="price-meta">
-                        <p class="highlight-value error-text">Hủy bỏ</p>
-                        <p class="meta-desc">Lý do: Thời tiết xấu</p>
-                    </div>
-                    <div class="item-actions">
-                        <button class="icon-btn accept" title="Chấp nhận">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                        </button>
-                        <button class="icon-btn reject" title="Từ chối">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
+    }
 </div>
+
+@* ---- Modal xem chi tiết đơn đăng ký ---- *@
+@if (_showDetail && _selectedDetail is not null)
+{
+    <RequestDetailModal Detail="@_selectedDetail"
+                        OnClose="CloseDetail"
+                        OnApprove="ApproveFromModal"
+                        OnReject="RejectFromModal" />
+}
+
+@code {
+    private bool _isLoading = true;
+    private List<RequestViewModel> _joinRequests = [];
+    private List<RequestViewModel> _otherRequests = [];
+
+    // Detail modal state
+    private bool _showDetail;
+    private RequestDetailViewModel? _selectedDetail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var orgId = await OrgContext.GetOrganizationIdAsync();
+            var all = await RequestService.GetPendingRequestsAsync(orgId);
+            _joinRequests = all.Where(r => string.Equals(r.RequestType, "JOIN", StringComparison.OrdinalIgnoreCase)).ToList();
+            _otherRequests = all.Where(r => !string.Equals(r.RequestType, "JOIN", StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task Approve(Guid requestId)
+    {
+        await RequestService.ApproveRequestAsync(requestId);
+        await LoadDataAsync();
+    }
+
+    private async Task Reject(Guid requestId)
+    {
+        await RequestService.RejectRequestAsync(requestId);
+        await LoadDataAsync();
+    }
+
+    private async Task OpenDetail(Guid requestId)
+    {
+        _selectedDetail = await RequestService.GetRequestDetailAsync(requestId);
+        _showDetail = _selectedDetail is not null;
+    }
+
+    private void CloseDetail()
+    {
+        _showDetail = false;
+        _selectedDetail = null;
+    }
+
+    private async Task ApproveFromModal()
+    {
+        if (_selectedDetail is not null)
+        {
+            await Approve(_selectedDetail.Id);
+        }
+        CloseDetail();
+    }
+
+    private async Task RejectFromModal()
+    {
+        if (_selectedDetail is not null)
+        {
+            await Reject(_selectedDetail.Id);
+        }
+        CloseDetail();
+    }
+
+    private static string FormatTimeAgo(DateTime createdAt)
+    {
+        var diff = DateTime.UtcNow - createdAt;
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} phut truoc";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} gio truoc";
+        return $"{(int)diff.TotalDays} ngay truoc";
+    }
+
+    private static string GetRequestIcon(string? title)
+    {
+        if (string.IsNullOrWhiteSpace(title)) return "description";
+        var lower = title.ToLowerInvariant();
+        if (lower.Contains("chi phi") || lower.Contains("hoan")) return "payments";
+        if (lower.Contains("dieu le") || lower.Contains("cap nhat")) return "edit_document";
+        if (lower.Contains("huy") || lower.Contains("event")) return "event_busy";
+        return "description";
+    }
+
+    private static string TruncateText(string text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return "";
+        return text.Length <= maxLength ? text : text[..maxLength].TrimEnd() + "...";
+    }
+}

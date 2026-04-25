@@ -15,6 +15,27 @@ public sealed class MockDataSet
     public List<MockMilestone> Milestones { get; set; } = [];
     public List<MockEventCategory> EventCategories { get; set; } = [];
     public List<MockTask> Tasks { get; set; } = [];
+    public List<MockRequest> Requests { get; set; } = [];
+}
+
+public sealed class MockRequest
+{
+    public Guid Id { get; set; }
+    public Guid OrgId { get; set; }
+    public Guid UserId { get; set; }
+    /// <summary>JOIN hoặc OTHER</summary>
+    public string RequestType { get; set; } = "JOIN";
+    /// <summary>PENDING, APPROVED, REJECTED</summary>
+    public string Status { get; set; } = "PENDING";
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string? Title { get; set; }
+    public string? Message { get; set; }
+    // ---- Application detail (chỉ dùng cho RequestType = JOIN) ----
+    public string? DesiredDepartment { get; set; }
+    public string? DesiredPosition { get; set; }
+    public string? Experience { get; set; }
+    public string? Strengths { get; set; }
+    public string? Reason { get; set; }
 }
 
 public sealed class MockUser

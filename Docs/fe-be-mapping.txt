@@ -1,0 +1,24 @@
+
+6. EventList.razor — Nút Đăng ký / Hủy sự kiện
+------------------------------------------------
+FE cần: Thêm nút "Đăng ký" trên event card (Sinh viên),
+        nút "Hủy" nếu đã đăng ký.
+
+BE cần xây:
+  POST   /api/events/{eventId}/register        -> Đăng ký tham gia (tạo Attendee)
+  DELETE /api/events/{eventId}/register        -> Hủy đăng ký (status -> Cancelled)
+  GET    /api/users/me/events                  -> [DONE] Kiểm tra user đã đăng ký event nào
+
+Ghi chú: Entity Attendee + Enum AttendeeStatus đã có.
+         GET /api/users/me/events đã có sẵn.
+
+4. MemberList.razor — Nút "Thêm" và "Xóa" thành viên
+------------------------------------------------------
+FE cần: Thêm nút + dialog thêm thành viên, thêm nút xóa trên mỗi dòng.
+
+BE: ĐÃ CÓ ĐẦY ĐỦ — chỉ cần kết nối FE:
+  POST   /api/organizations/{orgId}/members    -> [DONE] Thêm thành viên
+  DELETE /api/members/{id}                     -> [DONE] Xóa thành viên
+
+Ghi chú: KHÔNG cần làm BE. Code CreateMember() + DeleteMember() đã có trong razor,
+         chỉ cần FE thêm nút và hiển thị dialog.

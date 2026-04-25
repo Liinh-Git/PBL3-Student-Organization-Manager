@@ -11,18 +11,24 @@ try {
     Set-Location "../.."
     $repoRoot = (Get-Location).Path
 
+    Write-Host "Building solution once to avoid concurrent build locks..."
+    dotnet build "StudentOrgManager.slnx"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Build failed. Please inspect the output above."
+    }
+
     Write-Host "Starting Backend and Frontend..."
 
     Start-Process -FilePath "powershell" -ArgumentList @(
         "-NoExit",
         "-Command",
-        "Set-Location '$repoRoot'; dotnet run --project '$BackendProject'"
+        "Set-Location '$repoRoot'; dotnet run --no-build --project '$BackendProject'"
     ) | Out-Null
 
     Start-Process -FilePath "powershell" -ArgumentList @(
         "-NoExit",
         "-Command",
-        "Set-Location '$repoRoot'; dotnet run --project '$FrontendProject'"
+        "Set-Location '$repoRoot'; dotnet run --no-build --project '$FrontendProject'"
     ) | Out-Null
 
     Write-Host "Backend and Frontend started in separate PowerShell windows."
