@@ -57,7 +57,7 @@
     "id": "91fd1212-add4-4a00-b6f1-3a2bea31151a",
     "milestoneId": "705d271a-4c46-4dec-9af1-5243c08311ad",
     "name": "Guest Outreach",
-    "leadMemberId": "4ec49164-d097-40b1-8d6b-7d0a5ce8ccc9",
+    "leadMemberId": "98b5de01-825c-438c-91cb-9f2ad29a6000",
     "orderIndex": 1,
     "description": "Invite speakers and coordinate enterprise representatives.",
     "ownerDepartmentId": "bc4d0fb7-e4b4-4995-bbce-0d4a8902d06c"
@@ -66,7 +66,7 @@
     "id": "6dc07250-1b6d-46a4-859a-26cfd6f801c3",
     "milestoneId": "705d271a-4c46-4dec-9af1-5243c08311ad",
     "name": "Protocol",
-    "leadMemberId": "0c640242-c6dc-4662-b8dc-320f989968cc",
+    "leadMemberId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d",
     "orderIndex": 2,
     "description": "Agenda flow, MC notes and stage protocol.",
     "ownerDepartmentId": "2c8d000b-c3c8-4bc5-b79a-7d791bb5d421"
