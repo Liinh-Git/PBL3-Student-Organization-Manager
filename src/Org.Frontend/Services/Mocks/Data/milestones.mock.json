@@ -1,50 +1,82 @@
 ﻿[
-  {
-    "id": "e7f03bc5-1e36-47e1-ab80-704e7d132705",
-    "eventId": "2c771b37-6ea7-4dd5-a9ef-4f327b944694",
-    "name": "Preparation Phase",
-    "startDate": "2026-05-01T00:00:00Z",
-    "endDate": "2026-05-14T23:59:00Z",
-    "orderIndex": 1
-  },
-  {
-    "id": "f46a088b-97a7-48bf-8dc6-e6cbe3847de6",
-    "eventId": "2c771b37-6ea7-4dd5-a9ef-4f327b944694",
-    "name": "Execution Phase",
-    "startDate": "2026-05-15T00:00:00Z",
-    "endDate": "2026-05-22T23:59:00Z",
-    "orderIndex": 2
-  },
-  {
-    "id": "19957649-9ca3-46c7-959f-11248d6f6828",
-    "eventId": "b23923f3-e6cc-4810-b728-184abf9d556a",
-    "name": "Sponsor and Venue Setup",
-    "startDate": "2026-05-20T00:00:00Z",
-    "endDate": "2026-06-05T23:59:00Z",
-    "orderIndex": 1
-  },
-  {
-    "id": "96c923f7-6602-49fd-b829-f7a0c66a4d3c",
-    "eventId": "b23923f3-e6cc-4810-b728-184abf9d556a",
-    "name": "Hackathon Delivery",
-    "startDate": "2026-06-06T00:00:00Z",
-    "endDate": "2026-06-13T23:59:00Z",
-    "orderIndex": 2
-  },
-  {
-    "id": "705d271a-4c46-4dec-9af1-5243c08311ad",
-    "eventId": "cf8a2ffa-8c58-4d2e-a9d8-162bfc2f45fb",
-    "name": "Preparation and Outreach",
-    "startDate": "2026-06-10T00:00:00Z",
-    "endDate": "2026-07-01T23:59:00Z",
-    "orderIndex": 1
-  },
-  {
-    "id": "2303fb76-7d0b-407b-af39-75f328e59d07",
-    "eventId": "0e7f57d2-4f65-4e3c-b29b-bf428dc80703",
-    "name": "Festival Preparation",
-    "startDate": "2026-06-01T00:00:00Z",
-    "endDate": "2026-06-20T23:59:00Z",
-    "orderIndex": 1
-  }
+    {
+        "id":  "d95b7c23-2a69-4842-8be1-759999ef6682",
+        "eventId":  "1a63999c-4846-48ca-90c6-bde850b7848b",
+        "name":  "Milestone 1",
+        "startDate":  "2026-05-02T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-03T07:00:00.0000000+07:00",
+        "orderIndex":  1
+    },
+    {
+        "id":  "1f6b4990-4cae-4cf1-9ced-cbadf350b893",
+        "eventId":  "30731865-6b26-4303-a9df-754a3b6a91af",
+        "name":  "Milestone 2",
+        "startDate":  "2026-05-03T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-04T07:00:00.0000000+07:00",
+        "orderIndex":  2
+    },
+    {
+        "id":  "d8cf6991-211e-408f-b077-25829985da53",
+        "eventId":  "844fd703-404d-4991-9b6f-cd62bbf7154e",
+        "name":  "Milestone 3",
+        "startDate":  "2026-05-04T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-05T07:00:00.0000000+07:00",
+        "orderIndex":  3
+    },
+    {
+        "id":  "2f1080ea-76ff-416b-8895-984d73d836fb",
+        "eventId":  "03394b60-b56e-41ea-bc52-c2868816b15a",
+        "name":  "Milestone 4",
+        "startDate":  "2026-05-05T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-06T07:00:00.0000000+07:00",
+        "orderIndex":  4
+    },
+    {
+        "id":  "06d75c90-3ca0-4e7f-b3ba-150ec664448a",
+        "eventId":  "93317348-e8b6-42d4-a171-bff0ed4c14aa",
+        "name":  "Milestone 5",
+        "startDate":  "2026-05-06T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-07T07:00:00.0000000+07:00",
+        "orderIndex":  5
+    },
+    {
+        "id":  "11a7114e-9c62-438c-9b4f-7b467e9595a8",
+        "eventId":  "303e0351-6aa4-426b-bb1f-9b0831e48ba5",
+        "name":  "Milestone 6",
+        "startDate":  "2026-05-07T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-08T07:00:00.0000000+07:00",
+        "orderIndex":  6
+    },
+    {
+        "id":  "e6ae911e-c405-4ee4-824e-034b1cdb84e2",
+        "eventId":  "ea5159c6-0c7e-490a-bc7e-f15d12004bd1",
+        "name":  "Milestone 7",
+        "startDate":  "2026-05-08T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-09T07:00:00.0000000+07:00",
+        "orderIndex":  7
+    },
+    {
+        "id":  "2bbbb56f-6de5-420d-af43-1b48a741f0ed",
+        "eventId":  "7defcb96-dbdc-45f8-98e4-41d7e329ccde",
+        "name":  "Milestone 8",
+        "startDate":  "2026-05-09T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-10T07:00:00.0000000+07:00",
+        "orderIndex":  8
+    },
+    {
+        "id":  "daaf93bf-4939-4a3d-9d3e-2c6014645ec0",
+        "eventId":  "c1230df7-d06b-44eb-981a-f35eb4ed6f65",
+        "name":  "Milestone 9",
+        "startDate":  "2026-05-10T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-11T07:00:00.0000000+07:00",
+        "orderIndex":  9
+    },
+    {
+        "id":  "9354f7e4-ad1b-4b8e-a125-26a67f0e6b8b",
+        "eventId":  "0c61ffb8-f69f-40d2-a951-24c5d9b59936",
+        "name":  "Milestone 10",
+        "startDate":  "2026-05-11T07:00:00.0000000+07:00",
+        "endDate":  "2026-05-12T07:00:00.0000000+07:00",
+        "orderIndex":  10
+    }
 ]

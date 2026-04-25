@@ -1,30 +1,92 @@
 ﻿[
-  { "id": "608fa0b7-e74e-4047-9394-c4b039d83e2e", "categoryId": "8ec5ce5c-1a64-486d-bb68-1d4d435b7b48", "title": "Publish teaser post", "status": "DONE", "assigneeMemberId": "9a0f1187-256e-48ab-b25d-793484eccf53", "dueDate": "2026-05-03T17:00:00Z", "note": "Completed with engagement report." },
-  { "id": "b6a919f0-5f80-475a-b801-2c13e14983c7", "categoryId": "8ec5ce5c-1a64-486d-bb68-1d4d435b7b48", "title": "Design event poster", "status": "IN_PROGRESS", "assigneeMemberId": "78fb96ab-e2f8-49ad-a482-659117027e0f", "dueDate": "2026-05-05T17:00:00Z", "note": "Final approval pending." },
-  { "id": "c0287092-d62b-47ba-adf8-38ee5c4d6775", "categoryId": "8ec5ce5c-1a64-486d-bb68-1d4d435b7b48", "title": "Schedule social media campaign", "status": "TODO", "assigneeMemberId": "4ec49164-d097-40b1-8d6b-7d0a5ce8ccc9", "dueDate": "2026-05-07T17:00:00Z", "note": "Coordinate with partner pages." },
-
-  { "id": "638f90db-f8db-41e6-b49d-916bf31a403a", "categoryId": "5c303509-5636-4ba7-8eb0-9c50aacdc14c", "title": "Finalize volunteer roster", "status": "DONE", "assigneeMemberId": "b3ab7ce7-b721-496b-a5ac-91ce05c96378", "dueDate": "2026-05-06T17:00:00Z", "note": "Roster approved by board." },
-  { "id": "476af271-4996-4434-987a-b2b2a4f6bd02", "categoryId": "5c303509-5636-4ba7-8eb0-9c50aacdc14c", "title": "Confirm venue setup", "status": "IN_PROGRESS", "assigneeMemberId": "16ee351a-3032-4beb-a0f5-bdbe243413ba", "dueDate": "2026-05-10T17:00:00Z", "note": "Waiting for equipment checklist." },
-  { "id": "720f90c8-3e6c-478a-9f82-41c5a100df94", "categoryId": "5c303509-5636-4ba7-8eb0-9c50aacdc14c", "title": "Coordinate registration desk", "status": "TODO", "assigneeMemberId": "0c640242-c6dc-4662-b8dc-320f989968cc", "dueDate": "2026-05-13T17:00:00Z", "note": "Need extra tablets." },
-
-  { "id": "d30b8cfa-26fa-401a-83e5-acac078ca8ec", "categoryId": "a02a73a0-eb0d-4d40-a112-661bcd248f7a", "title": "Prepare stage network", "status": "IN_PROGRESS", "assigneeMemberId": "57beaed2-a66c-49f4-83f3-8ebedd1d43c8", "dueDate": "2026-05-18T17:00:00Z", "note": "Back-up router procured." },
-  { "id": "03e35742-3b07-4c90-ab3e-dc4eba29a5ba", "categoryId": "a02a73a0-eb0d-4d40-a112-661bcd248f7a", "title": "Test projector and audio", "status": "TODO", "assigneeMemberId": "eb4a5afb-3de6-4e53-be70-8af5b83a36d5", "dueDate": "2026-05-19T17:00:00Z", "note": "Joint test with venue team." },
-
-  { "id": "0239d9c1-b6a7-434d-9ee6-7483f99994db", "categoryId": "89b36f66-3ac1-43c2-b7e1-311d5ea9af59", "title": "Reach top 5 sponsors", "status": "IN_PROGRESS", "assigneeMemberId": "4ec49164-d097-40b1-8d6b-7d0a5ce8ccc9", "dueDate": "2026-05-26T17:00:00Z", "note": "3 confirmations secured." },
-  { "id": "ba455dce-44af-424f-80d5-c7f9a6d80e20", "categoryId": "89b36f66-3ac1-43c2-b7e1-311d5ea9af59", "title": "Draft sponsor package", "status": "DONE", "assigneeMemberId": "78fb96ab-e2f8-49ad-a482-659117027e0f", "dueDate": "2026-05-24T17:00:00Z", "note": "Package approved and published." },
-
-  { "id": "0fe8ecdb-9fbc-48ec-a8c9-91d8b4e81d51", "categoryId": "0b5b9537-fce2-409b-ace5-777d47b371cb", "title": "Create floor map", "status": "DONE", "assigneeMemberId": "16ee351a-3032-4beb-a0f5-bdbe243413ba", "dueDate": "2026-05-28T17:00:00Z", "note": "Shared to all volunteers." },
-  { "id": "f78ddd8b-ba96-4d9f-bc5f-c8adafa60649", "categoryId": "0b5b9537-fce2-409b-ace5-777d47b371cb", "title": "Book backup generator", "status": "TODO", "assigneeMemberId": "b3ab7ce7-b721-496b-a5ac-91ce05c96378", "dueDate": "2026-06-01T17:00:00Z", "note": "Pending vendor quotation." },
-
-  { "id": "033241ef-95a3-4f79-8941-4b7c8e91ba43", "categoryId": "c1f63980-b7cf-4731-b99b-49dd2920b6d5", "title": "Deploy judge portal", "status": "IN_PROGRESS", "assigneeMemberId": "57beaed2-a66c-49f4-83f3-8ebedd1d43c8", "dueDate": "2026-06-08T17:00:00Z", "note": "QA running with sample data." },
-  { "id": "1ab17961-3488-4afd-9764-8a7df11c61a7", "categoryId": "c1f63980-b7cf-4731-b99b-49dd2920b6d5", "title": "Configure scoreboard", "status": "TODO", "assigneeMemberId": "16ee351a-3032-4beb-a0f5-bdbe243413ba", "dueDate": "2026-06-09T17:00:00Z", "note": "Need final scoring rules." },
-
-  { "id": "627cf74e-7057-401d-b0e7-d8ff5f5a5521", "categoryId": "91fd1212-add4-4a00-b6f1-3a2bea31151a", "title": "Confirm keynote list", "status": "IN_PROGRESS", "assigneeMemberId": "98b5de01-825c-438c-91cb-9f2ad29a6000", "dueDate": "2026-06-22T17:00:00Z", "note": "Awaiting one final RSVP." },
-  { "id": "112d2ad6-4255-449d-824a-7b4735c967ab", "categoryId": "91fd1212-add4-4a00-b6f1-3a2bea31151a", "title": "Prepare company outreach deck", "status": "DONE", "assigneeMemberId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d", "dueDate": "2026-06-19T17:00:00Z", "note": "Deck translated and shared." },
-
-  { "id": "a52b290e-83c6-4ecf-866c-29e478118da6", "categoryId": "6dc07250-1b6d-46a4-859a-26cfd6f801c3", "title": "Finalize event script", "status": "TODO", "assigneeMemberId": "0a3cbca1-425f-45e1-8ba5-c40cb739897a", "dueDate": "2026-06-28T17:00:00Z", "note": "Need approval from host." },
-
-  { "id": "6affc55c-3336-416a-b7c3-a3584f1d0c97", "categoryId": "aaf56a71-413d-43dc-9f48-2c823cb27056", "title": "Arrange performance lineup", "status": "IN_PROGRESS", "assigneeMemberId": "98b5de01-825c-438c-91cb-9f2ad29a6000", "dueDate": "2026-06-15T17:00:00Z", "note": "12 booths confirmed." },
-  { "id": "16782e89-8a36-456d-897d-e242fb55d387", "categoryId": "17dc43c7-3e61-4bd3-be1f-3e1bea76aa52", "title": "Finalize vendor contracts", "status": "DONE", "assigneeMemberId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d", "dueDate": "2026-06-14T17:00:00Z", "note": "All key vendors signed." },
-  { "id": "1b9980ee-232f-4911-a738-132847234e84", "categoryId": "17dc43c7-3e61-4bd3-be1f-3e1bea76aa52", "title": "Publish spending dashboard", "status": "TODO", "assigneeMemberId": "0a3cbca1-425f-45e1-8ba5-c40cb739897a", "dueDate": "2026-06-18T17:00:00Z", "note": "Waiting finance review." }
+    {
+        "id":  "485fe051-eb1f-4081-87f5-5ba039297609",
+        "categoryId":  "510d6f07-e410-427a-a037-15398cc7aafa",
+        "title":  "Task 1",
+        "status":  "TODO",
+        "assigneeMemberId":  "14f8be84-9abb-408e-9f72-f34629feccff",
+        "dueDate":  "2026-05-11T07:00:00.0000000+07:00",
+        "note":  "Task note 1"
+    },
+    {
+        "id":  "1e9f3ea4-b30b-45d6-a7c4-2e622ca44417",
+        "categoryId":  "5c278895-1f9b-45b1-9fa4-dcc669f4d94e",
+        "title":  "Task 2",
+        "status":  "IN_PROGRESS",
+        "assigneeMemberId":  "9ce444e3-491a-465d-8435-fd594d4f66d4",
+        "dueDate":  "2026-05-12T07:00:00.0000000+07:00",
+        "note":  "Task note 2"
+    },
+    {
+        "id":  "2c9f4379-0c43-4406-945f-e3131ba5c9ae",
+        "categoryId":  "2e31d666-5be2-4773-ae33-f95fba05f785",
+        "title":  "Task 3",
+        "status":  "DONE",
+        "assigneeMemberId":  "c6a5a775-6bcc-41e8-b589-a35dac744673",
+        "dueDate":  "2026-05-13T07:00:00.0000000+07:00",
+        "note":  "Task note 3"
+    },
+    {
+        "id":  "7c2e51de-9f7e-4680-88b8-9b362a6dbb3f",
+        "categoryId":  "7666c9f5-3db6-4eee-bc14-4116b9faec02",
+        "title":  "Task 4",
+        "status":  "TODO",
+        "assigneeMemberId":  "ea7cb38b-f0cf-4916-94aa-1a6d33b05039",
+        "dueDate":  "2026-05-14T07:00:00.0000000+07:00",
+        "note":  "Task note 4"
+    },
+    {
+        "id":  "59225a12-af17-45d5-bd63-4dbf3f8ab297",
+        "categoryId":  "03391584-5748-4aa4-843e-955f7615d180",
+        "title":  "Task 5",
+        "status":  "IN_PROGRESS",
+        "assigneeMemberId":  "abd871e4-ac8f-4ea0-a215-5ebaecf2d7cd",
+        "dueDate":  "2026-05-15T07:00:00.0000000+07:00",
+        "note":  "Task note 5"
+    },
+    {
+        "id":  "5c1ac199-7188-42d6-bcb7-2b8574259372",
+        "categoryId":  "6b452e9e-5536-4655-83a8-3c3e1e5c4839",
+        "title":  "Task 6",
+        "status":  "DONE",
+        "assigneeMemberId":  "97c62f70-2aa4-4db6-91a1-08db8d980a49",
+        "dueDate":  "2026-05-16T07:00:00.0000000+07:00",
+        "note":  "Task note 6"
+    },
+    {
+        "id":  "2d7766f5-db52-401f-b00b-2e950f97791f",
+        "categoryId":  "251fe5a2-f5e1-48bf-b398-e73693b0c90b",
+        "title":  "Task 7",
+        "status":  "TODO",
+        "assigneeMemberId":  "556080b7-f1a1-416e-9486-486992b7f04e",
+        "dueDate":  "2026-05-17T07:00:00.0000000+07:00",
+        "note":  "Task note 7"
+    },
+    {
+        "id":  "37a375f0-5e67-47a0-9d8a-6f0718e0e642",
+        "categoryId":  "d8f58eb5-586c-43d0-b0f5-d474859b4cfb",
+        "title":  "Task 8",
+        "status":  "IN_PROGRESS",
+        "assigneeMemberId":  "0f2406b3-5147-4f18-a93c-1b2b74b86314",
+        "dueDate":  "2026-05-18T07:00:00.0000000+07:00",
+        "note":  "Task note 8"
+    },
+    {
+        "id":  "968a8eab-1327-4440-b8c4-3b6314c641ca",
+        "categoryId":  "44cb5950-f103-4fea-b1c5-3d16c3cb4f0f",
+        "title":  "Task 9",
+        "status":  "DONE",
+        "assigneeMemberId":  "1e465ab3-52b4-4c07-adae-99ef8b71160d",
+        "dueDate":  "2026-05-19T07:00:00.0000000+07:00",
+        "note":  "Task note 9"
+    },
+    {
+        "id":  "6ffa884c-717c-4a3c-82e2-9be3a5c6fa5e",
+        "categoryId":  "cc54233a-3ba5-4ca7-a0ec-264d057ec864",
+        "title":  "Task 10",
+        "status":  "TODO",
+        "assigneeMemberId":  "248aa108-0372-49aa-a1a7-a1f40b1b374d",
+        "dueDate":  "2026-05-20T07:00:00.0000000+07:00",
+        "note":  "Task note 10"
+    }
 ]

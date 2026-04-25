@@ -1,37 +1,72 @@
 ﻿[
-  {
-    "id": "bc4d0fb7-e4b4-4995-bbce-0d4a8902d06c",
-    "orgId": "c78af9dc-7a03-49bf-98c1-0572112b57ab",
-    "deptName": "Media and PR",
-    "managerId": "78fb96ab-e2f8-49ad-a482-659117027e0f",
-    "function": "Branding, announcements and external communication."
-  },
-  {
-    "id": "2c8d000b-c3c8-4bc5-b79a-7d791bb5d421",
-    "orgId": "c78af9dc-7a03-49bf-98c1-0572112b57ab",
-    "deptName": "Operations",
-    "managerId": "b3ab7ce7-b721-496b-a5ac-91ce05c96378",
-    "function": "Logistics, venue management and volunteer scheduling."
-  },
-  {
-    "id": "2b4c55ac-8ddf-4da5-bcb4-a4e531134583",
-    "orgId": "c78af9dc-7a03-49bf-98c1-0572112b57ab",
-    "deptName": "Technical",
-    "managerId": "57beaed2-a66c-49f4-83f3-8ebedd1d43c8",
-    "function": "Platform setup, streaming, and technical execution."
-  },
-  {
-    "id": "7416808d-d8b0-4630-8f7d-bc621342604b",
-    "orgId": "ebac3195-2922-435f-a5ff-9a8d45efbe8a",
-    "deptName": "External Relations",
-    "managerId": "98b5de01-825c-438c-91cb-9f2ad29a6000",
-    "function": "Guest partnerships and institution liaison."
-  },
-  {
-    "id": "6bc571c3-8ab9-4721-bdbc-fac26cd7ddfd",
-    "orgId": "ebac3195-2922-435f-a5ff-9a8d45efbe8a",
-    "deptName": "Finance",
-    "managerId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d",
-    "function": "Budget planning and spend tracking."
-  }
+    {
+        "id":  "53376d33-89d8-4f4d-a237-e68442d92358",
+        "orgId":  "82dac2e9-eb66-4cf0-ad4d-598126b175fb",
+        "deptName":  "Department 1",
+        "managerId":  "14f8be84-9abb-408e-9f72-f34629feccff",
+        "function":  "Function 1"
+    },
+    {
+        "id":  "1427412e-0319-4641-a87e-ab84000926b1",
+        "orgId":  "90535883-fbfb-4dcd-a05d-af83e3ea79dc",
+        "deptName":  "Department 2",
+        "managerId":  "9ce444e3-491a-465d-8435-fd594d4f66d4",
+        "function":  "Function 2"
+    },
+    {
+        "id":  "92b46f67-935c-4564-9077-3f7b6674dd67",
+        "orgId":  "4abb9b76-0ebb-4dd3-a141-4c66cdbd458f",
+        "deptName":  "Department 3",
+        "managerId":  "c6a5a775-6bcc-41e8-b589-a35dac744673",
+        "function":  "Function 3"
+    },
+    {
+        "id":  "576b2c95-b8ea-4271-a868-b0c9f9fbf4f6",
+        "orgId":  "65e83bcf-9f65-4092-bfd2-3c80d4e396b4",
+        "deptName":  "Department 4",
+        "managerId":  "ea7cb38b-f0cf-4916-94aa-1a6d33b05039",
+        "function":  "Function 4"
+    },
+    {
+        "id":  "903c12e5-4e14-4f45-b2ec-dd9fbea6b5ff",
+        "orgId":  "1029cb9d-a78d-4440-bb16-20abe003f9be",
+        "deptName":  "Department 5",
+        "managerId":  "abd871e4-ac8f-4ea0-a215-5ebaecf2d7cd",
+        "function":  "Function 5"
+    },
+    {
+        "id":  "3d725e51-9dc1-4651-9f5a-ad46dd37d5e5",
+        "orgId":  "40f706bd-12a6-4d36-8161-40434c11d126",
+        "deptName":  "Department 6",
+        "managerId":  "97c62f70-2aa4-4db6-91a1-08db8d980a49",
+        "function":  "Function 6"
+    },
+    {
+        "id":  "41be6504-1d84-4b8e-b31f-da146045f217",
+        "orgId":  "b171205e-6aee-4180-87dd-3aeeeac7ea9e",
+        "deptName":  "Department 7",
+        "managerId":  "556080b7-f1a1-416e-9486-486992b7f04e",
+        "function":  "Function 7"
+    },
+    {
+        "id":  "bba8f2e8-fcf1-40c9-8a8f-4bfc49222a65",
+        "orgId":  "f6774453-4111-49c0-a964-917e4648f9cc",
+        "deptName":  "Department 8",
+        "managerId":  "0f2406b3-5147-4f18-a93c-1b2b74b86314",
+        "function":  "Function 8"
+    },
+    {
+        "id":  "be8308ee-c7df-471e-92f9-864c39561baf",
+        "orgId":  "a858fa5d-bc5e-497c-9a32-bd9b1623c230",
+        "deptName":  "Department 9",
+        "managerId":  "1e465ab3-52b4-4c07-adae-99ef8b71160d",
+        "function":  "Function 9"
+    },
+    {
+        "id":  "ad117692-7d70-49c9-ae3d-a34909a3dceb",
+        "orgId":  "072ec4f3-a40d-4a5e-b22b-c0d9f1988c02",
+        "deptName":  "Department 10",
+        "managerId":  "248aa108-0372-49aa-a1a7-a1f40b1b374d",
+        "function":  "Function 10"
+    }
 ]

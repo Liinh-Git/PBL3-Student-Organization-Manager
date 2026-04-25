@@ -1,13 +1,52 @@
 ﻿[
-  { "eventId": "2c771b37-6ea7-4dd5-a9ef-4f327b944694", "memberId": "78fb96ab-e2f8-49ad-a482-659117027e0f", "eventRole": "General Director" },
-  { "eventId": "2c771b37-6ea7-4dd5-a9ef-4f327b944694", "memberId": "b3ab7ce7-b721-496b-a5ac-91ce05c96378", "eventRole": "Operations Lead" },
-  { "eventId": "2c771b37-6ea7-4dd5-a9ef-4f327b944694", "memberId": "9a0f1187-256e-48ab-b25d-793484eccf53", "eventRole": "PR Coordinator" },
-  { "eventId": "b23923f3-e6cc-4810-b728-184abf9d556a", "memberId": "57beaed2-a66c-49f4-83f3-8ebedd1d43c8", "eventRole": "Tech Lead" },
-  { "eventId": "b23923f3-e6cc-4810-b728-184abf9d556a", "memberId": "16ee351a-3032-4beb-a0f5-bdbe243413ba", "eventRole": "Volunteer Captain" },
-  { "eventId": "b23923f3-e6cc-4810-b728-184abf9d556a", "memberId": "4ec49164-d097-40b1-8d6b-7d0a5ce8ccc9", "eventRole": "Partnership Officer" },
-  { "eventId": "cf8a2ffa-8c58-4d2e-a9d8-162bfc2f45fb", "memberId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d", "eventRole": "Program Owner" },
-  { "eventId": "cf8a2ffa-8c58-4d2e-a9d8-162bfc2f45fb", "memberId": "98b5de01-825c-438c-91cb-9f2ad29a6000", "eventRole": "Logistics Coordinator" },
-  { "eventId": "0e7f57d2-4f65-4e3c-b29b-bf428dc80703", "memberId": "98b5de01-825c-438c-91cb-9f2ad29a6000", "eventRole": "Festival Director" },
-  { "eventId": "0e7f57d2-4f65-4e3c-b29b-bf428dc80703", "memberId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d", "eventRole": "Budget Control" },
-  { "eventId": "0e7f57d2-4f65-4e3c-b29b-bf428dc80703", "memberId": "0a3cbca1-425f-45e1-8ba5-c40cb739897a", "eventRole": "Field Operations" }
+    {
+        "eventId":  "1a63999c-4846-48ca-90c6-bde850b7848b",
+        "memberId":  "14f8be84-9abb-408e-9f72-f34629feccff",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "30731865-6b26-4303-a9df-754a3b6a91af",
+        "memberId":  "9ce444e3-491a-465d-8435-fd594d4f66d4",
+        "eventRole":  "Technical"
+    },
+    {
+        "eventId":  "844fd703-404d-4991-9b6f-cd62bbf7154e",
+        "memberId":  "c6a5a775-6bcc-41e8-b589-a35dac744673",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "03394b60-b56e-41ea-bc52-c2868816b15a",
+        "memberId":  "ea7cb38b-f0cf-4916-94aa-1a6d33b05039",
+        "eventRole":  "Technical"
+    },
+    {
+        "eventId":  "93317348-e8b6-42d4-a171-bff0ed4c14aa",
+        "memberId":  "abd871e4-ac8f-4ea0-a215-5ebaecf2d7cd",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "303e0351-6aa4-426b-bb1f-9b0831e48ba5",
+        "memberId":  "97c62f70-2aa4-4db6-91a1-08db8d980a49",
+        "eventRole":  "Technical"
+    },
+    {
+        "eventId":  "ea5159c6-0c7e-490a-bc7e-f15d12004bd1",
+        "memberId":  "556080b7-f1a1-416e-9486-486992b7f04e",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "7defcb96-dbdc-45f8-98e4-41d7e329ccde",
+        "memberId":  "0f2406b3-5147-4f18-a93c-1b2b74b86314",
+        "eventRole":  "Technical"
+    },
+    {
+        "eventId":  "c1230df7-d06b-44eb-981a-f35eb4ed6f65",
+        "memberId":  "1e465ab3-52b4-4c07-adae-99ef8b71160d",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "0c61ffb8-f69f-40d2-a951-24c5d9b59936",
+        "memberId":  "248aa108-0372-49aa-a1a7-a1f40b1b374d",
+        "eventRole":  "Technical"
+    }
 ]
