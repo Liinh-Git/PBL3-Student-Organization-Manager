@@ -1,23 +1,83 @@
-@* ---- Dialog tạo nhiệm vụ mới — nhập tên công việc và deadline ----
-    Trả về CreateTaskViewModel qua IMudDialogInstance khi OK. *@
+@* ---- Dialog tạo nhiệm vụ mới — nhập tên công việc và deadline ---- *@
 @using Org.Frontend.ViewModels
 @using MudBlazor
+@inject ISnackbar Snackbar
 
-<MudDialog>
+<MudDialog DisableSidePadding="true" Class="custom-dialog-border">
+    <TitleContent>
+        <div class="px-6 pt-4 pb-2">
+            <MudText Typo="Typo.h5" Class="fw-bold mb-1" Style="color: #1e293b;">Thêm công việc mới</MudText>
+            <MudText Typo="Typo.body2" Style="color: #64748b;">Khai báo nhiệm vụ cần thực hiện và thiết lập thời hạn hoàn thành.</MudText>
+        </div>
+    </TitleContent>
+    
     <DialogContent>
-        <MudTextField @bind-Value="model.Title" Label="Tên công việc" Required="true" RequiredError="Bắt buộc nhập!" Class="mb-3"/>
-        <MudDatePicker @bind-Date="model.DueDate" Label="Deadline" Class="mb-3" />
+        <div class="px-6">
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Tên công việc</MudText>
+            <MudTextField @bind-Value="model.Title" 
+                          Placeholder="Ví dụ: Thiết kế banner, Lên danh sách khách mời..." 
+                          Variant="Variant.Outlined" 
+                          Margin="Margin.Dense" 
+                          Class="mb-4" />
+
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Thời hạn (Deadline)</MudText>
+            <MudDatePicker @bind-Date="model.DueDate" 
+                           Placeholder="-- Chọn ngày hoàn thành --" 
+                           Variant="Variant.Outlined" 
+                           Margin="Margin.Dense" 
+                           IconSize="Size.Small" 
+                           Class="mb-4" />
+        </div>
     </DialogContent>
+   
     <DialogActions>
-        <MudButton OnClick="Cancel">Hủy</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Tạo mới</MudButton>
+        <div class="px-6 pb-4 pt-2 w-100 d-flex justify-end gap-3">
+            <MudButton OnClick="Cancel" 
+                       Variant="Variant.Filled" 
+                       Style="background-color: #64748b; color: white; border-radius: 6px; text-transform: none; padding: 8px 20px; font-weight: 500;">
+                Hủy bỏ
+            </MudButton>
+            <MudButton OnClick="Submit" 
+                       Variant="Variant.Filled" 
+                       Style="background-color: #f97316; color: white; border-radius: 6px; text-transform: none; padding: 8px 28px; font-weight: 600;">
+                Tạo mới
+            </MudButton>
+        </div>
     </DialogActions>
 </MudDialog>
 
+<style>
+    /* Ẩn label mặc định của MudBlazor để dùng nhãn tách rời */
+    .mud-input-label {
+        display: none !important;
+    }
+    
+    /* Làm bo góc cho toàn bộ Dialog */
+    .custom-dialog-border {
+        border-radius: 12px !important;
+    }
+    
+    /* Chỉnh màu viền input */
+    .mud-input-outlined-border {
+        border-color: #cbd5e1 !important;
+    }
+</style>
+
 @code {
     [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
+    
     private CreateTaskViewModel model = new CreateTaskViewModel();
 
-    private void Submit() => MudDialog?.Close(DialogResult.Ok(model));
+    private void Submit() 
+    {
+        if (string.IsNullOrWhiteSpace(model.Title))
+        {
+            Snackbar.Add("Vui lòng nhập tên công việc nhé!", Severity.Error);
+            return;
+        }
+        
+        MudDialog?.Close(DialogResult.Ok(model));
+    }
+    
     private void Cancel() => MudDialog?.Cancel();
 }

@@ -2,30 +2,71 @@
 @using Org.Frontend.ViewModels
 @inject ISnackbar Snackbar
 
-<MudDialog>
-    <DialogContent>
-        <MudSelect T="Guid"
-                   Label="Milestone"
-                   @bind-Value="model.MilestoneId"
-                   Class="mb-3">
-            @foreach (var milestone in Milestones)
-            {
-                <MudSelectItem Value="@milestone.Id">@milestone.Name</MudSelectItem>
-            }
-        </MudSelect>
+<MudDialog DisableSidePadding="true" Class="custom-dialog-border">
+    <TitleContent>
+        <div class="px-6 pt-4 pb-2">
+            <MudText Typo="Typo.h5" Class="fw-bold mb-1" Style="color: #1e293b;">Thêm hạng mục mới</MudText>
+            <MudText Typo="Typo.body2" Style="color: #64748b;">Chọn giai đoạn (Milestone) và khai báo tên bộ phận/hạng mục cần quản lý.</MudText>
+        </div>
+    </TitleContent>
 
-        <MudTextField @bind-Value="model.Name"
-                      Label="Tên hạng mục"
-                      Required="true"
-                      RequiredError="Bắt buộc nhập tên"
-                      Class="mb-3" />
+    <DialogContent>
+        <div class="px-6">
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Thuộc Giai đoạn (Milestone)</MudText>
+            <MudSelect T="Guid"
+                       @bind-Value="model.MilestoneId"
+                       Placeholder="-- Chọn Milestone --"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Class="mb-4"
+                       AnchorOrigin="Origin.BottomCenter">
+                @foreach (var milestone in Milestones)
+                {
+                    <MudSelectItem Value="@milestone.Id">@milestone.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Tên hạng mục</MudText>
+            <MudTextField @bind-Value="model.Name"
+                          Placeholder="Ví dụ: Hậu cần, Kỹ thuật, Truyền thông..."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-4" />
+        </div>
     </DialogContent>
 
     <DialogActions>
-        <MudButton OnClick="Cancel">Hủy</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Tạo hạng mục</MudButton>
+        <div class="px-6 pb-4 pt-2 w-100 d-flex justify-end gap-3">
+            <MudButton OnClick="Cancel" 
+                       Variant="Variant.Filled" 
+                       Style="background-color: #64748b; color: white; border-radius: 6px; text-transform: none; padding: 8px 20px; font-weight: 500;">
+                Hủy bỏ
+            </MudButton>
+            <MudButton OnClick="Submit" 
+                       Variant="Variant.Filled" 
+                       Style="background-color: #f97316; color: white; border-radius: 6px; text-transform: none; padding: 8px 28px; font-weight: 600;">
+                Tạo hạng mục
+            </MudButton>
+        </div>
     </DialogActions>
 </MudDialog>
+
+<style>
+    /* Ẩn label mặc định của MudBlazor vì chúng ta đã tự viết nhãn ở trên */
+    .mud-input-label {
+        display: none !important;
+    }
+    
+    /* Làm bo góc cho toàn bộ Dialog */
+    .custom-dialog-border {
+        border-radius: 12px !important;
+    }
+    
+    /* Chỉnh lại màu viền của input cho thanh thoát hơn */
+    .mud-input-outlined-border {
+        border-color: #cbd5e1 !important;
+    }
+</style>
 
 @code {
     [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }

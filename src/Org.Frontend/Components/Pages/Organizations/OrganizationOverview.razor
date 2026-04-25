@@ -136,39 +136,52 @@
 
         <section class="event-section">
             <p class="section-kicker">Lich trinh</p>
-            <h2>Su kien sap toi</h2>
-            <article class="upcoming-card">
-                <div class="upcoming-media">
-                    <img src="/images/avatars/admin.jpg" alt="Upcoming event" />
+            <div class="event-section-head">
+                <h2>Su kien sap toi</h2>
+                <div class="event-pager" aria-label="Dieu huong su kien sap toi">
+                    <button type="button" class="event-pager-btn" @onclick="PreviousUpcomingPage" disabled="@(!CanGoPreviousUpcoming)">&#10094;</button>
+                    <span>@UpcomingPageDisplay/@UpcomingPageCount</span>
+                    <button type="button" class="event-pager-btn" @onclick="NextUpcomingPage" disabled="@(!CanGoNextUpcoming)">&#10095;</button>
                 </div>
-                <div class="upcoming-content">
-                    <div class="event-tags">
-                        <span class="tag cool">Cong nghe</span>
-                        <span class="tag hot">Hot</span>
-                    </div>
-                    <h3>UI/UX Summit: Kien tao Trai nghiem so 2024</h3>
-                    <p>
-                        Su kien thuong nien lon nhat cua Kora danh cho cac nha thiet ke san pham, tap trung vao xu huong
-                        thiet ke ben vung va AI-driven.
-                    </p>
-                    <div class="upcoming-meta">
-                        <span><MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Class="meta-icon" />25 Thang 6, 2024</span>
-                        <span><MudIcon Icon="@Icons.Material.Outlined.Schedule" Class="meta-icon" />08:00 - 17:00</span>
-                    </div>
-                </div>
-                @if (_isMember)
+            </div>
+
+            <div class="upcoming-grid">
+                @foreach (var item in UpcomingPageItems)
                 {
-                    <a class="go-button" href="/org/events" aria-label="Mo trang su kien">
-                        <MudIcon Icon="@Icons.Material.Outlined.ArrowForward" />
-                    </a>
+                    <article class="upcoming-card">
+                        <div class="upcoming-media">
+                            <img src="@item.Image" alt="@item.Title" />
+                        </div>
+                        <div class="upcoming-content">
+                            <div class="event-tags">
+                                <span class="tag cool">@item.Category</span>
+                                @if (item.IsHot)
+                                {
+                                    <span class="tag hot">Hot</span>
+                                }
+                            </div>
+                            <h3>@item.Title</h3>
+                            <p>@item.Description</p>
+                            <div class="upcoming-meta">
+                                <span><MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Class="meta-icon" />@item.DateText</span>
+                                <span><MudIcon Icon="@Icons.Material.Outlined.Schedule" Class="meta-icon" />@item.TimeText</span>
+                            </div>
+                        </div>
+                        @if (_isMember)
+                        {
+                            <a class="go-button" href="/org/events" aria-label="Mo trang su kien">
+                                <MudIcon Icon="@Icons.Material.Outlined.ArrowForward" />
+                            </a>
+                        }
+                        else
+                        {
+                            <button type="button" class="go-button" aria-label="Dang ky tham gia CLB" @onclick="OpenJoinDialogAsync">
+                                <MudIcon Icon="@Icons.Material.Outlined.GroupAdd" />
+                            </button>
+                        }
+                    </article>
                 }
-                else
-                {
-                    <button type="button" class="go-button" aria-label="Dang ky tham gia CLB" @onclick="OpenJoinDialogAsync">
-                        <MudIcon Icon="@Icons.Material.Outlined.GroupAdd" />
-                    </button>
-                }
-            </article>
+            </div>
         </section>
 
         <section class="event-section">
@@ -230,11 +243,24 @@
 </div>
 
 @code {
+    private const int UpcomingPageSize = 3;
+
     [SupplyParameterFromQuery(Name = "orgId")]
     public Guid? OrganizationId { get; set; }
 
     private bool _isMember = true;
     private string _organizationName = "Kora Community";
+    private int _upcomingPageIndex;
+
+    private int UpcomingPageCount => GetPageCount(UpcomingEvents.Count, UpcomingPageSize);
+    private int UpcomingPageDisplay => Math.Min(_upcomingPageIndex + 1, UpcomingPageCount);
+    private bool CanGoPreviousUpcoming => _upcomingPageIndex > 0;
+    private bool CanGoNextUpcoming => _upcomingPageIndex < UpcomingPageCount - 1;
+
+    private IReadOnlyList<UpcomingEventItem> UpcomingPageItems => UpcomingEvents
+        .Skip(_upcomingPageIndex * UpcomingPageSize)
+        .Take(UpcomingPageSize)
+        .ToList();
 
     private static readonly IReadOnlyList<AdminProfile> Admins =
     [
@@ -256,6 +282,16 @@
         new("/images/banners/org-banner.jpg", "Trien lam Nghe thuat Gay quy 2023", "Da quyen gop duoc 150 trieu VND cho quy tre em vung cao.", "16 Thang 10, 2023"),
         new("/images/icons/icon1.png", "Dem khoi nghiep: Connect & Pitch", "Hon 50 y tuong khoi nghiep da tim duoc nha dau tu thien than.", "02 Thang 11, 2023"),
         new("/images/avatars/admin.jpg", "Workshop: Tu duy Thiet ke", "Buoi thuc hanh danh cho cac quan ly san pham cap cao.", "20 Thang 9, 2023")
+    ];
+
+    private static readonly IReadOnlyList<UpcomingEventItem> UpcomingEvents =
+    [
+        new("/images/avatars/admin.jpg", "Cong nghe", "UI/UX Summit: Kien tao Trai nghiem so 2024", "Su kien thuong nien lon nhat cua Kora danh cho cac nha thiet ke san pham, tap trung vao xu huong thiet ke ben vung va AI-driven.", "25 Thang 6, 2024", "08:00 - 17:00", true),
+        new("/images/banners/org-banner.jpg", "Ky nang", "Leadership Bootcamp 2024", "Chuoi huan luyen ky nang lanh dao va quan ly doi nhom cho thanh vien cot can.", "03 Thang 7, 2024", "13:30 - 17:30", false),
+        new("/images/icons/icon1.png", "Cong dong", "Kora Volunteer Day", "Ngay hoat dong cong dong ket noi thanh vien Kora voi cac du an xa hoi tai dia phuong.", "12 Thang 7, 2024", "07:30 - 11:30", false),
+        new("/images/avatars/user.png", "Cong nghe", "AI Product Workshop", "Workshop thuc hanh ung dung AI vao quy trinh thiet ke san pham va trai nghiem nguoi dung.", "19 Thang 7, 2024", "09:00 - 16:00", true),
+        new("/images/banners/org-banner.jpg", "Mang luoi", "Founder Networking Night", "Dem ket noi giua thanh vien Kora voi cac mentor va startup trong he sinh thai tre.", "27 Thang 7, 2024", "18:30 - 21:00", false),
+        new("/images/icons/icon1.png", "Sang tao", "Design Sprint Challenge", "Thu thach 48 gio xay dung giai phap san pham cho bai toan do to chuc dat ra.", "04 Thang 8, 2024", "08:00 - 20:00", false)
     ];
 
     private static readonly IReadOnlyList<string> PreferredDepartments =
@@ -324,9 +360,48 @@
         await dialog.Result;
     }
 
+    private void PreviousUpcomingPage()
+    {
+        if (!CanGoPreviousUpcoming)
+        {
+            return;
+        }
+
+        _upcomingPageIndex--;
+    }
+
+    private void NextUpcomingPage()
+    {
+        if (!CanGoNextUpcoming)
+        {
+            return;
+        }
+
+        _upcomingPageIndex++;
+    }
+
+    private static int GetPageCount(int totalItems, int pageSize)
+    {
+        if (totalItems <= 0)
+        {
+            return 1;
+        }
+
+        return (int)Math.Ceiling(totalItems / (double)pageSize);
+    }
+
     private sealed record AdminProfile(string Name, string Role, string Avatar);
 
     private sealed record TimelineItem(string Month, string Title, string Description);
 
     private sealed record PastEventItem(string Image, string Title, string Description, string Date);
+
+    private sealed record UpcomingEventItem(
+        string Image,
+        string Category,
+        string Title,
+        string Description,
+        string DateText,
+        string TimeText,
+        bool IsHot);
 }

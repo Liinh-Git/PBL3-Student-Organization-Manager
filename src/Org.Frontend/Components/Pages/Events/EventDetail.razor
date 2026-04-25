@@ -16,7 +16,6 @@
     }
     else
     {
-        <!-- Sticky App Bar -->
         <header class="app-bar">
             <div class="breadcrumb">
                 <span style="cursor:pointer" @onclick='() => NavigationManager.NavigateTo("/org/events")'>Events</span>
@@ -39,7 +38,6 @@
             </div>
         </header>
 
-        <!-- Hero Section -->
         <section class="hero-section">
             <img class="hero-img" 
                  src="/images/mockimages/IMG_20250416_104429.jpg" 
@@ -56,10 +54,8 @@
         </section>
 
         <div class="content-grid">
-            <!-- Left Column -->
             <div class="main-col">
                 
-                <!-- Stats Row -->
                 <div class="stats-row">
                     <div class="stat-card accent">
                         <p class="stat-label">Completion</p>
@@ -85,64 +81,112 @@
                     </div>
                 </div>
 
-                <!-- Workflow Table -->
-                <div class="content-block">
-                    <div class="block-header">
-                        <h2 class="block-title">Department Workflows</h2>
-                        <button class="styled-btn" style="box-shadow: none; padding: 4px 8px; font-size: 0.7rem; color: var(--secondary);" @onclick="OpenCreateCategoryDialog">
+                <div class="content-block" style="background: transparent; border: none; padding: 0;">
+                    <div class="d-flex justify-space-between align-center mb-6">
+                        <h2 class="block-title" style="margin: 0;">Department Workflows by Phase</h2>
+                        <button class="styled-btn d-flex align-center" style="box-shadow: none; padding: 6px 12px; font-size: 0.75rem; color: var(--secondary); background: white; border-radius: 6px;" @onclick="OpenCreateCategoryDialog">
+                            <span class="material-symbols-outlined" style="font-size: 1.1rem; margin-right: 4px;">add</span>
                             ADD CATEGORY
                         </button>
                     </div>
-                    <table class="workflow-table">
-                        <thead class="table-header">
-                            <tr>
-                                <th>Department</th>
-                                <th>Lead</th>
-                                <th>Progress</th>
-                                <th style="text-align: right;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var cat in allCategories)
-                            {
-                                <tr class="table-row">
-                                    <td>
-                                        <p class="dept-name">@cat.Name</p>
-                                        <p class="dept-sub">@cat.ActiveSubtasks Active Subtasks</p>
-                                    </td>
-                                    <td>
-                                        <div class="lead-box">
-                                            <div class="d-flex align-center justify-center" style="width: 1.5rem; height: 1.5rem; border-radius: 9999px; background-color: var(--background); font-size: 0.6rem; font-weight: 800;">
-                                                @GetLeadInitial(cat.LeadName)
-                                            </div>
-                                            <span class="lead-name">@cat.LeadName</span>
+
+                    <div class="d-flex flex-column gap-6">
+                        @foreach (var ms in milestones.Select((value, index) => new { value, index }))
+                        {
+                            var cats = categoriesByMilestone.ContainsKey(ms.value.Id) ? categoriesByMilestone[ms.value.Id] : new();
+                            
+                            <div class="phase-card" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
+                                
+                                <div class="phase-header d-flex justify-space-between align-center" style="background: #eef4f9; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+                                    <div class="d-flex align-center gap-4">
+                                        <span class="phase-num" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; background: var(--primary, #0f1f29); color: white; border-radius: 8px; font-weight: 800; font-size: 1.1rem;">
+                                            @((ms.index + 1).ToString("D2"))
+                                        </span>
+                                        <div>
+                                            <h4 style="margin: 0; color: var(--primary, #0f1f29); font-weight: 800; font-size: 1.1rem;">@ms.value.Name</h4>
+                                            <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #64748b; font-weight: 600;">
+                                                Thời hạn: @(ms.value.StartDate.ToString("dd/MM/yyyy") ?? "Chưa set") - @(ms.value.EndDate.ToString("dd/MM/yyyy") ?? "Chưa set")
+                                            </p>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <div class="progress-rail-small">
-                                            <div class="progress-fill-small" style="width: @(cat.ProgressPercentage + "%")"></div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #cbd5e1; background: transparent; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="font-size: 1rem;">chevron_left</span></button>
+                                        <button style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #cbd5e1; background: transparent; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="font-size: 1rem;">chevron_right</span></button>
+                                    </div>
+                                </div>
+
+                                <div class="phase-body" style="padding: 12px 24px;">
+                                    @if (cats.Any())
+                                    {
+                                        <table class="workflow-table" style="width: 100%; border-collapse: collapse;">
+                                            <thead class="table-header">
+                                                <tr style="text-transform: uppercase; font-size: 0.7rem; color: #64748b;">
+                                                    <th style="padding: 16px 8px; text-align: left; font-weight: 800;">Department</th>
+                                                    <th style="padding: 16px 8px; text-align: left; font-weight: 800;">Lead</th>
+                                                    <th style="padding: 16px 8px; text-align: left; font-weight: 800;">Progress</th>
+                                                    <th style="padding: 16px 8px; text-align: right; font-weight: 800;">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var cat in cats)
+                                                {
+                                                    <tr class="table-row" style="border-top: 1px solid #f1f5f9; transition: background 0.2s;">
+                                                        <td style="padding: 16px 8px;">
+                                                            <p class="dept-name" style="margin: 0; font-weight: 700; color: var(--primary, #0f1f29); font-size: 0.95rem;">@cat.Name</p>
+                                                            <p class="dept-sub" style="margin: 4px 0 0; font-size: 0.75rem; color: #64748b;">@cat.ActiveSubtasks Active Subtasks</p>
+                                                        </td>
+                                                        <td style="padding: 16px 8px;">
+                                                            <div class="lead-box d-flex align-center gap-2">
+                                                                <div class="d-flex align-center justify-center" style="width: 28px; height: 28px; border-radius: 50%; background-color: #e2e8f0; font-size: 0.7rem; font-weight: 800; color: var(--primary, #0f1f29);">
+                                                                    @GetLeadInitial(cat.LeadName)
+                                                                </div>
+                                                                <span class="lead-name" style="font-size: 0.85rem; font-weight: 600;">@(string.IsNullOrWhiteSpace(cat.LeadName) ? "Chưa rõ" : cat.LeadName)</span>
+                                                            </div>
+                                                        </td>
+                                                        <td style="padding: 16px 8px;">
+                                                            <div class="progress-rail-small" style="width: 120px; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                                                                <div class="progress-fill-small" style="height: 100%; background: var(--secondary, #f97316); width: @(cat.ProgressPercentage)%; border-radius: 4px;"></div>
+                                                            </div>
+                                                        </td>
+                                                        <td style="padding: 16px 8px; text-align: right;">
+                                                            <a class="action-link" href="@BuildTaskBoardRoute(cat.Id)" style="color: var(--secondary, #f97316); font-weight: 800; font-size: 0.8rem; text-decoration: none;">View Details</a>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <div style="padding: 32px 0; text-align: center; color: #94a3b8;">
+                                            <span class="material-symbols-outlined" style="font-size: 2rem; opacity: 0.5; margin-bottom: 8px;">inventory_2</span>
+                                            <p style="margin: 0; font-size: 0.85rem; font-style: italic;">Chưa có bộ phận nào phụ trách trong giai đoạn này.</p>
                                         </div>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <a class="action-link" href="@BuildTaskBoardRoute(cat.Id)">View Details</a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
                 </div>
 
             </div>
 
-            <!-- Right Column -->
             <div class="side-col">
                 
-                <!-- Timeline Section -->
                 <div class="content-block timeline-block">
-                    <span class="material-symbols-outlined timeline-bg-icon">schedule</span>
                     <div class="d-flex justify-space-between align-center mb-6">
                         <h2 class="block-title">Timeline Milestones</h2>
-                        <span class="material-symbols-outlined" style="cursor: pointer; color: var(--secondary);" @onclick="OpenCreateMilestoneDialog">add</span>
+                        <div class="d-flex align-center gap-2">
+                            <span class="material-symbols-outlined timeline-bg-icon">schedule</span>
+                            <button type="button" 
+                                    @onclick="OpenCreateMilestoneDialog" 
+                                    style="background: none; border: none; padding: 4px; display: flex; align-items: center; cursor: pointer;">
+                                <span class="material-symbols-outlined" 
+                                      style="color: var(--secondary); font-size: 1.8rem; font-variation-settings: 'FILL' 1;">
+                                    add_circle
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="timeline-container">
@@ -175,7 +219,6 @@
                     </div>
                 </div>
 
-                <!-- Info Grid -->
                 <div class="info-grid mt-8">
                     <div class="info-card">
                         <span class="material-symbols-outlined info-icon">description</span>
@@ -189,7 +232,6 @@
                     </div>
                 </div>
 
-                <!-- CTA -->
                 <div class="cta-card mt-8">
                     <p class="cta-text">Need a customized report for the board?</p>
                     <button class="cta-btn">Generate Summary</button>
@@ -199,7 +241,6 @@
                 </div>
             </div>
         </div>
-
     }
 </div>
 
@@ -208,7 +249,11 @@
 
     private EventViewModel? eventDetail;
     private List<MilestoneViewModel> milestones = new();
-    private List<EventCategoryViewModel> allCategories = new();
+    
+    // MỚI: Dùng Dictionary để nhóm Hạng mục (Category) vào từng Giai đoạn (Milestone)
+    private Dictionary<Guid, List<EventCategoryViewModel>> categoriesByMilestone = new();
+    private List<EventCategoryViewModel> allCategories = new(); // Dành cho hàm OpenCreateTaskDialog check
+    
     private bool _isOrganizationRoute;
 
     private const string EventsBaseRoute = "/org/events";
@@ -225,14 +270,21 @@
     {
         eventDetail = await EventService.GetEventDetailAsync(EventId);
         milestones = await MilestoneService.GetMilestonesAsync(EventId);
-        allCategories = [];
+        
+        allCategories.Clear();
+        categoriesByMilestone.Clear();
 
         foreach (var ms in milestones)
         {
             var cats = await CategoryService.GetCategoriesAsync(ms.Id);
             if (cats != null)
             {
+                categoriesByMilestone[ms.Id] = cats.ToList();
                 allCategories.AddRange(cats);
+            }
+            else
+            {
+                categoriesByMilestone[ms.Id] = new List<EventCategoryViewModel>();
             }
         }
     }
@@ -266,10 +318,9 @@
         {
             ["EventId"] = EventId
         };
-
         var dialog = await DialogService.ShowAsync<CreateMilestoneDialog>("Tạo Milestone", parameters, options);
         var result = await dialog.Result;
-
+        
         if (result is null || result.Canceled || result.Data is not CreateMilestoneViewModel req)
         {
             return;
@@ -294,10 +345,9 @@
         {
             ["Milestones"] = milestones.Select(m => new CreateCategoryDialog.MilestoneOption(m.Id, m.Name)).ToList()
         };
-
         var dialog = await DialogService.ShowAsync<CreateCategoryDialog>("Tạo Hạng Mục", parameters, options);
         var result = await dialog.Result;
-
+        
         if (result is null || result.Canceled || result.Data is not CreateEventCategoryViewModel req)
         {
             return;

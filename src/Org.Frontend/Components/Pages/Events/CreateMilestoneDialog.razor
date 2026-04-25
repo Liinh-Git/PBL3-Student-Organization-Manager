@@ -2,28 +2,76 @@
 @using Org.Frontend.ViewModels
 @inject ISnackbar Snackbar
 
-<MudDialog>
+<MudDialog DisableSidePadding="true" Class="custom-dialog-border">
+    <TitleContent>
+        <div class="px-6 pt-4 pb-2">
+            <MudText Typo="Typo.h5" Class="fw-bold mb-1" Style="color: #1e293b;">Thêm Milestone mới</MudText>
+            <MudText Typo="Typo.body2" Style="color: #64748b;">Thiết lập giai đoạn và thời gian triển khai cụ thể cho sự kiện.</MudText>
+        </div>
+    </TitleContent>
+
     <DialogContent>
-        <MudTextField @bind-Value="model.Name"
-                      Label="Tên milestone"
-                      Required="true"
-                      RequiredError="Bắt buộc nhập tên"
-                      Class="mb-3" />
+        <div class="px-6">
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Tên Milestone</MudText>
+            <MudTextField @bind-Value="model.Name"
+                          Placeholder="Ví dụ: Phase 1: Planning, Giai đoạn chuẩn bị..."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="mb-4" />
 
-        <MudDatePicker @bind-Date="model.StartDate"
-                       Label="Ngày bắt đầu"
-                       Class="mb-3" />
-
-        <MudDatePicker @bind-Date="model.EndDate"
-                       Label="Ngày kết thúc"
-                       Class="mb-3" />
+            <MudGrid Class="mb-4" Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Ngày bắt đầu</MudText>
+                    <MudDatePicker @bind-Date="model.StartDate"
+                                   Placeholder="-- Chọn ngày --"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   IconSize="Size.Small" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Ngày kết thúc</MudText>
+                    <MudDatePicker @bind-Date="model.EndDate"
+                                   Placeholder="-- Chọn ngày --"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   IconSize="Size.Small" />
+                </MudItem>
+            </MudGrid>
+        </div>
     </DialogContent>
 
     <DialogActions>
-        <MudButton OnClick="Cancel">Hủy</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Tạo milestone</MudButton>
+        <div class="px-6 pb-4 pt-2 w-100 d-flex justify-end gap-3">
+            <MudButton OnClick="Cancel" 
+                       Variant="Variant.Filled" 
+                       Style="background-color: #64748b; color: white; border-radius: 6px; text-transform: none; padding: 8px 20px; font-weight: 500;">
+                Hủy bỏ
+            </MudButton>
+            <MudButton OnClick="Submit" 
+                       Variant="Variant.Filled" 
+                       Style="background-color: #f97316; color: white; border-radius: 6px; text-transform: none; padding: 8px 28px; font-weight: 600;">
+                Tạo milestone
+            </MudButton>
+        </div>
     </DialogActions>
 </MudDialog>
+
+<style>
+    /* Ẩn label mặc định của MudBlazor vì chúng ta đã tự viết nhãn ở trên */
+    .mud-input-label {
+        display: none !important;
+    }
+    
+    /* Làm bo góc cho toàn bộ Dialog */
+    .custom-dialog-border {
+        border-radius: 12px !important;
+    }
+    
+    /* Chỉnh lại màu viền của input cho thanh thoát hơn */
+    .mud-input-outlined-border {
+        border-color: #cbd5e1 !important;
+    }
+</style>
 
 @code {
     [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
@@ -57,6 +105,7 @@
         }
 
         model.EventId = EventId;
+        // Gửi data về cho hàm OpenCreateMilestoneDialog ở EventDetail.razor
         MudDialog?.Close(DialogResult.Ok(model));
     }
 
