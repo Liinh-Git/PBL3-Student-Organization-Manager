@@ -1,26 +1,104 @@
-@* ---- Dialog tạo sự kiện mới: nhập tên, ngày, địa điểm và số luợng slot ----
-    Trả về CreateEventViewModel qua IMudDialogInstance khi OK, null khi Cancel. *@
+@* ---- Dialog tạo sự kiện mới: nhập tên, ngày, địa điểm và số luợng slot ---- *@
 @using MudBlazor
 @using Org.Frontend.ViewModels
 @inject ISnackbar Snackbar
 
-<MudDialog>
-    <DialogContent>
-        <MudTextField @bind-Value="model.Title" Label="Tên sự kiện" Required="true" RequiredError="Bắt buộc nhập tên!" Class="mb-3"/>
-        
-        <div class="d-flex gap-4 mb-3">
-            <MudDatePicker @bind-Date="model.Date" Label="Ngày tổ chức" Class="flex-grow-1" />
-            <MudTimePicker @bind-Time="model.Time" Label="Giờ" Class="flex-grow-1" />
+<MudDialog DisableSidePadding="true" Class="custom-dialog-border">
+    <TitleContent>
+        <div class="px-6 pt-4 pb-2">
+            <MudText Typo="Typo.h5" Class="fw-bold mb-1" Style="color: #1e293b;">Tạo sự kiện mới</MudText>
+            <MudText Typo="Typo.body2" Style="color: #64748b;">Khai báo thông tin cơ bản để khởi tạo một sự kiện mới cho tổ chức.</MudText>
         </div>
+    </TitleContent>
+    
+    <DialogContent>
+        <div class="px-6">
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Tên sự kiện</MudText>
+            <MudTextField @bind-Value="model.Title" 
+                          Placeholder="Ví dụ: UI/UX Summit 2024, Hackathon..." 
+                          Variant="Variant.Outlined" 
+                          Margin="Margin.Dense" 
+                          Class="mb-4" />
 
-        <MudTextField @bind-Value="model.Location" Label="Địa điểm" Class="mb-3" />
-        <MudNumericField @bind-Value="model.TotalSlots" Label="Số lượng slot (0 = Không giới hạn)" Min="0" />
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Mô tả sự kiện</MudText>
+            <MudTextField @bind-Value="model.Description" 
+                          Placeholder="Sự kiện này dành cho ai, mục đích là gì..." 
+                          Variant="Variant.Outlined" 
+                          Margin="Margin.Dense" 
+                          Lines="3" 
+                          Class="mb-4" />
+
+            <MudGrid Class="mb-4" Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Ngày tổ chức</MudText>
+                    <MudDatePicker @bind-Date="model.Date" 
+                                   Placeholder="-- Chọn ngày --" 
+                                   Variant="Variant.Outlined" 
+                                   Margin="Margin.Dense" 
+                                   IconSize="Size.Small" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Giờ bắt đầu</MudText>
+                    <MudTimePicker @bind-Time="model.Time" 
+                                   Placeholder="-- Chọn giờ --" 
+                                   Variant="Variant.Outlined" 
+                                   Margin="Margin.Dense" 
+                                   IconSize="Size.Small" />
+                </MudItem>
+            </MudGrid>
+
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="8">
+                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Địa điểm</MudText>
+                    <MudTextField @bind-Value="model.Location" 
+                                  Placeholder="Ví dụ: Phòng 402, Tòa nhà Kora Hub..." 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Số lượng slot</MudText>
+                    <MudNumericField @bind-Value="model.TotalSlots" 
+                                     Min="0" 
+                                     Placeholder="0 = Không giới hạn" 
+                                     Variant="Variant.Outlined" 
+                                     Margin="Margin.Dense" />
+                </MudItem>
+            </MudGrid>
+        </div>
     </DialogContent>
+   
     <DialogActions>
-        <MudButton OnClick="Cancel">Hủy</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Tạo mới</MudButton>
+        <div class="px-6 pb-4 pt-2 w-100 d-flex justify-end gap-3">
+            <MudButton OnClick="Cancel" 
+                       Variant="Variant.Filled" 
+                       Style="background-color: #64748b; color: white; border-radius: 6px; text-transform: none; padding: 8px 20px; font-weight: 500;">
+                Hủy bỏ
+            </MudButton>
+            <MudButton OnClick="Submit" 
+                       Variant="Variant.Filled" 
+                       Style="background-color: #f97316; color: white; border-radius: 6px; text-transform: none; padding: 8px 28px; font-weight: 600;">
+                Tạo mới
+            </MudButton>
+        </div>
     </DialogActions>
 </MudDialog>
+
+<style>
+    /* Ẩn label mặc định của MudBlazor vì chúng ta đã tự viết nhãn ở trên */
+    .mud-input-label {
+        display: none !important;
+    }
+    
+    /* Làm bo góc cho toàn bộ Dialog */
+    .custom-dialog-border {
+        border-radius: 12px !important;
+    }
+    
+    /* Chỉnh lại màu viền của input cho thanh thoát hơn */
+    .mud-input-outlined-border {
+        border-color: #cbd5e1 !important;
+    }
+</style>
 
 @code {
     [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
@@ -31,9 +109,10 @@
     {
         if (string.IsNullOrWhiteSpace(model.Title))
         {
-            Snackbar.Add("Vui lòng nhập tên sự kiện", Severity.Error);
+            Snackbar.Add("Vui lòng nhập tên sự kiện!", Severity.Error);
             return;
         }
+        
         // Gửi data về cho trang EventList
         MudDialog?.Close(DialogResult.Ok(model));
     }

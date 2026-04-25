@@ -5,6 +5,7 @@
 @inherits LayoutComponentBase
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@inject IOrganizationRouteAccessGate OrganizationRouteAccessGate
 @implements IDisposable
 @using System.Security.Claims
 
@@ -119,6 +120,18 @@
         UpdateWorkspaceFromUri(Navigation.Uri);
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
+        UpdateWorkspaceFromUri(Navigation.Uri);
+        await InvokeAsync(StateHasChanged);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -136,14 +149,18 @@
 
     private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        UpdateWorkspaceFromUri(e.Location);
-        _ = InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(async () =>
+        {
+            await OrganizationRouteAccessGate.SyncFromUriAsync(e.Location);
+            UpdateWorkspaceFromUri(e.Location);
+            StateHasChanged();
+        });
     }
 
     private void UpdateWorkspaceFromUri(string uri)
     {
         var route = GetCurrentRoute(uri);
-        _isOrganizationWorkspace = IsOrganizationRoute(route);
+        _isOrganizationWorkspace = OrganizationRouteAccessGate.ShouldUseOrganizationWorkspace(route);
     }
 
     private string GetCurrentRoute(string uri)
@@ -168,17 +185,6 @@
         }
 
         return string.IsNullOrWhiteSpace(route) ? "/" : route;
-    }
-
-    private static bool IsOrganizationRoute(string route)
-    {
-        if (string.IsNullOrWhiteSpace(route))
-        {
-            return false;
-        }
-
-        return route.StartsWith("/org-overview", StringComparison.OrdinalIgnoreCase)
-            || route.StartsWith("/org/", StringComparison.OrdinalIgnoreCase);
     }
 
     public void Dispose()

@@ -203,6 +203,7 @@
                                 </div>
 
                                 <div class="discover-body">
+                                    <p class="discover-kicker">Cau lac bo</p>
                                     <h4>@organization.Name</h4>
                                     <p>@BuildDescription(organization.Description, 105)</p>
 
@@ -212,8 +213,13 @@
                                     </div>
 
                                     <div class="discover-actions">
-                                        <button type="button" class="solid-action" @onclick="() => OpenOrganizationDetail(organization.OrganizationId)">Tham gia ngay</button>
-                                        <button type="button" class="soft-action" @onclick="() => OpenOrganizationDetail(organization.OrganizationId)">Xem them</button>
+                                        <div class="member-bubbles" aria-hidden="true">
+                                            @foreach (var bubble in BuildMemberBubbles(organization.Name, organization.MemberCount))
+                                            {
+                                                <span>@bubble</span>
+                                            }
+                                        </div>
+                                        <button type="button" class="solid-action" @onclick="() => OpenOrganizationDetail(organization.OrganizationId)">Xem chi tiet</button>
                                     </div>
                                 </div>
                             </article>
@@ -249,27 +255,31 @@
                             <article class="discover-card event-discover-card">
                                 <div class="discover-media">
                                     <img src="@ResolveImage(item.ImageUrl, DefaultEventImageUrl)" alt="@item.Name" />
-                                    <span class="countdown-pill">@BuildCountdownLabel(item.StartDate)</span>
+                                    <span class="countdown-pill">@BuildEventTypeLabel(item.Name)</span>
                                 </div>
 
                                 <div class="discover-body">
-                                    <p class="event-org">@item.OrganizationName</p>
                                     <h4>@item.Name</h4>
-                                    <p>@BuildDescription(item.Description, 105)</p>
+                                    <p class="event-org">@item.OrganizationName</p>
 
-                                    <div class="tiny-meta">
-                                        <span>@ResolveLocation(item.Location)</span>
-                                        <span>@item.RegisteredCount da dang ky</span>
-                                    </div>
-
-                                    <div class="badge-row">
-                                        <span class="badge event-status @GetEventStatusClass(item.EventStatus)">@GetEventStatusLabel(item.EventStatus)</span>
-                                        <span class="badge event-type">@BuildEventTypeLabel(item.Name)</span>
+                                    <div class="event-meta-list">
+                                        <div class="event-meta-item">
+                                            <span class="material-symbols-outlined">calendar_month</span>
+                                            <span>@FormatEventDate(item.StartDate)</span>
+                                        </div>
+                                        <div class="event-meta-item">
+                                            <span class="material-symbols-outlined">schedule</span>
+                                            <span>@FormatEventTimeRange(item.StartDate, item.EndDate)</span>
+                                        </div>
+                                        <div class="event-meta-item">
+                                            <span class="material-symbols-outlined">location_on</span>
+                                            <span>@ResolveLocation(item.Location)</span>
+                                        </div>
                                     </div>
 
                                     <div class="discover-actions">
-                                        <button type="button" class="solid-action" @onclick="() => OpenEventDetail(item.EventId)">Dang ky</button>
-                                        <button type="button" class="soft-action" @onclick="() => OpenEventDetail(item.EventId)">Chi tiet</button>
+                                        <span class="attendee-count">@item.RegisteredCount da dang ky</span>
+                                        <button type="button" class="soft-action" @onclick="() => OpenEventDetail(item.EventId)">Xem chi tiet</button>
                                     </div>
                                 </div>
                             </article>
@@ -313,7 +323,7 @@
             ? Array.Empty<UserRegisteredEventViewModel>()
             : _dashboard.RegisteredEvents.Take(4).ToList();
 
-    private int OrganizationPageCount => GetPageCount(_dashboard?.SuggestedOrganizations.Count ?? 0);
+    private int OrganizationPageCount => GetPageCount(AvailableSuggestedOrganizations.Count);
 
     private int EventPageCount => GetPageCount(_dashboard?.SuggestedEvents.Count ?? 0);
 
@@ -333,12 +343,31 @@
     {
         get
         {
-            if (_dashboard is null || _dashboard.SuggestedOrganizations.Count == 0)
+            if (AvailableSuggestedOrganizations.Count == 0)
                 return Array.Empty<SuggestedOrganizationViewModel>();
 
-            return _dashboard.SuggestedOrganizations
+            return AvailableSuggestedOrganizations
                 .Skip(_organizationPageIndex * DiscoverPageSize)
                 .Take(DiscoverPageSize)
+                .ToList();
+        }
+    }
+
+    private IReadOnlyList<SuggestedOrganizationViewModel> AvailableSuggestedOrganizations
+    {
+        get
+        {
+            if (_dashboard is null || _dashboard.SuggestedOrganizations.Count == 0)
+            {
+                return Array.Empty<SuggestedOrganizationViewModel>();
+            }
+
+            var joinedOrganizationIds = _dashboard.Organizations
+                .Select(x => x.OrganizationId)
+                .ToHashSet();
+
+            return _dashboard.SuggestedOrganizations
+                .Where(x => !joinedOrganizationIds.Contains(x.OrganizationId))
                 .ToList();
         }
     }
@@ -429,10 +458,10 @@
     private void OpenSettings() => Navigation.NavigateTo("/user/settings");
 
     private void OpenOrganizationDetail(Guid organizationId)
-        => Navigation.NavigateTo($"/user/organizations?focus={organizationId}");
+        => Navigation.NavigateTo($"/org-overview?orgId={organizationId}");
 
     private void OpenEventDetail(Guid eventId)
-        => Navigation.NavigateTo($"/user/events?focus={eventId}");
+        => Navigation.NavigateTo($"/events/{eventId}");
 
     private string GetMyTabClass(string tab)
         => _selectedMyTab == tab ? "tab-button active" : "tab-button";
@@ -501,6 +530,31 @@
             return "Festival";
 
         return "Su kien";
+    }
+
+    private static string FormatEventDate(DateOnly date)
+        => date.ToDateTime(TimeOnly.MinValue).ToString("dddd, dd 'thang' MM, yyyy", new CultureInfo("vi-VN"));
+
+    private static string FormatEventTimeRange(DateOnly startDate, DateOnly endDate)
+        => startDate == endDate ? "08:00 - 18:00" : "Ca ngay";
+
+    private static IReadOnlyList<string> BuildMemberBubbles(string? organizationName, int memberCount)
+    {
+        var first = string.IsNullOrWhiteSpace(organizationName) ? "CL" : BuildInitials(organizationName);
+        var second = $"+{Math.Max(1, memberCount / 8)}";
+        return [first, "..", second];
+    }
+
+    private static string BuildInitials(string input)
+    {
+        var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+            return "CL";
+
+        if (parts.Length == 1)
+            return parts[0][0].ToString().ToUpperInvariant();
+
+        return string.Concat(parts[0][0], parts[^1][0]).ToUpperInvariant();
     }
 
     private static string GetOrganizationStateClass(bool isActive)

@@ -28,35 +28,14 @@
     </header>
 
 
-    @if (ShowCreateForm)
-    {
-        <section class="department-form-panel">
-            <header class="department-form-header">
-                <h3>Tao phong ban moi</h3>
-                <p>Khai bao bo phan va phan cong nguoi quan ly de bat dau van hanh.</p>
-            </header>
-            <DepartmentForm Model="CreateModel"
-                            ManagerOptions="ManagerOptions"
-                            SaveText="Tao"
-                            OnSubmit="CreateDepartment"
-                            OnCancel="CloseForms" />
-        </section>
-    }
-
-    @if (EditModel is not null)
-    {
-        <section class="department-form-panel">
-            <header class="department-form-header">
-                <h3>Cap nhat phong ban</h3>
-                <p>Dong bo lai thong tin bo phan, quan ly va mo ta chuc nang.</p>
-            </header>
-            <DepartmentForm Model="EditModel"
-                            ManagerOptions="ManagerOptions"
-                            SaveText="Cap nhat"
-                            OnSubmit="UpdateDepartment"
-                            OnCancel="CloseForms" />
-        </section>
-    }
+    <DepartmentForm IsOpen="ShowForm"
+                    Title="@FormTitle"
+                    Description="@FormDescription"
+                    Model="ActiveFormModel"
+                    ManagerOptions="ManagerOptions"
+                    SaveText="@FormSaveText"
+                    OnSubmit="HandleFormSubmit"
+                    OnCancel="CloseForms" />
 
     @if (DepartmentCards.Count == 0)
     {
@@ -192,11 +171,15 @@
     private List<DepartmentDto> Departments { get; set; } = [];
     private List<MemberDto> Members { get; set; } = [];
     private List<DepartmentWorkspaceCard> DepartmentCards { get; set; } = [];
-    private DepartmentForm.DepartmentFormModel CreateModel { get; set; } = new();
-    private DepartmentForm.DepartmentFormModel? EditModel { get; set; }
+    
+    private DepartmentForm.DepartmentFormModel ActiveFormModel { get; set; } = new();
     private Guid? EditingDepartmentId { get; set; }
     private Guid? CurrentOrganizationId { get; set; }
-    private bool ShowCreateForm { get; set; }
+    private bool ShowForm { get; set; }
+    
+    private string FormTitle { get; set; } = string.Empty;
+    private string FormDescription { get; set; } = string.Empty;
+    private string FormSaveText { get; set; } = string.Empty;
 
     private IReadOnlyList<DepartmentForm.ManagerOption> ManagerOptions => Members
         .Select(x => new DepartmentForm.ManagerOption
@@ -265,22 +248,27 @@
 
     private void OpenCreate()
     {
-        ShowCreateForm = true;
-        EditModel = null;
         EditingDepartmentId = null;
-        CreateModel = new DepartmentForm.DepartmentFormModel();
+        ActiveFormModel = new DepartmentForm.DepartmentFormModel();
+        FormTitle = "Tạo phòng ban mới";
+        FormDescription = "Khai báo bộ phận và phân công người quản lý để bắt đầu vận hành.";
+        FormSaveText = "Tạo";
+        ShowForm = true;
     }
 
     private void OpenEdit(DepartmentDto dept)
     {
-        ShowCreateForm = false;
         EditingDepartmentId = dept.Id;
-        EditModel = new DepartmentForm.DepartmentFormModel
+        ActiveFormModel = new DepartmentForm.DepartmentFormModel
         {
             DeptName = dept.DeptName,
             ManagerId = dept.ManagerId,
             Function = dept.Function
         };
+        FormTitle = "Cập nhật phòng ban";
+        FormDescription = "Đồng bộ lại thông tin bộ phận, quản lý và mô tả chức năng.";
+        FormSaveText = "Cập nhật";
+        ShowForm = true;
     }
 
     private void OpenEditById(Guid departmentId)
@@ -295,9 +283,21 @@
         OpenEdit(department);
     }
 
+    private async Task HandleFormSubmit()
+    {
+        if (EditingDepartmentId.HasValue)
+        {
+            await UpdateDepartment();
+        }
+        else
+        {
+            await CreateDepartment();
+        }
+    }
+
     private async Task CreateDepartment()
     {
-        if (string.IsNullOrWhiteSpace(CreateModel.DeptName))
+        if (string.IsNullOrWhiteSpace(ActiveFormModel.DeptName))
         {
             Snackbar.Add("Tên phòng ban không được để trống.", Severity.Warning);
             return;
@@ -308,13 +308,13 @@
             await DepartmentService.CreateDepartment(new CreateDepartmentRequest
             {
                 OrgId = CurrentOrganizationId ?? await OrganizationContext.GetOrganizationIdAsync(),
-                DeptName = CreateModel.DeptName,
-                ManagerId = CreateModel.ManagerId,
-                Function = CreateModel.Function
+                DeptName = ActiveFormModel.DeptName,
+                ManagerId = ActiveFormModel.ManagerId,
+                Function = ActiveFormModel.Function
             });
 
             Snackbar.Add("Phòng ban đã được tạo.", Severity.Success);
-            ShowCreateForm = false;
+            CloseForms();
             await Reload();
         }
         catch (AuthApiException ex) when (ex.StatusCode == 401)
@@ -325,12 +325,12 @@
 
     private async Task UpdateDepartment()
     {
-        if (EditModel is null || EditingDepartmentId is null)
+        if (EditingDepartmentId is null)
         {
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(EditModel.DeptName))
+        if (string.IsNullOrWhiteSpace(ActiveFormModel.DeptName))
         {
             Snackbar.Add("Tên phòng ban không được để trống.", Severity.Warning);
             return;
@@ -340,9 +340,9 @@
         {
             await DepartmentService.UpdateDepartment(EditingDepartmentId.Value, new UpdateDepartmentRequest
             {
-                DeptName = EditModel.DeptName,
-                ManagerId = EditModel.ManagerId,
-                Function = EditModel.Function
+                DeptName = ActiveFormModel.DeptName,
+                ManagerId = ActiveFormModel.ManagerId,
+                Function = ActiveFormModel.Function
             });
 
             Snackbar.Add("Phòng ban đã được cập nhật.", Severity.Success);
@@ -373,8 +373,8 @@
 
     private void CloseForms()
     {
-        ShowCreateForm = false;
-        EditModel = null;
+        ShowForm = false;
+        ActiveFormModel = new();
         EditingDepartmentId = null;
     }
 

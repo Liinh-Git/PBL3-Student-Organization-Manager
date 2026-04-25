@@ -1,41 +1,64 @@
-@* ---- Form nhập liệu phòng ban — dùng chung cho cả tạo mới và chỉnh sửa ----
-    Expose qua Parameter: Model (DepartmentFormModel), OnSubmit, OnCancel, ManagerOptions. *@
-<EditForm Model="Model" OnValidSubmit="HandleValidSubmit" class="department-form">
-    <DataAnnotationsValidator />
+@* ---- Form nhập liệu phòng ban — hiển thị như modal theo IsOpen ---- *@
 
-    <div class="department-field">
-        <label class="form-label">Department Name</label>
-        <InputText class="form-control department-input" @bind-Value="Model.DeptName" />
-    </div>
+@if (IsOpen)
+{
+    <div class="dept-dialog-backdrop" @onclick="OnCancel">
+        <section class="dept-dialog-panel" role="dialog" aria-modal="true" aria-label="@Title" @onclick:stopPropagation="true">
+            <header class="dept-dialog-head">
+                <div class="dept-dialog-title-wrap">
+                    <h2>@Title</h2>
+                    @if (!string.IsNullOrWhiteSpace(Description))
+                    {
+                        <p>@Description</p>
+                    }
+                </div>
+                <button class="dept-dialog-close" type="button" aria-label="Đóng" @onclick="OnCancel">✕</button>
+            </header>
 
-    <div class="department-field">
-        <label class="form-label">Manager (optional)</label>
-        <InputSelect TValue="Guid?" class="form-select department-input" @bind-Value="Model.ManagerId">
-            <option value="">No manager</option>
-            @foreach (var option in ManagerOptions)
-            {
-                <option value="@option.Id">@option.DisplayName</option>
-            }
-        </InputSelect>
-    </div>
+            <EditForm Model="Model" OnValidSubmit="HandleValidSubmit" class="department-form">
+                <DataAnnotationsValidator />
 
-    <div class="department-field">
-        <label class="form-label">Function</label>
-        <InputText class="form-control department-input" @bind-Value="Model.Function" />
-    </div>
+                <div class="department-field">
+                    <label class="form-label">Tên phòng ban</label>
+                    <InputText class="form-control department-input" @bind-Value="Model.DeptName" placeholder="Ví dụ: Ban Truyền thông, Ban Đối ngoại..." />
+                    <ValidationMessage For="@(() => Model.DeptName)" />
+                </div>
 
-    <div class="department-form-actions">
-        <button type="submit" class="btn btn-primary dept-primary-btn">@SaveText</button>
-        <button type="button" class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
+                <div class="department-field">
+                    <label class="form-label">Người quản lý (Không bắt buộc)</label>
+                    <InputSelect TValue="Guid?" class="form-select department-input" @bind-Value="Model.ManagerId">
+                        <option value="">-- Chọn người quản lý --</option>
+                        @foreach (var option in ManagerOptions)
+                        {
+                            <option value="@option.Id">@option.DisplayName</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="department-field">
+                    <label class="form-label">Chức năng / Mô tả</label>
+                    <InputTextArea class="form-control department-input" @bind-Value="Model.Function" rows="3" placeholder="Mô tả ngắn gọn chức năng của phòng ban..." />
+                </div>
+
+                <footer class="department-form-actions">
+                    <button type="button" class="btn btn-secondary" @onclick="OnCancel">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary dept-primary-btn">@SaveText</button>
+                </footer>
+            </EditForm>
+        </section>
     </div>
-</EditForm>
+}
 
 @code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public string Title { get; set; } = "Phòng ban";
+    [Parameter] public string Description { get; set; } = string.Empty;
+
     [Parameter, EditorRequired]
     public DepartmentFormModel Model { get; set; } = new();
 
     [Parameter]
-    public string SaveText { get; set; } = "Save";
+    public string SaveText { get; set; } = "Lưu";
 
     [Parameter]
     public EventCallback OnSubmit { get; set; }
