@@ -103,6 +103,23 @@ public sealed class EventCategoryMockService(FrontendMockDataStore mockDataStore
         var totalTasks = categoryTasks.Count;
         var completedTasks = categoryTasks.Count(x => string.Equals(x.Status, "DONE", StringComparison.OrdinalIgnoreCase));
 
+        // Populating responsible members (from the same department if specified)
+        var responsibleMembers = new List<CategoryMemberViewModel>();
+        if (category.OwnerDepartmentId.HasValue)
+        {
+            var deptMembers = data.Members.Where(m => m.DepartmentId == category.OwnerDepartmentId.Value).Take(3);
+            foreach (var dm in deptMembers)
+            {
+                var user = data.Users.FirstOrDefault(u => u.Id == dm.UserId);
+                responsibleMembers.Add(new CategoryMemberViewModel
+                {
+                    Name = dm.DisplayName,
+                    Role = "Specialist", // Placeholder role
+                    AvatarUrl = user?.AvatarUrl
+                });
+            }
+        }
+
         return new EventCategoryViewModel
         {
             Id = category.Id,
@@ -114,8 +131,15 @@ public sealed class EventCategoryMockService(FrontendMockDataStore mockDataStore
             ActiveSubtasks = Math.Max(0, totalTasks - completedTasks),
             ProgressPercentage = totalTasks == 0
                 ? 0
-                : (int)Math.Round((double)completedTasks * 100 / totalTasks, MidpointRounding.AwayFromZero)
+                : (int)Math.Round((double)completedTasks * 100 / totalTasks, MidpointRounding.AwayFromZero),
+            
+            // New fields
+            DetailedDescription = category.Description, // Using description as detailed for now
+            Guidelines = category.Guidelines.Any() ? category.Guidelines : new List<string> { "Contact technical lead for DMX controller access", "Main LED Matrix requires P2.5 calibration", "Audio line array checklist must be signed" },
+            IsUrgent = category.IsUrgent,
+            ResponsibleMembers = responsibleMembers
         };
+
     }
 
     private static string NormalizeName(string? value)

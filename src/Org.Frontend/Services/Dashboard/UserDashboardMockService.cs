@@ -49,50 +49,84 @@ public sealed class UserDashboardMockService(
                             Description = org.Description,
                             AvatarUrl = ResolveOrganizationImage(org),
                             JoinedAtUtc = new DateTimeOffset(DateTime.SpecifyKind(x.JoinDate, DateTimeKind.Utc)),
-                            Role = "Member"
+                            // TODO BE: API nên trả về vai trò cụ thể của user trong tổ chức
+                            Role = x.RoleId?.ToString().ToLower().StartsWith("7e") == true ? "Owner" : 
+                                   x.RoleId?.ToString().ToLower().StartsWith("f8") == true ? "Admin" : "Member"
                         };
+
                     })
                     .Where(x => x is not null)
                     .Select(x => x!)
                     .ToList();
 
-            var registeredEvents = userId is null
-                ? []
-                : data.Attendees
+            // 2. REGISTERED EVENTS (User is Attendee OR Staff)
+            var registeredEvents = new List<UserRegisteredEventViewModel>();
+            if (userId != null)
+            {
+                // -- Part A: Events user is an Attendee of (Guest/Participant) --
+                var attendeeEventIds = data.Attendees
                     .Where(x => x.UserId == userId.Value && !string.Equals(x.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase))
-                    .OrderByDescending(x => x.CreatedAt)
-                    .GroupBy(x => x.EventId)
-                    .Select(g => g.First())
-                    .Select(x =>
-                    {
-                        var eventItem = data.Events.FirstOrDefault(e => e.Id == x.EventId);
-                        if (eventItem is null)
-                        {
-                            return null;
-                        }
+                    .Select(x => x.EventId)
+                    .ToHashSet();
 
-                        var organization = data.Organizations.FirstOrDefault(o => o.Id == eventItem.OrgId);
-                        return new UserRegisteredEventViewModel
-                        {
-                            EventId = eventItem.Id,
-                            OrganizationId = eventItem.OrgId,
-                            OrganizationName = organization?.OrgName ?? "Organization",
-                            Name = eventItem.Name,
-                            Description = eventItem.Description,
-                            StartDate = eventItem.StartDate,
-                            EndDate = eventItem.EndDate,
-                            EventStatus = NormalizeEventStatus(eventItem.StatusLabel),
-                            RegistrationStatus = NormalizeRegistrationStatus(x.Status),
-                            RegisteredAtUtc = new DateTimeOffset(DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc)),
-                            Location = eventItem.Location,
-                            ImageUrl = ResolveEventImage(eventItem, organization)
-                        };
-                    })
-                    .Where(x => x is not null)
-                    .Select(x => x!)
-                    .OrderBy(x => x.StartDate)
-                    .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-                    .ToList();
+                // -- Part B: Events user is an EventMember of (Staff/Organizer) --
+                // First find all MemberIds for this User across all Orgs
+                var userMemberIds = data.Members
+                    .Where(x => x.UserId == userId.Value)
+                    .Select(x => x.Id)
+                    .ToHashSet();
+                
+                var staffEventIds = data.EventMembers
+                    .Where(x => userMemberIds.Contains(x.MemberId))
+                    .Select(x => x.EventId)
+                    .ToHashSet();
+
+                var allMyEventIds = attendeeEventIds.Union(staffEventIds).ToList();
+
+                foreach (var eventId in allMyEventIds)
+                {
+                    var eventItem = data.Events.FirstOrDefault(e => e.Id == eventId);
+                    if (eventItem == null) continue;
+
+                    var organization = data.Organizations.FirstOrDefault(o => o.Id == eventItem.OrgId);
+                    
+                    // Determine internal vs external role
+                    string regStatus = "REGISTERED";
+                    var attendeeRecord = data.Attendees.FirstOrDefault(a => a.EventId == eventId && a.UserId == userId.Value);
+                    if (attendeeRecord != null) regStatus = NormalizeRegistrationStatus(attendeeRecord.Status);
+                    
+                    var eventMemberRecord = data.EventMembers.FirstOrDefault(em => em.EventId == eventId && userMemberIds.Contains(em.MemberId));
+                    if (eventMemberRecord != null)
+                    {
+                        // If user is staff, show their staff role instead of just "Registered"
+                        regStatus = eventMemberRecord.EventRole ?? "STAFF";
+                    }
+
+                    registeredEvents.Add(new UserRegisteredEventViewModel
+                    {
+                        EventId = eventItem.Id,
+                        OrganizationId = eventItem.OrgId,
+                        OrganizationName = organization?.OrgName ?? "Organization",
+                        Name = eventItem.Name,
+                        Description = eventItem.Description,
+                        StartDate = eventItem.StartDate,
+                        EndDate = eventItem.EndDate,
+                        EventStatus = NormalizeEventStatus(eventItem.StatusLabel),
+                        RegistrationStatus = regStatus,
+                        RegisteredAtUtc = attendeeRecord != null 
+                            ? new DateTimeOffset(DateTime.SpecifyKind(attendeeRecord.CreatedAt, DateTimeKind.Utc))
+                            : new DateTimeOffset(eventItem.StartDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+                        Location = eventItem.Location,
+                        ImageUrl = ResolveEventImage(eventItem, organization)
+                    });
+                }
+            }
+            
+            registeredEvents = registeredEvents
+                .OrderBy(x => x.StartDate)
+                .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
 
             var joinedOrganizationIds = organizations
                 .Select(x => x.OrganizationId)

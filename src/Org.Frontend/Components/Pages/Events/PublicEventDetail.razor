@@ -202,13 +202,37 @@
         }
     }
 
-    private void ToggleRegistration()
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+    private async Task ToggleRegistration()
     {
         if (_event is null)
             return;
 
-        _isRegistered = !_isRegistered;
-        _registeredCount = _isRegistered ? _registeredCount + 1 : Math.Max(0, _registeredCount - 1);
+        try 
+        {
+            if (_isRegistered)
+            {
+                await EventService.UnregisterEventAsync(EventId);
+                _isRegistered = false;
+                _registeredCount = Math.Max(0, _registeredCount - 1);
+                Snackbar.Add("Đã hủy đăng ký tham gia sự kiện.", Severity.Info);
+            }
+            else
+            {
+                await EventService.RegisterEventAsync(EventId);
+                _isRegistered = true;
+                _registeredCount++;
+                Snackbar.Add("Đăng ký tham gia sự kiện thành công!", Severity.Success);
+            }
+            
+            // Refresh dashboard in case user navigates to "My Events" immediately
+            await DashboardService.GetDashboardAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Lỗi: {ex.Message}", Severity.Error);
+        }
     }
 
     private static int ResolveTotalSlots(int totalSlots) => totalSlots <= 0 ? 120 : totalSlots;

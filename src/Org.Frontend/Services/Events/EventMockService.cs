@@ -1,4 +1,5 @@
-// ---- EventMockService: đọc dữ liệu từ unified FE mock dataset ----
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
 using Org.Frontend.Services.Mocks;
 using Org.Frontend.Services.Mocks.Models;
 using Org.Frontend.Services.Organizations;
@@ -8,10 +9,12 @@ namespace Org.Frontend.Services.Events;
 
 public sealed class EventMockService(
     FrontendMockDataStore mockDataStore,
-    IOrganizationContext organizationContext) : IEventService
+    IOrganizationContext organizationContext,
+    AuthenticationStateProvider authStateProvider) : IEventService
 {
     private readonly FrontendMockDataStore _mockDataStore = mockDataStore;
     private readonly IOrganizationContext _organizationContext = organizationContext;
+    private readonly AuthenticationStateProvider _authStateProvider = authStateProvider;
 
     public Task<List<EventViewModel>> GetEventsAsync(Guid orgId)
     {
@@ -143,9 +146,59 @@ public sealed class EventMockService(
         });
     }
 
+    public async Task RegisterEventAsync(Guid eventId)
+    {
+        var authState = await _authStateProvider.GetAuthenticationStateAsync();
+        var userIdStr = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr)) throw new UnauthorizedAccessException("User not logged in.");
+        var userId = Guid.Parse(userIdStr);
+
+        await _mockDataStore.UseAsync(data =>
+        {
+            var existing = data.Attendees.FirstOrDefault(x => x.EventId == eventId && x.UserId == userId);
+            if (existing != null)
+            {
+                existing.Status = "REGISTERED";
+            }
+            else
+            {
+                data.Attendees.Add(new MockAttendee
+                {
+                    Id = Guid.NewGuid(),
+                    EventId = eventId,
+                    UserId = userId,
+                    Status = "REGISTERED",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            return 0;
+        });
+    }
+
+    public async Task UnregisterEventAsync(Guid eventId)
+    {
+        var authState = await _authStateProvider.GetAuthenticationStateAsync();
+        var userIdStr = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr)) throw new UnauthorizedAccessException("User not logged in.");
+        var userId = Guid.Parse(userIdStr);
+
+        await _mockDataStore.UseAsync(data =>
+        {
+            var existing = data.Attendees.FirstOrDefault(x => x.EventId == eventId && x.UserId == userId);
+            if (existing != null)
+            {
+                existing.Status = "CANCELLED";
+            }
+            return 0;
+        });
+    }
+
     private static EventViewModel MapEventCard(MockEvent source, MockDataSet data)
     {
-        var participantCount = data.EventMembers.Count(x => x.EventId == source.Id);
+        // Participant count from BOTH EventMembers (staff) and Attendees (registered users)
+        var staffCount = data.EventMembers.Count(x => x.EventId == source.Id);
+        var attendeeCount = data.Attendees.Count(x => x.EventId == source.Id && string.Equals(x.Status, "REGISTERED", StringComparison.OrdinalIgnoreCase));
+        
         var (totalTasks, completedTasks) = CountTaskProgress(data, source.Id);
 
         return new EventViewModel
@@ -157,7 +210,7 @@ public sealed class EventMockService(
             EndDate = source.EndDate,
             StatusLabel = source.StatusLabel,
             Location = source.Location,
-            RegisteredCount = participantCount,
+            RegisteredCount = attendeeCount, // UI uses this as attendee count
             TotalSlots = source.TotalSlots,
             ImageUrl = source.ImageUrl,
             CompletionLabel = source.CompletionLabel ?? ToPercentLabel(completedTasks, totalTasks),
@@ -167,6 +220,7 @@ public sealed class EventMockService(
             ActualSpending = source.ActualSpending
         };
     }
+
 
     private static EventViewModel MapEventDetail(MockEvent source, MockDataSet data)
     {

@@ -6,9 +6,9 @@
 
 
 @inject ITaskService TaskService
+@inject IEventCategoryService CategoryService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
-
 @inject ISnackbar Snackbar
 
 <style>
@@ -31,9 +31,16 @@
 <div class="page-bg pa-8">
     <div class="d-flex justify-space-between align-start mb-8">
         <div style="max-width: 700px;">
-            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background-color: #ffedd5; color: #f97316;" Class="fw-bold mb-3 rounded-pill px-3">URGENT TASK</MudChip>
-            <MudText Typo="Typo.h3" Class="fw-800 mb-2" Style="color: #0f172a; letter-spacing: -1px;">Chi tiết mục: Kỹ thuật</MudText>
-            <MudText Typo="Typo.body1" Class="text-muted" Style="font-size: 1.1rem;">Technical requirements for audio, visual and lighting systems architecture for the main stage.</MudText>
+            @if (_category?.IsUrgent ?? false)
+            {
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background-color: #ffedd5; color: #f97316;" Class="fw-bold mb-3 rounded-pill px-3">URGENT TASK</MudChip>
+            }
+            <MudText Typo="Typo.h3" Class="fw-800 mb-2" Style="color: #0f172a; letter-spacing: -1px;">
+                Chi tiết mục: @(_category?.Name ?? "Loading...")
+            </MudText>
+            <MudText Typo="Typo.body1" Class="text-muted" Style="font-size: 1.1rem;">
+                @(_category?.Description ?? "Đang tải dữ liệu mô tả hạng mục...")
+            </MudText>
         </div>
         <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Class="rounded-pill px-6 fw-bold elevation-0" Style="background-color: #f97316; color: white; text-transform: none;">
             Quay lại
@@ -49,12 +56,17 @@
                     <MudIcon Icon="@Icons.Material.Filled.Info" Style="color: #f97316;" Size="Size.Small" />
                     <MudText Typo="Typo.subtitle2" Class="fw-800" Style="letter-spacing: 1px; color: #0f172a;">THÔNG TIN MỤC</MudText>
                 </div>
-                <MudText Typo="Typo.body2" Class="mb-4" Style="color: #334155; font-weight: 500;">Quản lý và vận hành toàn bộ hệ thống hạ tầng kỹ thuật bao gồm:</MudText>
+                <MudText Typo="Typo.body2" Class="mb-4" Style="color: #334155; font-weight: 500;">
+                    @(_category?.DetailedDescription ?? "Chưa có mô tả chi tiết cho hạng mục này.")
+                </MudText>
                 <ul class="pl-6" style="color: #475569; line-height: 2.2;">
-                    <li>Hệ thống âm thanh hội trường 1500 chỗ (Line Array system).</li>
-                    <li>Hệ thống chiếu sáng sân khấu chuyên dụng (DMX controls).</li>
-                    <li>Thiết bị trình chiếu LED Matrix P2.5 12x4m.</li>
-                    <li>Hạ tầng mạng ổn định cho livestream 4K.</li>
+                    @if (_category?.Guidelines != null)
+                    {
+                        @foreach (var guide in _category.Guidelines)
+                        {
+                            <li>@guide</li>
+                        }
+                    }
                 </ul>
             </div>
         </MudItem>
@@ -66,27 +78,23 @@
                     <MudText Typo="Typo.subtitle2" Class="fw-800" Style="letter-spacing: 1px;">THÀNH VIÊN PHỤ TRÁCH</MudText>
                 </div>
                 
-                <div class="d-flex align-center gap-4 mb-5">
-                    <MudAvatar Image="https://randomuser.me/api/portraits/men/32.jpg" />
-                    <div>
-                        <MudText Typo="Typo.body2" Class="fw-bold">Nguyễn Văn B</MudText>
-                        <MudText Typo="Typo.caption" Style="color: #94a3b8;">Technical Lead</MudText>
-                    </div>
-                </div>
-                <div class="d-flex align-center gap-4 mb-5">
-                    <MudAvatar Image="https://randomuser.me/api/portraits/women/44.jpg" />
-                    <div>
-                        <MudText Typo="Typo.body2" Class="fw-bold">Trần Thị C</MudText>
-                        <MudText Typo="Typo.caption" Style="color: #94a3b8;">Lighting Specialist</MudText>
-                    </div>
-                </div>
-                <div class="d-flex align-center gap-4">
-                    <MudAvatar Image="https://randomuser.me/api/portraits/men/75.jpg" />
-                    <div>
-                        <MudText Typo="Typo.body2" Class="fw-bold">Lê Văn D</MudText>
-                        <MudText Typo="Typo.caption" Style="color: #94a3b8;">AV Operator</MudText>
-                    </div>
-                </div>
+                @if (_category?.ResponsibleMembers != null && _category.ResponsibleMembers.Any())
+                {
+                    @foreach (var member in _category.ResponsibleMembers)
+                    {
+                        <div class="d-flex align-center gap-4 mb-5">
+                            <MudAvatar Image="@member.AvatarUrl" Color="Color.Primary">@(string.IsNullOrEmpty(member.AvatarUrl) ? member.Name.FirstOrDefault().ToString() : "")</MudAvatar>
+                            <div>
+                                <MudText Typo="Typo.body2" Class="fw-bold">@member.Name</MudText>
+                                <MudText Typo="Typo.caption" Style="color: #94a3b8;">@member.Role</MudText>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Style="color: #94a3b8; font-style: italic;">Chưa có thành viên phụ trách.</MudText>
+                }
             </div>
         </MudItem>
     </MudGrid>
@@ -118,7 +126,7 @@
         {
             <div class="phase-header pa-3 mb-4 d-flex align-center shadow-sm">
                 <MudText Typo="Typo.caption" Class="fw-800 mr-4" Style="color: #f97316; letter-spacing: 1px;">PHASE 01</MudText>
-                <MudText Typo="Typo.subtitle2" Class="fw-bold" Style="color: #0f172a;">Giai đoạn 1: Lên kế hoạch & Chuẩn bị</MudText>
+                <MudText Typo="Typo.subtitle2" Class="fw-bold" Style="color: #0f172a;">Giai đoạn: @(_category?.Name ?? "Chưa rõ")</MudText>
             </div>
 
             <div class="table-header d-flex px-6 py-2 mb-2">
@@ -201,13 +209,21 @@
     [Parameter] public Guid CategoryId { get; set; }
     [Parameter] public Guid EventId { get; set; }
     private List<TaskViewModel>? _tasks;
+    private EventCategoryViewModel? _category;
     
     // Biến này để điều khiển bật/tắt giao diện
     private bool isKanbanMode = false; 
 
     protected override async Task OnInitializedAsync()
     {
-        _tasks = await TaskService.GetTasksAsync(CategoryId);
+        // Load data song song
+        var tasksTask = TaskService.GetTasksAsync(CategoryId);
+        var categoryTask = CategoryService.GetCategoryDetailAsync(CategoryId);
+
+        await Task.WhenAll(tasksTask, categoryTask);
+
+        _tasks = tasksTask.Result;
+        _category = categoryTask.Result;
     }
 
     private async Task TaskUpdated(MudItemDropInfo<TaskViewModel> dropItem)
@@ -216,14 +232,12 @@
         {
             dropItem.Item.Status = dropItem.DropzoneIdentifier;
             await TaskService.UpdateTaskStatusAsync(dropItem.Item.Id, new UpdateTaskStatusViewModel { Status = dropItem.DropzoneIdentifier });
-            
-            // Xóa thông báo cho gọn, hoặc bồ có thể giữ lại Snackbar.Add(...) ở đây nếu muốn
         }
     }
 
-   private void GoBack()
+    private void GoBack()
     {
-        NavigationManager.NavigateTo($"/events/{EventId}"); 
+        NavigationManager.NavigateTo($"/org/events/{EventId}"); 
     }
 
     private async Task OpenCreateDialog()
@@ -241,4 +255,4 @@
             StateHasChanged();
         }
     }
-}
+}

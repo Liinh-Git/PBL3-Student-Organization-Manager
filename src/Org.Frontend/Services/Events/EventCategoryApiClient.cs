@@ -86,9 +86,23 @@ public sealed class EventCategoryApiClient(HttpClient httpClient) : IEventCatego
             ActiveSubtasks = Math.Max(0, x.TaskCount - x.CompletedTaskCount),
             ProgressPercentage = x.TaskCount == 0
                 ? 0
-                : (int)Math.Round((double)x.CompletedTaskCount * 100 / x.TaskCount, MidpointRounding.AwayFromZero)
+                : (int)Math.Round((double)x.CompletedTaskCount * 100 / x.TaskCount, MidpointRounding.AwayFromZero),
+            
+            // ---- PLACEHOLDERS CHO BE INTEGRATION ----
+            // TODO BE: Cần bổ sung các trường này vào EventCategoryDto hoặc tạo endpoint Dashboard riêng
+            DetailedDescription = x.Description ?? "Vui lòng cập nhật mô tả chi tiết cho hạng mục này từ backend.",
+            Guidelines = new List<string> { 
+                "Placeholder: Quy trình vận hành 1", 
+                "Placeholder: Quy trình vận hành 2" 
+            },
+            IsUrgent = false,
+            ResponsibleMembers = new List<CategoryMemberViewModel> 
+            {
+                new CategoryMemberViewModel { Name = x.LeadName ?? "Lead", Role = "Team Lead" }
+            }
         };
     }
+
 
     private static string NormalizeName(string? value)
     {

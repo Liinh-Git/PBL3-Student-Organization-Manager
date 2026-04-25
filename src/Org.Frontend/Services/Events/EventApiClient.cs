@@ -101,6 +101,18 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task RegisterEventAsync(Guid eventId)
+    {
+        // TODO BE: Implement POST api/events/{eventId}/register
+        await Task.Delay(500);
+    }
+
+    public async Task UnregisterEventAsync(Guid eventId)
+    {
+        // TODO BE: Implement DELETE api/events/{eventId}/register
+        await Task.Delay(500);
+    }
+
     private async Task<EventViewModel> BuildDetailFromEventDtoAsync(EventDto dto)
     {
         var milestonesPayload = await _httpClient.GetFromJsonAsync<GetMilestonesResponse>($"api/events/{dto.Id}/milestones")

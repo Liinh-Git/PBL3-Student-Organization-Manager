@@ -10,4 +10,8 @@ public interface IEventService
     Task<EventViewModel?> GetEventDetailAsync(Guid eventId);
     Task<EventViewModel> UpdateEventAsync(Guid eventId, UpdateEventViewModel req);
     Task DeleteEventAsync(Guid eventId);
+    
+    // ---- Attendance / Registration ----
+    Task RegisterEventAsync(Guid eventId);
+    Task UnregisterEventAsync(Guid eventId);
 }

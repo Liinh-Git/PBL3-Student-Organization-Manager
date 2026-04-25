@@ -1,177 +1,168 @@
 @page "/user/events"
+@rendermode InteractiveServer
+@using Org.Frontend.ViewModels
+@using Org.Frontend.Services.Dashboard
+@inject IUserDashboardService DashboardService
 
 <PageTitle>Sự kiện của tôi - Kora</PageTitle>
 
 <div class="user-events-dashboard">
-    <!-- Featured Event Section -->
-    <section class="featured-section">
-        <div class="featured-card">
-            <img class="featured-image" src="/images/mockimages/IMG_20260301_060428.jpg" alt="Hackathon" />
-            <div class="featured-overlay"></div>
-            <div class="featured-content">
-                <span class="featured-badge">Nổi bật</span>
-                <h2 class="featured-title">Hackathon Green Future 2024</h2>
-                <p class="featured-desc">Tham gia giải quyết các vấn đề môi trường thông qua công nghệ cùng 200 chuyên gia hàng đầu khu vực.</p>
-                
-                <div class="featured-meta">
-                    <div class="meta-item">
-                        <span class="material-symbols-outlined icon-orange">calendar_today</span>
-                        <span>24 - 26 Tháng 10, 2024</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="material-symbols-outlined icon-orange">location_on</span>
-                        <span>Trung tâm Đổi mới Sáng tạo Quốc gia (NIC)</span>
+    @if (_dashboard == null)
+    {
+        <div class="d-flex justify-center pa-12">
+            <MudProgressCircular Color="MudBlazor.Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else
+    {
+        <!-- Featured Event Section (Lấy sự kiện sắp tới nhất) -->
+        @if (FeaturedEvent != null)
+        {
+            <section class="featured-section">
+                <div class="featured-card">
+                    <img class="featured-image" src="@(string.IsNullOrEmpty(FeaturedEvent.ImageUrl) ? "/images/mockimages/IMG_20260301_060428.jpg" : FeaturedEvent.ImageUrl)" alt="@FeaturedEvent.Name" />
+                    <div class="featured-overlay"></div>
+                    <div class="featured-content">
+                        <span class="featured-badge">Nổi bật</span>
+                        <h2 class="featured-title">@FeaturedEvent.Name</h2>
+                        <p class="featured-desc">@FeaturedEvent.Description</p>
+                        
+                        <div class="featured-meta">
+                            <div class="meta-item">
+                                <span class="material-symbols-outlined icon-orange">calendar_today</span>
+                                <span>@FeaturedEvent.StartDate.ToString("dd/MM/yyyy") - @FeaturedEvent.EndDate.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="material-symbols-outlined icon-orange">location_on</span>
+                                <span>@FeaturedEvent.Location</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-primary-orange">
+                            <span>Chi tiết sự kiện</span>
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
                     </div>
                 </div>
-                
-                <button class="btn-primary-orange">
-                    <span>Chi tiết sự kiện</span>
-                    <span class="material-symbols-outlined">arrow_forward</span>
+            </section>
+        }
+
+        <!-- Dynamic Navigation Tabs -->
+        <div class="events-tabs">
+            <button class="tab-btn @(currentFilter == "All" ? "active" : "")" @onclick='() => currentFilter = "All"'>
+                Tất cả (@_dashboard.RegisteredEvents.Count)
+            </button>
+            <button class="tab-btn @(currentFilter == "Ongoing" ? "active" : "")" @onclick='() => currentFilter = "Ongoing"'>
+                Đang diễn ra (@_dashboard.RegisteredEvents.Count(e => e.EventStatus == "ONGOING"))
+            </button>
+            <button class="tab-btn @(currentFilter == "Upcoming" ? "active" : "")" @onclick='() => currentFilter = "Upcoming"'>
+                Sắp tới (@_dashboard.RegisteredEvents.Count(e => e.EventStatus == "PLANNING" || e.EventStatus == "UPCOMING" || (e.StartDate > DateOnly.FromDateTime(DateTime.Today) && e.EventStatus != "COMPLETED")))
+            </button>
+            <button class="tab-btn @(currentFilter == "Completed" ? "active" : "")" @onclick='() => currentFilter = "Completed"'>
+                Đã tham gia (@_dashboard.RegisteredEvents.Count(e => e.EventStatus == "COMPLETED"))
+            </button>
+        </div>
+
+        <section class="events-group">
+            <div class="group-header">
+                <h3>@GetFilterLabel()</h3>
+                <div class="group-divider"></div>
+            </div>
+            
+            <div class="events-list">
+                @foreach (var evt in EventsToShow)
+                {
+                    <div class="event-card">
+                        <div class="event-image-wrap">
+                            <img src="@(string.IsNullOrEmpty(evt.ImageUrl) ? "/images/mockimages/IMG_20260301_060443.jpg" : evt.ImageUrl)" alt="Event" class="event-image" />
+                        </div>
+                        <div class="event-details">
+                            <div class="event-category">
+                                <span class="cat-badge">@evt.EventStatus</span>
+                                <span class="cat-label">@evt.OrganizationName</span>
+                            </div>
+                            <h4 class="event-title">@evt.Name</h4>
+                            <div class="event-meta-info">
+                                <span class="meta-text"><span class="material-symbols-outlined">schedule</span> @evt.StartDate.ToString("dd/MM/yyyy")</span>
+                                <span class="meta-text"><span class="material-symbols-outlined">location_on</span> @evt.Location</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <div class="attendees-faces">
+                                <img src="/images/mockimages/Screenshot_20260406_231459.jpg" alt="User" />
+                                <div class="more-attendees">+42</div>
+                            </div>
+                            <button class="btn-dark" @onclick='() => GoToOrgEvent(evt.OrganizationId, evt.EventId)'>Xem chi tiết</button>
+                        </div>
+                    </div>
+                }
+
+                @if (!EventsToShow.Any())
+                {
+                    <div class="events-empty-state w-100 pa-12 text-center text-muted">
+                        <p class="empty-note">Không tìm thấy sự kiện nào trong danh mục này.</p>
+                    </div>
+                }
+            </div>
+        </section>
+
+        @if (currentFilter == "All" && _dashboard.RegisteredEvents.Count > 0)
+        {
+            <div class="events-empty-state">
+                <p class="empty-note">Bạn đã xem hết các sự kiện.</p>
+                <button class="btn-text-history">
+                    <span>Xem lịch sử sự kiện</span>
+                    <span class="material-symbols-outlined">history</span>
                 </button>
             </div>
-        </div>
-    </section>
-
-    <!-- Dynamic Navigation Tabs -->
-    <div class="events-tabs">
-        <button class="tab-btn active">Tất cả (12)</button>
-        <button class="tab-btn">Đang diễn ra (2)</button>
-        <button class="tab-btn">Sắp tới (6)</button>
-        <button class="tab-btn">Đã tham gia (4)</button>
-    </div>
-
-    <!-- Event List: Hôm nay -->
-    <section class="events-group">
-        <div class="group-header">
-            <h3>Hôm nay</h3>
-            <div class="group-divider"></div>
-        </div>
-        
-        <div class="events-list">
-            <!-- Event Card 1 -->
-            <div class="event-card">
-                <div class="event-image-wrap">
-                    <img src="/images/mockimages/IMG_20260301_060443.jpg" alt="Event" class="event-image" />
-                </div>
-                <div class="event-details">
-                    <div class="event-category">
-                        <span class="cat-badge">Workshop</span>
-                        <span class="cat-label">Design Thinking Mastery</span>
-                    </div>
-                    <h4 class="event-title">Kỹ thuật UX Research cho Start-up</h4>
-                    <div class="event-meta-info">
-                        <span class="meta-text"><span class="material-symbols-outlined">schedule</span> 14:00 - 17:00</span>
-                        <span class="meta-text"><span class="material-symbols-outlined">meeting_room</span> Phòng 402, Kora Hall</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <div class="attendees-faces">
-                        <img src="/images/mockimages/Screenshot_20260406_231459.jpg" alt="User" />
-                        <img src="/images/mockimages/Screenshot_20260409_220036.jpg" alt="User" />
-                        <img src="/images/mockimages/FB_IMG_1776086067893.jpg" alt="User" />
-                        <div class="more-attendees">+42</div>
-                    </div>
-                    <button class="btn-dark">Xem chi tiết</button>
-                </div>
-            </div>
-
-            <!-- Event Card 2 -->
-            <div class="event-card">
-                <div class="event-image-wrap">
-                    <img src="/images/mockimages/IMG_20260301_061030.jpg" alt="Event" class="event-image" />
-                </div>
-                <div class="event-details">
-                    <div class="event-category">
-                        <span class="cat-badge">Triển lãm</span>
-                        <span class="cat-label">Fine Arts Collective</span>
-                    </div>
-                    <h4 class="event-title">Đối thoại với Không gian & Thời gian</h4>
-                    <div class="event-meta-info">
-                        <span class="meta-text"><span class="material-symbols-outlined">schedule</span> 09:00 - 18:00</span>
-                        <span class="meta-text"><span class="material-symbols-outlined">location_on</span> Art Plaza A1</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <div class="attendees-faces">
-                        <img src="/images/mockimages/Screenshot_20260422_210044.jpg" alt="User" />
-                        <img src="/images/mockimages/Screenshot_20260408_111554.jpg" alt="User" />
-                        <div class="more-attendees">+128</div>
-                    </div>
-                    <button class="btn-dark">Xem chi tiết</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Event List: Sắp diễn ra -->
-    <section class="events-group">
-        <div class="group-header">
-            <h3>Sắp diễn ra</h3>
-            <div class="group-divider"></div>
-        </div>
-        
-        <div class="events-list">
-            <!-- Event Card 3 -->
-            <div class="event-card">
-                <div class="event-image-wrap">
-                    <img src="/images/mockimages/IMG_20260320_060502.jpg" alt="Event" class="event-image" />
-                </div>
-                <div class="event-details">
-                    <div class="event-category">
-                        <span class="cat-badge">Hội thảo</span>
-                        <span class="cat-label">AI Ethics Board</span>
-                    </div>
-                    <h4 class="event-title">Đạo đức trong kỷ nguyên trí tuệ nhân tạo</h4>
-                    <div class="event-meta-info">
-                        <span class="meta-text"><span class="material-symbols-outlined">calendar_month</span> 28/10/2024</span>
-                        <span class="meta-text"><span class="material-symbols-outlined">videocam</span> Trực tuyến (Zoom)</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <div class="attendees-faces">
-                        <img src="/images/mockimages/IMG_20260208_195437.jpg" alt="User" />
-                        <img src="/images/mockimages/IMG_20260211_235452.jpg" alt="User" />
-                        <img src="/images/mockimages/Edward_Elric.png" alt="User" />
-                        <div class="more-attendees">+850</div>
-                    </div>
-                    <button class="btn-dark">Xem chi tiết</button>
-                </div>
-            </div>
-
-            <!-- Event Card 4 -->
-            <div class="event-card">
-                <div class="event-image-wrap">
-                    <img src="/images/mockimages/FB_IMG_1775522095538.jpg" alt="Event" class="event-image" />
-                </div>
-                <div class="event-details">
-                    <div class="event-category">
-                        <span class="cat-badge">Giao lưu</span>
-                        <span class="cat-label">Creative Careers</span>
-                    </div>
-                    <h4 class="event-title">Career Talk: Từ Designer đến Product Manager</h4>
-                    <div class="event-meta-info">
-                        <span class="meta-text"><span class="material-symbols-outlined">calendar_month</span> 30/10/2024</span>
-                        <span class="meta-text"><span class="material-symbols-outlined">mic</span> Hub Coffee, NIC</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <div class="attendees-faces">
-                        <img src="/images/mockimages/Screenshot_20260326_115147.jpg" alt="User" />
-                        <img src="/images/mockimages/Screenshot_20260326_120311.jpg" alt="User" />
-                        <div class="more-attendees">+15</div>
-                    </div>
-                    <button class="btn-dark">Xem chi tiết</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Empty State -->
-    <div class="events-empty-state">
-        <p class="empty-note">Bạn đã xem hết các sự kiện sắp tới.</p>
-        <button class="btn-text-history">
-            <span>Xem lịch sử sự kiện</span>
-            <span class="material-symbols-outlined">history</span>
-        </button>
-    </div>
+        }
+    }
 </div>
+
+@code {
+    private UserDashboardViewModel? _dashboard;
+    private string currentFilter = "All";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dashboard = await DashboardService.GetDashboardAsync();
+    }
+
+    private UserRegisteredEventViewModel? FeaturedEvent => _dashboard?.RegisteredEvents
+        .Where(e => e.StartDate >= DateOnly.FromDateTime(DateTime.Today))
+        .OrderBy(e => e.StartDate)
+        .FirstOrDefault();
+
+    private IEnumerable<UserRegisteredEventViewModel> EventsToShow
+    {
+        get
+        {
+            if (_dashboard == null) return Enumerable.Empty<UserRegisteredEventViewModel>();
+            
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            return currentFilter switch
+            {
+                "Ongoing" => _dashboard.RegisteredEvents.Where(e => e.EventStatus == "ONGOING"),
+                "Upcoming" => _dashboard.RegisteredEvents.Where(e => e.StartDate > today && e.EventStatus != "COMPLETED"),
+                "Completed" => _dashboard.RegisteredEvents.Where(e => e.EventStatus == "COMPLETED"),
+                _ => _dashboard.RegisteredEvents
+            };
+        }
+    }
+
+    private string GetFilterLabel() => currentFilter switch
+    {
+        "Ongoing" => "Sự kiện đang diễn ra",
+        "Upcoming" => "Sự kiện sắp diễn ra",
+        "Completed" => "Sự kiện đã kết thúc",
+        _ => "Tất cả sự kiện"
+    };
+
+    private void GoToOrgEvent(Guid orgId, Guid eventId)
+    {
+        NavigationManager.NavigateTo($"/org/events/{eventId}");
+    }
+
+    [Inject] public NavigationManager NavigationManager { get; set; } = default!;
+}
+
