@@ -1,24 +1,112 @@
-[
-  {
-    "id": "c78af9dc-7a03-49bf-98c1-0572112b57ab",
-    "code": "ORG-0001",
-    "orgName": "Tech Student Union",
-    "description": "Main student organization for technology activities and campus innovation.",
-    "avatarUrl": "/images/mockimages/images (9).jpeg",
-    "coverUrl": "/images/mockimages/IMG_20260301_060443.jpg",
-    "location": "Main Campus",
-    "totalMembers": 8,
-    "status": 0
-  },
-  {
-    "id": "ebac3195-2922-435f-a5ff-9a8d45efbe8a",
-    "code": "ORG-0002",
-    "orgName": "Global Culture Club",
-    "description": "Intercultural exchange and collaboration activities for students.",
-    "avatarUrl": "/images/mockimages/images (10).jpeg",
-    "coverUrl": "/images/mockimages/IMG_20260301_061030.jpg",
-    "location": "South Campus",
-    "totalMembers": 3,
-    "status": 0
-  }
+﻿[
+    {
+        "id":  "82dac2e9-eb66-4cf0-ad4d-598126b175fb",
+        "code":  "ORG-0001",
+        "orgName":  "Mock Organization 1",
+        "description":  "Mock organization description 1",
+        "avatarUrl":  "/images/mockimages/org-1.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-1.jpg",
+        "location":  "Campus 1",
+        "totalMembers":  1,
+        "status":  0
+    },
+    {
+        "id":  "90535883-fbfb-4dcd-a05d-af83e3ea79dc",
+        "code":  "ORG-0002",
+        "orgName":  "Mock Organization 2",
+        "description":  "Mock organization description 2",
+        "avatarUrl":  "/images/mockimages/org-2.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-2.jpg",
+        "location":  "Campus 2",
+        "totalMembers":  1,
+        "status":  0
+    },
+    {
+        "id":  "4abb9b76-0ebb-4dd3-a141-4c66cdbd458f",
+        "code":  "ORG-0003",
+        "orgName":  "Mock Organization 3",
+        "description":  "Mock organization description 3",
+        "avatarUrl":  "/images/mockimages/org-3.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-3.jpg",
+        "location":  "Campus 3",
+        "totalMembers":  1,
+        "status":  0
+    },
+    {
+        "id":  "65e83bcf-9f65-4092-bfd2-3c80d4e396b4",
+        "code":  "ORG-0004",
+        "orgName":  "Mock Organization 4",
+        "description":  "Mock organization description 4",
+        "avatarUrl":  "/images/mockimages/org-4.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-4.jpg",
+        "location":  "Campus 4",
+        "totalMembers":  1,
+        "status":  0
+    },
+    {
+        "id":  "1029cb9d-a78d-4440-bb16-20abe003f9be",
+        "code":  "ORG-0005",
+        "orgName":  "Mock Organization 5",
+        "description":  "Mock organization description 5",
+        "avatarUrl":  "/images/mockimages/org-5.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-5.jpg",
+        "location":  "Campus 5",
+        "totalMembers":  1,
+        "status":  0
+    },
+    {
+        "id":  "40f706bd-12a6-4d36-8161-40434c11d126",
+        "code":  "ORG-0006",
+        "orgName":  "Mock Organization 6",
+        "description":  "Mock organization description 6",
+        "avatarUrl":  "/images/mockimages/org-6.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-6.jpg",
+        "location":  "Campus 6",
+        "totalMembers":  1,
+        "status":  0
+    },
+    {
+        "id":  "b171205e-6aee-4180-87dd-3aeeeac7ea9e",
+        "code":  "ORG-0007",
+        "orgName":  "Mock Organization 7",
+        "description":  "Mock organization description 7",
+        "avatarUrl":  "/images/mockimages/org-7.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-7.jpg",
+        "location":  "Campus 7",
+        "totalMembers":  1,
+        "status":  0
+    },
+    {
+        "id":  "f6774453-4111-49c0-a964-917e4648f9cc",
+        "code":  "ORG-0008",
+        "orgName":  "Mock Organization 8",
+        "description":  "Mock organization description 8",
+        "avatarUrl":  "/images/mockimages/org-8.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-8.jpg",
+        "location":  "Campus 8",
+        "totalMembers":  1,
+        "status":  0
+    },
+    {
+        "id":  "a858fa5d-bc5e-497c-9a32-bd9b1623c230",
+        "code":  "ORG-0009",
+        "orgName":  "Mock Organization 9",
+        "description":  "Mock organization description 9",
+        "avatarUrl":  "/images/mockimages/org-9.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-9.jpg",
+        "location":  "Campus 9",
+        "totalMembers":  1,
+        "status":  0
+    },
+    {
+        "id":  "072ec4f3-a40d-4a5e-b22b-c0d9f1988c02",
+        "code":  "ORG-0010",
+        "orgName":  "Mock Organization 10",
+        "description":  "Mock organization description 10",
+        "avatarUrl":  "/images/mockimages/org-10.jpg",
+        "coverUrl":  "/images/mockimages/org-cover-10.jpg",
+        "location":  "Campus 10",
+        "totalMembers":  1,
+        "status":  0
+    }
 ]

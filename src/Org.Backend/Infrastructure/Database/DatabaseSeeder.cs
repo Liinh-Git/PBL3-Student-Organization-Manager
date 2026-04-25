@@ -16,10 +16,32 @@ public static class DatabaseSeeder
     // ---- Orchestrator: chạy seed theo từng stage để đảm bảo đúng thứ tự FK ----
     public static async Task SeedAsync(AppDbContext db, CancellationToken cancellationToken = default)
     {
+        await ResetDatabaseDataAsync(db, cancellationToken);
+
         var seedContext = await SeedIdentityDataAsync(db, cancellationToken);
         await SeedOrgCoreDataAsync(db, seedContext, cancellationToken);
         await SeedMembershipAndMilestoneDataAsync(db, seedContext, cancellationToken);
         await SeedOperationalDataAsync(db, seedContext, cancellationToken);
+    }
+
+    // ---- Xóa toàn bộ dữ liệu hiện có (giữ nguyên schema/migrations) trước khi seed lại ----
+    private static async Task ResetDatabaseDataAsync(AppDbContext db, CancellationToken cancellationToken)
+    {
+        var tableNames = db.Model
+            .GetEntityTypes()
+            .Select(x => new { Schema = x.GetSchema() ?? "public", Table = x.GetTableName() })
+            .Where(x => !string.IsNullOrWhiteSpace(x.Table))
+            .Select(x => $"\"{x.Schema}\".\"{x.Table}\"")
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (tableNames.Count == 0)
+        {
+            return;
+        }
+
+        var truncateSql = $"TRUNCATE TABLE {string.Join(", ", tableNames)} RESTART IDENTITY CASCADE;";
+        await db.Database.ExecuteSqlRawAsync(truncateSql, cancellationToken);
     }
 
     // ---- Stage 1: seed thực thể gốc độc lập (Organization, Permission, User) ----

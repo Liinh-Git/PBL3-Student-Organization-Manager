@@ -1,92 +1,142 @@
 ﻿[
-  {
-    "id": "8ec5ce5c-1a64-486d-bb68-1d4d435b7b48",
-    "milestoneId": "e7f03bc5-1e36-47e1-ab80-704e7d132705",
-    "name": "Communications",
-    "leadMemberId": "78fb96ab-e2f8-49ad-a482-659117027e0f",
-    "orderIndex": 1,
-    "description": "Promotion plan, media assets and social channel schedule.",
-    "ownerDepartmentId": "bc4d0fb7-e4b4-4995-bbce-0d4a8902d06c"
-  },
-  {
-    "id": "5c303509-5636-4ba7-8eb0-9c50aacdc14c",
-    "milestoneId": "e7f03bc5-1e36-47e1-ab80-704e7d132705",
-    "name": "Operations",
-    "leadMemberId": "b3ab7ce7-b721-496b-a5ac-91ce05c96378",
-    "orderIndex": 2,
-    "description": "Venue prep, volunteers and runbook readiness.",
-    "ownerDepartmentId": "2c8d000b-c3c8-4bc5-b79a-7d791bb5d421"
-  },
-  {
-    "id": "a02a73a0-eb0d-4d40-a112-661bcd248f7a",
-    "milestoneId": "f46a088b-97a7-48bf-8dc6-e6cbe3847de6",
-    "name": "Technical Setup",
-    "leadMemberId": "57beaed2-a66c-49f4-83f3-8ebedd1d43c8",
-    "orderIndex": 1,
-    "description": "Stage AV, network and live support desk.",
-    "ownerDepartmentId": "2b4c55ac-8ddf-4da5-bcb4-a4e531134583"
-  },
-  {
-    "id": "89b36f66-3ac1-43c2-b7e1-311d5ea9af59",
-    "milestoneId": "19957649-9ca3-46c7-959f-11248d6f6828",
-    "name": "Sponsorship",
-    "leadMemberId": "4ec49164-d097-40b1-8d6b-7d0a5ce8ccc9",
-    "orderIndex": 1,
-    "description": "Partner outreach, booth packages and contracts.",
-    "ownerDepartmentId": "bc4d0fb7-e4b4-4995-bbce-0d4a8902d06c"
-  },
-  {
-    "id": "0b5b9537-fce2-409b-ace5-777d47b371cb",
-    "milestoneId": "19957649-9ca3-46c7-959f-11248d6f6828",
-    "name": "Venue Logistics",
-    "leadMemberId": "16ee351a-3032-4beb-a0f5-bdbe243413ba",
-    "orderIndex": 2,
-    "description": "Site map, entry points and safety protocol.",
-    "ownerDepartmentId": "2c8d000b-c3c8-4bc5-b79a-7d791bb5d421"
-  },
-  {
-    "id": "c1f63980-b7cf-4731-b99b-49dd2920b6d5",
-    "milestoneId": "96c923f7-6602-49fd-b829-f7a0c66a4d3c",
-    "name": "Onsite Tech",
-    "leadMemberId": "57beaed2-a66c-49f4-83f3-8ebedd1d43c8",
-    "orderIndex": 1,
-    "description": "Judge portal, scoreboard and LAN support.",
-    "ownerDepartmentId": "2b4c55ac-8ddf-4da5-bcb4-a4e531134583"
-  },
-  {
-    "id": "91fd1212-add4-4a00-b6f1-3a2bea31151a",
-    "milestoneId": "705d271a-4c46-4dec-9af1-5243c08311ad",
-    "name": "Guest Outreach",
-    "leadMemberId": "98b5de01-825c-438c-91cb-9f2ad29a6000",
-    "orderIndex": 1,
-    "description": "Invite speakers and coordinate enterprise representatives.",
-    "ownerDepartmentId": "bc4d0fb7-e4b4-4995-bbce-0d4a8902d06c"
-  },
-  {
-    "id": "6dc07250-1b6d-46a4-859a-26cfd6f801c3",
-    "milestoneId": "705d271a-4c46-4dec-9af1-5243c08311ad",
-    "name": "Protocol",
-    "leadMemberId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d",
-    "orderIndex": 2,
-    "description": "Agenda flow, MC notes and stage protocol.",
-    "ownerDepartmentId": "2c8d000b-c3c8-4bc5-b79a-7d791bb5d421"
-  },
-  {
-    "id": "aaf56a71-413d-43dc-9f48-2c823cb27056",
-    "milestoneId": "2303fb76-7d0b-407b-af39-75f328e59d07",
-    "name": "Program",
-    "leadMemberId": "98b5de01-825c-438c-91cb-9f2ad29a6000",
-    "orderIndex": 1,
-    "description": "Culture booth curation and performance lineup.",
-    "ownerDepartmentId": "7416808d-d8b0-4630-8f7d-bc621342604b"
-  },
-  {
-    "id": "17dc43c7-3e61-4bd3-be1f-3e1bea76aa52",
-    "milestoneId": "2303fb76-7d0b-407b-af39-75f328e59d07",
-    "name": "Finance Ops",
-    "leadMemberId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d",
-    "orderIndex": 2,
-    "description": "Vendor contracts, receipts and budget monitoring.",
-    "ownerDepartmentId": "6bc571c3-8ab9-4721-bdbc-fac26cd7ddfd"
-  }
+    {
+        "id":  "510d6f07-e410-427a-a037-15398cc7aafa",
+        "milestoneId":  "d95b7c23-2a69-4842-8be1-759999ef6682",
+        "name":  "Logistics",
+        "leadMemberId":  "14f8be84-9abb-408e-9f72-f34629feccff",
+        "orderIndex":  1,
+        "description":  "Category for milestone 1",
+        "ownerDepartmentId":  "53376d33-89d8-4f4d-a237-e68442d92358",
+        "isUrgent":  false,
+        "guidelines":  [
+                           "Guideline A1",
+                           "Guideline B1"
+                       ]
+    },
+    {
+        "id":  "5c278895-1f9b-45b1-9fa4-dcc669f4d94e",
+        "milestoneId":  "1f6b4990-4cae-4cf1-9ced-cbadf350b893",
+        "name":  "Technical",
+        "leadMemberId":  "9ce444e3-491a-465d-8435-fd594d4f66d4",
+        "orderIndex":  1,
+        "description":  "Category for milestone 2",
+        "ownerDepartmentId":  "1427412e-0319-4641-a87e-ab84000926b1",
+        "isUrgent":  false,
+        "guidelines":  [
+                           "Guideline A2",
+                           "Guideline B2"
+                       ]
+    },
+    {
+        "id":  "2e31d666-5be2-4773-ae33-f95fba05f785",
+        "milestoneId":  "d8cf6991-211e-408f-b077-25829985da53",
+        "name":  "Logistics",
+        "leadMemberId":  "c6a5a775-6bcc-41e8-b589-a35dac744673",
+        "orderIndex":  1,
+        "description":  "Category for milestone 3",
+        "ownerDepartmentId":  "92b46f67-935c-4564-9077-3f7b6674dd67",
+        "isUrgent":  true,
+        "guidelines":  [
+                           "Guideline A3",
+                           "Guideline B3"
+                       ]
+    },
+    {
+        "id":  "7666c9f5-3db6-4eee-bc14-4116b9faec02",
+        "milestoneId":  "2f1080ea-76ff-416b-8895-984d73d836fb",
+        "name":  "Technical",
+        "leadMemberId":  "ea7cb38b-f0cf-4916-94aa-1a6d33b05039",
+        "orderIndex":  1,
+        "description":  "Category for milestone 4",
+        "ownerDepartmentId":  "576b2c95-b8ea-4271-a868-b0c9f9fbf4f6",
+        "isUrgent":  false,
+        "guidelines":  [
+                           "Guideline A4",
+                           "Guideline B4"
+                       ]
+    },
+    {
+        "id":  "03391584-5748-4aa4-843e-955f7615d180",
+        "milestoneId":  "06d75c90-3ca0-4e7f-b3ba-150ec664448a",
+        "name":  "Logistics",
+        "leadMemberId":  "abd871e4-ac8f-4ea0-a215-5ebaecf2d7cd",
+        "orderIndex":  1,
+        "description":  "Category for milestone 5",
+        "ownerDepartmentId":  "903c12e5-4e14-4f45-b2ec-dd9fbea6b5ff",
+        "isUrgent":  false,
+        "guidelines":  [
+                           "Guideline A5",
+                           "Guideline B5"
+                       ]
+    },
+    {
+        "id":  "6b452e9e-5536-4655-83a8-3c3e1e5c4839",
+        "milestoneId":  "11a7114e-9c62-438c-9b4f-7b467e9595a8",
+        "name":  "Technical",
+        "leadMemberId":  "97c62f70-2aa4-4db6-91a1-08db8d980a49",
+        "orderIndex":  1,
+        "description":  "Category for milestone 6",
+        "ownerDepartmentId":  "3d725e51-9dc1-4651-9f5a-ad46dd37d5e5",
+        "isUrgent":  true,
+        "guidelines":  [
+                           "Guideline A6",
+                           "Guideline B6"
+                       ]
+    },
+    {
+        "id":  "251fe5a2-f5e1-48bf-b398-e73693b0c90b",
+        "milestoneId":  "e6ae911e-c405-4ee4-824e-034b1cdb84e2",
+        "name":  "Logistics",
+        "leadMemberId":  "556080b7-f1a1-416e-9486-486992b7f04e",
+        "orderIndex":  1,
+        "description":  "Category for milestone 7",
+        "ownerDepartmentId":  "41be6504-1d84-4b8e-b31f-da146045f217",
+        "isUrgent":  false,
+        "guidelines":  [
+                           "Guideline A7",
+                           "Guideline B7"
+                       ]
+    },
+    {
+        "id":  "d8f58eb5-586c-43d0-b0f5-d474859b4cfb",
+        "milestoneId":  "2bbbb56f-6de5-420d-af43-1b48a741f0ed",
+        "name":  "Technical",
+        "leadMemberId":  "0f2406b3-5147-4f18-a93c-1b2b74b86314",
+        "orderIndex":  1,
+        "description":  "Category for milestone 8",
+        "ownerDepartmentId":  "bba8f2e8-fcf1-40c9-8a8f-4bfc49222a65",
+        "isUrgent":  false,
+        "guidelines":  [
+                           "Guideline A8",
+                           "Guideline B8"
+                       ]
+    },
+    {
+        "id":  "44cb5950-f103-4fea-b1c5-3d16c3cb4f0f",
+        "milestoneId":  "daaf93bf-4939-4a3d-9d3e-2c6014645ec0",
+        "name":  "Logistics",
+        "leadMemberId":  "1e465ab3-52b4-4c07-adae-99ef8b71160d",
+        "orderIndex":  1,
+        "description":  "Category for milestone 9",
+        "ownerDepartmentId":  "be8308ee-c7df-471e-92f9-864c39561baf",
+        "isUrgent":  true,
+        "guidelines":  [
+                           "Guideline A9",
+                           "Guideline B9"
+                       ]
+    },
+    {
+        "id":  "cc54233a-3ba5-4ca7-a0ec-264d057ec864",
+        "milestoneId":  "9354f7e4-ad1b-4b8e-a125-26a67f0e6b8b",
+        "name":  "Technical",
+        "leadMemberId":  "248aa108-0372-49aa-a1a7-a1f40b1b374d",
+        "orderIndex":  1,
+        "description":  "Category for milestone 10",
+        "ownerDepartmentId":  "ad117692-7d70-49c9-ae3d-a34909a3dceb",
+        "isUrgent":  false,
+        "guidelines":  [
+                           "Guideline A10",
+                           "Guideline B10"
+                       ]
+    }
 ]
