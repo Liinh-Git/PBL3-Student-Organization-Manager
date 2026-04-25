@@ -96,10 +96,14 @@ public static class FrontendStartupExtensions
         services.AddScoped<UserSettingsMockService>();
         services.AddScoped<MockOrganizationContext>();
         services.AddScoped<RequestMockService>();
+        services.AddScoped<OrganizationMockService>();
 
         // ---- Chọn implementation thực hoặc mock theo cấu hình FrontendData:UseMockServices ----
         services.AddScoped<IAuthService>(sp =>
             useMockServices ? sp.GetRequiredService<AuthMockService>() : sp.GetRequiredService<AuthApiClient>());
+
+        services.AddScoped<IOrganizationService>(sp =>
+            sp.GetRequiredService<OrganizationMockService>()); // TODO BE: Add OrganizationApiClient 
 
         services.AddScoped<IOrganizationContext>(sp =>
             useMockServices ? sp.GetRequiredService<MockOrganizationContext>() : sp.GetRequiredService<OrganizationApiClient>());

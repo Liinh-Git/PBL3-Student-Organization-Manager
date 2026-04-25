@@ -1,245 +1,264 @@
-@* ---- Trang tổng quan tổ chức (/org-overview) — hiển thị banner, thông tin, team và cột mốc ----
-    Hiện sử dụng dữ liệu cứng (chuẩn bị cho kết nối API thảt sau). *@
 @page "/org-overview"
 @inject IDialogService DialogService
 @inject IUserDashboardService DashboardService
+@inject Org.Frontend.Services.Organizations.IOrganizationService OrganizationService
+@inject Org.Frontend.Services.Events.IEventService EventService
 @using Org.Frontend.Services.Dashboard
+@using Org.Frontend.Services.Organizations
+@using Org.Frontend.ViewModels
 
-<PageTitle>Tong quan to chuc</PageTitle>
+<PageTitle>@(_detail?.Name ?? "Tổng quan tổ chức")</PageTitle>
 
 <div class="org-overview-page">
-    <section class="org-banner">
-        <img class="org-banner-image" src="/images/banners/org-banner.jpg" alt="Organization banner" />
-        <div class="org-banner-overlay">
-            <div class="org-banner-brand">
-                <div class="org-brand-avatar">
-                    <img src="/images/icons/icon1.png" alt="Kora logo" />
-                </div>
-
-                <div class="org-brand-content">
-                    <h1>@_organizationName</h1>
-                    <div class="org-brand-meta">
-                        <span>
-                            <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Class="meta-icon" />
-                            TP. Ho Chi Minh, Viet Nam
-                        </span>
-                        <span>
-                            <MudIcon Icon="@Icons.Material.Outlined.People" Class="meta-icon" />
-                            2,480 thanh vien
-                        </span>
-                        <span>
-                            <MudIcon Icon="@Icons.Material.Outlined.Visibility" Class="meta-icon" />
-                            To chuc da xac thuc
-                        </span>
-                    </div>
-                    @if (!_isMember)
-                    {
-                        <button type="button" class="join-org-button" @onclick="OpenJoinDialogAsync">Tham gia CLB</button>
-                    }
-                </div>
-            </div>
+    @if (_detail == null)
+    {
+        <div class="loading-state">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <p>Đang tải thông tin tổ chức...</p>
         </div>
-    </section>
-
-    <div class="org-content">
-        <section class="org-card about-card">
-            <p class="section-kicker">Ve chung toi</p>
-            <h2>Thong tin tong quan</h2>
-            <p class="about-text">
-                Kora Community la mang luoi sang tao va phat trien ben vung danh cho cac chuyen gia tre tai Viet Nam.
-                Chung toi tap trung vao viec kien tao khong gian hoc tap, ket noi va trien khai cac du an co tac dong xa hoi
-                tich cuc thong qua cong nghe va nghe thuat. Duoc thanh lap tu nam 2018, Kora da tro thanh diem den tin cay
-                cho hon 2,000 thanh vien uu tu.
-            </p>
-
-            <div class="about-grid">
-                <article>
-                    <h3>Su menh</h3>
-                    <p>
-                        Xay dung he sinh thai tri thuc hien dai, noi moi sinh vien GenZ co the phat huy toi da tu duy kien truc va
-                        ky nang quan ly chuyen nghiep.
-                    </p>
-                </article>
-                <article>
-                    <h3>Vi tri</h3>
-                    <p>
-                        Toa nha A1, Dai hoc Kien truc Ha Noi
-                        Km 10, Duong Nguyen Trai, Thanh Xuan
-                    </p>
-                </article>
-                <article>
-                    <h3>Ngay thanh lap</h3>
-                    <div class="founded-row">
-                        <MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Class="founded-icon" />
-                        <strong>15/05/2021</strong>
+    }
+    else
+    {
+        <section class="org-banner">
+            <img class="org-banner-image" src="@(_detail.CoverUrl)" alt="Organization banner" />
+            <div class="org-banner-overlay">
+                <div class="org-banner-brand">
+                    <div class="org-brand-avatar">
+                        <img src="@(_detail.AvatarUrl)" alt="@_detail.Name logo" />
                     </div>
-                </article>
-            </div>
-        </section>
 
-        <section class="team-section">
-            <div class="section-head">
-                <div>
-                    <p class="section-kicker">Doi ngu</p>
-                    <h2>Quan tri vien</h2>
-                </div>
-                @if (_isMember)
-                {
-                    <a href="/org/members">Xem tat ca</a>
-                }
-            </div>
-
-            <div class="admin-grid">
-                @foreach (var admin in Admins)
-                {
-                    <article class="admin-card">
-                        <img src="@admin.Avatar" alt="@admin.Name" />
-                        <div>
-                            <h3>@admin.Name</h3>
-                            <p>@admin.Role</p>
+                    <div class="org-brand-content">
+                        <h1>@_detail.Name</h1>
+                        <div class="org-brand-meta">
+                            <span>
+                                <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Class="meta-icon" />
+                                @(_detail.Location ?? "Vietnam")
+                            </span>
+                            <span>
+                                <MudIcon Icon="@Icons.Material.Outlined.People" Class="meta-icon" />
+                                @(_detail.TotalMembers) thành viên
+                            </span>
+                            <span>
+                                <MudIcon Icon="@Icons.Material.Outlined.Visibility" Class="meta-icon" />
+                                Tổ chức đã xác thực
+                            </span>
                         </div>
-                    </article>
-                }
+                        @if (!_isMember)
+                        {
+                            <button type="button" class="join-org-button" @onclick="OpenJoinDialogAsync">Tham gia CLB</button>
+                        }
+                    </div>
+                </div>
             </div>
         </section>
 
-        <section class="timeline-section">
-            <div class="timeline-intro">
-                <p class="section-kicker">Dong thoi gian</p>
-                <h2>Hanh trinh phat trien</h2>
-                <p>
-                    Tu nhung buoc chan dau tien den mot cong dong kien truc vung manh.
+        <div class="org-content">
+            <section class="org-card about-card">
+                <p class="section-kicker">Về chúng tôi</p>
+                <h2>Thông tin tổng quan</h2>
+                <p class="about-text">
+                    @_detail.Description
                 </p>
-                @if (_isMember)
-                {
-                    <a href="/org/reports">Xem chi tiet lich su</a>
-                }
-            </div>
 
-            <div class="timeline-list">
-                @for (var i = 0; i < Timeline.Count; i++)
-                {
-                    var item = Timeline[i];
-                    var active = i == 0;
-
-                    <article class="timeline-item @(active ? "active" : string.Empty)">
-                        <div class="timeline-node @(active ? "active" : string.Empty)"></div>
-                        <div class="timeline-card">
-                            <p class="timeline-month">@item.Month</p>
-                            <h3>@item.Title</h3>
-                            <p>@item.Description</p>
+                <div class="about-grid">
+                    <article>
+                        <h3>Sứ mệnh</h3>
+                        <p>
+                            Xây dựng hệ sinh thái tri thức hiện đại, nơi mỗi sinh viên GenZ có thể phát huy tối đa tư duy và
+                            kỹ năng chuyên nghiệp.
+                        </p>
+                    </article>
+                    <article>
+                        <h3>Vị trí</h3>
+                        <p>@(_detail.Location ?? "Chưa cập nhật")</p>
+                    </article>
+                    <article>
+                        <h3>Ngày thành lập</h3>
+                        <div class="founded-row">
+                            <MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Class="founded-icon" />
+                            <strong>@_detail.FoundedDate.ToString("dd/MM/yyyy")</strong>
                         </div>
                     </article>
-                }
-            </div>
-        </section>
-
-        <section class="event-section">
-            <p class="section-kicker">Lich trinh</p>
-            <div class="event-section-head">
-                <h2>Su kien sap toi</h2>
-                <div class="event-pager" aria-label="Dieu huong su kien sap toi">
-                    <button type="button" class="event-pager-btn" @onclick="PreviousUpcomingPage" disabled="@(!CanGoPreviousUpcoming)">&#10094;</button>
-                    <span>@UpcomingPageDisplay/@UpcomingPageCount</span>
-                    <button type="button" class="event-pager-btn" @onclick="NextUpcomingPage" disabled="@(!CanGoNextUpcoming)">&#10095;</button>
                 </div>
-            </div>
+            </section>
 
-            <div class="upcoming-grid">
-                @foreach (var item in UpcomingPageItems)
-                {
-                    <article class="upcoming-card">
-                        <div class="upcoming-media">
-                            <img src="@item.Image" alt="@item.Title" />
-                        </div>
-                        <div class="upcoming-content">
-                            <div class="event-tags">
-                                <span class="tag cool">@item.Category</span>
-                                @if (item.IsHot)
-                                {
-                                    <span class="tag hot">Hot</span>
-                                }
-                            </div>
-                            <h3>@item.Title</h3>
-                            <p>@item.Description</p>
-                            <div class="upcoming-meta">
-                                <span><MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Class="meta-icon" />@item.DateText</span>
-                                <span><MudIcon Icon="@Icons.Material.Outlined.Schedule" Class="meta-icon" />@item.TimeText</span>
-                            </div>
-                        </div>
-                        @if (_isMember)
-                        {
-                            <a class="go-button" href="/org/events" aria-label="Mo trang su kien">
-                                <MudIcon Icon="@Icons.Material.Outlined.ArrowForward" />
-                            </a>
-                        }
-                        else
-                        {
-                            <button type="button" class="go-button" aria-label="Dang ky tham gia CLB" @onclick="OpenJoinDialogAsync">
-                                <MudIcon Icon="@Icons.Material.Outlined.GroupAdd" />
-                            </button>
-                        }
-                    </article>
-                }
-            </div>
-        </section>
-
-        <section class="event-section">
-            <p class="section-kicker">Live</p>
-            <h2>Su kien dang dien ra</h2>
-            <article class="live-card">
-                <div class="live-top">
+            <section class="team-section">
+                <div class="section-head">
                     <div>
-                        <h3>Hackathon: Green Future</h3>
-                        <p>Cuoc thi lap trinh giai phap bao ve moi truong</p>
-                    </div>
-                    <span class="live-badge">Truc tiep</span>
-                </div>
-                <div class="live-progress-head">
-                    <span>Tien do ky luat</span>
-                    <strong>65%</strong>
-                </div>
-                <div class="live-progress-track">
-                    <div class="live-progress-fill"></div>
-                </div>
-                <div class="live-bottom">
-                    <div class="live-members">
-                        <img src="/images/avatars/user.png" alt="Member A" />
-                        <img src="/images/avatars/admin.jpg" alt="Member B" />
-                        <span>+12</span>
+                        <p class="section-kicker">Đội ngũ</p>
+                        <h2>Quản trị viên</h2>
                     </div>
                     @if (_isMember)
                     {
-                        <a href="/org/events" class="join-button">Tham gia ngay</a>
-                    }
-                    else
-                    {
-                        <button type="button" class="join-button" @onclick="OpenJoinDialogAsync">Dang ky tham gia</button>
+                        <a href="/org/members">Xem tất cả</a>
                     }
                 </div>
-            </article>
-        </section>
 
-        <section class="event-section">
-            <p class="section-kicker">Kho luu tru</p>
-            <h2>Su kien da qua</h2>
-            <div class="past-grid">
-                @foreach (var item in PastEvents)
-                {
-                    <article class="past-card">
-                        <img src="@item.Image" alt="@item.Title" />
-                        <h3>@item.Title</h3>
-                        <p>@item.Description</p>
-                        <span>@item.Date</span>
-                    </article>
-                }
-            </div>
-        </section>
-    </div>
+                <div class="admin-grid">
+                    @foreach (var admin in _detail.Admins)
+                    {
+                        <article class="admin-card">
+                            <img src="@admin.Avatar" alt="@admin.Name" />
+                            <div>
+                                <h3>@admin.Name</h3>
+                                <p>@admin.Role</p>
+                            </div>
+                        </article>
+                    }
+                    @if (!_detail.Admins.Any())
+                    {
+                        <p class="empty-text">Chưa có thông tin quản trị viên.</p>
+                    }
+                </div>
+            </section>
 
-    <footer class="org-footer">
-        <p>© 2024 Kora Community - The Academic Architect System</p>
-    </footer>
+            <section class="timeline-section">
+                <div class="timeline-intro">
+                    <p class="section-kicker">Dòng thời gian</p>
+                    <h2>Hành trình phát triển</h2>
+                    <p>Từ những bước chân đầu tiên đến một cộng đồng vững mạnh.</p>
+                    @if (_isMember)
+                    {
+                        <a href="/org/reports">Xem chi tiết lịch sử</a>
+                    }
+                </div>
+
+                <div class="timeline-list">
+                    @for (var i = 0; i < _detail.Timeline.Count; i++)
+                    {
+                        var item = _detail.Timeline[i];
+                        var active = i == 0;
+
+                        <article class="timeline-item @(active ? "active" : string.Empty)">
+                            <div class="timeline-node @(active ? "active" : string.Empty)"></div>
+                            <div class="timeline-card">
+                                <p class="timeline-month">@item.Month</p>
+                                <h3>@item.Title</h3>
+                                <p>@item.Description</p>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </section>
+
+            @if (_upcomingEvents.Any())
+            {
+                <section class="event-section">
+                    <p class="section-kicker">Lịch trình</p>
+                    <div class="event-section-head">
+                        <h2>Sự kiện sắp tới</h2>
+                        <div class="event-pager" aria-label="Điều hướng sự kiện sắp tới">
+                            <button type="button" class="event-pager-btn" @onclick="PreviousUpcomingPage" disabled="@(!CanGoPreviousUpcoming)">&#10094;</button>
+                            <span>@UpcomingPageDisplay/@UpcomingPageCount</span>
+                            <button type="button" class="event-pager-btn" @onclick="NextUpcomingPage" disabled="@(!CanGoNextUpcoming)">&#10095;</button>
+                        </div>
+                    </div>
+
+                    <div class="upcoming-grid">
+                        @foreach (var item in UpcomingPageItems)
+                        {
+                            <article class="upcoming-card">
+                                <div class="upcoming-media">
+                                    <img src="@(item.ImageUrl ?? "/images/banners/org-banner.jpg")" alt="@item.Name" />
+                                </div>
+                                <div class="upcoming-content">
+                                    <div class="event-tags">
+                                        <span class="tag cool">Sự kiện</span>
+                                        @if (item.StartDate <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)))
+                                        {
+                                            <span class="tag hot">Sắp diễn ra</span>
+                                        }
+                                    </div>
+                                    <h3>@item.Name</h3>
+                                    <p>@item.Description</p>
+                                    <div class="upcoming-meta">
+                                        <span><MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Class="meta-icon" />@item.StartDate.ToString("dd/MM/yyyy")</span>
+                                        <span><MudIcon Icon="@Icons.Material.Outlined.LocationOn" Class="meta-icon" />@item.Location</span>
+                                    </div>
+                                </div>
+                                @if (_isMember)
+                                {
+                                    <a class="go-button" href="/org/events" aria-label="Mở trang sự kiện">
+                                        <MudIcon Icon="@Icons.Material.Outlined.ArrowForward" />
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button type="button" class="go-button" aria-label="Đăng ký tham gia CLB" @onclick="OpenJoinDialogAsync">
+                                        <MudIcon Icon="@Icons.Material.Outlined.GroupAdd" />
+                                    </button>
+                                }
+                            </article>
+                        }
+                    </div>
+                </section>
+            }
+
+            @if (_ongoingEvents.Any())
+            {
+                <section class="event-section">
+                    <p class="section-kicker">Live</p>
+                    <h2>Sự kiện đang diễn ra</h2>
+                    @foreach (var item in _ongoingEvents)
+                    {
+                        <article class="live-card">
+                            <div class="live-top">
+                                <div>
+                                    <h3>@item.Name</h3>
+                                    <p>@item.Description</p>
+                                </div>
+                                <span class="live-badge">Trực tiếp</span>
+                            </div>
+                            <div class="live-progress-head">
+                                <span>Tiến độ hoàn thành</span>
+                                <strong>@item.CompletionPercentage%</strong>
+                            </div>
+                            <div class="live-progress-track">
+                                <div class="live-progress-fill" style="width: @item.CompletionPercentage%"></div>
+                            </div>
+                            <div class="live-bottom">
+                                <div class="live-members">
+                                    <img src="/images/avatars/user.png" alt="Member" />
+                                    <span>+@item.ParticipantCount</span>
+                                </div>
+                                @if (_isMember)
+                                {
+                                    <a href="/org/events" class="join-button">Xem chi tiết</a>
+                                }
+                                else
+                                {
+                                    <button type="button" class="join-button" @onclick="OpenJoinDialogAsync">Đăng ký thành viên</button>
+                                }
+                            </div>
+                        </article>
+                    }
+                </section>
+            }
+
+            @if (_pastEvents.Any())
+            {
+                <section class="event-section">
+                    <p class="section-kicker">Kho lưu trữ</p>
+                    <h2>Sự kiện đã qua</h2>
+                    <div class="past-grid">
+                        @foreach (var item in _pastEvents.Take(3))
+                        {
+                            <article class="past-card">
+                                <img src="@(item.ImageUrl ?? "/images/banners/org-banner.jpg")" alt="@item.Name" />
+                                <h3>@item.Name</h3>
+                                <p>@item.Description</p>
+                                <span>@item.StartDate.ToString("dd/MM/yyyy")</span>
+                            </article>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+
+        <footer class="org-footer">
+            <p>© 2024 @_detail.Name - The Academic Architect System</p>
+        </footer>
+    }
 </div>
 
 @code {
@@ -248,88 +267,61 @@
     [SupplyParameterFromQuery(Name = "orgId")]
     public Guid? OrganizationId { get; set; }
 
-    private bool _isMember = true;
-    private string _organizationName = "Kora Community";
+    private OrganizationDetailViewModel? _detail;
+    private List<EventViewModel> _upcomingEvents = [];
+    private List<EventViewModel> _ongoingEvents = [];
+    private List<EventViewModel> _pastEvents = [];
+    
+    private bool _isMember = false;
     private int _upcomingPageIndex;
 
-    private int UpcomingPageCount => GetPageCount(UpcomingEvents.Count, UpcomingPageSize);
+    private int UpcomingPageCount => GetPageCount(_upcomingEvents.Count, UpcomingPageSize);
     private int UpcomingPageDisplay => Math.Min(_upcomingPageIndex + 1, UpcomingPageCount);
     private bool CanGoPreviousUpcoming => _upcomingPageIndex > 0;
     private bool CanGoNextUpcoming => _upcomingPageIndex < UpcomingPageCount - 1;
 
-    private IReadOnlyList<UpcomingEventItem> UpcomingPageItems => UpcomingEvents
+    private IReadOnlyList<EventViewModel> UpcomingPageItems => _upcomingEvents
         .Skip(_upcomingPageIndex * UpcomingPageSize)
         .Take(UpcomingPageSize)
         .ToList();
 
-    private static readonly IReadOnlyList<AdminProfile> Admins =
-    [
-        new("Tran Ha", "Ban lanh dao", "/images/avatars/admin.jpg"),
-        new("Lam Anh", "Chien luoc", "/images/avatars/user.png"),
-        new("Mai Vy", "Cong dong", "/images/avatars/user.png"),
-        new("Quoc Duy", "Truyen thong", "/images/icons/icon1.png")
-    ];
-
-    private static readonly IReadOnlyList<TimelineItem> Timeline =
-    [
-        new("Thang 05/2021", "Thanh lap Kora Community", "Khoi xuong du an voi 5 thanh vien sang lap tai Dai hoc Kien truc, tap trung vao mo hinh hoc thuat chia se."),
-        new("Thang 12/2022", "Mo rong 500+ thanh vien", "Dat cot moc quan trong ve quy mo thanh vien, chinh thuc ra mat nen tang quan ly tai nguyen so."),
-        new("Thang 01/2024", "Giai thuong Kien truc Cong dong", "Duoc vinh danh la To chuc Sinh vien Sang tao nhat nam voi du an Kien truc Xanh GenZ.")
-    ];
-
-    private static readonly IReadOnlyList<PastEventItem> PastEvents =
-    [
-        new("/images/banners/org-banner.jpg", "Trien lam Nghe thuat Gay quy 2023", "Da quyen gop duoc 150 trieu VND cho quy tre em vung cao.", "16 Thang 10, 2023"),
-        new("/images/icons/icon1.png", "Dem khoi nghiep: Connect & Pitch", "Hon 50 y tuong khoi nghiep da tim duoc nha dau tu thien than.", "02 Thang 11, 2023"),
-        new("/images/avatars/admin.jpg", "Workshop: Tu duy Thiet ke", "Buoi thuc hanh danh cho cac quan ly san pham cap cao.", "20 Thang 9, 2023")
-    ];
-
-    private static readonly IReadOnlyList<UpcomingEventItem> UpcomingEvents =
-    [
-        new("/images/avatars/admin.jpg", "Cong nghe", "UI/UX Summit: Kien tao Trai nghiem so 2024", "Su kien thuong nien lon nhat cua Kora danh cho cac nha thiet ke san pham, tap trung vao xu huong thiet ke ben vung va AI-driven.", "25 Thang 6, 2024", "08:00 - 17:00", true),
-        new("/images/banners/org-banner.jpg", "Ky nang", "Leadership Bootcamp 2024", "Chuoi huan luyen ky nang lanh dao va quan ly doi nhom cho thanh vien cot can.", "03 Thang 7, 2024", "13:30 - 17:30", false),
-        new("/images/icons/icon1.png", "Cong dong", "Kora Volunteer Day", "Ngay hoat dong cong dong ket noi thanh vien Kora voi cac du an xa hoi tai dia phuong.", "12 Thang 7, 2024", "07:30 - 11:30", false),
-        new("/images/avatars/user.png", "Cong nghe", "AI Product Workshop", "Workshop thuc hanh ung dung AI vao quy trinh thiet ke san pham va trai nghiem nguoi dung.", "19 Thang 7, 2024", "09:00 - 16:00", true),
-        new("/images/banners/org-banner.jpg", "Mang luoi", "Founder Networking Night", "Dem ket noi giua thanh vien Kora voi cac mentor va startup trong he sinh thai tre.", "27 Thang 7, 2024", "18:30 - 21:00", false),
-        new("/images/icons/icon1.png", "Sang tao", "Design Sprint Challenge", "Thu thach 48 gio xay dung giai phap san pham cho bai toan do to chuc dat ra.", "04 Thang 8, 2024", "08:00 - 20:00", false)
-    ];
-
     private static readonly IReadOnlyList<string> PreferredDepartments =
     [
-        "Ban truyen thong",
-        "Ban su kien",
-        "Ban ky thuat",
-        "Ban nhan su",
-        "Ban tai chinh"
+        "Ban truyền thông",
+        "Ban sự kiện",
+        "Ban kỹ thuật",
+        "Ban nhân sự",
+        "Ban tài chính"
     ];
 
     protected override async Task OnParametersSetAsync()
     {
-        await ResolveMembershipAsync();
+        await LoadOrganizationDataAsync();
     }
 
-    private async Task ResolveMembershipAsync()
+    private async Task LoadOrganizationDataAsync()
     {
-        if (!OrganizationId.HasValue)
-        {
-            _isMember = true;
-            _organizationName = "Kora Community";
-            return;
-        }
+        if (!OrganizationId.HasValue) return;
 
         try
         {
-            var dashboard = await DashboardService.GetDashboardAsync();
-            var joined = dashboard.Organizations.FirstOrDefault(x => x.OrganizationId == OrganizationId.Value);
-            var suggested = dashboard.SuggestedOrganizations.FirstOrDefault(x => x.OrganizationId == OrganizationId.Value);
+            _detail = await OrganizationService.GetOrganizationDetailAsync(OrganizationId.Value);
+            
+            var allEvents = await EventService.GetEventsAsync(OrganizationId.Value);
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            
+            _upcomingEvents = allEvents.Where(e => e.StartDate > today).OrderBy(e => e.StartDate).ToList();
+            _ongoingEvents = allEvents.Where(e => e.StartDate <= today && e.EndDate >= today).ToList();
+            _pastEvents = allEvents.Where(e => e.EndDate < today).OrderByDescending(e => e.EndDate).ToList();
 
-            _isMember = joined is not null;
-            _organizationName = joined?.Name ?? suggested?.Name ?? "Kora Community";
+            var dashboard = await DashboardService.GetDashboardAsync();
+            _isMember = dashboard.Organizations.Any(x => x.OrganizationId == OrganizationId.Value);
+            
+            _upcomingPageIndex = 0;
         }
         catch
         {
-            _isMember = false;
-            _organizationName = "Kora Community";
+            // Handle error or set fallback
         }
     }
 
@@ -337,71 +329,46 @@
     {
         var parameters = new DialogParameters
         {
-            [nameof(JoinOrganizationDialog.OrganizationName)] = _organizationName,
+            [nameof(JoinOrganizationDialog.OrganizationName)] = _detail?.Name ?? "Tổ chức",
             [nameof(JoinOrganizationDialog.PreferredDepartments)] = PreferredDepartments,
             [nameof(JoinOrganizationDialog.Prefill)] = new JoinOrganizationDialog.JoinOrganizationRequest
             {
                 PreferredDepartment = PreferredDepartments[0],
-                DesiredPosition = "Cong tac vien",
-                Experience = "Da tham gia hoat dong CLB tai truong va co kinh nghiem phoi hop doi nhom.",
-                Strengths = "Giao tiep, to chuc cong viec, lam viec nhom va xu ly van de.",
-                Reason = $"Toi muon dong gop cho {_organizationName} va phat trien ban than qua cac du an cua CLB."
+                DesiredPosition = "Cộng tác viên",
+                Experience = "Đã có kinh nghiệm tham gia hoạt động đoàn đội.",
+                Strengths = "Giao tiếp, làm việc nhóm.",
+                Reason = $"Tôi muốn đóng góp cho {_detail?.Name}."
             }
         };
 
-        var options = new DialogOptions
-        {
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true,
-            CloseOnEscapeKey = true
-        };
-
-        var dialog = await DialogService.ShowAsync<JoinOrganizationDialog>("Dang ky tham gia", parameters, options);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<JoinOrganizationDialog>("Đăng ký tham gia", parameters, options);
         await dialog.Result;
     }
 
-    private void PreviousUpcomingPage()
-    {
-        if (!CanGoPreviousUpcoming)
-        {
-            return;
-        }
-
-        _upcomingPageIndex--;
-    }
-
-    private void NextUpcomingPage()
-    {
-        if (!CanGoNextUpcoming)
-        {
-            return;
-        }
-
-        _upcomingPageIndex++;
-    }
+    private void PreviousUpcomingPage() { if (CanGoPreviousUpcoming) _upcomingPageIndex--; }
+    private void NextUpcomingPage() { if (CanGoNextUpcoming) _upcomingPageIndex++; }
 
     private static int GetPageCount(int totalItems, int pageSize)
     {
-        if (totalItems <= 0)
-        {
-            return 1;
-        }
-
+        if (totalItems <= 0) return 1;
         return (int)Math.Ceiling(totalItems / (double)pageSize);
     }
-
-    private sealed record AdminProfile(string Name, string Role, string Avatar);
-
-    private sealed record TimelineItem(string Month, string Title, string Description);
-
-    private sealed record PastEventItem(string Image, string Title, string Description, string Date);
-
-    private sealed record UpcomingEventItem(
-        string Image,
-        string Category,
-        string Title,
-        string Description,
-        string DateText,
-        string TimeText,
-        bool IsHot);
 }
+
+<style>
+    .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        gap: 1rem;
+        color: var(--mud-palette-text-secondary);
+    }
+    
+    .empty-text {
+        color: var(--mud-palette-text-disabled);
+        font-style: italic;
+    }
+</style>

@@ -1,13 +1,15 @@
-// ---- Mock implementation cho IOrganizationContext — trả orgId từ mock data ----
-// Dùng double-check lock (SemaphoreSlim) để chỉ resolve orgId một lần dù concurrency.
-// Tự động lấy tổ chức đầu tiên (sắp xếp theo Code) trong mock dataset.
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.WebUtilities;
 using Org.Frontend.Services.Mocks;
 
 namespace Org.Frontend.Services.Organizations;
 
-public sealed class MockOrganizationContext(FrontendMockDataStore mockDataStore) : IOrganizationContext
+public sealed class MockOrganizationContext(
+    FrontendMockDataStore mockDataStore,
+    NavigationManager navigationManager) : IOrganizationContext
 {
     private readonly FrontendMockDataStore _mockDataStore = mockDataStore;
+    private readonly NavigationManager _navigationManager = navigationManager;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private Guid? _cachedOrganizationId;
 
@@ -26,6 +28,18 @@ public sealed class MockOrganizationContext(FrontendMockDataStore mockDataStore)
                 return _cachedOrganizationId.Value;
             }
 
+            // Attempt to parse orgId from URI
+            if (Uri.TryCreate(_navigationManager.Uri, UriKind.Absolute, out var uri))
+            {
+                var query = QueryHelpers.ParseQuery(uri.Query);
+                if (query.TryGetValue("orgId", out var rawId) && Guid.TryParse(rawId, out var parsedId))
+                {
+                    _cachedOrganizationId = parsedId;
+                    return parsedId;
+                }
+            }
+
+            // Fallback: Get first org if not specified
             var organizationId = await _mockDataStore.UseAsync(data => data.Organizations
                 .OrderBy(x => x.Code, StringComparer.OrdinalIgnoreCase)
                 .Select(x => x.Id)

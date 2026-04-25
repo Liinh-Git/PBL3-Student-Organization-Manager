@@ -2,7 +2,12 @@
 @rendermode InteractiveServer
 @using Org.Frontend.ViewModels
 @using Org.Frontend.Services.Dashboard
+@using Org.Frontend.Components.Pages.Organizations
 @inject IUserDashboardService DashboardService
+@inject Org.Frontend.Services.Organizations.IOrganizationService OrganizationService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
 
 <PageTitle>Tổ chức của tôi - Kora</PageTitle>
 
@@ -44,7 +49,7 @@
 
             <div class="org-grid-cards">
                 <!-- Create New Card -->
-                <div class="create-org-card">
+                <div class="create-org-card" @onclick="OnCreateOrganizationClick" style="cursor: pointer;">
                     <div class="create-icon-wrap">
                         <span class="material-symbols-outlined">add</span>
                     </div>
@@ -53,7 +58,7 @@
 
                 @foreach (var org in _dashboard.Organizations.Where(o => o.Role == "Owner" || o.Role == "Admin"))
                 {
-                    <div class="org-card">
+                    <div class="org-card" @onclick="() => NavigateToOrg(org.OrganizationId)" style="cursor: pointer;">
                         <div class="role-badge @org.Role.ToLower()">@org.Role</div>
                         <div class="org-card-content">
                             @if (!string.IsNullOrEmpty(org.AvatarUrl))
@@ -89,7 +94,7 @@
             <div class="org-list-grid">
                 @foreach (var org in _dashboard.Organizations.Where(o => o.Role != "Owner" && o.Role != "Admin"))
                 {
-                    <div class="org-list-item">
+                    <div class="org-list-item" @onclick="() => NavigateToOrg(org.OrganizationId)" style="cursor: pointer;">
                         <div class="org-list-left">
                             <div class="org-logo-wrap">
                                 @if (!string.IsNullOrEmpty(org.AvatarUrl))
@@ -136,7 +141,38 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadDashboardAsync();
+    }
+
+    private async Task LoadDashboardAsync()
+    {
         _dashboard = await DashboardService.GetDashboardAsync();
+    }
+
+    private void NavigateToOrg(Guid orgId)
+    {
+        NavigationManager.NavigateTo($"/org-overview?orgId={orgId}");
+    }
+
+    private async Task OnCreateOrganizationClick()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CreateOrganizationDialog>("Tạo tổ chức", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is CreateOrganizationViewModel model)
+        {
+            try
+            {
+                var newOrg = await OrganizationService.CreateOrganizationAsync(model);
+                Snackbar.Add($"Đã tạo tổ chức {newOrg.Name} thành công!", Severity.Success);
+                await LoadDashboardAsync();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Lỗi khi tạo tổ chức: {ex.Message}", Severity.Error);
+            }
+        }
     }
 
     private string GetRandomColorClass(string name)
@@ -146,4 +182,13 @@
         return colors[index];
     }
 }
+
+<style>
+    .org-card:hover, .org-list-item:hover, .create-org-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+</style>
+
 

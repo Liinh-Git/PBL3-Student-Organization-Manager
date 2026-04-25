@@ -214,6 +214,7 @@ public sealed class EventMockService(
             TotalSlots = source.TotalSlots,
             ImageUrl = source.ImageUrl,
             CompletionLabel = source.CompletionLabel ?? ToPercentLabel(completedTasks, totalTasks),
+            CompletionPercentage = ToPercent(completedTasks, totalTasks),
             BudgetLabel = source.BudgetLabel,
             RiskLevel = source.RiskLevel,
             TotalFiles = source.TotalFiles,

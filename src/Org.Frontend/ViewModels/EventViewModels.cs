@@ -15,10 +15,13 @@ public sealed class EventViewModel
     public string StatusLabel { get; set; } = string.Empty;   // "Ongoing", "Upcoming", "Completed", "Draft"
     public string? Location { get; set; }                     // UI-only field
     public int RegisteredCount { get; set; }                  // UI-only
+    public int ParticipantCount => RegisteredCount;           // Alias for UI consistency
     public int TotalSlots { get; set; }                       // UI-only
     public string? ImageUrl { get; set; }                     // UI-only
+    
     // Dashboard stats — chỉ dùng ở EventDetail, populate từ mock/API sau
     public string? CompletionLabel { get; set; }              // "75%"
+    public double CompletionPercentage { get; set; }          // 75.0
     public string? BudgetLabel { get; set; }                  // "82%"
     public string? RiskLevel { get; set; }                    // "Low", "Medium", "High"
     public int TotalFiles { get; set; }

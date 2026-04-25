@@ -78,7 +78,9 @@
                         </div>
                         <div class="event-details">
                             <div class="event-category">
-                                <span class="cat-badge">@evt.EventStatus</span>
+                                <span class="cat-badge @(IsAttendee(evt.RegistrationStatus) ? "attendee-badge" : "staff-badge")">
+                                    @(GetRoleBadge(evt.RegistrationStatus))
+                                </span>
                                 <span class="cat-label">@evt.OrganizationName</span>
                             </div>
                             <h4 class="event-title">@evt.Name</h4>
@@ -92,7 +94,14 @@
                                 <img src="/images/mockimages/Screenshot_20260406_231459.jpg" alt="User" />
                                 <div class="more-attendees">+42</div>
                             </div>
-                            <button class="btn-dark" @onclick='() => GoToOrgEvent(evt.OrganizationId, evt.EventId)'>Xem chi tiết</button>
+                            @if (IsAttendee(evt.RegistrationStatus))
+                            {
+                                <button class="btn-dark" @onclick='() => GoToEvent(evt)'>Xem chi tiết</button>
+                            }
+                            else
+                            {
+                                <button class="btn-primary-orange" @onclick='() => GoToEvent(evt)'>Quản trị góc nhìn</button>
+                            }
                         </div>
                     </div>
                 }
@@ -158,11 +167,33 @@
         _ => "Tất cả sự kiện"
     };
 
-    private void GoToOrgEvent(Guid orgId, Guid eventId)
+    private bool IsAttendee(string status) => 
+        status == "REGISTERED" || status == "ATTENDED" || status == "CANCELLED";
+
+    private string GetRoleBadge(string status) => IsAttendee(status) ? "Ghi danh" : "Ban tổ chức";
+
+    private void GoToEvent(UserRegisteredEventViewModel evt)
     {
-        NavigationManager.NavigateTo($"/org/events/{eventId}");
+        if (IsAttendee(evt.RegistrationStatus))
+        {
+            NavigationManager.NavigateTo($"/events/{evt.EventId}");
+        }
+        else
+        {
+            NavigationManager.NavigateTo($"/org/events/{evt.EventId}");
+        }
     }
 
     [Inject] public NavigationManager NavigationManager { get; set; } = default!;
 }
 
+<style>
+    .attendee-badge {
+        background: var(--mud-palette-info-subtle, rgba(33,150,243,0.1));
+        color: var(--mud-palette-info, #2196f3);
+    }
+    .staff-badge {
+        background: var(--mud-palette-secondary-subtle, rgba(255,152,0,0.1));
+        color: var(--mud-palette-secondary, #ff9800);
+    }
+</style>

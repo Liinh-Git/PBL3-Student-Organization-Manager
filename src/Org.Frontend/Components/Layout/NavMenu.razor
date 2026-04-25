@@ -216,9 +216,11 @@
         string targetHref = item.Href;
         if (_activeWorkspace == WorkspaceKind.Organization && _activeOrganizationId.HasValue)
         {
-            // Append orgId for public routes if needed, 
-            // though most /org/... routes should probably use IOrganizationContext
-            if (targetHref == "/org-overview") targetHref += $"?orgId={_activeOrganizationId}";
+            if (targetHref.StartsWith("/org"))
+            {
+                var sep = targetHref.Contains('?') ? "&" : "?";
+                targetHref += $"{sep}orgId={_activeOrganizationId}";
+            }
         }
 
         if (_activeWorkspace == WorkspaceKind.User) _activeUserMenuKey = item.Key;
