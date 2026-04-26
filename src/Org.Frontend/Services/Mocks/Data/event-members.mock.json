@@ -1,227 +1,52 @@
-[
-  {
-    "eventId": "79ac2e36-5d08-427d-b014-8858edb7076d",
-    "memberId": "bb05df48-faf8-4810-94ba-a944810436ad",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "6313fe2a-1f8d-46ce-bb43-85b0726595e4",
-    "memberId": "bb05df48-faf8-4810-94ba-a944810436ad",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "d29915bf-c05d-4a34-8432-d01c5cbfcd5a",
-    "memberId": "bb05df48-faf8-4810-94ba-a944810436ad",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "254324b3-e8d5-49cb-852d-44e0d11f3490",
-    "memberId": "bb05df48-faf8-4810-94ba-a944810436ad",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "e1c36216-b5f3-40da-8de9-0719aa5e9605",
-    "memberId": "bb05df48-faf8-4810-94ba-a944810436ad",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "3f5decdb-e92a-43c7-ac36-ae4bada258cc",
-    "memberId": "bb05df48-faf8-4810-94ba-a944810436ad",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "13c797a6-090e-4828-9d3e-f4b0cb49ffeb",
-    "memberId": "bb05df48-faf8-4810-94ba-a944810436ad",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "6342fc35-4d03-4e06-84f3-682fe149d6f9",
-    "memberId": "d92afd23-68f5-4426-91b0-97ae12ac1099",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "07145b98-77cf-4b12-9347-672a444de01f",
-    "memberId": "d92afd23-68f5-4426-91b0-97ae12ac1099",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "af162c4b-b946-47a7-bbf6-77689d6d540d",
-    "memberId": "d92afd23-68f5-4426-91b0-97ae12ac1099",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "11c3c4ea-a980-4b99-b4c1-ff3f804777d9",
-    "memberId": "d92afd23-68f5-4426-91b0-97ae12ac1099",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "ad2d323f-9eee-4daa-b2ac-58c0cc384c72",
-    "memberId": "d92afd23-68f5-4426-91b0-97ae12ac1099",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "85f4b500-21ff-468f-9e70-44e89c424515",
-    "memberId": "d92afd23-68f5-4426-91b0-97ae12ac1099",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "78dfede1-20e2-4157-9557-93fe0be3a82d",
-    "memberId": "d92afd23-68f5-4426-91b0-97ae12ac1099",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "deadb8d6-08ec-4693-adac-c8bb702c4f78",
-    "memberId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "7b26470c-f690-426d-9503-50b89b6dcdec",
-    "memberId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "7b26470c-f690-426d-9503-50b89b6dcdec",
-    "memberId": "4a587d12-123c-4afe-9341-f650d55297d6",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "b2cdd4c2-0d0f-4ea8-933e-bbc011aa00bc",
-    "memberId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "b2cdd4c2-0d0f-4ea8-933e-bbc011aa00bc",
-    "memberId": "4a587d12-123c-4afe-9341-f650d55297d6",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "dd154fc7-5283-4c75-81dd-7093e37abba0",
-    "memberId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "dd154fc7-5283-4c75-81dd-7093e37abba0",
-    "memberId": "4a587d12-123c-4afe-9341-f650d55297d6",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "2430def2-4ad1-4844-bd60-97879b2ad387",
-    "memberId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "2430def2-4ad1-4844-bd60-97879b2ad387",
-    "memberId": "4a587d12-123c-4afe-9341-f650d55297d6",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "c4e49483-667a-41bb-8568-71eb6259b096",
-    "memberId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "c4e49483-667a-41bb-8568-71eb6259b096",
-    "memberId": "4a587d12-123c-4afe-9341-f650d55297d6",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "ebdc1a1b-5dc1-478a-8178-d5df3a12dff2",
-    "memberId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "ebdc1a1b-5dc1-478a-8178-d5df3a12dff2",
-    "memberId": "4a587d12-123c-4afe-9341-f650d55297d6",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "704bcc25-3fe5-4276-94b5-9ca053654406",
-    "memberId": "5a239422-afbc-48fa-91e5-b623c66b762f",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "704bcc25-3fe5-4276-94b5-9ca053654406",
-    "memberId": "7b6b33f0-7304-43ec-bcb3-8bdafd677502",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "48c2aa11-4e9f-4366-8599-60d667548fd5",
-    "memberId": "5a239422-afbc-48fa-91e5-b623c66b762f",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "48c2aa11-4e9f-4366-8599-60d667548fd5",
-    "memberId": "7b6b33f0-7304-43ec-bcb3-8bdafd677502",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "3c978bf6-68a1-4f24-8fe5-6e5a22dddf74",
-    "memberId": "5a239422-afbc-48fa-91e5-b623c66b762f",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "3c978bf6-68a1-4f24-8fe5-6e5a22dddf74",
-    "memberId": "7b6b33f0-7304-43ec-bcb3-8bdafd677502",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "f9905258-362a-4a5e-821d-f4763626b5cc",
-    "memberId": "5a239422-afbc-48fa-91e5-b623c66b762f",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "f9905258-362a-4a5e-821d-f4763626b5cc",
-    "memberId": "7b6b33f0-7304-43ec-bcb3-8bdafd677502",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "db2dcac9-0719-48a6-ba97-4e0416cfd4f9",
-    "memberId": "5a239422-afbc-48fa-91e5-b623c66b762f",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "db2dcac9-0719-48a6-ba97-4e0416cfd4f9",
-    "memberId": "7b6b33f0-7304-43ec-bcb3-8bdafd677502",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "c4383d03-2c94-4f56-b829-5f045b3fe83f",
-    "memberId": "5a239422-afbc-48fa-91e5-b623c66b762f",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "c4383d03-2c94-4f56-b829-5f045b3fe83f",
-    "memberId": "7b6b33f0-7304-43ec-bcb3-8bdafd677502",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "2544b46e-d7b5-4b9e-8b9a-d3e0e6bbeb8f",
-    "memberId": "5a239422-afbc-48fa-91e5-b623c66b762f",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "2544b46e-d7b5-4b9e-8b9a-d3e0e6bbeb8f",
-    "memberId": "7b6b33f0-7304-43ec-bcb3-8bdafd677502",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "2878e3f1-31c9-4347-9491-731d87455b0d",
-    "memberId": "a365fec6-6e22-419e-8f28-75894512dde9",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "2878e3f1-31c9-4347-9491-731d87455b0d",
-    "memberId": "6be222a4-aeb6-420c-8f9d-1334d6fc29ce",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "15bb49ed-32e4-4a09-90bb-d8c4a2dbeda8",
-    "memberId": "a365fec6-6e22-419e-8f28-75894512dde9",
-    "eventRole": "Coordinator"
-  },
-  {
-    "eventId": "15bb49ed-32e4-4a09-90bb-d8c4a2dbeda8",
-    "memberId": "6be222a4-aeb6-420c-8f9d-1334d6fc29ce",
-    "eventRole": "Coordinator"
-  }
+﻿[
+    {
+        "eventId":  "1a63999c-4846-48ca-90c6-bde850b7848b",
+        "memberId":  "14f8be84-9abb-408e-9f72-f34629feccff",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "30731865-6b26-4303-a9df-754a3b6a91af",
+        "memberId":  "9ce444e3-491a-465d-8435-fd594d4f66d4",
+        "eventRole":  "Technical"
+    },
+    {
+        "eventId":  "844fd703-404d-4991-9b6f-cd62bbf7154e",
+        "memberId":  "c6a5a775-6bcc-41e8-b589-a35dac744673",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "03394b60-b56e-41ea-bc52-c2868816b15a",
+        "memberId":  "ea7cb38b-f0cf-4916-94aa-1a6d33b05039",
+        "eventRole":  "Technical"
+    },
+    {
+        "eventId":  "93317348-e8b6-42d4-a171-bff0ed4c14aa",
+        "memberId":  "abd871e4-ac8f-4ea0-a215-5ebaecf2d7cd",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "303e0351-6aa4-426b-bb1f-9b0831e48ba5",
+        "memberId":  "97c62f70-2aa4-4db6-91a1-08db8d980a49",
+        "eventRole":  "Technical"
+    },
+    {
+        "eventId":  "ea5159c6-0c7e-490a-bc7e-f15d12004bd1",
+        "memberId":  "556080b7-f1a1-416e-9486-486992b7f04e",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "7defcb96-dbdc-45f8-98e4-41d7e329ccde",
+        "memberId":  "0f2406b3-5147-4f18-a93c-1b2b74b86314",
+        "eventRole":  "Technical"
+    },
+    {
+        "eventId":  "c1230df7-d06b-44eb-981a-f35eb4ed6f65",
+        "memberId":  "1e465ab3-52b4-4c07-adae-99ef8b71160d",
+        "eventRole":  "Logistics"
+    },
+    {
+        "eventId":  "0c61ffb8-f69f-40d2-a951-24c5d9b59936",
+        "memberId":  "248aa108-0372-49aa-a1a7-a1f40b1b374d",
+        "eventRole":  "Technical"
+    }
 ]

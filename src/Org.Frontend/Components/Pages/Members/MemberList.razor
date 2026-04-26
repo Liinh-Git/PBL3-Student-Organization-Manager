@@ -180,9 +180,10 @@
                                             </button>
                                         </MudTooltip>
 
-                                        <MudTooltip Text="Xóa thành viên (Tính năng đang phát triển)">
+                                        <MudTooltip Text="Xóa thành viên">
                                             <button class="member-row-action action-delete"
                                                     type="button"
+                                                    @onclick="() => DeleteMember(member)"
                                                     aria-label="Xóa thành viên">
                                                 <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
                                             </button>
