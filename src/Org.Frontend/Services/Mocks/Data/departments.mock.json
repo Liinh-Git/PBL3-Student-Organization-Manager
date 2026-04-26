@@ -1,37 +1,142 @@
-﻿[
+[
   {
-    "id": "bc4d0fb7-e4b4-4995-bbce-0d4a8902d06c",
-    "orgId": "c78af9dc-7a03-49bf-98c1-0572112b57ab",
-    "deptName": "Media and PR",
-    "managerId": "78fb96ab-e2f8-49ad-a482-659117027e0f",
-    "function": "Branding, announcements and external communication."
+    "id": "29713408-fa2b-4086-983d-53a3bab70694",
+    "orgId": "acabff03-2510-440a-b027-dcd93dbd1210",
+    "deptName": "Hậu cần",
+    "function": "Function",
+    "managerId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "2c8d000b-c3c8-4bc5-b79a-7d791bb5d421",
-    "orgId": "c78af9dc-7a03-49bf-98c1-0572112b57ab",
-    "deptName": "Operations",
-    "managerId": "b3ab7ce7-b721-496b-a5ac-91ce05c96378",
-    "function": "Logistics, venue management and volunteer scheduling."
+    "id": "19e64d3f-d4ee-4845-b6f2-9ccb07ce9b9a",
+    "orgId": "acabff03-2510-440a-b027-dcd93dbd1210",
+    "deptName": "Truyền thông",
+    "function": "Function",
+    "managerId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "2b4c55ac-8ddf-4da5-bcb4-a4e531134583",
-    "orgId": "c78af9dc-7a03-49bf-98c1-0572112b57ab",
-    "deptName": "Technical",
-    "managerId": "57beaed2-a66c-49f4-83f3-8ebedd1d43c8",
-    "function": "Platform setup, streaming, and technical execution."
+    "id": "53532115-fec4-4a56-9080-335b1f6ae5bd",
+    "orgId": "acabff03-2510-440a-b027-dcd93dbd1210",
+    "deptName": "Quản lí",
+    "function": "Function",
+    "managerId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "7416808d-d8b0-4630-8f7d-bc621342604b",
-    "orgId": "ebac3195-2922-435f-a5ff-9a8d45efbe8a",
-    "deptName": "External Relations",
-    "managerId": "98b5de01-825c-438c-91cb-9f2ad29a6000",
-    "function": "Guest partnerships and institution liaison."
+    "id": "b70956d9-c05e-4f60-99a9-a1c0f434a40d",
+    "orgId": "acabff03-2510-440a-b027-dcd93dbd1210",
+    "deptName": "Chủ nhiệm",
+    "function": "Function",
+    "managerId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "6bc571c3-8ab9-4721-bdbc-fac26cd7ddfd",
-    "orgId": "ebac3195-2922-435f-a5ff-9a8d45efbe8a",
-    "deptName": "Finance",
-    "managerId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d",
-    "function": "Budget planning and spend tracking."
+    "id": "f1eb4e26-55f7-4b3b-9227-c071f38a82f8",
+    "orgId": "3a703b33-7434-4925-940f-8dcc3eb01622",
+    "deptName": "Hậu cần",
+    "function": "Function",
+    "managerId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "884f18fc-5670-4166-8b06-2f8eb553c7ab",
+    "orgId": "3a703b33-7434-4925-940f-8dcc3eb01622",
+    "deptName": "Truyền thông",
+    "function": "Function",
+    "managerId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "b741c6d5-5416-4ddf-a06d-cb0a6a24a9d5",
+    "orgId": "3a703b33-7434-4925-940f-8dcc3eb01622",
+    "deptName": "Quản lí",
+    "function": "Function",
+    "managerId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "154642e9-e754-48c5-8001-ed26074a1078",
+    "orgId": "3a703b33-7434-4925-940f-8dcc3eb01622",
+    "deptName": "Chủ nhiệm",
+    "function": "Function",
+    "managerId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "6b7524b1-821c-45b2-a3be-095a9d317289",
+    "orgId": "0a7d96df-b375-42c2-a747-599c73898142",
+    "deptName": "Hậu cần",
+    "function": "Function",
+    "managerId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e"
+  },
+  {
+    "id": "4be7e2c7-c147-47d5-9517-af274fd3e456",
+    "orgId": "0a7d96df-b375-42c2-a747-599c73898142",
+    "deptName": "Quản lí",
+    "function": "Function",
+    "managerId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e"
+  },
+  {
+    "id": "1c8b1913-b3ac-46ee-8393-0a8c78f91727",
+    "orgId": "0a7d96df-b375-42c2-a747-599c73898142",
+    "deptName": "Chủ nhiệm",
+    "function": "Function",
+    "managerId": "356d0f8c-c4e5-4a95-bfeb-fed92a41da4e"
+  },
+  {
+    "id": "acfb9d2d-367c-419d-9c56-df1a1be5c32a",
+    "orgId": "dcf4b2df-8269-4159-8fc8-b7f2e78d9751",
+    "deptName": "Hậu cần",
+    "function": "Function",
+    "managerId": "5a239422-afbc-48fa-91e5-b623c66b762f"
+  },
+  {
+    "id": "db823642-f91b-4771-8c1f-618b25c78b32",
+    "orgId": "dcf4b2df-8269-4159-8fc8-b7f2e78d9751",
+    "deptName": "Quản lí",
+    "function": "Function",
+    "managerId": "5a239422-afbc-48fa-91e5-b623c66b762f"
+  },
+  {
+    "id": "d521599d-112f-444e-8f5c-d5feb7a68473",
+    "orgId": "dcf4b2df-8269-4159-8fc8-b7f2e78d9751",
+    "deptName": "Chủ nhiệm",
+    "function": "Function",
+    "managerId": "5a239422-afbc-48fa-91e5-b623c66b762f"
+  },
+  {
+    "id": "7d735783-2cb8-4d0a-b9b6-6259fd873c04",
+    "orgId": "338c89b8-fb58-419f-bc8f-e51fc92c897d",
+    "deptName": "Hậu cần",
+    "function": "Function",
+    "managerId": "a365fec6-6e22-419e-8f28-75894512dde9"
+  },
+  {
+    "id": "7aacdd23-08bd-4fd3-b832-411758db26b8",
+    "orgId": "338c89b8-fb58-419f-bc8f-e51fc92c897d",
+    "deptName": "Quản lí",
+    "function": "Function",
+    "managerId": "a365fec6-6e22-419e-8f28-75894512dde9"
+  },
+  {
+    "id": "6ad6dda6-b5ca-45b6-a6bb-b8009f581944",
+    "orgId": "338c89b8-fb58-419f-bc8f-e51fc92c897d",
+    "deptName": "Chủ nhiệm",
+    "function": "Function",
+    "managerId": "a365fec6-6e22-419e-8f28-75894512dde9"
+  },
+  {
+    "id": "aa9c52e7-96cb-4654-963f-ad6ca2f31f43",
+    "orgId": "cdad9f11-4410-454a-9388-ed5217569433",
+    "deptName": "Hậu cần",
+    "function": "Function",
+    "managerId": "cc45a4dc-b477-4c96-a83e-7910df957e1d"
+  },
+  {
+    "id": "07c21c91-928f-49e6-9262-e006202729a6",
+    "orgId": "cdad9f11-4410-454a-9388-ed5217569433",
+    "deptName": "Quản lí",
+    "function": "Function",
+    "managerId": "cc45a4dc-b477-4c96-a83e-7910df957e1d"
+  },
+  {
+    "id": "69ef3186-1450-4a4b-8675-65a44f7f11ee",
+    "orgId": "cdad9f11-4410-454a-9388-ed5217569433",
+    "deptName": "Chủ nhiệm",
+    "function": "Function",
+    "managerId": "cc45a4dc-b477-4c96-a83e-7910df957e1d"
   }
 ]

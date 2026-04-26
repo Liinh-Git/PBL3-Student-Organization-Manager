@@ -1,24 +1,68 @@
 [
   {
-    "id": "c78af9dc-7a03-49bf-98c1-0572112b57ab",
+    "id": "acabff03-2510-440a-b027-dcd93dbd1210",
     "code": "ORG-0001",
-    "orgName": "Tech Student Union",
-    "description": "Main student organization for technology activities and campus innovation.",
-    "avatarUrl": "/images/mockimages/images (9).jpeg",
-    "coverUrl": "/images/mockimages/IMG_20260301_060443.jpg",
-    "location": "Main Campus",
-    "totalMembers": 8,
+    "orgName": "Organization 1",
+    "description": "Desc for org 1",
+    "avatarUrl": "/images/mockimages/org-1.jpg",
+    "coverUrl": "/images/mockimages/org-cover-1.jpg",
+    "location": "Campus 1",
+    "totalMembers": 10,
     "status": 0
   },
   {
-    "id": "ebac3195-2922-435f-a5ff-9a8d45efbe8a",
+    "id": "3a703b33-7434-4925-940f-8dcc3eb01622",
     "code": "ORG-0002",
-    "orgName": "Global Culture Club",
-    "description": "Intercultural exchange and collaboration activities for students.",
-    "avatarUrl": "/images/mockimages/images (10).jpeg",
-    "coverUrl": "/images/mockimages/IMG_20260301_061030.jpg",
-    "location": "South Campus",
-    "totalMembers": 3,
+    "orgName": "Organization 2",
+    "description": "Desc for org 2",
+    "avatarUrl": "/images/mockimages/org-2.jpg",
+    "coverUrl": "/images/mockimages/org-cover-2.jpg",
+    "location": "Campus 2",
+    "totalMembers": 10,
+    "status": 0
+  },
+  {
+    "id": "0a7d96df-b375-42c2-a747-599c73898142",
+    "code": "ORG-0003",
+    "orgName": "Organization 3",
+    "description": "Desc for org 3",
+    "avatarUrl": "/images/mockimages/org-3.jpg",
+    "coverUrl": "/images/mockimages/org-cover-3.jpg",
+    "location": "Campus 3",
+    "totalMembers": 10,
+    "status": 0
+  },
+  {
+    "id": "dcf4b2df-8269-4159-8fc8-b7f2e78d9751",
+    "code": "ORG-0004",
+    "orgName": "Organization 4",
+    "description": "Desc for org 4",
+    "avatarUrl": "/images/mockimages/org-4.jpg",
+    "coverUrl": "/images/mockimages/org-cover-4.jpg",
+    "location": "Campus 4",
+    "totalMembers": 10,
+    "status": 0
+  },
+  {
+    "id": "338c89b8-fb58-419f-bc8f-e51fc92c897d",
+    "code": "ORG-0005",
+    "orgName": "Organization 5",
+    "description": "Desc for org 5",
+    "avatarUrl": "/images/mockimages/org-5.jpg",
+    "coverUrl": "/images/mockimages/org-cover-5.jpg",
+    "location": "Campus 5",
+    "totalMembers": 10,
+    "status": 0
+  },
+  {
+    "id": "cdad9f11-4410-454a-9388-ed5217569433",
+    "code": "ORG-0006",
+    "orgName": "Organization 6",
+    "description": "Desc for org 6",
+    "avatarUrl": "/images/mockimages/org-6.jpg",
+    "coverUrl": "/images/mockimages/org-cover-6.jpg",
+    "location": "Campus 6",
+    "totalMembers": 10,
     "status": 0
   }
 ]

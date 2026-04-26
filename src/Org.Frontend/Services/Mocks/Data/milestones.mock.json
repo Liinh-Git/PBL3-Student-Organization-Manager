@@ -1,50 +1,962 @@
-﻿[
+[
   {
-    "id": "e7f03bc5-1e36-47e1-ab80-704e7d132705",
-    "eventId": "2c771b37-6ea7-4dd5-a9ef-4f327b944694",
-    "name": "Preparation Phase",
-    "startDate": "2026-05-01T00:00:00Z",
-    "endDate": "2026-05-14T23:59:00Z",
-    "orderIndex": 1
+    "id": "220ebc1b-15cb-48cc-8724-93c3d4f5a809",
+    "eventId": "79ac2e36-5d08-427d-b014-8858edb7076d",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
   },
   {
-    "id": "f46a088b-97a7-48bf-8dc6-e6cbe3847de6",
-    "eventId": "2c771b37-6ea7-4dd5-a9ef-4f327b944694",
-    "name": "Execution Phase",
-    "startDate": "2026-05-15T00:00:00Z",
-    "endDate": "2026-05-22T23:59:00Z",
-    "orderIndex": 2
+    "id": "96436fe8-5e58-400e-9d45-0eefaf9ced33",
+    "eventId": "79ac2e36-5d08-427d-b014-8858edb7076d",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
   },
   {
-    "id": "19957649-9ca3-46c7-959f-11248d6f6828",
-    "eventId": "b23923f3-e6cc-4810-b728-184abf9d556a",
-    "name": "Sponsor and Venue Setup",
-    "startDate": "2026-05-20T00:00:00Z",
-    "endDate": "2026-06-05T23:59:00Z",
-    "orderIndex": 1
+    "id": "2cd0aba2-6539-489c-b899-ffca837f21af",
+    "eventId": "79ac2e36-5d08-427d-b014-8858edb7076d",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
   },
   {
-    "id": "96c923f7-6602-49fd-b829-f7a0c66a4d3c",
-    "eventId": "b23923f3-e6cc-4810-b728-184abf9d556a",
-    "name": "Hackathon Delivery",
-    "startDate": "2026-06-06T00:00:00Z",
-    "endDate": "2026-06-13T23:59:00Z",
-    "orderIndex": 2
+    "id": "48b27e2c-059c-4ea1-a666-0313b24f01b8",
+    "eventId": "6313fe2a-1f8d-46ce-bb43-85b0726595e4",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
   },
   {
-    "id": "705d271a-4c46-4dec-9af1-5243c08311ad",
-    "eventId": "cf8a2ffa-8c58-4d2e-a9d8-162bfc2f45fb",
-    "name": "Preparation and Outreach",
-    "startDate": "2026-06-10T00:00:00Z",
-    "endDate": "2026-07-01T23:59:00Z",
-    "orderIndex": 1
+    "id": "50d73b02-555b-4ac1-952f-8d052de3d167",
+    "eventId": "6313fe2a-1f8d-46ce-bb43-85b0726595e4",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
   },
   {
-    "id": "2303fb76-7d0b-407b-af39-75f328e59d07",
-    "eventId": "0e7f57d2-4f65-4e3c-b29b-bf428dc80703",
-    "name": "Festival Preparation",
-    "startDate": "2026-06-01T00:00:00Z",
-    "endDate": "2026-06-20T23:59:00Z",
-    "orderIndex": 1
+    "id": "a323dc76-319b-435e-b94c-fce7856125d1",
+    "eventId": "6313fe2a-1f8d-46ce-bb43-85b0726595e4",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "78fe9e78-2241-4f2c-b32d-1e216f38930e",
+    "eventId": "d29915bf-c05d-4a34-8432-d01c5cbfcd5a",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "65460545-43df-45b6-ba8a-d6c4a5e0d1ef",
+    "eventId": "d29915bf-c05d-4a34-8432-d01c5cbfcd5a",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "b2924ab9-2b4d-4684-a816-4270bec8d19b",
+    "eventId": "d29915bf-c05d-4a34-8432-d01c5cbfcd5a",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "dc067014-dc07-4512-8521-aaca2cb0f97c",
+    "eventId": "254324b3-e8d5-49cb-852d-44e0d11f3490",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "2d479bce-637a-4a7a-b054-dddab2616129",
+    "eventId": "254324b3-e8d5-49cb-852d-44e0d11f3490",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "8aac9f32-fead-4d3d-8ffa-d461d38b8802",
+    "eventId": "254324b3-e8d5-49cb-852d-44e0d11f3490",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "2840150e-dc7b-4a09-b994-7964d2cb5146",
+    "eventId": "e1c36216-b5f3-40da-8de9-0719aa5e9605",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "897e3b41-53aa-4c0b-842f-38d5a22b9e37",
+    "eventId": "e1c36216-b5f3-40da-8de9-0719aa5e9605",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "0de8fec7-9764-4b7a-aff8-1338d737cb62",
+    "eventId": "e1c36216-b5f3-40da-8de9-0719aa5e9605",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "21669b0e-23ed-45b1-8d09-ba6d771eea9a",
+    "eventId": "3f5decdb-e92a-43c7-ac36-ae4bada258cc",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "a82916e3-5e08-43a9-bfed-b5cc56b20fab",
+    "eventId": "3f5decdb-e92a-43c7-ac36-ae4bada258cc",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "31627f60-a767-4cde-a6ec-ad563a019cbe",
+    "eventId": "3f5decdb-e92a-43c7-ac36-ae4bada258cc",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "759c5d6a-b461-47ed-8785-9892b18aaf1c",
+    "eventId": "13c797a6-090e-4828-9d3e-f4b0cb49ffeb",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "31eefc1a-6167-46d4-a1a9-2da76c7ac410",
+    "eventId": "13c797a6-090e-4828-9d3e-f4b0cb49ffeb",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "759ab2cb-ecbc-472d-82e6-e74073b73f13",
+    "eventId": "13c797a6-090e-4828-9d3e-f4b0cb49ffeb",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "ea8badb2-6866-462f-9100-4fb7f957f142",
+    "eventId": "6342fc35-4d03-4e06-84f3-682fe149d6f9",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "749bb0da-0ca6-428f-8964-1a23ace3cb87",
+    "eventId": "6342fc35-4d03-4e06-84f3-682fe149d6f9",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "f8e71f93-e056-411e-b381-5b6ceccb6e15",
+    "eventId": "6342fc35-4d03-4e06-84f3-682fe149d6f9",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "00df8763-857c-42b8-9b80-b7317baec4aa",
+    "eventId": "07145b98-77cf-4b12-9347-672a444de01f",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "6b21fc6a-625d-4c13-b47a-29b95366aa48",
+    "eventId": "07145b98-77cf-4b12-9347-672a444de01f",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "49f88027-3f8c-471f-84a2-bc25a320ab17",
+    "eventId": "07145b98-77cf-4b12-9347-672a444de01f",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "3b54ba27-f98d-47ed-8e88-48aa0d6fe646",
+    "eventId": "af162c4b-b946-47a7-bbf6-77689d6d540d",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "815f3562-c43e-448e-8cd0-91a12b230cc3",
+    "eventId": "af162c4b-b946-47a7-bbf6-77689d6d540d",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "0b9ca465-43af-4dab-a966-9287ffba9e8e",
+    "eventId": "af162c4b-b946-47a7-bbf6-77689d6d540d",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "20478841-c71c-4198-8f2b-c40825f339e4",
+    "eventId": "11c3c4ea-a980-4b99-b4c1-ff3f804777d9",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "aeba3a6a-86fe-4dd2-81d6-3a0da0ed649c",
+    "eventId": "11c3c4ea-a980-4b99-b4c1-ff3f804777d9",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "978b09eb-9c5a-4f19-9eab-b861437dec5c",
+    "eventId": "11c3c4ea-a980-4b99-b4c1-ff3f804777d9",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "c5ae1ae5-0ebb-43e4-b6c0-401b072d0d22",
+    "eventId": "ad2d323f-9eee-4daa-b2ac-58c0cc384c72",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "6abd6c9c-14c4-4f12-be01-0a7469ac7858",
+    "eventId": "ad2d323f-9eee-4daa-b2ac-58c0cc384c72",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "0ecf9cd9-569a-48dd-a0b5-2d35116b018f",
+    "eventId": "ad2d323f-9eee-4daa-b2ac-58c0cc384c72",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "02e961d9-abdf-4d17-afc3-6be6cb6a4a49",
+    "eventId": "85f4b500-21ff-468f-9e70-44e89c424515",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "73bc113e-1ae8-44b9-8b79-5ddad1c8fa41",
+    "eventId": "85f4b500-21ff-468f-9e70-44e89c424515",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "2a11cf68-07bc-4842-8e97-52de006da8ce",
+    "eventId": "85f4b500-21ff-468f-9e70-44e89c424515",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "4e913922-3fe5-4d63-b349-e5db78add313",
+    "eventId": "78dfede1-20e2-4157-9557-93fe0be3a82d",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "072e97a2-7734-4a96-b8f7-2e897f43b259",
+    "eventId": "78dfede1-20e2-4157-9557-93fe0be3a82d",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "9b424331-85d8-4627-bc4c-29173e2b1272",
+    "eventId": "78dfede1-20e2-4157-9557-93fe0be3a82d",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "7c64b5ea-5ae1-4c7a-8674-1bfae5556b97",
+    "eventId": "deadb8d6-08ec-4693-adac-c8bb702c4f78",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "174ad603-5bb3-4d74-86e9-ec3ae8fbe1e6",
+    "eventId": "deadb8d6-08ec-4693-adac-c8bb702c4f78",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "65260059-d882-4e41-b98c-41ba8c5387cf",
+    "eventId": "deadb8d6-08ec-4693-adac-c8bb702c4f78",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "a000aa98-9a81-43b6-b0bf-c592f6867093",
+    "eventId": "7b26470c-f690-426d-9503-50b89b6dcdec",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "dfb8831b-ee6f-4f02-9fda-cb81da56d4e4",
+    "eventId": "7b26470c-f690-426d-9503-50b89b6dcdec",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "fe49ce5a-14d0-4e51-acf7-00bf1e170242",
+    "eventId": "7b26470c-f690-426d-9503-50b89b6dcdec",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "3fb62947-3d7c-4ca2-a3eb-f79a998c59e1",
+    "eventId": "b2cdd4c2-0d0f-4ea8-933e-bbc011aa00bc",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "21ef6629-5707-4dd9-89f2-5577c1038a81",
+    "eventId": "b2cdd4c2-0d0f-4ea8-933e-bbc011aa00bc",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "e18d14b6-6d1d-40bf-b087-45d90f8d5fa9",
+    "eventId": "b2cdd4c2-0d0f-4ea8-933e-bbc011aa00bc",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "b81d3347-40b7-4f9c-a94b-f994b52e1083",
+    "eventId": "dd154fc7-5283-4c75-81dd-7093e37abba0",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "a110527f-be33-4a84-8e3b-6c72f4e6ee2b",
+    "eventId": "dd154fc7-5283-4c75-81dd-7093e37abba0",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "d01c932b-e0d5-41cc-ade7-923280759b26",
+    "eventId": "dd154fc7-5283-4c75-81dd-7093e37abba0",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "9a76cde4-2c63-4cd5-9825-93d6eaba5585",
+    "eventId": "2430def2-4ad1-4844-bd60-97879b2ad387",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "3c7f99cd-8723-49ad-9386-f415f4a3a767",
+    "eventId": "2430def2-4ad1-4844-bd60-97879b2ad387",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "f2da17b9-9555-40b3-adf7-9cc98c09be55",
+    "eventId": "2430def2-4ad1-4844-bd60-97879b2ad387",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "8eb2f440-268e-41dc-862d-0e2ddc5fd1c8",
+    "eventId": "c4e49483-667a-41bb-8568-71eb6259b096",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "5fe7bcfe-a93b-4fc6-b4ec-84a215f440a7",
+    "eventId": "c4e49483-667a-41bb-8568-71eb6259b096",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "d0a56983-5acb-4944-89d6-6696e3d641d3",
+    "eventId": "c4e49483-667a-41bb-8568-71eb6259b096",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "2d907e95-0075-43cf-a18c-d2576ca91e10",
+    "eventId": "ebdc1a1b-5dc1-478a-8178-d5df3a12dff2",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "bb25faa8-7660-4d0e-8ceb-fb095a7a30e8",
+    "eventId": "ebdc1a1b-5dc1-478a-8178-d5df3a12dff2",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "c08b9b46-5885-4238-8c82-b9c8072048b9",
+    "eventId": "ebdc1a1b-5dc1-478a-8178-d5df3a12dff2",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "1765d178-f954-4701-a96d-2dcd5e85bb24",
+    "eventId": "704bcc25-3fe5-4276-94b5-9ca053654406",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "85b12e22-4b30-46de-a5e2-1d2cc73dd080",
+    "eventId": "704bcc25-3fe5-4276-94b5-9ca053654406",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "5c9b02ff-f8b8-425d-86be-6845963731c4",
+    "eventId": "704bcc25-3fe5-4276-94b5-9ca053654406",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "8432ccc3-5ab2-4016-84ba-490bf5029a98",
+    "eventId": "48c2aa11-4e9f-4366-8599-60d667548fd5",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "cc1bd529-c707-4ed4-9385-d21e3100d5ce",
+    "eventId": "48c2aa11-4e9f-4366-8599-60d667548fd5",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "2c702999-9e3d-414a-a200-cd6a4b8bc43c",
+    "eventId": "48c2aa11-4e9f-4366-8599-60d667548fd5",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "b00046ec-322f-4dc2-b7a8-0a19954c3ea4",
+    "eventId": "3c978bf6-68a1-4f24-8fe5-6e5a22dddf74",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "3739ae0e-7bb4-4e2a-a8e1-3334b5a89992",
+    "eventId": "3c978bf6-68a1-4f24-8fe5-6e5a22dddf74",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "fe405d4d-8f64-4ece-9850-8b7586da9f7c",
+    "eventId": "3c978bf6-68a1-4f24-8fe5-6e5a22dddf74",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "c81a1d5d-6c34-467e-a796-be9cc0bb02b7",
+    "eventId": "f9905258-362a-4a5e-821d-f4763626b5cc",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "8306faf4-9927-4ced-87c2-c8e172135a83",
+    "eventId": "f9905258-362a-4a5e-821d-f4763626b5cc",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "dd0da84b-a18d-424e-b55d-8f9a7008d515",
+    "eventId": "f9905258-362a-4a5e-821d-f4763626b5cc",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "d00549ca-d656-4622-b9c4-f3c65f3e75e5",
+    "eventId": "db2dcac9-0719-48a6-ba97-4e0416cfd4f9",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "b17347b6-70d7-4779-a532-86d87fabae6b",
+    "eventId": "db2dcac9-0719-48a6-ba97-4e0416cfd4f9",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "ccc9c832-6d26-4aca-92b9-24fbd280da54",
+    "eventId": "db2dcac9-0719-48a6-ba97-4e0416cfd4f9",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "3fd0cf0f-ef2d-4184-bab4-cd0b30d75540",
+    "eventId": "c4383d03-2c94-4f56-b829-5f045b3fe83f",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "ad0be89b-5cf9-464b-a41f-48636720219d",
+    "eventId": "c4383d03-2c94-4f56-b829-5f045b3fe83f",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "868d7871-480f-4508-83df-195d678a77a9",
+    "eventId": "c4383d03-2c94-4f56-b829-5f045b3fe83f",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "5c8e97ee-3dd4-4811-bf2f-cd514742a66c",
+    "eventId": "2544b46e-d7b5-4b9e-8b9a-d3e0e6bbeb8f",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "01a4e449-c632-4a66-a0c8-bf146a9a7bb0",
+    "eventId": "2544b46e-d7b5-4b9e-8b9a-d3e0e6bbeb8f",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "60f66076-cce6-45ea-b143-04c017c81590",
+    "eventId": "2544b46e-d7b5-4b9e-8b9a-d3e0e6bbeb8f",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "30822da8-fe40-4b34-a216-fbd9a01d0675",
+    "eventId": "2878e3f1-31c9-4347-9491-731d87455b0d",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "30722aba-23ca-419c-9b4d-7a997a366d40",
+    "eventId": "2878e3f1-31c9-4347-9491-731d87455b0d",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "acbcf51b-227f-434d-8efa-c1693e81c30b",
+    "eventId": "2878e3f1-31c9-4347-9491-731d87455b0d",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "fdce2e2f-e92e-4288-bd3b-4efb84b90405",
+    "eventId": "15bb49ed-32e4-4a09-90bb-d8c4a2dbeda8",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "e7c92180-f74a-457d-97c4-5d6035dc4ff4",
+    "eventId": "15bb49ed-32e4-4a09-90bb-d8c4a2dbeda8",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "fa333ae1-b29d-4985-b922-cbee031994c8",
+    "eventId": "15bb49ed-32e4-4a09-90bb-d8c4a2dbeda8",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "9399c02a-5421-45bb-81fa-38f8e71c0e01",
+    "eventId": "6b7c5814-ac4a-4fd1-8a31-64bae6c3139c",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "91707d8e-2a5d-4cdd-b042-a749a0a9968b",
+    "eventId": "6b7c5814-ac4a-4fd1-8a31-64bae6c3139c",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "5fa19c87-c95a-4109-a108-568c65d5e647",
+    "eventId": "6b7c5814-ac4a-4fd1-8a31-64bae6c3139c",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "5f64bfa2-e0f8-4d39-8dbe-7b4e169e694a",
+    "eventId": "f7953eeb-d9cd-42b4-9f66-a4a1a6fdef88",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "5d25c2a7-d828-4f7c-b803-72d46b8ef83a",
+    "eventId": "f7953eeb-d9cd-42b4-9f66-a4a1a6fdef88",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "5f4e9939-a78d-423d-9836-dcaa17b6fe13",
+    "eventId": "f7953eeb-d9cd-42b4-9f66-a4a1a6fdef88",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "96e7f4b5-5e19-4470-83e1-0abb2c010142",
+    "eventId": "5b6bfa88-aa68-435b-9a28-7faca69c5495",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "347a9eed-13a2-4528-96a4-963f49151fbd",
+    "eventId": "5b6bfa88-aa68-435b-9a28-7faca69c5495",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "54626c43-6e08-4609-89b3-d060c1d625ac",
+    "eventId": "5b6bfa88-aa68-435b-9a28-7faca69c5495",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "e306c8ac-1d34-4858-8a10-81248ce13895",
+    "eventId": "7bc6843c-1de6-4800-b194-684971b43bcf",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "f77bbb19-5376-4f05-ab61-7ce5303a6021",
+    "eventId": "7bc6843c-1de6-4800-b194-684971b43bcf",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "04fe3c62-31b3-49ae-8ac2-61ec9e2a767d",
+    "eventId": "7bc6843c-1de6-4800-b194-684971b43bcf",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "7f3f8258-55bd-4edb-8a72-967e36931840",
+    "eventId": "6cf916fe-23ba-448b-a443-5f4f057b2dbd",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "ee95d264-3fc5-4bce-b323-e633fb1f8473",
+    "eventId": "6cf916fe-23ba-448b-a443-5f4f057b2dbd",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "400b00d4-4fa1-48b3-afd2-7de624f6648d",
+    "eventId": "6cf916fe-23ba-448b-a443-5f4f057b2dbd",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "fd8de31c-8426-44dd-b2c3-1d37acdedf1f",
+    "eventId": "34ae0de1-f3b5-4d57-9e0f-5f2bb8fcb8b8",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "20525ed2-4038-4c56-830e-37bd9828f712",
+    "eventId": "34ae0de1-f3b5-4d57-9e0f-5f2bb8fcb8b8",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "4f409063-5ed0-4eb2-976c-9adeda4dbecb",
+    "eventId": "34ae0de1-f3b5-4d57-9e0f-5f2bb8fcb8b8",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "63456e6e-0257-4dda-aad9-14e04ae36edf",
+    "eventId": "cadb29b0-86d9-4d69-a5fd-4a9cb749dbc1",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "52f31a94-5743-430c-b12c-d6b3336ebc52",
+    "eventId": "cadb29b0-86d9-4d69-a5fd-4a9cb749dbc1",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "2c191a57-efff-497c-a800-663a651fe31e",
+    "eventId": "cadb29b0-86d9-4d69-a5fd-4a9cb749dbc1",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "f86acf6c-cdd9-4939-bca8-1a3d682794be",
+    "eventId": "671e95f9-6923-45c3-b678-48369dcd1a85",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "dec313a3-243e-4c06-b753-4abb686f9495",
+    "eventId": "671e95f9-6923-45c3-b678-48369dcd1a85",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "3374ee64-5040-45cf-b5b1-db392d4277aa",
+    "eventId": "671e95f9-6923-45c3-b678-48369dcd1a85",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "9ffb3ec7-2f75-4f7f-8ed8-39d48145c1ee",
+    "eventId": "38aa7484-1ed7-476a-b694-eb78f2c8c0b3",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "52c27ab3-6e89-4584-bc1d-49ebf685d49c",
+    "eventId": "38aa7484-1ed7-476a-b694-eb78f2c8c0b3",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "56b0b9c4-70ec-4a2b-912b-9721bb20ad53",
+    "eventId": "38aa7484-1ed7-476a-b694-eb78f2c8c0b3",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "f9d6757a-abbb-4c49-9b7a-53f8637b30d6",
+    "eventId": "00d613ef-607e-4524-8a00-349ad47eaec2",
+    "name": "Chuẩn bị",
+    "orderIndex": 1,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "68ed4a11-67ed-4d0d-975a-a954661913ba",
+    "eventId": "00d613ef-607e-4524-8a00-349ad47eaec2",
+    "name": "Bắt đầu",
+    "orderIndex": 2,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
+  },
+  {
+    "id": "5640b8c1-f29b-482f-a713-2ec605a4b6c6",
+    "eventId": "00d613ef-607e-4524-8a00-349ad47eaec2",
+    "name": "Kết thúc",
+    "orderIndex": 3,
+    "startDate": "2026-04-10T00:00:00Z",
+    "endDate": "2026-04-15T00:00:00Z"
   }
 ]

@@ -1,92 +1,242 @@
-﻿[
+[
   {
-    "id": "8ec5ce5c-1a64-486d-bb68-1d4d435b7b48",
-    "milestoneId": "e7f03bc5-1e36-47e1-ab80-704e7d132705",
-    "name": "Communications",
-    "leadMemberId": "78fb96ab-e2f8-49ad-a482-659117027e0f",
+    "id": "1b6ad5e8-f9cb-4847-beaa-f96a8a71aa50",
+    "milestoneId": "220ebc1b-15cb-48cc-8724-93c3d4f5a809",
+    "name": "Logistics",
+    "description": "Logistics work",
     "orderIndex": 1,
-    "description": "Promotion plan, media assets and social channel schedule.",
-    "ownerDepartmentId": "bc4d0fb7-e4b4-4995-bbce-0d4a8902d06c"
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "5c303509-5636-4ba7-8eb0-9c50aacdc14c",
-    "milestoneId": "e7f03bc5-1e36-47e1-ab80-704e7d132705",
-    "name": "Operations",
-    "leadMemberId": "b3ab7ce7-b721-496b-a5ac-91ce05c96378",
-    "orderIndex": 2,
-    "description": "Venue prep, volunteers and runbook readiness.",
-    "ownerDepartmentId": "2c8d000b-c3c8-4bc5-b79a-7d791bb5d421"
-  },
-  {
-    "id": "a02a73a0-eb0d-4d40-a112-661bcd248f7a",
-    "milestoneId": "f46a088b-97a7-48bf-8dc6-e6cbe3847de6",
-    "name": "Technical Setup",
-    "leadMemberId": "57beaed2-a66c-49f4-83f3-8ebedd1d43c8",
+    "id": "d743e752-a205-40db-b2af-0bf72700e5a6",
+    "milestoneId": "96436fe8-5e58-400e-9d45-0eefaf9ced33",
+    "name": "Logistics",
+    "description": "Logistics work",
     "orderIndex": 1,
-    "description": "Stage AV, network and live support desk.",
-    "ownerDepartmentId": "2b4c55ac-8ddf-4da5-bcb4-a4e531134583"
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "89b36f66-3ac1-43c2-b7e1-311d5ea9af59",
-    "milestoneId": "19957649-9ca3-46c7-959f-11248d6f6828",
-    "name": "Sponsorship",
-    "leadMemberId": "4ec49164-d097-40b1-8d6b-7d0a5ce8ccc9",
+    "id": "167044d3-b86d-4b32-97d5-7283ab31f4c1",
+    "milestoneId": "2cd0aba2-6539-489c-b899-ffca837f21af",
+    "name": "Logistics",
+    "description": "Logistics work",
     "orderIndex": 1,
-    "description": "Partner outreach, booth packages and contracts.",
-    "ownerDepartmentId": "bc4d0fb7-e4b4-4995-bbce-0d4a8902d06c"
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "0b5b9537-fce2-409b-ace5-777d47b371cb",
-    "milestoneId": "19957649-9ca3-46c7-959f-11248d6f6828",
-    "name": "Venue Logistics",
-    "leadMemberId": "16ee351a-3032-4beb-a0f5-bdbe243413ba",
-    "orderIndex": 2,
-    "description": "Site map, entry points and safety protocol.",
-    "ownerDepartmentId": "2c8d000b-c3c8-4bc5-b79a-7d791bb5d421"
-  },
-  {
-    "id": "c1f63980-b7cf-4731-b99b-49dd2920b6d5",
-    "milestoneId": "96c923f7-6602-49fd-b829-f7a0c66a4d3c",
-    "name": "Onsite Tech",
-    "leadMemberId": "57beaed2-a66c-49f4-83f3-8ebedd1d43c8",
+    "id": "a2e0e3a7-8225-4afa-a38f-72b3884d374e",
+    "milestoneId": "48b27e2c-059c-4ea1-a666-0313b24f01b8",
+    "name": "Logistics",
+    "description": "Logistics work",
     "orderIndex": 1,
-    "description": "Judge portal, scoreboard and LAN support.",
-    "ownerDepartmentId": "2b4c55ac-8ddf-4da5-bcb4-a4e531134583"
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "91fd1212-add4-4a00-b6f1-3a2bea31151a",
-    "milestoneId": "705d271a-4c46-4dec-9af1-5243c08311ad",
-    "name": "Guest Outreach",
-    "leadMemberId": "98b5de01-825c-438c-91cb-9f2ad29a6000",
+    "id": "87185188-6a78-4a7b-9237-60ff0c1ef17e",
+    "milestoneId": "50d73b02-555b-4ac1-952f-8d052de3d167",
+    "name": "Logistics",
+    "description": "Logistics work",
     "orderIndex": 1,
-    "description": "Invite speakers and coordinate enterprise representatives.",
-    "ownerDepartmentId": "bc4d0fb7-e4b4-4995-bbce-0d4a8902d06c"
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "6dc07250-1b6d-46a4-859a-26cfd6f801c3",
-    "milestoneId": "705d271a-4c46-4dec-9af1-5243c08311ad",
-    "name": "Protocol",
-    "leadMemberId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d",
-    "orderIndex": 2,
-    "description": "Agenda flow, MC notes and stage protocol.",
-    "ownerDepartmentId": "2c8d000b-c3c8-4bc5-b79a-7d791bb5d421"
-  },
-  {
-    "id": "aaf56a71-413d-43dc-9f48-2c823cb27056",
-    "milestoneId": "2303fb76-7d0b-407b-af39-75f328e59d07",
-    "name": "Program",
-    "leadMemberId": "98b5de01-825c-438c-91cb-9f2ad29a6000",
+    "id": "3ccf41d1-34e7-4557-ab19-f2799bd43e36",
+    "milestoneId": "a323dc76-319b-435e-b94c-fce7856125d1",
+    "name": "Logistics",
+    "description": "Logistics work",
     "orderIndex": 1,
-    "description": "Culture booth curation and performance lineup.",
-    "ownerDepartmentId": "7416808d-d8b0-4630-8f7d-bc621342604b"
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "17dc43c7-3e61-4bd3-be1f-3e1bea76aa52",
-    "milestoneId": "2303fb76-7d0b-407b-af39-75f328e59d07",
-    "name": "Finance Ops",
-    "leadMemberId": "aef478d3-f5da-4dc8-97a3-b28f6c49077d",
-    "orderIndex": 2,
-    "description": "Vendor contracts, receipts and budget monitoring.",
-    "ownerDepartmentId": "6bc571c3-8ab9-4721-bdbc-fac26cd7ddfd"
+    "id": "8c341d55-be2c-49ce-92af-1459d70c434b",
+    "milestoneId": "78fe9e78-2241-4f2c-b32d-1e216f38930e",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "39f40b43-94b1-4d20-ab34-5d54e6175f9b",
+    "milestoneId": "65460545-43df-45b6-ba8a-d6c4a5e0d1ef",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "b0b7d882-d53a-48b2-893a-62744b2411a8",
+    "milestoneId": "b2924ab9-2b4d-4684-a816-4270bec8d19b",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "b5f297c6-b54d-4fed-9f2c-82195bfab1f9",
+    "milestoneId": "dc067014-dc07-4512-8521-aaca2cb0f97c",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "975b02bf-9e9d-4363-b82f-6ce3981aaab5",
+    "milestoneId": "2d479bce-637a-4a7a-b054-dddab2616129",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "f6dbb364-bedc-4241-9db2-9c5cc7a0d9b0",
+    "milestoneId": "8aac9f32-fead-4d3d-8ffa-d461d38b8802",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "8813b685-f0c6-4360-b270-1a89ec4d2dde",
+    "milestoneId": "2840150e-dc7b-4a09-b994-7964d2cb5146",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "948e742c-91ff-4f08-afa9-87823064f846",
+    "milestoneId": "897e3b41-53aa-4c0b-842f-38d5a22b9e37",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "c6dea01a-f746-4288-9f6e-fe252b752677",
+    "milestoneId": "0de8fec7-9764-4b7a-aff8-1338d737cb62",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "1f654133-44de-4baf-8c03-bba56111844e",
+    "milestoneId": "21669b0e-23ed-45b1-8d09-ba6d771eea9a",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "239ad95f-38e0-48a3-9312-34660b6f8ee9",
+    "milestoneId": "a82916e3-5e08-43a9-bfed-b5cc56b20fab",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "fccbd183-6783-4290-941f-1a098b2e052d",
+    "milestoneId": "31627f60-a767-4cde-a6ec-ad563a019cbe",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "0a7154ec-3bde-4043-8e65-301eeaa2148d",
+    "milestoneId": "759c5d6a-b461-47ed-8785-9892b18aaf1c",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "97deea73-7711-4d67-96f1-7a93117d5ef7",
+    "milestoneId": "31eefc1a-6167-46d4-a1a9-2da76c7ac410",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "81cdef8a-b127-4cf3-91a1-443e24ccbdf7",
+    "milestoneId": "759ab2cb-ecbc-472d-82e6-e74073b73f13",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "bb05df48-faf8-4810-94ba-a944810436ad"
+  },
+  {
+    "id": "11b573cc-1638-4f9d-b671-7acc2cf2b7cf",
+    "milestoneId": "ea8badb2-6866-462f-9100-4fb7f957f142",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "2313d367-2719-4e04-9f53-b35b31a15f9a",
+    "milestoneId": "749bb0da-0ca6-428f-8964-1a23ace3cb87",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "b23797fd-80ac-4935-a26c-5106e09786db",
+    "milestoneId": "f8e71f93-e056-411e-b381-5b6ceccb6e15",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "0c5a35c6-764c-4e00-a489-47549f610ab5",
+    "milestoneId": "00df8763-857c-42b8-9b80-b7317baec4aa",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "c62f6505-4e5c-422f-96cc-82ae21c4566c",
+    "milestoneId": "6b21fc6a-625d-4c13-b47a-29b95366aa48",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "c52ad163-7093-4f10-b369-1557761e6f90",
+    "milestoneId": "49f88027-3f8c-471f-84a2-bc25a320ab17",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "148b3db0-0ca3-4761-a6d1-35d07033ad9e",
+    "milestoneId": "3b54ba27-f98d-47ed-8e88-48aa0d6fe646",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "0d536aad-53a1-4cc8-8477-319de77df971",
+    "milestoneId": "815f3562-c43e-448e-8cd0-91a12b230cc3",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
+  },
+  {
+    "id": "f72443e1-95e5-4ac9-a367-2ec9a4579d95",
+    "milestoneId": "0b9ca465-43af-4dab-a966-9287ffba9e8e",
+    "name": "Logistics",
+    "description": "Logistics work",
+    "orderIndex": 1,
+    "leadMemberId": "d92afd23-68f5-4426-91b0-97ae12ac1099"
   }
 ]

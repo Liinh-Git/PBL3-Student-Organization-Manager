@@ -1,564 +1,242 @@
 [
   {
-    "id": "66fe9e23-a820-4c12-aade-22f269442eb4-avt",
-    "ownerId": "66fe9e23-a820-4c12-aade-22f269442eb4",
-    "ownerType": "User",
-    "ownerName": "Nguyen Van A",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260406_231459.jpg",
-    "note": "Avatar Nguyen Van A - user chinh (caibutbi2.0@gmail.com)"
+    "id": "d061916d-b5cf-4046-bb91-22fcbd9d0406",
+    "eventId": "79ac2e36-5d08-427d-b014-8858edb7076d",
+    "fileName": "asset0.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "99c1b021-a76f-426f-9bab-2a3fec50927d-avt",
-    "ownerId": "99c1b021-a76f-426f-9bab-2a3fec50927d",
-    "ownerType": "User",
-    "ownerName": "Tran Minh Khang",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260409_220036.jpg",
-    "note": "Avatar Tran Minh Khang - Leader (user1@example.com)"
+    "id": "8b56e164-b3cf-4a9f-8382-f233f7c22c06",
+    "eventId": "6313fe2a-1f8d-46ce-bb43-85b0726595e4",
+    "fileName": "asset1.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "0d05f0f2-ad18-419e-aed2-649f54bccf5f-avt",
-    "ownerId": "0d05f0f2-ad18-419e-aed2-649f54bccf5f",
-    "ownerType": "User",
-    "ownerName": "Le Hoang Nam",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260422_210044.jpg",
-    "note": "Avatar Le Hoang Nam (user2@example.com)"
+    "id": "8023bb57-32f4-49ce-a817-b58ef6cd2c99",
+    "eventId": "d29915bf-c05d-4a34-8432-d01c5cbfcd5a",
+    "fileName": "asset2.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "1be29aeb-da93-4568-bd74-90077cd7354e-avt",
-    "ownerId": "1be29aeb-da93-4568-bd74-90077cd7354e",
-    "ownerType": "User",
-    "ownerName": "Pham Gia Han",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1776086067893.jpg",
-    "note": "Avatar Pham Gia Han (user4@example.com)"
+    "id": "47e583cf-b89d-40a7-8dc4-ca4539c2feff",
+    "eventId": "254324b3-e8d5-49cb-852d-44e0d11f3490",
+    "fileName": "asset3.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "8cd328ff-330b-4df7-92da-5d8ae9098056-avt",
-    "ownerId": "8cd328ff-330b-4df7-92da-5d8ae9098056",
-    "ownerType": "User",
-    "ownerName": "Vo Duc Anh",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260408_111554.jpg",
-    "note": "Avatar Vo Duc Anh (user7@example.com)"
+    "id": "b394ca5e-142e-4cef-b8f1-92a9114f2f3e",
+    "eventId": "e1c36216-b5f3-40da-8de9-0719aa5e9605",
+    "fileName": "asset4.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "fefa174f-e933-4d4f-b7a9-6e1587fbea3b-avt",
-    "ownerId": "fefa174f-e933-4d4f-b7a9-6e1587fbea3b",
-    "ownerType": "User",
-    "ownerName": "Do Thi Mai",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1775522095538.jpg",
-    "note": "Avatar Do Thi Mai (user5@example.com)"
+    "id": "10913801-13b7-47d5-a7dd-268acc402979",
+    "eventId": "3f5decdb-e92a-43c7-ac36-ae4bada258cc",
+    "fileName": "asset5.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "e3ee97bd-c4d6-4789-99b8-7299722d3f0e-avt",
-    "ownerId": "e3ee97bd-c4d6-4789-99b8-7299722d3f0e",
-    "ownerType": "User",
-    "ownerName": "Bui Quang Huy",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260208_195437.jpg",
-    "note": "Avatar Bui Quang Huy (user11@example.com)"
+    "id": "069ea607-5c36-43aa-a492-a5df3c3d61fc",
+    "eventId": "13c797a6-090e-4828-9d3e-f4b0cb49ffeb",
+    "fileName": "asset6.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "de400dfd-4d38-4745-80be-62937e489538-avt",
-    "ownerId": "de400dfd-4d38-4745-80be-62937e489538",
-    "ownerType": "User",
-    "ownerName": "Nguyen Thu Trang",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260211_235452.jpg",
-    "note": "Avatar Nguyen Thu Trang (user16@example.com)"
-  },
-
-  {
-    "id": "2c771b37-6ea7-4dd5-a9ef-4f327b944694-banner",
-    "ownerId": "2c771b37-6ea7-4dd5-a9ef-4f327b944694",
-    "ownerType": "Event",
-    "ownerName": "Orientation Week 2026",
-    "purpose": "event-banner",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260301_060428.jpg",
-    "note": "Anh bia su kien Orientation Week 2026 - Canh duong ve phia tuong Quan Am"
+    "id": "94625eb4-4ae0-46a1-a759-eb847b940261",
+    "eventId": "6342fc35-4d03-4e06-84f3-682fe149d6f9",
+    "fileName": "asset7.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "b23923f3-e6cc-4810-b728-184abf9d556a-banner",
-    "ownerId": "b23923f3-e6cc-4810-b728-184abf9d556a",
-    "ownerType": "Event",
-    "ownerName": "Hackathon Night",
-    "purpose": "event-banner",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260301_060443.jpg",
-    "note": "Anh bia su kien Hackathon Night - Canh bien nhin tu cao"
+    "id": "822d9d0d-1f79-407c-9c2d-c3afb7a37cdd",
+    "eventId": "07145b98-77cf-4b12-9347-672a444de01f",
+    "fileName": "asset8.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "cf8a2ffa-8c58-4d2e-a9d8-162bfc2f45fb-banner",
-    "ownerId": "cf8a2ffa-8c58-4d2e-a9d8-162bfc2f45fb",
-    "ownerType": "Event",
-    "ownerName": "Career Networking Day",
-    "purpose": "event-banner",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260301_061030.jpg",
-    "note": "Anh bia su kien Career Networking Day - Canh ho nui trong suong"
+    "id": "6dfcae80-905b-4a6f-95cc-403a9d00b999",
+    "eventId": "af162c4b-b946-47a7-bbf6-77689d6d540d",
+    "fileName": "asset9.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "0e7f57d2-4f65-4e3c-b29b-bf428dc80703-banner",
-    "ownerId": "0e7f57d2-4f65-4e3c-b29b-bf428dc80703",
-    "ownerType": "Event",
-    "ownerName": "Cultural Exchange Fair",
-    "purpose": "event-banner",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260320_060502.jpg",
-    "note": "Anh bia su kien Cultural Exchange Fair - Bau troi buoi chieu"
-  },
-
-  {
-    "id": "guest-nguyen-minh-anh-avt",
-    "ownerId": null,
-    "ownerType": "Guest",
-    "ownerName": "Nguyen Minh Anh",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744842920725.jpg",
-    "note": "Avatar guest Nguyen Minh Anh - hien thi trong OrganizationRequests join request"
+    "id": "716f81d2-feb7-4e9d-930d-fa09680e1137",
+    "eventId": "11c3c4ea-a980-4b99-b4c1-ff3f804777d9",
+    "fileName": "asset10.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "guest-tran-hoang-long-avt",
-    "ownerId": null,
-    "ownerType": "Guest",
-    "ownerName": "Tran Hoang Long",
-    "purpose": "avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744842927460.jpg",
-    "note": "Avatar guest Tran Hoang Long - hien thi trong OrganizationRequests join request"
-  },
-
-  {
-    "id": "taskboard-expert-sarah-avt",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Sarah Jenkins",
-    "purpose": "expert-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744842937168.jpg",
-    "note": "Avatar Sarah Jenkins (Systems Engineer) - TaskBoard Expert Assignment panel"
+    "id": "b751648e-281d-4eec-a85c-c92ce4752837",
+    "eventId": "ad2d323f-9eee-4daa-b2ac-58c0cc384c72",
+    "fileName": "asset11.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "taskboard-expert-marcus-avt",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Marcus Wong",
-    "purpose": "expert-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744842944134.jpg",
-    "note": "Avatar Marcus Wong (Network Specialist) - TaskBoard Expert Assignment panel"
-  },
-
-  {
-    "id": "event-detail-hero-default",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "EventDetail Hero Banner",
-    "purpose": "event-hero",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20250416_104429.jpg",
-    "note": "Anh hero banner mac dinh trong EventDetail.razor khi su kien chua co DigitalAsset rieng"
-  },
-
-  {
-    "id": "eventlist-thumb-ongoing",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Event Card Thumbnail - ONGOING",
-    "purpose": "event-card-thumbnail",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Messenger_creation_579B0B6A-530E-4262-BA4C-19752EAE6395.jpeg",
-    "note": "Thumbnail mac dinh cho event card status ONGOING trong EventList.razor"
+    "id": "c8c3d293-7546-4594-b41d-5fa50afe062e",
+    "eventId": "85f4b500-21ff-468f-9e70-44e89c424515",
+    "fileName": "asset12.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "eventlist-thumb-upcoming",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Event Card Thumbnail - UPCOMING",
-    "purpose": "event-card-thumbnail",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Messenger_creation_9429B1FE-35C0-4741-9B7F-227691AD73C7.jpeg",
-    "note": "Thumbnail mac dinh cho event card status UPCOMING trong EventList.razor"
+    "id": "5a028449-c376-4b2d-88cf-0785d7605ef1",
+    "eventId": "78dfede1-20e2-4157-9557-93fe0be3a82d",
+    "fileName": "asset13.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "eventlist-thumb-completed",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Event Card Thumbnail - COMPLETED",
-    "purpose": "event-card-thumbnail",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Messenger_creation_EFE1EA93-20EE-4EDA-8412-6C714ED80C8C.jpeg",
-    "note": "Thumbnail mac dinh cho event card status COMPLETED trong EventList.razor"
-  },
-
-  {
-    "id": "avatar-pool-1",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903311334.jpg",
-    "note": "Avatar mac dinh #1 trong pool - Settings.razor cho phep user chon"
+    "id": "89816dfd-9281-483b-81e9-a08c8a9970a0",
+    "eventId": "deadb8d6-08ec-4693-adac-c8bb702c4f78",
+    "fileName": "asset14.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "avatar-pool-2",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903316564.jpg",
-    "note": "Avatar mac dinh #2 trong pool - Settings.razor"
+    "id": "4432e355-fe82-4022-a2c1-0ca29eb3e010",
+    "eventId": "7b26470c-f690-426d-9503-50b89b6dcdec",
+    "fileName": "asset15.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "avatar-pool-3",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903322264.jpg",
-    "note": "Avatar mac dinh #3 trong pool - Settings.razor"
-  },
-
-  {
-    "id": "local-event-banner-1",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Local Event Banner - Tuong Quan Am",
-    "purpose": "event-banner",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260301_060428.jpg",
-    "note": "Banner su kien #1 - Canh duong ve phia tuong Quan Am. Dung cho User/Events featured hero."
+    "id": "977fc25d-17b0-4466-8691-e23a1ff161f6",
+    "eventId": "b2cdd4c2-0d0f-4ea8-933e-bbc011aa00bc",
+    "fileName": "asset16.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-event-banner-2",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Local Event Banner - Bien Quy Nhon",
-    "purpose": "event-banner",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260301_060443.jpg",
-    "note": "Banner su kien #2 - Canh bien nhin tu cao. Dung cho User/Events card 1."
+    "id": "005d2cf2-5017-4962-af61-0d0a9861045d",
+    "eventId": "dd154fc7-5283-4c75-81dd-7093e37abba0",
+    "fileName": "asset17.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-event-banner-3",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Local Event Banner - Ho Nui",
-    "purpose": "event-banner",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260301_061030.jpg",
-    "note": "Banner su kien #3 - Canh ho nui trong suong. Dung cho User/Events card 2."
+    "id": "cf04a5fc-90a7-4f17-9d5e-4f962ac82865",
+    "eventId": "2430def2-4ad1-4844-bd60-97879b2ad387",
+    "fileName": "asset18.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-event-banner-4",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Local Event Banner - Troi Chieu",
-    "purpose": "event-banner",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260320_060502.jpg",
-    "note": "Banner su kien #4 - Bau troi buoi chieu voi may bay. Dung cho User/Events card 3."
-  },
-
-  {
-    "id": "local-attendee-avt-1",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Grindelwald",
-    "purpose": "attendee-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260406_231459.jpg",
-    "note": "Avatar attendee #1 - Nhan vat Grindelwald. Dung lam attendee faces trong User/Events."
+    "id": "aafb92a9-5f73-4397-ba8f-cdcb28ce8543",
+    "eventId": "c4e49483-667a-41bb-8568-71eb6259b096",
+    "fileName": "asset19.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-attendee-avt-2",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Aurelius Dumbledore",
-    "purpose": "attendee-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260409_220036.jpg",
-    "note": "Avatar attendee #2 - Nhan vat Aurelius Dumbledore. Dung lam attendee faces trong User/Events."
+    "id": "0f74ce05-8d6e-499b-8994-a52bda089460",
+    "eventId": "ebdc1a1b-5dc1-478a-8178-d5df3a12dff2",
+    "fileName": "asset20.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-attendee-avt-3",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Manga Character",
-    "purpose": "attendee-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260422_210044.jpg",
-    "note": "Avatar attendee #3 - Nhan vat manga. Dung lam attendee faces trong User/Events."
+    "id": "c838c981-c252-42e2-b196-8f83f91a6af9",
+    "eventId": "704bcc25-3fe5-4276-94b5-9ca053654406",
+    "fileName": "asset21.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-attendee-avt-4",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Cosplay Universal",
-    "purpose": "attendee-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260408_111554.jpg",
-    "note": "Avatar attendee #4 - Cosplay tai Universal Studios. Dung lam attendee faces trong User/Events."
+    "id": "b77c73d0-68c8-4c95-ae60-864650dff090",
+    "eventId": "48c2aa11-4e9f-4366-8599-60d667548fd5",
+    "fileName": "asset22.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-attendee-avt-5",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "PaperREX Fan",
-    "purpose": "attendee-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1776086067893.jpg",
-    "note": "Avatar attendee #5 - Co be ao PaperREX. Dung lam attendee faces trong User/Events."
+    "id": "d7893b5a-afca-4e1d-b93c-fe501cfe8dac",
+    "eventId": "3c978bf6-68a1-4f24-8fe5-6e5a22dddf74",
+    "fileName": "asset23.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-attendee-avt-6",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Edward Elric",
-    "purpose": "attendee-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Edward_Elric.png",
-    "note": "Avatar attendee #6 - Edward Elric (Fullmetal Alchemist). Dung lam attendee faces trong User/Events."
+    "id": "a75b459f-7523-4afa-bf54-805c81969539",
+    "eventId": "f9905258-362a-4a5e-821d-f4763626b5cc",
+    "fileName": "asset24.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-attendee-avt-7",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Dog Meme",
-    "purpose": "attendee-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260208_195437.jpg",
-    "note": "Avatar attendee #7 - Chu cho luot dien thoai (meme). Dung lam attendee faces trong User/Events."
+    "id": "c376abe4-93c3-4c70-8297-648fc86de5ea",
+    "eventId": "db2dcac9-0719-48a6-ba97-4e0416cfd4f9",
+    "fileName": "asset25.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-attendee-avt-8",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Shh Kid",
-    "purpose": "attendee-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/IMG_20260211_235452.jpg",
-    "note": "Avatar attendee #8 - Be trai ra hieu im lang. Dung lam attendee faces trong User/Events."
+    "id": "2938cdf4-c460-43d8-90a6-ac22713901ce",
+    "eventId": "c4383d03-2c94-4f56-b829-5f045b3fe83f",
+    "fileName": "asset26.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-attendee-avt-9",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Bald Head Reflection",
-    "purpose": "attendee-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260326_115147.jpg",
-    "note": "Avatar attendee #9 - Dau bong phan chieu may bay (TikTok meme). Dung lam attendee faces trong User/Events."
-  },
-
-  {
-    "id": "local-org-logo-1",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Org Logo - Humpty Dumpty CLB",
-    "purpose": "org-logo",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/images (9).jpeg",
-    "note": "Logo to chuc #1 - Humpty Dumpty. Dung cho Organization card trong User/Organizations."
+    "id": "4a1cc39a-e5d7-45b5-8e06-d37124b72ea6",
+    "eventId": "2544b46e-d7b5-4b9e-8b9a-d3e0e6bbeb8f",
+    "fileName": "asset27.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-org-logo-2",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Org Logo - Monster Reborn CLB",
-    "purpose": "org-logo",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/images (10).jpeg",
-    "note": "Logo to chuc #2 - Monster Reborn (Yu-Gi-Oh). Dung cho Organization card trong User/Organizations."
+    "id": "06c2b3d3-f86b-4442-9131-a8459c786024",
+    "eventId": "2878e3f1-31c9-4347-9491-731d87455b0d",
+    "fileName": "asset28.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   },
   {
-    "id": "local-org-logo-3",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Org Logo - Gorilla CLB",
-    "purpose": "org-logo",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/1773043475804.png",
-    "note": "Logo to chuc #3 - Gorilla meme (Chuot ke chuyen). Dung cho Organization card trong User/Organizations."
-  },
-
-  {
-    "id": "local-org-member-avt-1",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "North Face Kid",
-    "purpose": "member-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260326_120311.jpg",
-    "note": "Avatar thanh vien #1 trong User/Organizations - Be trai ao North Face."
-  },
-  {
-    "id": "local-org-member-avt-2",
-    "ownerId": null,
-    "ownerType": "Placeholder",
-    "ownerName": "Grass Napper",
-    "purpose": "member-avatar",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Screenshot_20260405_134658.jpg",
-    "note": "Avatar thanh vien #2 trong User/Organizations - Nguoi nam tren co (Reels)."
-  },
-
-  {
-    "id": "local-event-thumbnail-tft",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Event Thumbnail - TFT",
-    "purpose": "event-card-thumbnail",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1775522095538.jpg",
-    "note": "Thumbnail su kien - Screenshot TFT (Teamfight Tactics). Dung cho event card thu 4 trong User/Events."
-  },
-
-  {
-    "id": "extra-avatar-pool-4",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903331022.jpg",
-    "note": "Avatar mac dinh #4 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-5",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903335677.jpg",
-    "note": "Avatar mac dinh #5 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-6",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903349292.jpg",
-    "note": "Avatar mac dinh #6 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-7",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903358884.jpg",
-    "note": "Avatar mac dinh #7 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-8",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903363746.jpg",
-    "note": "Avatar mac dinh #8 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-9",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903371946.jpg",
-    "note": "Avatar mac dinh #9 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-10",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903378910.jpg",
-    "note": "Avatar mac dinh #10 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-11",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903384723.jpg",
-    "note": "Avatar mac dinh #11 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-12",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744903444832.jpg",
-    "note": "Avatar mac dinh #12 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-13",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744983411912.jpg",
-    "note": "Avatar mac dinh #13 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-avatar-pool-14",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Avatar Pool",
-    "purpose": "avatar-pool",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/FB_IMG_1744983422965.jpg",
-    "note": "Avatar mac dinh #14 trong pool - Settings.razor"
-  },
-  {
-    "id": "extra-event-thumbnail-messenger-1",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Event Thumbnail - Messenger 1",
-    "purpose": "event-card-thumbnail",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Messenger_creation_AB4B9ECA-C460-4F7E-B13B-8EDAC50BF4B0.jpeg",
-    "note": "Thumbnail su kien phu - Messenger creation image 1"
-  },
-  {
-    "id": "extra-event-thumbnail-messenger-2",
-    "ownerId": null,
-    "ownerType": "System",
-    "ownerName": "Event Thumbnail - Messenger 2",
-    "purpose": "event-card-thumbnail",
-    "fileType": "Image",
-    "fileUrl": "/images/mockimages/Messenger_creation_C18E7AFA-32CF-41A1-82FB-6F8D0D01ACD7.jpeg",
-    "note": "Thumbnail su kien phu - Messenger creation image 2"
+    "id": "9aea332c-625a-4671-af2f-99b6bc1453be",
+    "eventId": "15bb49ed-32e4-4a09-90bb-d8c4a2dbeda8",
+    "fileName": "asset29.pdf",
+    "fileUrl": "url",
+    "fileType": "Document",
+    "uploadedBy": "bb05df48-faf8-4810-94ba-a944810436ad"
   }
 ]
