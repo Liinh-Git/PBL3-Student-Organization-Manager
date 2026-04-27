@@ -9,11 +9,8 @@ namespace Org.Backend.Infrastructure.Database;
 
 public static class DatabaseSeeder
 {
-    // Số lượng bản ghi chuẩn cho mỗi nhóm seed.
-    private const int SeedCount = 20;
     private const int Example1ExtraCount = 10;
 
-    // ---- Orchestrator: chạy seed theo từng stage để đảm bảo đúng thứ tự FK ----
     public static async Task SeedAsync(AppDbContext db, CancellationToken cancellationToken = default)
     {
         await ResetDatabaseDataAsync(db, cancellationToken);
@@ -47,33 +44,20 @@ public static class DatabaseSeeder
     // ---- Stage 1: seed thực thể gốc độc lập (Organization, Permission, User) ----
     private static async Task<SeedContext> SeedIdentityDataAsync(AppDbContext db, CancellationToken cancellationToken)
     {
-        var orgNames = Enumerable.Range(1, SeedCount).Select(i => $"Organization {i}").ToList();
-        var permissionKeys = Enumerable.Range(1, SeedCount).Select(i => $"module.permission.{i}").ToList();
-        var userEmails = Enumerable.Range(1, SeedCount).Select(i => $"user{i}@example.com").ToList();
+        var orgNames = Enumerable.Range(1, 6).Select(i => $"Organization {i}").ToList();
+        var permissionKeys = Enumerable.Range(1, 20).Select(i => $"module.permission.{i}").ToList();
+        var userEmails = Enumerable.Range(1, 40).Select(i => $"example{i}@gmail.com").ToList();
         userEmails.AddRange(Enumerable.Range(1, Example1ExtraCount).Select(i => $"example1.member{i}@example.com"));
 
-        // Tải khóa hiện có một lần để tránh gọi AnyAsync lặp theo từng dòng.
-        var existingOrgNames = await db.Organizations
-            .Where(x => orgNames.Contains(x.OrgName))
-            .Select(x => x.OrgName)
-            .ToListAsync(cancellationToken);
-
-        var existingPermissionKeys = await db.Permissions
-            .Where(x => permissionKeys.Contains(x.PermissionKey))
-            .Select(x => x.PermissionKey)
-            .ToListAsync(cancellationToken);
-
-        var existingUsers = await db.Users
-            .Where(x => userEmails.Contains(x.Email))
-            .ToListAsync(cancellationToken);
+        var existingOrgNames = await db.Organizations.Where(x => orgNames.Contains(x.OrgName)).Select(x => x.OrgName).ToListAsync(cancellationToken);
+        var existingPermissionKeys = await db.Permissions.Where(x => permissionKeys.Contains(x.PermissionKey)).Select(x => x.PermissionKey).ToListAsync(cancellationToken);
+        var existingUsers = await db.Users.Where(x => userEmails.Contains(x.Email)).ToListAsync(cancellationToken);
 
         var orgNameSet = existingOrgNames.ToHashSet(StringComparer.OrdinalIgnoreCase);
         var permissionKeySet = existingPermissionKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var userEmailSet = existingUsers
-            .Select(x => x.Email)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var userEmailSet = existingUsers.Select(x => x.Email).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        for (var i = 1; i <= SeedCount; i++)
+        for (var i = 1; i <= 6; i++)
         {
             var orgName = $"Organization {i}";
             if (!orgNameSet.Contains(orgName))
@@ -82,15 +66,18 @@ public static class DatabaseSeeder
                 {
                     OrgName = orgName,
                     Description = $"Description for organization {i}",
-                    AvatarUrl = $"https://example.com/org-{i}.png",
-                    CoverUrl = $"https://example.com/org-cover-{i}.png",
+                    AvatarUrl = $"/images/mockimages/org-{i}.jpg",
+                    CoverUrl = $"/images/mockimages/org-cover-{i}.jpg",
                     FoundingDate = DateTime.UtcNow.Date.AddYears(-i),
                     Location = $"Campus {i}",
                     TotalMembers = 10,
-                    Status = i % 2 == 0 ? OrgStatus.Inactive : OrgStatus.Active
+                    Status = OrgStatus.Active
                 });
             }
+        }
 
+        for (var i = 1; i <= 20; i++)
+        {
             var permissionKey = $"module.permission.{i}";
             if (!permissionKeySet.Contains(permissionKey))
             {
@@ -98,12 +85,15 @@ public static class DatabaseSeeder
                 {
                     PermissionKey = permissionKey,
                     DisplayName = $"Permission {i}",
-                    ModuleGroup = i % 2 == 0 ? "Events" : "Members"
+                    ModuleGroup = "General"
                 });
             }
+        }
 
-            var userEmail = $"user{i}@example.com";
-            var seedRawPassword = $"hash-user-{i}";
+        for (var i = 1; i <= 40; i++)
+        {
+            var userEmail = $"example{i}@gmail.com";
+            var seedRawPassword = $"example{i}";
             if (!userEmailSet.Contains(userEmail))
             {
                 db.Users.Add(new User
@@ -112,637 +102,310 @@ public static class DatabaseSeeder
                     Email = userEmail,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword),
                     PhoneNumber = $"09000000{i:00}",
-                    Dob = DateTime.UtcNow.Date.AddYears(-20).AddDays(i),
+                    Dob = DateTime.UtcNow.Date.AddYears(-20),
                     Gender = i % 2 == 0 ? "Female" : "Male",
                     Address = $"Address {i}",
-                    AvatarUrl = $"https://example.com/user-{i}.png",
+                    AvatarUrl = $"/images/mockimages/user-{i}.jpg",
                     Bio = $"Bio for user {i}",
-                    SocialLinks = "{\"facebook\":\"https://facebook.com/example\",\"linkedin\":\"https://linkedin.com\"}",
                     Status = UserStatus.Active,
-                    LastLogin = DateTime.UtcNow.AddHours(-i)
+                    LastLogin = DateTime.UtcNow
                 });
             }
-
-            var existingUser = existingUsers.FirstOrDefault(x => string.Equals(x.Email, userEmail, StringComparison.OrdinalIgnoreCase));
-            if (existingUser is null)
+            else
             {
-                continue;
-            }
-
-            var passwordMatches = false;
-            try
-            {
-                passwordMatches = BCrypt.Net.BCrypt.Verify(seedRawPassword, existingUser.PasswordHash);
-            }
-            catch
-            {
-                // Legacy format is not BCrypt; upgrade hash below.
-            }
-
-            if (!passwordMatches)
-            {
-                existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword);
+                var existingUser = existingUsers.First(x => string.Equals(x.Email, userEmail, StringComparison.OrdinalIgnoreCase));
+                try { if (!BCrypt.Net.BCrypt.Verify(seedRawPassword, existingUser.PasswordHash)) existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword); }
+                catch { existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword); }
             }
         }
 
-        // Seed thêm user test cho Organization 1 (example 1).
         for (var i = 1; i <= Example1ExtraCount; i++)
         {
             var userEmail = $"example1.member{i}@example.com";
-            var seedRawPassword = $"hash-example1-{i}";
-
+            var seedRawPassword = $"example1";
             if (!userEmailSet.Contains(userEmail))
             {
-                db.Users.Add(new User
-                {
-                    FullName = $"Example1 Member {i}",
-                    Email = userEmail,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword),
-                    PhoneNumber = $"09110000{i:00}",
-                    Dob = DateTime.UtcNow.Date.AddYears(-21).AddDays(i),
-                    Gender = i % 2 == 0 ? "Female" : "Male",
-                    Address = $"Example 1 Address {i}",
-                    AvatarUrl = $"https://example.com/example1-member-{i}.png",
-                    Bio = $"Extra member for Organization 1 - {i}",
-                    Status = UserStatus.Active,
-                    LastLogin = DateTime.UtcNow.AddMinutes(-i)
-                });
-            }
-
-            var existingUser = existingUsers.FirstOrDefault(x => string.Equals(x.Email, userEmail, StringComparison.OrdinalIgnoreCase));
-            if (existingUser is null)
-            {
-                continue;
-            }
-
-            var passwordMatches = false;
-            try
-            {
-                passwordMatches = BCrypt.Net.BCrypt.Verify(seedRawPassword, existingUser.PasswordHash);
-            }
-            catch
-            {
-                // Legacy format is not BCrypt; upgrade hash below.
-            }
-
-            if (!passwordMatches)
-            {
-                existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword);
+                db.Users.Add(new User { FullName = $"Example1 Member {i}", Email = userEmail, PasswordHash = BCrypt.Net.BCrypt.HashPassword(seedRawPassword), PhoneNumber = $"09110000{i:00}", Dob = DateTime.UtcNow.Date.AddYears(-21), Gender = "Male", Status = UserStatus.Active });
             }
         }
 
-        // Flush stage 1 trước khi sang stage phụ thuộc.
         await db.SaveChangesAsync(cancellationToken);
-
-        var organizations = await db.Organizations.Where(x => orgNames.Contains(x.OrgName)).ToListAsync(cancellationToken);
-        var users = await db.Users.Where(x => userEmails.Contains(x.Email)).ToListAsync(cancellationToken);
-        var permissions = await db.Permissions.Where(x => permissionKeys.Contains(x.PermissionKey)).ToListAsync(cancellationToken);
 
         return new SeedContext
         {
-            Organizations = OrderByExpected(organizations, orgNames, x => x.OrgName),
-            Users = OrderByExpected(users, userEmails, x => x.Email),
-            Permissions = OrderByExpected(permissions, permissionKeys, x => x.PermissionKey)
+            Organizations = OrderByExpected(await db.Organizations.Where(x => orgNames.Contains(x.OrgName)).ToListAsync(cancellationToken), orgNames, x => x.OrgName),
+            Users = OrderByExpected(await db.Users.Where(x => userEmails.Contains(x.Email)).ToListAsync(cancellationToken), userEmails, x => x.Email),
+            Permissions = OrderByExpected(await db.Permissions.Where(x => permissionKeys.Contains(x.PermissionKey)).ToListAsync(cancellationToken), permissionKeys, x => x.PermissionKey)
         };
     }
 
-    // ---- Stage 2: seed dữ liệu theo tổ chức (Role, Department, Event, Request, Resource, Activity) ----
     private static async Task SeedOrgCoreDataAsync(AppDbContext db, SeedContext seedContext, CancellationToken cancellationToken)
     {
         var orgIds = seedContext.Organizations.Select(x => x.Id).ToList();
 
-        // Dùng composite key để kiểm tra trùng nhanh theo natural key từng bảng.
-        var roleKeySet = (await db.Roles
-                .Where(x => orgIds.Contains(x.OrgId))
-                .Select(x => new { x.OrgId, x.RoleName })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.OrgId, x.RoleName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var roleKeySet = (await db.Roles.Where(x => orgIds.Contains(x.OrgId)).Select(x => new { x.OrgId, x.RoleName }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.OrgId, x.RoleName)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var departmentKeySet = (await db.Departments.Where(x => orgIds.Contains(x.OrgId)).Select(x => new { x.OrgId, x.DeptName }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.OrgId, x.DeptName)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var eventKeySet = (await db.Events.Where(x => orgIds.Contains(x.OrgId)).Select(x => new { x.OrgId, x.EventName }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.OrgId, x.EventName)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var requestKeySet = (await db.Requests.Where(x => orgIds.Contains(x.OrgId)).Select(x => new { x.OrgId, x.Content }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.OrgId, x.Content)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var resourceKeySet = (await db.Resources.Where(x => orgIds.Contains(x.OrgId)).Select(x => new { x.OrgId, x.ResourceName }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.OrgId, x.ResourceName)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var activityKeySet = (await db.ActivityHistories.Where(x => orgIds.Contains(x.OrgId)).Select(x => new { x.OrgId, x.Title }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.OrgId, x.Title)).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var departmentKeySet = (await db.Departments
-                .Where(x => orgIds.Contains(x.OrgId))
-                .Select(x => new { x.OrgId, x.DeptName })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.OrgId, x.DeptName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var expectedRoleKeys = new List<string>();
+        var expectedDepartmentKeys = new List<string>();
+        var expectedEventKeys = new List<string>();
 
-        var eventKeySet = (await db.Events
-                .Where(x => orgIds.Contains(x.OrgId))
-                .Select(x => new { x.OrgId, x.EventName })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.OrgId, x.EventName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var requestKeySet = (await db.Requests
-                .Where(x => orgIds.Contains(x.OrgId))
-                .Select(x => new { x.SenderId, x.Content })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.SenderId, x.Content))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var resourceKeySet = (await db.Resources
-                .Where(x => orgIds.Contains(x.OrgId))
-                .Select(x => new { x.OrgId, x.ResourceName })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.OrgId, x.ResourceName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var activityKeySet = (await db.ActivityHistories
-                .Where(x => orgIds.Contains(x.OrgId))
-                .Select(x => new { x.OrgId, x.Title })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.OrgId, x.Title))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var expectedRoleKeys = new List<string>(SeedCount);
-        var expectedDepartmentKeys = new List<string>(SeedCount);
-        var expectedEventKeys = new List<string>(SeedCount);
-
-        for (var i = 0; i < SeedCount; i++)
+        int eventCounter = 1;
+        for (var i = 0; i < 6; i++)
         {
             var org = seedContext.Organizations[i];
-            var user = seedContext.Users[i];
 
-            var roleName = $"Role {i + 1}";
-            var roleKey = CompositeKey(org.Id, roleName);
-            expectedRoleKeys.Add(roleKey);
-            if (!roleKeySet.Contains(roleKey))
+            var leaderKey = CompositeKey(org.Id, "President");
+            var managerKey = CompositeKey(org.Id, "Manager");
+            var memberKey = CompositeKey(org.Id, "Member");
+            expectedRoleKeys.Add(leaderKey);
+            expectedRoleKeys.Add(managerKey);
+            expectedRoleKeys.Add(memberKey);
+            if (!roleKeySet.Contains(leaderKey)) db.Roles.Add(new Role { OrgId = org.Id, RoleName = "President", Description = "President role" });
+            if (!roleKeySet.Contains(managerKey)) db.Roles.Add(new Role { OrgId = org.Id, RoleName = "Manager", Description = "Manager role" });
+            if (!roleKeySet.Contains(memberKey)) db.Roles.Add(new Role { OrgId = org.Id, RoleName = "Member", Description = "Member role", IsDefault = true });
+
+            int deptCount = i < 2 ? 4 : 3;
+            var deptNames = deptCount == 4 
+                ? new[] { "Hậu cần", "Truyền thông", "Quản lí", "Chủ nhiệm" } 
+                : new[] { "Hậu cần", "Quản lí", "Chủ nhiệm" };
+                
+            for (var j = 0; j < deptCount; j++)
             {
-                db.Roles.Add(new Role
-                {
-                    OrgId = org.Id,
-                    RoleName = roleName,
-                    Description = $"Role description {i + 1}",
-                    IsDefault = i == 0
-                });
+                var dName = deptNames[j];
+                var dKey = CompositeKey(org.Id, dName);
+                expectedDepartmentKeys.Add(dKey);
+                if (!departmentKeySet.Contains(dKey)) db.Departments.Add(new Department { OrgId = org.Id, DeptName = dName, Function = "Func" });
             }
 
-            var departmentName = $"Department {i + 1}";
-            var departmentKey = CompositeKey(org.Id, departmentName);
-            expectedDepartmentKeys.Add(departmentKey);
-            if (!departmentKeySet.Contains(departmentKey))
+            int evtCount = i < 4 ? 7 : 6;
+            for (var j = 0; j < evtCount; j++)
             {
-                db.Departments.Add(new Department
-                {
-                    OrgId = org.Id,
-                    DeptName = departmentName,
-                    Function = $"Function {i + 1}"
-                });
+                var eName = $"Event {eventCounter++} of Org {i + 1}";
+                var eKey = CompositeKey(org.Id, eName);
+                expectedEventKeys.Add(eKey);
+                if (!eventKeySet.Contains(eKey)) db.Events.Add(new Event { OrgId = org.Id, EventName = eName, Description = "Desc", StartDate = DateTime.UtcNow.AddDays(1), EndDate = DateTime.UtcNow.AddDays(2), Budget = 1000, TargetParticipants = 50, Status = EventStatus.Planning });
             }
 
-            var eventName = $"Event {i + 1}";
-            var eventKey = CompositeKey(org.Id, eventName);
-            expectedEventKeys.Add(eventKey);
-            if (!eventKeySet.Contains(eventKey))
+            for (var j = 0; j < 5; j++)
             {
-                db.Events.Add(new Event
-                {
-                    OrgId = org.Id,
-                    EventName = eventName,
-                    Description = $"Event description {i + 1}",
-                    StartDate = DateTime.UtcNow.Date.AddDays(i),
-                    EndDate = DateTime.UtcNow.Date.AddDays(i + 2),
-                    Budget = 1000 + i * 100,
-                    Location = $"Hall {i + 1}",
-                    TargetParticipants = 50 + i,
-                    Tags = $"[\"club\",\"student\",\"tag{i + 1}\"]",
-                    Status = EventStatus.Planning,
-                    AverageRating = 4.0f
-                });
+                var rContent = $"Request {j + 1} of Org {i + 1}";
+                var rKey = CompositeKey(org.Id, rContent);
+                if (!requestKeySet.Contains(rKey)) db.Requests.Add(new Request { SenderId = seedContext.Users[i * 5 + j].Id, OrgId = org.Id, RequestType = RequestType.JoinClub, Content = rContent, Status = RequestStatus.Pending, RequestDate = DateTime.UtcNow });
             }
 
-            var requestContent = $"Request content {i + 1}";
-            var requestKey = CompositeKey(user.Id, requestContent);
-            if (!requestKeySet.Contains(requestKey))
+            for (var j = 0; j < 5; j++)
             {
-                db.Requests.Add(new Request
-                {
-                    SenderId = user.Id,
-                    OrgId = org.Id,
-                    RequestType = (i % 3) switch
-                    {
-                        0 => RequestType.JoinClub,
-                        1 => RequestType.ApproveEvent,
-                        _ => RequestType.ResourceBorrow
-                    },
-                    Content = requestContent,
-                    RequestDate = DateTime.UtcNow.AddDays(-i),
-                    Status = RequestStatus.Pending
-                });
+                var resName = $"Resource {j + 1} of Org {i + 1}";
+                var resKey = CompositeKey(org.Id, resName);
+                if (!resourceKeySet.Contains(resKey)) db.Resources.Add(new Resource { OrgId = org.Id, ResourceName = resName, Type = "Type", Quantity = 5, Status = ResourceStatus.Available });
             }
 
-            var resourceName = $"Resource {i + 1}";
-            var resourceKey = CompositeKey(org.Id, resourceName);
-            if (!resourceKeySet.Contains(resourceKey))
+            int actCount = i < 4 ? 7 : 6;
+            for (var j = 0; j < actCount; j++)
             {
-                db.Resources.Add(new Resource
-                {
-                    OrgId = org.Id,
-                    ResourceName = resourceName,
-                    Type = i % 2 == 0 ? "Equipment" : "Room",
-                    Quantity = 5 + i,
-                    Status = ResourceStatus.Available
-                });
-            }
-
-            var activityTitle = $"Activity {i + 1}";
-            var activityKey = CompositeKey(org.Id, activityTitle);
-            if (!activityKeySet.Contains(activityKey))
-            {
-                db.ActivityHistories.Add(new ActivityHistory
-                {
-                    OrgId = org.Id,
-                    Title = activityTitle,
-                    Content = $"Activity content {i + 1}",
-                    CoverUrl = $"https://example.com/activity-{i + 1}.png",
-                    ActivityDate = DateTime.UtcNow.AddDays(-i),
-                    Type = ActivityType.Other,
-                    IsPublic = true
-                });
-            }
-        }
-
-        var example1Org = seedContext.Organizations
-            .FirstOrDefault(x => string.Equals(x.OrgName, "Organization 1", StringComparison.OrdinalIgnoreCase));
-
-        if (example1Org is not null)
-        {
-            for (var i = 1; i <= Example1ExtraCount; i++)
-            {
-                var departmentName = $"Department 1 - Extra {i}";
-                var departmentKey = CompositeKey(example1Org.Id, departmentName);
-                expectedDepartmentKeys.Add(departmentKey);
-
-                if (!departmentKeySet.Contains(departmentKey))
-                {
-                    db.Departments.Add(new Department
-                    {
-                        OrgId = example1Org.Id,
-                        DeptName = departmentName,
-                        Code = $"ORG1X{i:00}",
-                        Function = $"Extra testing department {i} for Organization 1"
-                    });
-                }
+                var actTitle = $"Activity {j + 1} of Org {i + 1}";
+                var actKey = CompositeKey(org.Id, actTitle);
+                if (!activityKeySet.Contains(actKey)) db.ActivityHistories.Add(new ActivityHistory { OrgId = org.Id, Title = actTitle, Content = "Content", ActivityDate = DateTime.UtcNow, Type = ActivityType.Other, IsPublic = true });
             }
         }
 
         await db.SaveChangesAsync(cancellationToken);
 
-        var roles = await db.Roles.Where(x => orgIds.Contains(x.OrgId)).ToListAsync(cancellationToken);
-        var departments = await db.Departments.Where(x => orgIds.Contains(x.OrgId)).ToListAsync(cancellationToken);
-        var events = await db.Events.Where(x => orgIds.Contains(x.OrgId)).ToListAsync(cancellationToken);
-
-        seedContext.Roles = OrderByExpected(roles, expectedRoleKeys, x => CompositeKey(x.OrgId, x.RoleName));
-        seedContext.Departments = OrderByExpected(departments, expectedDepartmentKeys, x => CompositeKey(x.OrgId, x.DeptName));
-        seedContext.Events = OrderByExpected(events, expectedEventKeys, x => CompositeKey(x.OrgId, x.EventName));
+        seedContext.Roles = OrderByExpected(await db.Roles.Where(x => orgIds.Contains(x.OrgId)).ToListAsync(cancellationToken), expectedRoleKeys, x => CompositeKey(x.OrgId, x.RoleName));
+        seedContext.Departments = OrderByExpected(await db.Departments.Where(x => orgIds.Contains(x.OrgId)).ToListAsync(cancellationToken), expectedDepartmentKeys, x => CompositeKey(x.OrgId, x.DeptName));
+        seedContext.Events = OrderByExpected(await db.Events.Where(x => orgIds.Contains(x.OrgId)).ToListAsync(cancellationToken), expectedEventKeys, x => CompositeKey(x.OrgId, x.EventName));
     }
 
-    // ---- Stage 3: seed quan hệ membership + report + milestone (phụ thuộc stage 1-2) ----
     private static async Task SeedMembershipAndMilestoneDataAsync(AppDbContext db, SeedContext seedContext, CancellationToken cancellationToken)
     {
+        var roleIds = seedContext.Roles.Select(x => x.Id).ToList();
+        var permIds = seedContext.Permissions.Select(x => x.Id).ToList();
         var userIds = seedContext.Users.Select(x => x.Id).ToList();
         var orgIds = seedContext.Organizations.Select(x => x.Id).ToList();
-        var roleIds = seedContext.Roles.Select(x => x.Id).ToList();
-        var permissionIds = seedContext.Permissions.Select(x => x.Id).ToList();
-        var eventIds = seedContext.Events.Select(x => x.Id).ToList();
+        var evtIds = seedContext.Events.Select(x => x.Id).ToList();
 
-        var memberKeySet = (await db.Members
-                .Where(x => userIds.Contains(x.UserId) && orgIds.Contains(x.OrgId))
-                .Select(x => new { x.UserId, x.OrgId })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.UserId, x.OrgId))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var rolePermKeySet = (await db.RolePermissions.Where(x => roleIds.Contains(x.RoleId)).Select(x => new { x.RoleId, x.PermissionId }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.RoleId, x.PermissionId)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var memberKeySet = (await db.Members.Where(x => userIds.Contains(x.UserId)).Select(x => new { x.UserId, x.OrgId }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.UserId, x.OrgId)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var reportKeySet = (await db.EventReports.Where(x => evtIds.Contains(x.EventId)).Select(x => x.EventId).ToListAsync(cancellationToken)).Select(x => CompositeKey(x)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var milestoneKeySet = (await db.Milestones.Where(x => evtIds.Contains(x.EventId)).Select(x => new { x.EventId, x.Title }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.EventId, x.Title)).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var rolePermissionKeySet = (await db.RolePermissions
-                .Where(x => roleIds.Contains(x.RoleId) && permissionIds.Contains(x.PermissionId))
-                .Select(x => new { x.RoleId, x.PermissionId })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.RoleId, x.PermissionId))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var eventReportKeySet = (await db.EventReports
-                .Where(x => eventIds.Contains(x.EventId))
-                .Select(x => x.EventId)
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var milestoneKeySet = (await db.Milestones
-                .Where(x => eventIds.Contains(x.EventId))
-                .Select(x => new { x.EventId, x.Title })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.EventId, x.Title))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var expectedMemberKeys = new List<string>(SeedCount);
-        var expectedMilestoneKeys = new List<string>(SeedCount);
-
-        for (var i = 0; i < SeedCount; i++)
+        for (var i = 0; i < 6; i++)
         {
-            var user = seedContext.Users[i];
-            var org = seedContext.Organizations[i];
-            var role = seedContext.Roles[i];
-            var department = seedContext.Departments[i];
-            var permission = seedContext.Permissions[i];
-            var @event = seedContext.Events[i];
+            var leaderRole = seedContext.Roles[i * 2];
+            var memberRole = seedContext.Roles[i * 2 + 1];
 
-            var memberKey = CompositeKey(user.Id, org.Id);
-            expectedMemberKeys.Add(memberKey);
-            if (!memberKeySet.Contains(memberKey))
-            {
-                db.Members.Add(new Member
-                {
-                    UserId = user.Id,
-                    OrgId = org.Id,
-                    DepartmentId = department.Id,
-                    RoleId = role.Id,
-                    JoinDate = DateTime.UtcNow.Date.AddDays(-30 + i)
-                });
+            // Leader gets permissions 1,2,3
+            for(int p=0; p<3; p++) {
+                var rpKey = CompositeKey(leaderRole.Id, seedContext.Permissions[p].Id);
+                if (!rolePermKeySet.Contains(rpKey)) db.RolePermissions.Add(new RolePermission { RoleId = leaderRole.Id, PermissionId = seedContext.Permissions[p].Id });
             }
-
-            var rolePermissionKey = CompositeKey(role.Id, permission.Id);
-            if (!rolePermissionKeySet.Contains(rolePermissionKey))
-            {
-                db.RolePermissions.Add(new RolePermission
-                {
-                    RoleId = role.Id,
-                    PermissionId = permission.Id
-                });
-            }
-
-            var reportKey = CompositeKey(@event.Id);
-            if (!eventReportKeySet.Contains(reportKey))
-            {
-                db.EventReports.Add(new EventReport
-                {
-                    EventId = @event.Id,
-                    ActualAttendance = 40 + i,
-                    ActualBudget = 800 + i * 50,
-                    RatingAverage = 4.0f,
-                    Summary = $"Report summary {i + 1}"
-                });
-            }
-
-            var milestoneTitle = $"Milestone {i + 1}";
-            var milestoneKey = CompositeKey(@event.Id, milestoneTitle);
-            expectedMilestoneKeys.Add(milestoneKey);
-            if (!milestoneKeySet.Contains(milestoneKey))
-            {
-                db.Milestones.Add(new Milestone
-                {
-                    EventId = @event.Id,
-                    Title = milestoneTitle,
-                    OrderIndex = i + 1,
-                    StartDate = DateTime.UtcNow.Date.AddDays(i + 1),
-                    EndDate = DateTime.UtcNow.Date.AddDays(i + 7),
-                    Status = MilestoneStatus.InProgress
-                });
+            // Member gets permissions 4,5
+            for(int p=3; p<5; p++) {
+                var rpKey = CompositeKey(memberRole.Id, seedContext.Permissions[p].Id);
+                if (!rolePermKeySet.Contains(rpKey)) db.RolePermissions.Add(new RolePermission { RoleId = memberRole.Id, PermissionId = seedContext.Permissions[p].Id });
             }
         }
 
-        var example1Org = seedContext.Organizations
-            .FirstOrDefault(x => string.Equals(x.OrgName, "Organization 1", StringComparison.OrdinalIgnoreCase));
-
-        if (example1Org is not null)
+        var expectedMemberKeys = new List<string>();
+        var orgMemberCount = new Dictionary<Guid, int>();
+        for (var i = 0; i < 40; i++)
         {
-            var example1Role = seedContext.Roles.FirstOrDefault(x => x.OrgId == example1Org.Id);
+            var org = seedContext.Organizations[i % 6];
+            if (!orgMemberCount.ContainsKey(org.Id)) orgMemberCount[org.Id] = 0;
 
-            var extraDepartments = seedContext.Departments
-                .Where(x => x.OrgId == example1Org.Id && x.DeptName.StartsWith("Department 1 - Extra ", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(x => x.DeptName)
-                .ToList();
-
-            var extraUsers = seedContext.Users
-                .Where(x => x.Email.StartsWith("example1.member", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(x => x.Email)
-                .ToList();
-
-            var pairCount = Math.Min(extraDepartments.Count, extraUsers.Count);
-            for (var i = 0; i < pairCount; i++)
+            var orgDepts = seedContext.Departments.Where(d => d.OrgId == org.Id).ToList();
+            int count = orgMemberCount[org.Id];
+            
+            string roleName = count == 0 ? "President" : (count == 1 ? "Manager" : "Member");
+            var role = seedContext.Roles.First(r => r.OrgId == org.Id && r.RoleName == roleName);
+            
+            Department dept;
+            if (count == 0)
+                dept = orgDepts.First(d => d.DeptName == "Chủ nhiệm");
+            else if (count == 1)
+                dept = orgDepts.First(d => d.DeptName == "Quản lí");
+            else
             {
-                var user = extraUsers[i];
-                var department = extraDepartments[i];
+                var remDepts = orgDepts.Where(d => d.DeptName != "Chủ nhiệm" && d.DeptName != "Quản lí").ToList();
+                if (remDepts.Count == 0) remDepts = orgDepts;
+                dept = remDepts[(count - 2) % remDepts.Count];
+            }
+            
+            var memKey = CompositeKey(seedContext.Users[i].Id, org.Id);
+            expectedMemberKeys.Add(memKey);
+            if (!memberKeySet.Contains(memKey)) db.Members.Add(new Member { UserId = seedContext.Users[i].Id, OrgId = org.Id, DepartmentId = dept.Id, RoleId = role.Id, JoinDate = DateTime.UtcNow });
+            
+            orgMemberCount[org.Id]++;
+        }
 
-                var memberKey = CompositeKey(user.Id, example1Org.Id);
-                expectedMemberKeys.Add(memberKey);
+        for (var i = 0; i < 40; i++)
+        {
+            if (i < 20)
+            {
+                var rKey = CompositeKey(seedContext.Events[i].Id);
+                if (!reportKeySet.Contains(rKey)) db.EventReports.Add(new EventReport { EventId = seedContext.Events[i].Id, ActualAttendance = 10, ActualBudget = 100, Summary = "Summary" });
+            }
+        }
 
-                if (!memberKeySet.Contains(memberKey))
-                {
-                    db.Members.Add(new Member
-                    {
-                        UserId = user.Id,
-                        OrgId = example1Org.Id,
-                        DepartmentId = department.Id,
-                        RoleId = example1Role?.Id,
-                        JoinDate = DateTime.UtcNow.Date.AddDays(-10 + i)
-                    });
-                }
+        var expectedMilestoneKeys = new List<string>();
+        for (var i = 0; i < 40; i++)
+        {
+            var evt = seedContext.Events[i];
+            var titles = new[] { "Chuẩn bị", "Bắt đầu", "Kết thúc" };
+            for (var j = 0; j < 3; j++)
+            {
+                var mKey = CompositeKey(evt.Id, titles[j]);
+                expectedMilestoneKeys.Add(mKey);
+                if (!milestoneKeySet.Contains(mKey)) db.Milestones.Add(new Milestone { EventId = evt.Id, Title = titles[j], OrderIndex = j + 1, StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow.AddDays(1), Status = MilestoneStatus.InProgress });
             }
         }
 
         await db.SaveChangesAsync(cancellationToken);
 
-        var members = await db.Members
-            .Where(x => userIds.Contains(x.UserId) && orgIds.Contains(x.OrgId))
-            .ToListAsync(cancellationToken);
-
-        var milestones = await db.Milestones
-            .Where(x => eventIds.Contains(x.EventId))
-            .ToListAsync(cancellationToken);
-
-        seedContext.Members = OrderByExpected(members, expectedMemberKeys, x => CompositeKey(x.UserId, x.OrgId));
-        seedContext.Milestones = OrderByExpected(milestones, expectedMilestoneKeys, x => CompositeKey(x.EventId, x.Title));
+        seedContext.Members = OrderByExpected(await db.Members.Where(x => userIds.Contains(x.UserId)).ToListAsync(cancellationToken), expectedMemberKeys, x => CompositeKey(x.UserId, x.OrgId));
+        seedContext.Milestones = OrderByExpected(await db.Milestones.Where(x => evtIds.Contains(x.EventId)).ToListAsync(cancellationToken), expectedMilestoneKeys, x => CompositeKey(x.EventId, x.Title));
     }
 
-    // ---- Stage 4: seed dữ liệu vận hành (EventMember, Attendee, EventCategory, Task, Asset, link Resource) ----
     private static async Task SeedOperationalDataAsync(AppDbContext db, SeedContext seedContext, CancellationToken cancellationToken)
     {
-        var eventIds = seedContext.Events.Select(x => x.Id).ToList();
-        var milestoneIds = seedContext.Milestones.Select(x => x.Id).ToList();
-        var memberIds = seedContext.Members.Select(x => x.Id).ToList();
-        var userIds = seedContext.Users.Select(x => x.Id).ToList();
-
-        var eventMemberKeySet = (await db.EventMembers
-                .Where(x => eventIds.Contains(x.EventId) && memberIds.Contains(x.MemberId))
-                .Select(x => new { x.EventId, x.MemberId })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.EventId, x.MemberId))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var attendeeKeySet = (await db.Attendees
-                .Where(x => eventIds.Contains(x.EventId) && x.UserId != null && userIds.Contains(x.UserId.Value))
-                .Select(x => new { x.EventId, x.UserId })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.EventId, x.UserId))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        // Tạo EventCategory trước vì Task hiện phụ thuộc FK EventCategoryId.
-        var eventCategoryKeySet = (await db.EventCategories
-                .Where(x => milestoneIds.Contains(x.MilestoneId))
-                .Select(x => new { x.MilestoneId, x.CategoryName })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.MilestoneId, x.CategoryName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var expectedCategoryKeys = new List<string>(SeedCount);
-        for (var i = 0; i < SeedCount; i++)
+        var evtIds = seedContext.Events.Select(x => x.Id).ToList();
+        var msIds = seedContext.Milestones.Select(x => x.Id).ToList();
+        
+        var catKeySet = (await db.EventCategories.Where(x => msIds.Contains(x.MilestoneId)).Select(x => new { x.MilestoneId, x.CategoryName }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.MilestoneId, x.CategoryName)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        
+        var expectedCatKeys = new List<string>();
+        for (var i = 0; i < 30; i++)
         {
-            var milestone = seedContext.Milestones[i];
-            var department = seedContext.Departments[i];
-            var categoryName = i % 2 == 0 ? "Logistics" : "Technical";
-            var categoryKey = CompositeKey(milestone.Id, categoryName);
-            expectedCategoryKeys.Add(categoryKey);
+            var cKey = CompositeKey(seedContext.Milestones[i].Id, "Logistics");
+            expectedCatKeys.Add(cKey);
+            if (!catKeySet.Contains(cKey)) db.EventCategories.Add(new EventCategory { MilestoneId = seedContext.Milestones[i].Id, CategoryName = "Logistics", OrderIndex = 1 });
+        }
+        await db.SaveChangesAsync(cancellationToken);
+        seedContext.EventCategories = OrderByExpected(await db.EventCategories.Where(x => msIds.Contains(x.MilestoneId)).ToListAsync(cancellationToken), expectedCatKeys, x => CompositeKey(x.MilestoneId, x.CategoryName));
 
-            if (!eventCategoryKeySet.Contains(categoryKey))
+        var catIds = seedContext.EventCategories.Select(x => x.Id).ToList();
+        var taskKeySet = (await db.Tasks.Where(x => catIds.Contains(x.EventCategoryId)).Select(x => new { x.EventCategoryId, x.TaskName }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.EventCategoryId, x.TaskName)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var ememKeySet = (await db.EventMembers.Where(x => evtIds.Contains(x.EventId)).Select(x => new { x.EventId, x.MemberId }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.EventId, x.MemberId)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var attKeySet = (await db.Attendees.Where(x => evtIds.Contains(x.EventId) && x.UserId != null).Select(x => new { x.EventId, x.UserId }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.EventId, x.UserId)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var assetKeySet = (await db.DigitalAssets.Where(x => evtIds.Contains(x.EventId)).Select(x => new { x.EventId, x.FileName }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.EventId, x.FileName)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        int taskIdx = 1;
+        for (var i = 0; i < 30; i++)
+        {
+            int count = i < 15 ? 2 : 1;
+            for (var j = 0; j < count; j++)
             {
-                db.EventCategories.Add(new EventCategory
-                {
-                    MilestoneId = milestone.Id,
-                    CategoryName = categoryName,
-                    OrderIndex = 1,
-                    Description = $"Auto-seeded {categoryName} workstream",
-                    OwnerDepartmentId = department.Id
-                });
+                var tName = $"Task {taskIdx++}";
+                var tKey = CompositeKey(seedContext.EventCategories[i].Id, tName);
+                if (!taskKeySet.Contains(tKey)) db.Tasks.Add(new OrgTask { EventCategoryId = seedContext.EventCategories[i].Id, TaskName = tName, AssigneeId = seedContext.Members[0].Id, Priority = TaskPriority.Medium, Status = TaskStatus.Todo });
             }
         }
 
-        await db.SaveChangesAsync(cancellationToken);
-
-        var eventCategories = await db.EventCategories
-            .Where(x => milestoneIds.Contains(x.MilestoneId))
-            .ToListAsync(cancellationToken);
-
-        seedContext.EventCategories = OrderByExpected(eventCategories, expectedCategoryKeys, x => CompositeKey(x.MilestoneId, x.CategoryName));
-
-        var categoryIds = seedContext.EventCategories.Select(x => x.Id).ToList();
-
-        // Sau khi có category, mới seed Task để tránh vi phạm khóa ngoại.
-        var taskKeySet = (await db.Tasks
-                .Where(x => categoryIds.Contains(x.EventCategoryId))
-                .Select(x => new { x.EventCategoryId, x.TaskName })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.EventCategoryId, x.TaskName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var assetKeySet = (await db.DigitalAssets
-                .Where(x => eventIds.Contains(x.EventId))
-                .Select(x => new { x.EventId, x.FileName })
-                .ToListAsync(cancellationToken))
-            .Select(x => CompositeKey(x.EventId, x.FileName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var resources = await db.Resources
-            .Where(x => seedContext.Organizations.Select(o => o.Id).Contains(x.OrgId))
-            .ToListAsync(cancellationToken);
-
-        for (var i = 0; i < SeedCount; i++)
+        for (var i = 0; i < 40; i++)
         {
-            var @event = seedContext.Events[i];
-            var member = seedContext.Members[i];
-            var user = seedContext.Users[i];
-            var department = seedContext.Departments[i];
-            var category = seedContext.EventCategories[i];
+            int count = 0;
+            if (i < 15) count = 1;
+            else if (i < 30) count = 2;
 
-            if (department.ManagerId != member.Id)
+            for (var j = 0; j < count; j++)
             {
-                department.ManagerId = member.Id;
+                var mem = seedContext.Members[(i + j) % seedContext.Members.Count];
+                var emKey = CompositeKey(seedContext.Events[i].Id, mem.Id);
+                if (!ememKeySet.Contains(emKey)) db.EventMembers.Add(new EventMember { EventId = seedContext.Events[i].Id, MemberId = mem.Id, EventRole = "Coordinator", AssignedAt = DateTime.UtcNow });
             }
+        }
 
-            var eventMemberKey = CompositeKey(@event.Id, member.Id);
-            if (!eventMemberKeySet.Contains(eventMemberKey))
+        for (var i = 0; i < 40; i++)
+        {
+            int count = i < 20 ? 1 : 2;
+            for (var j = 0; j < count; j++)
             {
-                db.EventMembers.Add(new EventMember
-                {
-                    EventId = @event.Id,
-                    MemberId = member.Id,
-                    EventRole = i % 2 == 0 ? "Logistics" : "MC",
-                    AssignedAt = DateTime.UtcNow.AddDays(-i)
-                });
+                var usr = seedContext.Users[(i + j) % seedContext.Users.Count];
+                var aKey = CompositeKey(seedContext.Events[i].Id, usr.Id);
+                if (!attKeySet.Contains(aKey)) db.Attendees.Add(new Attendee { EventId = seedContext.Events[i].Id, UserId = usr.Id, GuestName = usr.FullName, Email = usr.Email, Status = AttendeeStatus.Attended });
             }
+        }
 
-            var attendeeKey = CompositeKey(@event.Id, user.Id);
-            if (!attendeeKeySet.Contains(attendeeKey))
-            {
-                db.Attendees.Add(new Attendee
-                {
-                    EventId = @event.Id,
-                    UserId = user.Id,
-                    GuestName = user.FullName,
-                    Email = user.Email,
-                    TicketType = "Standard",
-                    CheckInTime = DateTime.UtcNow.AddHours(-i),
-                    Status = AttendeeStatus.Attended
-                });
-            }
+        for (var i = 0; i < 30; i++)
+        {
+            var asKey = CompositeKey(seedContext.Events[i].Id, "asset.pdf");
+            if (!assetKeySet.Contains(asKey)) db.DigitalAssets.Add(new DigitalAsset { EventId = seedContext.Events[i].Id, FileName = "asset.pdf", FileUrl = "url", FileType = FileType.Document, UploadedBy = seedContext.Members[0].Id });
+        }
 
-            var taskName = $"Task {i + 1}";
-            var taskKey = CompositeKey(category.Id, taskName);
-            if (!taskKeySet.Contains(taskKey))
-            {
-                db.Tasks.Add(new OrgTask
-                {
-                    EventCategoryId = category.Id,
-                    TaskName = taskName,
-                    AssigneeId = member.Id,
-                    DeptId = department.Id,
-                    Priority = i % 2 == 0 ? TaskPriority.Medium : TaskPriority.High,
-                    Deadline = DateTime.UtcNow.Date.AddDays(i + 5),
-                    Status = i % 2 == 0 ? TaskStatus.Todo : TaskStatus.InProgress,
-                    Note = $"Task note {i + 1}"
-                });
-            }
-
-            var fileName = $"asset-{i + 1}.pdf";
-            var assetKey = CompositeKey(@event.Id, fileName);
-            if (!assetKeySet.Contains(assetKey))
-            {
-                db.DigitalAssets.Add(new DigitalAsset
-                {
-                    EventId = @event.Id,
-                    FileName = fileName,
-                    FileUrl = $"https://example.com/assets/{i + 1}.pdf",
-                    FileType = FileType.Document,
-                    UploadedBy = member.Id
-                });
-            }
-
-            var linkedResource = resources.FirstOrDefault(x => x.OrgId == seedContext.Organizations[i].Id && x.ResourceName == $"Resource {i + 1}");
-            if (linkedResource is not null && linkedResource.EventId != @event.Id)
-            {
-                linkedResource.EventId = @event.Id;
+        // Link 1 resource per org to event
+        var resources = await db.Resources.Where(x => seedContext.Organizations.Select(o => o.Id).Contains(x.OrgId)).ToListAsync(cancellationToken);
+        for(var i=0; i<6; i++) {
+            var org = seedContext.Organizations[i];
+            var firstRes = resources.FirstOrDefault(r => r.OrgId == org.Id);
+            var firstEvt = seedContext.Events.FirstOrDefault(e => e.OrgId == org.Id);
+            if (firstRes != null && firstEvt != null && firstRes.EventId != firstEvt.Id) {
+                firstRes.EventId = firstEvt.Id;
             }
         }
 
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    // ---- Trả về danh sách đã sắp theo thứ tự expected key để map index ổn định giữa các stage ----
     private static List<T> OrderByExpected<T>(IEnumerable<T> source, IEnumerable<string> expectedKeys, Func<T, string> selector)
     {
         var items = source.ToList();
         var ordered = new List<T>();
-
         foreach (var key in expectedKeys)
         {
             var match = items.FirstOrDefault(item => string.Equals(selector(item), key, StringComparison.OrdinalIgnoreCase));
-            if (match is null)
-            {
-                throw new InvalidOperationException($"Seed reference not found for key '{key}'.");
-            }
-
+            if (match == null) throw new InvalidOperationException($"Seed reference not found for key '{key}'.");
             ordered.Add(match);
         }
-
         return ordered;
     }
 
-    // ---- Utility tạo khóa ghép chuẩn để kiểm tra trùng dữ liệu ----
-    private static string CompositeKey(params object?[] parts)
-    {
-        return string.Join("::", parts.Select(x => x?.ToString() ?? string.Empty));
-    }
+    private static string CompositeKey(params object?[] parts) => string.Join("::", parts.Select(x => x?.ToString() ?? string.Empty));
 
-    // ---- Context trung gian chia sẻ kết quả seed giữa các stage ----
     private sealed class SeedContext
     {
         public List<Organization> Organizations { get; set; } = [];
