@@ -1,72 +1,142 @@
-﻿[
-    {
-        "id":  "53376d33-89d8-4f4d-a237-e68442d92358",
-        "orgId":  "82dac2e9-eb66-4cf0-ad4d-598126b175fb",
-        "deptName":  "Department 1",
-        "managerId":  "14f8be84-9abb-408e-9f72-f34629feccff",
-        "function":  "Function 1"
-    },
-    {
-        "id":  "1427412e-0319-4641-a87e-ab84000926b1",
-        "orgId":  "90535883-fbfb-4dcd-a05d-af83e3ea79dc",
-        "deptName":  "Department 2",
-        "managerId":  "9ce444e3-491a-465d-8435-fd594d4f66d4",
-        "function":  "Function 2"
-    },
-    {
-        "id":  "92b46f67-935c-4564-9077-3f7b6674dd67",
-        "orgId":  "4abb9b76-0ebb-4dd3-a141-4c66cdbd458f",
-        "deptName":  "Department 3",
-        "managerId":  "c6a5a775-6bcc-41e8-b589-a35dac744673",
-        "function":  "Function 3"
-    },
-    {
-        "id":  "576b2c95-b8ea-4271-a868-b0c9f9fbf4f6",
-        "orgId":  "65e83bcf-9f65-4092-bfd2-3c80d4e396b4",
-        "deptName":  "Department 4",
-        "managerId":  "ea7cb38b-f0cf-4916-94aa-1a6d33b05039",
-        "function":  "Function 4"
-    },
-    {
-        "id":  "903c12e5-4e14-4f45-b2ec-dd9fbea6b5ff",
-        "orgId":  "1029cb9d-a78d-4440-bb16-20abe003f9be",
-        "deptName":  "Department 5",
-        "managerId":  "abd871e4-ac8f-4ea0-a215-5ebaecf2d7cd",
-        "function":  "Function 5"
-    },
-    {
-        "id":  "3d725e51-9dc1-4651-9f5a-ad46dd37d5e5",
-        "orgId":  "40f706bd-12a6-4d36-8161-40434c11d126",
-        "deptName":  "Department 6",
-        "managerId":  "97c62f70-2aa4-4db6-91a1-08db8d980a49",
-        "function":  "Function 6"
-    },
-    {
-        "id":  "41be6504-1d84-4b8e-b31f-da146045f217",
-        "orgId":  "b171205e-6aee-4180-87dd-3aeeeac7ea9e",
-        "deptName":  "Department 7",
-        "managerId":  "556080b7-f1a1-416e-9486-486992b7f04e",
-        "function":  "Function 7"
-    },
-    {
-        "id":  "bba8f2e8-fcf1-40c9-8a8f-4bfc49222a65",
-        "orgId":  "f6774453-4111-49c0-a964-917e4648f9cc",
-        "deptName":  "Department 8",
-        "managerId":  "0f2406b3-5147-4f18-a93c-1b2b74b86314",
-        "function":  "Function 8"
-    },
-    {
-        "id":  "be8308ee-c7df-471e-92f9-864c39561baf",
-        "orgId":  "a858fa5d-bc5e-497c-9a32-bd9b1623c230",
-        "deptName":  "Department 9",
-        "managerId":  "1e465ab3-52b4-4c07-adae-99ef8b71160d",
-        "function":  "Function 9"
-    },
-    {
-        "id":  "ad117692-7d70-49c9-ae3d-a34909a3dceb",
-        "orgId":  "072ec4f3-a40d-4a5e-b22b-c0d9f1988c02",
-        "deptName":  "Department 10",
-        "managerId":  "248aa108-0372-49aa-a1a7-a1f40b1b374d",
-        "function":  "Function 10"
-    }
+[
+  {
+    "id": "1bf856fa-d95d-4644-93b5-6a11008e2d38",
+    "orgId": "ead36523-0b20-43e0-9acb-ab31056e07eb",
+    "deptName": "Hậu cần",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "1c3663f2-f359-4183-95c6-a095fedfa358",
+    "orgId": "89cfacb7-50c7-4e72-b117-6897c7ece3f7",
+    "deptName": "Quản lí",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "4029a9f1-8a17-4300-a5d1-0cff3b7a919d",
+    "orgId": "c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "deptName": "Quản lí",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "5062bc76-854d-4119-85a5-36a095e35832",
+    "orgId": "316d5027-807b-415b-8dfc-28775986e7a1",
+    "deptName": "Chủ nhiệm",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "553684af-abc6-4c19-9d7e-7e710208a152",
+    "orgId": "ead36523-0b20-43e0-9acb-ab31056e07eb",
+    "deptName": "Quản lí",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "5781e6ca-ccee-4903-a23a-5c5319fa6bd2",
+    "orgId": "d7a1ac59-aedf-4c6a-8348-e8e249f0c411",
+    "deptName": "Quản lí",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "6449ff91-7812-4ba5-8b73-3066162fb237",
+    "orgId": "c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "deptName": "Chủ nhiệm",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "644e6480-5702-478b-b091-d46bf1ea69fa",
+    "orgId": "316d5027-807b-415b-8dfc-28775986e7a1",
+    "deptName": "Hậu cần",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "73133764-060c-4f0f-aa27-7560c08de2a5",
+    "orgId": "c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "deptName": "Hậu cần",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "8a7dd4b0-3698-48d3-b5c0-d73385a70204",
+    "orgId": "89cfacb7-50c7-4e72-b117-6897c7ece3f7",
+    "deptName": "Truyền thông",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "90ef5684-d335-437e-a46d-d226aefcdd3f",
+    "orgId": "d7a1ac59-aedf-4c6a-8348-e8e249f0c411",
+    "deptName": "Chủ nhiệm",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "aff0844e-6d1d-4929-8bcd-55d05cbd1f97",
+    "orgId": "3e5433e2-88f4-4806-8108-638df97a1f82",
+    "deptName": "Quản lí",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "b31e09e3-7894-4765-814c-8c818fa39215",
+    "orgId": "89cfacb7-50c7-4e72-b117-6897c7ece3f7",
+    "deptName": "Chủ nhiệm",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "b873400b-267f-4705-aaa9-126cc1f6e2f1",
+    "orgId": "89cfacb7-50c7-4e72-b117-6897c7ece3f7",
+    "deptName": "Hậu cần",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "be03662b-627f-4afb-bb24-78e76a7bd25b",
+    "orgId": "316d5027-807b-415b-8dfc-28775986e7a1",
+    "deptName": "Quản lí",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "c0a49d20-019a-4d54-bfb9-59813baa6232",
+    "orgId": "3e5433e2-88f4-4806-8108-638df97a1f82",
+    "deptName": "Hậu cần",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "cc1c609c-d476-4ddb-bdd8-5d16c96956a7",
+    "orgId": "d7a1ac59-aedf-4c6a-8348-e8e249f0c411",
+    "deptName": "Hậu cần",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "e71fc0bf-9968-480b-90b5-eb7c3d772cf0",
+    "orgId": "3e5433e2-88f4-4806-8108-638df97a1f82",
+    "deptName": "Chủ nhiệm",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "eb391f85-ac7c-4d9b-bb24-627c9d2c3716",
+    "orgId": "ead36523-0b20-43e0-9acb-ab31056e07eb",
+    "deptName": "Chủ nhiệm",
+    "managerId": null,
+    "function": "Func"
+  },
+  {
+    "id": "f265c70d-0ccd-43be-842d-679f5deb0b1c",
+    "orgId": "c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "deptName": "Truyền thông",
+    "managerId": null,
+    "function": "Func"
+  }
 ]

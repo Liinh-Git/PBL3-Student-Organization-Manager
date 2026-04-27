@@ -22,8 +22,12 @@ public static class SeedModeRunner
         // ---- Đồng bộ migration trước, sau đó seed để tránh lỗi thiếu bảng/cột ----
         await db.Database.MigrateAsync(cancellationToken);
         await DatabaseSeeder.SeedAsync(db, cancellationToken);
+        
+        // ---- Tự động export ra JSON cho FE sau khi seed ----
+        var feMockDataPath = Path.Combine(app.Environment.ContentRootPath, "..", "Org.Frontend", "Services", "Mocks", "Data");
+        await MockDataExporter.ExportToJsonAsync(db, feMockDataPath, cancellationToken);
 
-        Console.WriteLine("Seeded data successfully.");
+        Console.WriteLine("Seeded and exported mock data successfully.");
         await PrintSummaryAsync(db, cancellationToken);
         await PrintSampleRowsAsync(db, cancellationToken);
 

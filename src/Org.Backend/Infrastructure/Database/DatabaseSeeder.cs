@@ -315,6 +315,11 @@ public static class DatabaseSeeder
     {
         var evtIds = seedContext.Events.Select(x => x.Id).ToList();
         var msIds = seedContext.Milestones.Select(x => x.Id).ToList();
+        var eventById = seedContext.Events.ToDictionary(x => x.Id);
+        var milestoneById = seedContext.Milestones.ToDictionary(x => x.Id);
+        var membersByOrg = seedContext.Members
+            .GroupBy(x => x.OrgId)
+            .ToDictionary(g => g.Key, g => g.ToList());
         
         var catKeySet = (await db.EventCategories.Where(x => msIds.Contains(x.MilestoneId)).Select(x => new { x.MilestoneId, x.CategoryName }).ToListAsync(cancellationToken)).Select(x => CompositeKey(x.MilestoneId, x.CategoryName)).ToHashSet(StringComparer.OrdinalIgnoreCase);
         
@@ -337,12 +342,18 @@ public static class DatabaseSeeder
         int taskIdx = 1;
         for (var i = 0; i < 30; i++)
         {
+            var category = seedContext.EventCategories[i];
+            var milestone = milestoneById[category.MilestoneId];
+            var evt = eventById[milestone.EventId];
+            var assigneePool = membersByOrg[evt.OrgId];
+            var assignee = assigneePool[taskIdx % assigneePool.Count];
+
             int count = i < 15 ? 2 : 1;
             for (var j = 0; j < count; j++)
             {
                 var tName = $"Task {taskIdx++}";
-                var tKey = CompositeKey(seedContext.EventCategories[i].Id, tName);
-                if (!taskKeySet.Contains(tKey)) db.Tasks.Add(new OrgTask { EventCategoryId = seedContext.EventCategories[i].Id, TaskName = tName, AssigneeId = seedContext.Members[0].Id, Priority = TaskPriority.Medium, Status = TaskStatus.Todo });
+                var tKey = CompositeKey(category.Id, tName);
+                if (!taskKeySet.Contains(tKey)) db.Tasks.Add(new OrgTask { EventCategoryId = category.Id, TaskName = tName, AssigneeId = assignee.Id, Priority = TaskPriority.Medium, Status = TaskStatus.Todo });
             }
         }
 
@@ -354,7 +365,9 @@ public static class DatabaseSeeder
 
             for (var j = 0; j < count; j++)
             {
-                var mem = seedContext.Members[(i + j) % seedContext.Members.Count];
+                var evt = seedContext.Events[i];
+                var pool = membersByOrg[evt.OrgId];
+                var mem = pool[(i + j) % pool.Count];
                 var emKey = CompositeKey(seedContext.Events[i].Id, mem.Id);
                 if (!ememKeySet.Contains(emKey)) db.EventMembers.Add(new EventMember { EventId = seedContext.Events[i].Id, MemberId = mem.Id, EventRole = "Coordinator", AssignedAt = DateTime.UtcNow });
             }
@@ -374,7 +387,12 @@ public static class DatabaseSeeder
         for (var i = 0; i < 30; i++)
         {
             var asKey = CompositeKey(seedContext.Events[i].Id, "asset.pdf");
-            if (!assetKeySet.Contains(asKey)) db.DigitalAssets.Add(new DigitalAsset { EventId = seedContext.Events[i].Id, FileName = "asset.pdf", FileUrl = "url", FileType = FileType.Document, UploadedBy = seedContext.Members[0].Id });
+            if (!assetKeySet.Contains(asKey))
+            {
+                var evt = seedContext.Events[i];
+                var uploader = membersByOrg[evt.OrgId][0];
+                db.DigitalAssets.Add(new DigitalAsset { EventId = evt.Id, FileName = "asset.pdf", FileUrl = "url", FileType = FileType.Document, UploadedBy = uploader.Id });
+            }
         }
 
         // Link 1 resource per org to event
