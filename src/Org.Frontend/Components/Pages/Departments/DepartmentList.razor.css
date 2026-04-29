@@ -1,11 +1,19 @@
-:root {
+/* XÓA KHỐI :root CŨ ĐI VÀ GỘP BIẾN VÀO ĐÂY */
+.dept-page-container {
+  /* Khai báo biến cục bộ cho component này */
   --primary: #1a2634;
   --secondary: #ff9b51;
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
+  --bg-main: #f8fafc; /* Màu nền xám nhạt của toàn bộ trang */
+  --bg-card: #ffffff; /* Màu nền trắng tinh của thẻ phòng ban */
   --bg-task: #f0f3f5;
   --text-muted: #64748b;
   --border-color: #e2e8f0;
+
+  /* Các thuộc tính cũ */
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: var(--bg-main);
+  font-family: "Inter", sans-serif;
 }
 
 .dept-page-container {
