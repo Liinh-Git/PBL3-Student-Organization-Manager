@@ -1,11 +1,9 @@
-@* ---- Layout chính của app: sidebar trái (NavMenu) + main area phải ----
-    Sidebar = NavMenu (rail + menu pane).
-    Main area thay đổi CSS class (org-main / user-main) theo workspace đang active.
-    LocationChanged được dùng để đồng bộ UI/workspace state của layout. *@
+@* ---- Layout chính của app: sidebar trái (NavMenu) + main area phải ---- *@
 @inherits LayoutComponentBase
 @inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject IOrganizationRouteAccessGate OrganizationRouteAccessGate
+@inject Org.Frontend.Services.Dashboard.IUserDashboardService DashboardService
 @implements IDisposable
 @using System.Security.Claims
 
@@ -24,18 +22,10 @@
         {
             <header class="org-top-row">
                 <div class="org-top-left">
-                    <div class="org-search-wrap">
-                        <MudIcon Icon="@Icons.Material.Filled.Search" Class="org-search-icon" />
-                        <input class="org-search"
-                               type="search"
-                               placeholder="Tim kiem tai lieu, thanh vien..." />
-                    </div>
-                    <button class="org-pill-button org-search-button" type="button">Tim kiem</button>
+                    <h1 class="org-workspace-title">@_activeOrganizationName</h1>
                 </div>
 
                 <div class="org-top-right">
-                    <button class="org-pill-button org-invite-button" type="button">Moi thanh vien</button>
-
                     <div class="org-icon-group" role="group" aria-label="Organization actions">
                         <button class="org-icon-button" type="button" aria-label="Notifications">
                             <MudIcon Icon="@Icons.Material.Outlined.Notifications" />
@@ -48,7 +38,7 @@
                     <button type="button" class="org-profile clickable-profile" @onclick="NavigateToUserSettings">
                         <div class="org-profile-meta">
                             <strong>@DisplayName</strong>
-                            <span>Quan tri vien</span>
+                            <span>Quản trị viên</span>
                         </div>
                         <div class="org-profile-avatar">
                             <img src="/images/avatars/admin.jpg" alt="@DisplayName" />
@@ -68,10 +58,6 @@
                     </button>
                     <button class="user-icon-button" type="button" aria-label="Messages">
                         <MudIcon Icon="@Icons.Material.Outlined.Mail" />
-                    </button>
-                    <button class="user-logout-button" type="button" @onclick="HandleSignOut">
-                        <MudIcon Icon="@Icons.Material.Filled.Logout" Class="user-logout-icon" />
-                        <span>Dang xuat</span>
                     </button>
 
                     <button type="button" class="user-profile clickable-profile" @onclick="NavigateToUserSettings">
@@ -103,47 +89,38 @@
 
 @code {
     private bool _isOrganizationWorkspace;
+    private string _activeOrganizationName = "Đang tải...";
+    private Org.Frontend.ViewModels.UserDashboardViewModel? _dashboard;
     private ClaimsPrincipal _user = new(new ClaimsIdentity());
 
     private string DisplayName =>
         _user.Identity?.Name
         ?? _user.FindFirst(ClaimTypes.Email)?.Value
-        ?? "Nguoi dung";
+        ?? "Người dùng";
 
     private string UserWorkspaceLabel =>
         _user.FindFirst(ClaimTypes.Email)?.Value
         ?? "User Workspace";
 
-    protected override void OnInitialized()
-    {
-        Navigation.LocationChanged += HandleLocationChanged;
-        UpdateWorkspaceFromUri(Navigation.Uri);
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            return;
-        }
-
-        await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
-        UpdateWorkspaceFromUri(Navigation.Uri);
-        await InvokeAsync(StateHasChanged);
-    }
-
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         _user = authState.User;
+
+        Navigation.LocationChanged += HandleLocationChanged;
+        await UpdateWorkspaceFromUriAsync(Navigation.Uri);
     }
 
-    private async Task HandleSignOut()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await AuthStateProvider.SignOutAsync();
-        Navigation.NavigateTo("/login", forceLoad: true);
+        if (!firstRender) return;
+
+        await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
+        await UpdateWorkspaceFromUriAsync(Navigation.Uri);
+        await InvokeAsync(StateHasChanged);
     }
 
+    // Đã thêm lại hàm này để sửa lỗi CS0103
     private void NavigateToUserSettings()
         => Navigation.NavigateTo("/user/settings");
 
@@ -152,37 +129,51 @@
         _ = InvokeAsync(async () =>
         {
             await OrganizationRouteAccessGate.SyncFromUriAsync(e.Location);
-            UpdateWorkspaceFromUri(e.Location);
+            await UpdateWorkspaceFromUriAsync(e.Location);
             StateHasChanged();
         });
     }
 
-    private void UpdateWorkspaceFromUri(string uri)
+    private async Task UpdateWorkspaceFromUriAsync(string uri)
     {
         var route = GetCurrentRoute(uri);
         _isOrganizationWorkspace = OrganizationRouteAccessGate.ShouldUseOrganizationWorkspace(route);
+
+        if (_isOrganizationWorkspace)
+        {
+            // Trích xuất orgId từ URI để tìm tên tổ chức
+            if (Uri.TryCreate(Navigation.ToAbsoluteUri(uri).ToString(), UriKind.Absolute, out var parsedUri))
+            {
+                var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(parsedUri.Query);
+                if (query.TryGetValue("orgId", out var rawId) && Guid.TryParse(rawId, out var orgId))
+                {
+                    if (_dashboard == null)
+                    {
+                        try { _dashboard = await DashboardService.GetDashboardAsync(); }
+                        catch { /* Bỏ qua nếu lỗi mạng */ }
+                    }
+                    
+                    var org = _dashboard?.Organizations.FirstOrDefault(o => o.OrganizationId == orgId);
+                    _activeOrganizationName = org?.Name ?? "Workspace Tổ chức";
+                }
+                else
+                {
+                    _activeOrganizationName = "Workspace Tổ chức";
+                }
+            }
+        }
     }
 
     private string GetCurrentRoute(string uri)
     {
         var route = "/" + Navigation.ToBaseRelativePath(uri).Trim('/');
-
-        if (string.IsNullOrWhiteSpace(route))
-        {
-            return "/";
-        }
+        if (string.IsNullOrWhiteSpace(route)) return "/";
 
         var queryIndex = route.IndexOf('?');
-        if (queryIndex >= 0)
-        {
-            route = route[..queryIndex];
-        }
+        if (queryIndex >= 0) route = route[..queryIndex];
 
         var hashIndex = route.IndexOf('#');
-        if (hashIndex >= 0)
-        {
-            route = route[..hashIndex];
-        }
+        if (hashIndex >= 0) route = route[..hashIndex];
 
         return string.IsNullOrWhiteSpace(route) ? "/" : route;
     }

@@ -319,4 +319,15 @@
   .workspace-footer-card {
     width: 100%;
   }
+  .logout-icon-force {
+    background-color: #fff7ef !important;
+    border: 1px solid #e8c2a0 !important;
+    opacity: 1 !important;
+    transition: all 0.2s ease;
+  }
+
+  .logout-icon-force:hover {
+    background-color: #ffe8d4 !important;
+    border-color: #dc9d67 !important;
+  }
 }
