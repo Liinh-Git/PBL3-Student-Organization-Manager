@@ -92,11 +92,7 @@
                         _ => "status-upcoming"
                     };
 
-                    var imageUrl = status switch {
-                        "ongoing" => "/images/mockimages/Messenger_creation_579B0B6A-530E-4262-BA4C-19752EAE6395.jpeg",
-                        "upcoming" => "/images/mockimages/Messenger_creation_9429B1FE-35C0-4741-9B7F-227691AD73C7.jpeg",
-                        _ => "/images/mockimages/Messenger_creation_EFE1EA93-20EE-4EDA-8412-6C714ED80C8C.jpeg"
-                    };
+                    var imageUrl = evt.ImageUrl ?? "/images/mockimages/Org1/Avt.jpg";
 
                     <div class="premium-card @(isCompleted ? "event-card-completed" : "")" @onclick="() => GoToDetail(evt.Id)">
                         <div class="card-img-box">

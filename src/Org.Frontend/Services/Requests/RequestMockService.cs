@@ -11,6 +11,27 @@ public sealed class RequestMockService(
     FrontendMockDataStore mockDataStore,
     AuthenticationStateProvider authStateProvider) : IRequestService
 {
+    private static readonly string[] AvatarPool =
+    [
+        "/images/mockimages/AvtUser/Avt1.jpg",
+        "/images/mockimages/AvtUser/Avt2.jpg",
+        "/images/mockimages/AvtUser/Avt3.jpg",
+        "/images/mockimages/AvtUser/Avt4.jpg",
+        "/images/mockimages/AvtUser/Avt5.jpg",
+        "/images/mockimages/AvtUser/Avt6.jpg",
+        "/images/mockimages/AvtUser/Avt7.jpg",
+        "/images/mockimages/AvtUser/Avt8.jpg",
+        "/images/mockimages/AvtUser/Avt9.jpg",
+        "/images/mockimages/AvtUser/Avt10.jpg",
+        "/images/mockimages/AvtUser/Avt11.jpg",
+        "/images/mockimages/AvtUser/Avt12.jpg",
+        "/images/mockimages/AvtUser/Avt13.jpg",
+        "/images/mockimages/AvtUser/Avt14.jpg",
+        "/images/mockimages/AvtUser/Avt15.jpg",
+        "/images/mockimages/AvtUser/Avt16.jpg",
+        "/images/mockimages/AvtUser/Avt17.jpg"
+    ];
+
     private readonly FrontendMockDataStore _mockDataStore = mockDataStore;
     private readonly AuthenticationStateProvider _authStateProvider = authStateProvider;
 
@@ -42,7 +63,7 @@ public sealed class RequestMockService(
                 UserId = request.UserId,
                 UserName = user?.FullName ?? "Nguoi dung",
                 Email = user?.Email ?? "",
-                AvatarUrl = user?.AvatarUrl,
+                AvatarUrl = ResolveAvatar(user),
                 RequestType = request.RequestType,
                 Title = request.Title,
                 Message = request.Message,
@@ -185,7 +206,7 @@ public sealed class RequestMockService(
             UserId = request.UserId,
             UserName = user?.FullName ?? "Nguoi dung",
             Email = user?.Email ?? "",
-            AvatarUrl = user?.AvatarUrl,
+            AvatarUrl = ResolveAvatar(user),
             Tags = tags,
             RequestType = request.RequestType,
             Title = request.Title,
@@ -195,5 +216,17 @@ public sealed class RequestMockService(
             DesiredPosition = request.DesiredPosition,
             Experience = request.Experience
         };
+    }
+
+    private static string? ResolveAvatar(MockUser? user)
+    {
+        if (user is null)
+            return AvatarPool[0];
+
+        if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
+            return user.AvatarUrl;
+
+        var index = (user.Id.GetHashCode() & int.MaxValue) % AvatarPool.Length;
+        return AvatarPool[index];
     }
 }
