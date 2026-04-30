@@ -1,6 +1,7 @@
 @inject NavigationManager Navigation
 @inject IOrganizationRouteAccessGate OrganizationRouteAccessGate
 @inject Org.Frontend.Services.Dashboard.IUserDashboardService DashboardService
+@inject FrontendAuthStateProvider AuthStateProvider
 @implements IDisposable
 
 <div class="nav-scrollable">
@@ -9,9 +10,9 @@
             <div class="rail-top">
                 <button class="rail-icon user-icon @(IsUserWorkspaceActive ? "active" : string.Empty)"
                         type="button"
-                        title="Workspace nguoi dung"
+                        title="Workspace người dùng"
                         @onclick="ActivateUserWorkspace">
-                    <img src="/images/mockimages/AvtUser/Avt1.jpg" alt="Workspace nguoi dung" />
+                    <img src="/images/avatars/user.png" alt="Workspace người dùng" />
                 </button>
             </div>
 
@@ -30,6 +31,15 @@
                         </button>
                     }
                 }
+            </div>
+
+            @* Nút đăng xuất nằm ở phần rìa dưới cùng của Rail *@
+         
+
+            <div style="position: absolute; bottom: 24px; left: 14px;">
+                <button class="rail-icon logout-icon-force" type="button" title="Đăng xuất" @onclick="HandleSignOut">
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" Style="color: #8f4c11; font-size: 20px; margin-left: 2px;" />
+                </button>
             </div>
         </aside>
 
@@ -109,7 +119,6 @@
     protected override async Task OnInitializedAsync()
     {
         Navigation.LocationChanged += HandleLocationChanged;
-
         var currentRoute = GetCurrentRoute(Navigation.Uri);
         SyncWorkspaceAndMenuWithRoute(currentRoute);
         
@@ -133,7 +142,6 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-
         await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
         var currentRoute = GetCurrentRoute(Navigation.Uri);
         SyncWorkspaceAndMenuWithRoute(currentRoute);
@@ -198,8 +206,6 @@
         _activeWorkspace = WorkspaceKind.Organization;
         _activeOrganizationId = org.OrganizationId;
         _activeOrganizationMenuKey = "org-overview";
-        
-        // Navigation tới overview của org đó
         Navigation.NavigateTo($"/org-overview?orgId={org.OrganizationId}");
     }
 
@@ -227,6 +233,12 @@
         else _activeOrganizationMenuKey = item.Key;
 
         Navigation.NavigateTo(targetHref);
+    }
+
+    private async Task HandleSignOut()
+    {
+        await AuthStateProvider.SignOutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 
     private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
@@ -262,7 +274,6 @@
 
         if (_activeWorkspace == WorkspaceKind.Organization) 
         {
-            // Try to extract orgId from URI if possible to highlight the right rail icon
             if (Uri.TryCreate(Navigation.Uri, UriKind.Absolute, out var uri))
             {
                 var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
@@ -279,16 +290,13 @@
     private void SyncActiveMenuWithRoute(string route)
     {
         if (string.IsNullOrWhiteSpace(route) || route == "/") return;
-
         var normalized = route.ToLowerInvariant();
         var userMatch = UserWorkspaceMenu.FirstOrDefault(item =>
             normalized.StartsWith(item.Href.ToLowerInvariant(), StringComparison.Ordinal));
-
         if (userMatch is not null) _activeUserMenuKey = userMatch.Key;
 
         var organizationMatch = OrganizationWorkspaceMenu.FirstOrDefault(item =>
             normalized.StartsWith(item.Href.ToLowerInvariant(), StringComparison.Ordinal));
-
         if (organizationMatch is not null) _activeOrganizationMenuKey = organizationMatch.Key;
     }
 
@@ -297,5 +305,3 @@
         Navigation.LocationChanged -= HandleLocationChanged;
     }
 }
-
-

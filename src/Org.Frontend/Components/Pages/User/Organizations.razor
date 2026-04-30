@@ -11,25 +11,16 @@
 
 <PageTitle>Tổ chức của tôi - Kora</PageTitle>
 
-<div class="org-dashboard">
-    <header class="dashboard-header">
-        <div class="header-title-area">
-            <span class="welcome-text">Chào mừng trở lại</span>
-            <h2 class="user-greeting">Xin chào, @(_dashboard?.DisplayName ?? "User")!</h2>
+<div class="org-page-container">
+    <!-- HEADER MỚI -->
+    <header class="page-header">
+        <div class="header-icon-box">
+            <span class="material-symbols-outlined">account_balance</span>
         </div>
-        @if (_dashboard != null)
-        {
-            <div class="header-stats">
-                <div class="stat-card">
-                    <span class="stat-label">Tổ chức tham gia</span>
-                    <span class="stat-value">@_dashboard.Organizations.Count</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">Sự kiện đăng ký</span>
-                    <span class="stat-value">@(_dashboard?.RegisteredEvents.Count ?? 0)</span>
-                </div>
-            </div>
-        }
+        <div class="header-text-box">
+            <h1 class="page-title">Tổ chức của tôi</h1>
+            <p class="page-subtitle">QUẢN LÝ VÀ THAM GIA KIẾN TẠO CỘNG ĐỒNG</p>
+        </div>
     </header>
 
     @if (_dashboard == null)
@@ -40,100 +31,105 @@
     }
     else
     {
-        <!-- SECTION: TỔ CHỨC TÔI LÀM CHỦ -->
+        var ownedOrgs = _dashboard!.Organizations.Where(o => o.Role == "Owner" || o.Role == "Admin").ToList();
+        var joinedOrgs = _dashboard!.Organizations.Where(o => o.Role != "Owner" && o.Role != "Admin").ToList();
+
+        <!-- SECTION: CÁC TỔ CHỨC TÔI CHỦ NHIỆM -->
         <section class="org-section">
             <div class="section-header">
-                <h3>Tổ chức tôi làm chủ</h3>
-                <div class="section-divider"></div>
+                <h2>Các tổ chức tôi chủ nhiệm</h2>
+                <div class="header-line"></div>
+                <span class="header-badge owner-badge">CHỦ NHIỆM (@ownedOrgs.Count)</span>
             </div>
 
-            <div class="org-grid-cards">
-                <!-- Create New Card -->
-                <div class="create-org-card" @onclick="OnCreateOrganizationClick" style="cursor: pointer;">
-                    <div class="create-icon-wrap">
+            <div class="org-grid">
+                <!-- Nút tạo tổ chức mới -->
+                <div class="org-card create-card" @onclick="OnCreateOrganizationClick">
+                    <div class="create-icon-circle">
                         <span class="material-symbols-outlined">add</span>
                     </div>
-                    <span>Tạo tổ chức mới</span>
+                    <h3>Tạo tổ chức mới</h3>
+                    <p>Bắt đầu hành trình kiến tạo một cộng đồng sinh viên mới của riêng bạn.</p>
                 </div>
 
-                @foreach (var org in _dashboard.Organizations.Where(o => o.Role == "Owner" || o.Role == "Admin"))
+                @foreach (var org in ownedOrgs)
                 {
-                    <div class="org-card" @onclick="() => NavigateToOrg(org.OrganizationId)" style="cursor: pointer;">
-                        <div class="role-badge @org.Role.ToLower()">@org.Role</div>
-                        <div class="org-card-content">
-                            @if (!string.IsNullOrEmpty(org.AvatarUrl))
-                            {
-                                <img src="@org.AvatarUrl" alt="Avatar" class="org-avatar-img" style="width: 48px; height: 48px; border-radius: 12px; margin-bottom: 1rem; object-fit: cover;" />
-                            }
-                            else
-                            {
-                                <div class="org-avatar @GetRandomColorClass(org.Name)">@org.Name.FirstOrDefault()</div>
-                            }
-                            <h4 class="org-name">@org.Name</h4>
+                    <div class="org-card owned-card" @onclick="() => NavigateToOrg(org.OrganizationId)">
+                        <div class="card-top">
+                            <div class="org-icon">
+                                <span class="material-symbols-outlined">@GetRandomIcon(org.Name)</span>
+                            </div>
+                            <span class="role-badge">CHỦ NHIỆM</span>
+                        </div>
+                        <div class="card-body">
+                            <h3>@org.Name</h3>
                             <p class="org-desc">@(string.IsNullOrWhiteSpace(org.Description) ? "Chưa có mô tả cho tổ chức này." : org.Description)</p>
                         </div>
-                        <div class="org-card-footer">
-                            <div class="members-overlap">
-                                <img src="/images/mockimages/AvtUser/Avt1.jpg" alt="Member" class="member-avatar" />
-                                <div class="member-count">+5</div>
+                        <div class="card-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">THÀNH VIÊN</span>
+                                <span class="stat-value">@GetRandomNumber(100, 500)</span>
                             </div>
-                            <span class="project-count">Active</span>
+                            <div class="stat-item">
+                                <span class="stat-label">CHIẾN DỊCH</span>
+                                <span class="stat-value">@GetRandomNumber(5, 20)</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="action-link">Xem chi tiết <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_forward</span></span>
                         </div>
                     </div>
                 }
             </div>
         </section>
 
-        <!-- SECTION: TỔ CHỨC TÔI THAM GIA -->
-        <section class="org-section mt-lg">
+        <!-- SECTION: CÁC TỔ CHỨC TÔI ĐANG THAM GIA -->
+        <section class="org-section mt-5">
             <div class="section-header">
-                <h3>Tổ chức tôi tham gia</h3>
-                <div class="section-divider"></div>
+                <h2>Các tổ chức tôi đang tham gia</h2>
+                <div class="header-line"></div>
+                <span class="header-badge member-badge">THÀNH VIÊN (@joinedOrgs.Count)</span>
             </div>
 
             <div class="org-list-grid">
-                @foreach (var org in _dashboard.Organizations.Where(o => o.Role != "Owner" && o.Role != "Admin"))
+                @foreach (var org in joinedOrgs)
                 {
-                    <div class="org-list-item" @onclick="() => NavigateToOrg(org.OrganizationId)" style="cursor: pointer;">
-                        <div class="org-list-left">
-                            <div class="org-logo-wrap">
-                                @if (!string.IsNullOrEmpty(org.AvatarUrl))
-                                {
-                                    <img src="@org.AvatarUrl" alt="Logo" class="org-logo-img" />
-                                }
-                                else
-                                {
-                                    <div class="org-text-logo @GetRandomColorClass(org.Name)">@org.Name.FirstOrDefault()</div>
-                                }
+                    <div class="org-list-card" @onclick="() => NavigateToOrg(org.OrganizationId)">
+                        <div class="list-card-icon">
+                            <span class="material-symbols-outlined" style="color: #ff9b51;">@GetRandomIcon(org.Name)</span>
+                        </div>
+                        <div class="list-card-content">
+                            <div class="list-card-title-row">
+                                <h3>@org.Name</h3>
+                                <span class="role-badge-small">THÀNH VIÊN</span>
                             </div>
-                            <div class="org-list-info">
-                                <h5>@org.Name</h5>
-                                <span>@org.Role</span>
+                            <p class="org-desc-small">@(string.IsNullOrWhiteSpace(org.Description) ? "Nơi kết nối các tâm hồn yêu thích hoạt động và phát triển kỹ năng." : org.Description)</p>
+                            <div class="list-card-stats">
+                                <div class="stat-sm">
+                                    <span class="material-symbols-outlined">group</span>
+                                    <span>@GetRandomNumber(50, 200) thành viên</span>
+                                </div>
+                                <div class="stat-sm">
+                                    <span class="material-symbols-outlined">campaign</span>
+                                    <span>@GetRandomNumber(2, 10) chiến dịch</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="org-list-right">
-                            <div class="join-date">
-                                <span class="date-label">Tham gia từ</span>
-                                <span class="date-value">@org.JoinedAtUtc.ToString("MM, yyyy")</span>
-                            </div>
-                            <span class="material-symbols-outlined action-icon">chevron_right</span>
+                        <div class="list-card-action">
+                            <button class="btn-arrow"><span class="material-symbols-outlined">chevron_right</span></button>
                         </div>
                     </div>
                 }
                 
-                @if (!_dashboard.Organizations.Any(o => o.Role != "Owner" && o.Role != "Admin"))
+                @if (joinedOrgs.Count == 0)
                 {
-                    <div class="pa-8 text-center text-muted">
+                    <div class="empty-state">
                         <p>Bạn chưa tham gia tổ chức nào khác.</p>
                     </div>
                 }
             </div>
         </section>
     }
-
-    <!-- Background Decorators -->
-    <div class="bg-decoration top-right"></div>
-    <div class="bg-decoration bottom-left"></div>
 </div>
 
 @code {
@@ -175,20 +171,18 @@
         }
     }
 
-    private string GetRandomColorClass(string name)
+    // Mock data helpers
+    private string GetRandomIcon(string? name)
     {
-        var colors = new[] { "dark-blue", "deep-blue", "subtle-orange", "subtle-blue" };
-        var index = Math.Abs(name.GetHashCode()) % colors.Length;
-        return colors[index];
+        if (string.IsNullOrWhiteSpace(name)) return "eco";
+        
+        var icons = new[] { "eco", "menu_book", "terminal", "music_note", "sports_esports", "palette" };
+        var index = Math.Abs(name.GetHashCode()) % icons.Length;
+        return icons[index];
+    }
+    
+    private int GetRandomNumber(int min, int max)
+    {
+        return new Random().Next(min, max);
     }
 }
-
-<style>
-    .org-card:hover, .org-list-item:hover, .create-org-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.2);
-        transition: all 0.3s ease;
-    }
-</style>
-
-

@@ -23,19 +23,7 @@
                 <span class="breadcrumb-active">@eventDetail.Name</span>
             </div>
             
-            <div class="d-flex align-center gap-6">
-                <div class="header-search">
-                    <span class="material-symbols-outlined search-icon">search</span>
-                    <input class="search-input" placeholder="SEARCH WORKSPACE..." type="text" />
-                </div>
-                <div class="d-flex align-center gap-4">
-                    <span class="material-symbols-outlined" style="color: var(--primary); cursor: pointer;">notifications</span>
-                    <div style="width: 2rem; height: 2rem; border-radius: 9999px; overflow: hidden; border: 2px solid var(--background);">
-                            <img src="/images/mockimages/AvtUser/Avt1.jpg" 
-                             alt="Profile" style="width: 100%; height: 100%; object-fit: cover;" />
-                    </div>
-                </div>
-            </div>
+            <!-- Đã bỏ thanh search, chuông và avatar theo yêu cầu -->
         </header>
 
         <section class="hero-section">
@@ -67,7 +55,7 @@
                     <div class="stat-card">
                         <p class="stat-label">Budget Used</p>
                         <h3 class="stat-value">@eventDetail.BudgetLabel</h3>
-                        <p class="stat-trend">↑ Near Limit</p>
+                        <p class="stat-trend" style="color: #ff9b51; font-weight: 700;">↑ Near Limit</p>
                     </div>
                     <div class="stat-card">
                         <p class="stat-label">Days Left</p>
@@ -76,7 +64,7 @@
                     </div>
                     <div class="stat-card">
                         <p class="stat-label">Risk Level</p>
-                        <h3 class="stat-value risk">@eventDetail.RiskLevel</h3>
+                        <h3 class="stat-value risk" style="color: #ff9b51;">@eventDetail.RiskLevel</h3>
                         <p class="stat-label" style="font-size: 0.6rem; color: rgba(37, 52, 63, 0.4); margin-top: 0.5rem;">Stability: High</p>
                     </div>
                 </div>
@@ -99,20 +87,19 @@
                                 
                                 <div class="phase-header d-flex justify-space-between align-center" style="background: #eef4f9; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
                                     <div class="d-flex align-center gap-4">
-                                        <span class="phase-num" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; background: var(--primary, #0f1f29); color: white; border-radius: 8px; font-weight: 800; font-size: 1.1rem;">
+                                        <!-- Cập nhật màu cam cho badge số -->
+                                        <span class="phase-num" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; background: #ff9b51; color: white; border-radius: 8px; font-weight: 800; font-size: 1.1rem;">
                                             @((ms.index + 1).ToString("D2"))
                                         </span>
                                         <div>
-                                            <h4 style="margin: 0; color: var(--primary, #0f1f29); font-weight: 800; font-size: 1.1rem;">@ms.value.Name</h4>
+                                            <!-- Cập nhật màu cam cho chữ, in hoa -->
+                                            <h4 style="margin: 0; color: #ff9b51; font-weight: 800; font-size: 1.1rem; text-transform: uppercase;">@ms.value.Name</h4>
                                             <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #64748b; font-weight: 600;">
                                                 Thời hạn: @(ms.value.StartDate.ToString("dd/MM/yyyy") ?? "Chưa set") - @(ms.value.EndDate.ToString("dd/MM/yyyy") ?? "Chưa set")
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="d-flex gap-2">
-                                        <button style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #cbd5e1; background: transparent; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="font-size: 1rem;">chevron_left</span></button>
-                                        <button style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #cbd5e1; background: transparent; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined" style="font-size: 1rem;">chevron_right</span></button>
-                                    </div>
+                                    <!-- Đã bỏ hai nút mũi tên -->
                                 </div>
 
                                 <div class="phase-body" style="padding: 12px 24px;">
@@ -177,7 +164,6 @@
                     <div class="d-flex justify-space-between align-center mb-6">
                         <h2 class="block-title">Timeline Milestones</h2>
                         <div class="d-flex align-center gap-2">
-                            <span class="material-symbols-outlined timeline-bg-icon">schedule</span>
                             <button type="button" 
                                     @onclick="OpenCreateMilestoneDialog" 
                                     style="background: none; border: none; padding: 4px; display: flex; align-items: center; cursor: pointer;">
@@ -194,25 +180,37 @@
                         @foreach (var ms in milestones.Select((value, index) => new { value, index }))
                         {
                             var today = DateTime.Today;
-                            bool isCompleted = ms.value.EndDate.Date < today;
+                            var cats = categoriesByMilestone.ContainsKey(ms.value.Id) ? categoriesByMilestone[ms.value.Id] : new();
+                            
+                            // Kiểm tra: Nếu tất cả category hoàn thành HOẶC đã qua ngày EndDate thì tính là Completed
+                            bool isAllCatsCompleted = cats.Any() && cats.All(c => c.ProgressPercentage >= 100);
+                            bool isCompleted = isAllCatsCompleted || ms.value.EndDate.Date < today;
+                            
                             bool isCurrent = !isCompleted && ms.value.StartDate.Date <= today;
+                            bool isFuture = !isCompleted && !isCurrent;
+
+                            string dotClass = isCompleted ? "dot-completed" : (isCurrent ? "dot-active" : "dot-future");
 
                             <div class="timeline-item">
-                                <div class='timeline-dot @(isCompleted ? "dot-completed" : (isCurrent ? "dot-active" : ""))'>
+                                <div class="timeline-dot @dotClass">
                                     @if (isCompleted) {
-                                        <span class="material-symbols-outlined text-white" style="font-size: 0.75rem;">check</span>
+                                        <span class="material-symbols-outlined" style="font-size: 0.9rem; color: white; font-weight: 900;">check</span>
                                     } else if (isCurrent) {
-                                        <div class="pulse"></div>
+                                        <div class="inner-dot"></div>
                                     }
                                 </div>
-                                <p class="timeline-phase">PHASE @(ms.index + 1): @(ms.value.Name?.Split(':').LastOrDefault()?.Trim().ToUpper() ?? "PLANNING")</p>
-                                <h4 class="timeline-title">@(ms.value.Name?.Split(':').FirstOrDefault()?.Trim() ?? "Stage")</h4>
-                                <p class="timeline-date">
+                                <p class="timeline-phase" style="color: @(isFuture ? "#94a3b8" : "#ff9b51");">
+                                    PHASE @(ms.index + 1): @(ms.value.Name?.Split(':').LastOrDefault()?.Trim().ToUpper() ?? "PLANNING")
+                                </p>
+                                <h4 class="timeline-title" style="color: @(isFuture ? "#94a3b8" : "var(--primary)");">
+                                    @(ms.value.Name?.Split(':').FirstOrDefault()?.Trim() ?? "Stage")
+                                </h4>
+                                <p class="timeline-date" style="color: @(isFuture ? "#cbd5e1" : "rgba(37, 52, 63, 0.6)");">
                                     @(isCompleted
                                         ? $"Completed: {ms.value.EndDate:MMM dd, yyyy}"
                                         : isCurrent
                                             ? $"Active: Est. End {ms.value.EndDate:MMM dd}"
-                                            : $"Planned: {ms.value.StartDate:MMM dd} - {ms.value.EndDate:MMM dd}")
+                                            : $"Scheduled: {ms.value.StartDate:MMM dd, yyyy}")
                                 </p>
                             </div>
                         }
@@ -250,9 +248,8 @@
     private EventViewModel? eventDetail;
     private List<MilestoneViewModel> milestones = new();
     
-    // MỚI: Dùng Dictionary để nhóm Hạng mục (Category) vào từng Giai đoạn (Milestone)
     private Dictionary<Guid, List<EventCategoryViewModel>> categoriesByMilestone = new();
-    private List<EventCategoryViewModel> allCategories = new(); // Dành cho hàm OpenCreateTaskDialog check
+    private List<EventCategoryViewModel> allCategories = new();
     
     private bool _isOrganizationRoute;
 

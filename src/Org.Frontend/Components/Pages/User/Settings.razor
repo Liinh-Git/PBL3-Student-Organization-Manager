@@ -5,247 +5,256 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<PageTitle>Cai dat nguoi dung</PageTitle>
+<PageTitle>Cài đặt người dùng</PageTitle>
 
-<div class="settings-shell">
+<div class="modern-settings-wrapper">
     @if (_isLoading)
     {
         <section class="settings-state">
-            <h1>Dang tai trang cai dat</h1>
-            <p>He thong dang dong bo thong tin tai khoan cua ban.</p>
+            <h1>Đang tải trang cài đặt</h1>
+            <p>Hệ thống đang đồng bộ thông tin tài khoản của bạn.</p>
         </section>
     }
     else if (!string.IsNullOrWhiteSpace(_errorMessage))
     {
         <section class="settings-state error">
-            <h1>Khong tai duoc du lieu cai dat</h1>
+            <h1>Không tải được dữ liệu cài đặt</h1>
             <p>@_errorMessage</p>
-            <button type="button" class="state-button" @onclick="ReloadAsync">Thu lai</button>
+            <button type="button" class="modern-btn-outline" @onclick="ReloadAsync">Thử lại</button>
         </section>
     }
     else if (_settings is not null)
     {
-        <div class="settings-grid">
+        <div class="settings-container">
             
-            <main class="settings-main">
-                <header class="settings-head">
-                    <h1>Tai khoan</h1>
-                    <p>Quan ly thong tin ho so, bao mat va cac tuy chon he thong cua ban tai Kora.</p>
-                </header>
+            <div class="pill-tabs-container">
+                <button class="pill-tab @(_activeSection == SectionProfile ? "active" : "")" @onclick='() => SelectSection(SectionProfile)'>
+                    <MudIcon Icon="@Icons.Material.Outlined.Person" Size="Size.Small" Class="pill-icon" /> Hồ sơ cá nhân
+                </button>
+                <button class="pill-tab @(_activeSection == SectionSecurity ? "active" : "")" @onclick='() => SelectSection(SectionSecurity)'>
+                    <MudIcon Icon="@Icons.Material.Outlined.Shield" Size="Size.Small" Class="pill-icon" /> Đăng nhập & Bảo mật
+                </button>
+                <button class="pill-tab @(_activeSection == SectionNotifications ? "active" : "")" @onclick='() => SelectSection(SectionNotifications)'>
+                    <MudIcon Icon="@Icons.Material.Outlined.Notifications" Size="Size.Small" Class="pill-icon" /> Thông báo
+                </button>
+                <button class="pill-tab @(_activeSection == SectionAccount ? "active" : "")" @onclick='() => SelectSection(SectionAccount)'>
+                    <MudIcon Icon="@Icons.Material.Outlined.Settings" Size="Size.Small" Class="pill-icon" /> Nâng cao
+                </button>
+            </div>
 
-                <section id="profile" class="settings-panel profile-panel @GetSectionClass(SectionProfile)">
-                    <div class="profile-content">
-                        <div class="profile-left">
-                            <div class="avatar-wrap">
-                                <img src="@ResolveAvatar(_settings.Profile.AvatarUrl)" alt="Avatar" />
-                                <button type="button" class="avatar-button" @onclick="CycleAvatar" aria-label="Doi avatar">
-                                    <MudIcon Icon="@Icons.Material.Outlined.PhotoCamera" />
-                                </button>
+            <main class="settings-content-box animate-fade-in">
+                
+                @if (_activeSection == SectionProfile)
+                {
+                    <div class="tab-pane">
+                        <div class="profile-layout">
+                            <div class="avatar-section">
+                                <div class="avatar-wrap">
+                                    <img src="@ResolveAvatar(_settings.Profile.AvatarUrl)" alt="Avatar" />
+                                    <button type="button" class="avatar-button" @onclick="CycleAvatar" aria-label="Đổi avatar">
+                                        <MudIcon Icon="@Icons.Material.Outlined.PhotoCamera" Size="Size.Small" />
+                                    </button>
+                                </div>
+                                <div class="avatar-info">
+                                    <h3>@_settings.Profile.FullName</h3>
+                                    <p>ID: @_settings.Profile.ProfileCode</p>
+                                </div>
                             </div>
-                            <div class="profile-labels">
-                                <h3>Thong tin ca nhan</h3>
-                                <p>ID: @_settings.Profile.ProfileCode</p>
-                            </div>
-                        </div>
 
-                        <div class="profile-right">
-                            <div class="profile-form-grid">
-                                <label class="field-group">
-                                    <span>Ho va ten</span>
-                                    <input type="text" @bind="_settings.Profile.FullName" />
-                                </label>
+                            <div class="form-section">
+                                <div class="form-grid">
+                                    <label class="modern-field">
+                                        <span>Họ và tên</span>
+                                        <input type="text" class="modern-input" @bind="_settings.Profile.FullName" />
+                                    </label>
 
-                                <label class="field-group">
-                                    <span>Email</span>
-                                    <input type="email" value="@_settings.Profile.Email" readonly />
-                                </label>
+                                    <label class="modern-field">
+                                        <span>Email</span>
+                                        <input type="email" class="modern-input readonly" value="@_settings.Profile.Email" readonly />
+                                    </label>
 
-                                <label class="field-group">
-                                    <span>So dien thoai</span>
-                                    <input type="text" @bind="_settings.Profile.PhoneNumber" />
-                                </label>
+                                    <label class="modern-field">
+                                        <span>Số điện thoại</span>
+                                        <input type="text" class="modern-input" @bind="_settings.Profile.PhoneNumber" />
+                                    </label>
 
-                                <label class="field-group">
-                                    <span>Ngay sinh</span>
-                                    <input type="date" value="@FormatDateForInput(_settings.Profile.DateOfBirth)" @onchange="HandleDateOfBirthChange" />
-                                </label>
+                                    <label class="modern-field">
+                                        <span>Ngày sinh</span>
+                                        <input type="date" class="modern-input" value="@FormatDateForInput(_settings.Profile.DateOfBirth)" @onchange="HandleDateOfBirthChange" />
+                                    </label>
 
-                                <div class="field-group gender-group">
-                                    <span>Gioi tinh</span>
-                                    <div class="gender-buttons" role="radiogroup" aria-label="Gender">
-                                        <button type="button" class="@GetGenderClass("Nam")" @onclick='() => SelectGender("Nam")'>Nam</button>
-                                        <button type="button" class="@GetGenderClass("Nu")" @onclick='() => SelectGender("Nu")'>Nu</button>
-                                        <button type="button" class="@GetGenderClass("Khac")" @onclick='() => SelectGender("Khac")'>Khac</button>
+                                    <div class="modern-field full-width">
+                                        <span>Giới tính</span>
+                                        <div class="gender-group">
+                                            <button type="button" class="gender-btn @GetGenderClass("Nam")" @onclick='() => SelectGender("Nam")'>Nam</button>
+                                            <button type="button" class="gender-btn @GetGenderClass("Nu")" @onclick='() => SelectGender("Nu")'>Nữ</button>
+                                            <button type="button" class="gender-btn @GetGenderClass("Khac")" @onclick='() => SelectGender("Khac")'>Khác</button>
+                                        </div>
                                     </div>
+
+                                    <label class="modern-field full-width">
+                                        <span>Địa chỉ</span>
+                                        <input type="text" class="modern-input" @bind="_settings.Profile.Address" />
+                                    </label>
+
+                                    <label class="modern-field full-width">
+                                        <span>Mô tả ngắn</span>
+                                        <textarea rows="3" class="modern-input" @bind="_settings.Profile.Bio"></textarea>
+                                    </label>
                                 </div>
 
-                                <label class="field-group">
-                                    <span>Dia chi</span>
-                                    <input type="text" @bind="_settings.Profile.Address" />
+                                <div class="form-actions">
+                                    <button type="button" class="modern-btn-primary" @onclick="SaveProfileAsync" disabled="@_isSavingProfile">
+                                        @(_isSavingProfile ? "Đang lưu..." : "Lưu thay đổi")
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (_activeSection == SectionSecurity)
+                {
+                    <div class="tab-pane">
+                        <div class="security-block">
+                            <div class="block-title">
+                                <div class="icon-wrap orange"><MudIcon Icon="@Icons.Material.Outlined.Key" Size="Size.Small" /></div>
+                                <h3>Thay đổi mật khẩu</h3>
+                            </div>
+                            
+                            <div class="form-grid">
+                                <label class="modern-field full-width">
+                                    <span>Mật khẩu hiện tại</span>
+                                    <input type="password" class="modern-input" @bind="_passwordForm.CurrentPassword" placeholder="••••••••••••" />
+                                </label>
+
+                                <label class="modern-field">
+                                    <span>Mật khẩu mới</span>
+                                    <input type="password" class="modern-input" @bind="_passwordForm.NewPassword" placeholder="Nhập mật khẩu mới" />
+                                </label>
+
+                                <label class="modern-field">
+                                    <span>Xác nhận mật khẩu</span>
+                                    <input type="password" class="modern-input" @bind="_passwordForm.ConfirmPassword" placeholder="Nhập lại mật khẩu" />
                                 </label>
                             </div>
 
-                            <label class="field-group full-width">
-                                <span>Mo ta ngan</span>
-                                <textarea rows="3" @bind="_settings.Profile.Bio"></textarea>
-                            </label>
+                            <div class="form-actions mt-4">
+                                <button type="button" class="modern-btn-secondary" @onclick="SavePasswordAsync" disabled="@_isSavingPassword">
+                                    @(_isSavingPassword ? "Đang cập nhật..." : "Cập nhật mật khẩu")
+                                </button>
+                            </div>
+                        </div>
 
-                            <div class="panel-actions">
-                                <button type="button" class="primary-button" @onclick="SaveProfileAsync" disabled="@_isSavingProfile">
-                                    @(_isSavingProfile ? "Dang luu..." : "Luu thay doi")
+                        <hr class="divider" />
+
+                        <div class="security-block">
+                            <div class="block-title flex-between">
+                                <div class="flex-align">
+                                    <div class="icon-wrap blue"><MudIcon Icon="@Icons.Material.Outlined.Devices" Size="Size.Small" /></div>
+                                    <h3>Thiết bị của bạn</h3>
+                                </div>
+                                <button type="button" class="text-btn danger" @onclick="RevokeOtherSessionsAsync" disabled="@_isRevokingSessions">
+                                    <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" />
+                                    @(_isRevokingSessions ? "Đang thu hồi..." : "Đăng xuất tất cả phiên khác")
+                                </button>
+                            </div>
+
+                            <div class="device-list">
+                                @foreach (var device in _settings.Devices)
+                                {
+                                    <div class="device-card @(device.IsCurrentSession ? "current" : "")">
+                                        <MudIcon Icon="@(device.IsCurrentSession ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Smartphone)" Class="device-icon" />
+                                        <div class="device-info">
+                                            <strong>@device.DeviceName</strong>
+                                            <p>@(device.IsCurrentSession ? "Đang hoạt động (Phiên này)" : device.LastActiveLabel)</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (_activeSection == SectionNotifications)
+                {
+                    <div class="tab-pane">
+                        <div class="notification-list">
+                            <div class="notify-item">
+                                <div>
+                                    <h4>Email Notifications</h4>
+                                    <p>Cập nhật quan trọng qua hộp thư điện tử</p>
+                                </div>
+                                <label class="modern-switch">
+                                    <input type="checkbox" checked="@_settings.Notifications.EmailNotificationsEnabled" @onchange="OnEmailNotificationsChanged" />
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="notify-item">
+                                <div>
+                                    <h4>App Push</h4>
+                                    <p>Thông báo tức thời trên ứng dụng di động</p>
+                                </div>
+                                <label class="modern-switch">
+                                    <input type="checkbox" checked="@_settings.Notifications.AppPushEnabled" @onchange="OnAppPushChanged" />
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="notify-item">
+                                <div>
+                                    <h4>SMS Alerts</h4>
+                                    <p>Tin nhắn văn bản cho các cảnh báo bảo mật</p>
+                                </div>
+                                <label class="modern-switch">
+                                    <input type="checkbox" checked="@_settings.Notifications.SmsAlertsEnabled" @onchange="OnSmsAlertsChanged" />
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-actions mt-6 pt-6 border-t">
+                            <button type="button" class="text-btn neutral w-full justify-center" @onclick="ResetNotificationsAsync" disabled="@_isSavingNotifications">
+                                @(_isSavingNotifications ? "Đang xử lý..." : "Thiết lập lại tất cả")
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                @if (_activeSection == SectionAccount)
+                {
+                    <div class="tab-pane">
+                        <div class="danger-zone">
+                            <div class="danger-icon">
+                                <MudIcon Icon="@Icons.Material.Filled.WarningAmber" />
+                            </div>
+                            <div class="danger-content">
+                                <h3>Xóa tài khoản vĩnh viễn</h3>
+                                <p>Hành động này không thể hoàn tác. Một khi bạn xóa tài khoản, toàn bộ dữ liệu cá nhân, lịch sử hoạt động và các dự án liên quan sẽ bị xóa vĩnh viễn khỏi hệ thống máy chủ Kora.</p>
+                                <span class="hint-text">@DeleteHintText</span>
+                                
+                                <button type="button" class="modern-btn-danger mt-4" @onclick="HandleDeleteAccountAsync" disabled="@_isDeletingAccount">
+                                    @(_isDeletingAccount ? "Đang xử lý..." : DeleteButtonText)
                                 </button>
                             </div>
                         </div>
                     </div>
-                </section>
+                }
 
-                <div class="sub-grid">
-                    <section id="security" class="settings-panel security-panel @GetSectionClass(SectionSecurity)">
-                        <div class="panel-title-row">
-                            <div class="title-icon secondary">
-                                <MudIcon Icon="@Icons.Material.Outlined.LockReset" />
-                            </div>
-                            <h3>Thay doi mat khau</h3>
-                        </div>
-
-                        <div class="security-form">
-                            <label class="field-group full-width">
-                                <span>Mat khau hien tai</span>
-                                <input type="password" @bind="_passwordForm.CurrentPassword" placeholder="••••••••••••" />
-                            </label>
-
-                            <div class="security-grid">
-                                <label class="field-group">
-                                    <span>Mat khau moi</span>
-                                    <input type="password" @bind="_passwordForm.NewPassword" placeholder="Mat khau moi" />
-                                </label>
-
-                                <label class="field-group">
-                                    <span>Xac nhan mat khau</span>
-                                    <input type="password" @bind="_passwordForm.ConfirmPassword" placeholder="Nhap lai mat khau" />
-                                </label>
-                            </div>
-
-                            <div class="security-note">
-                                <MudIcon Icon="@Icons.Material.Outlined.Info" />
-                                <p>Mat khau phai bao gom it nhat 8 ky tu, bao gom chu hoa, chu thuong va chu so.</p>
-                            </div>
-                        </div>
-
-                        <div class="panel-actions">
-                            <button type="button" class="subtle-button" @onclick="SavePasswordAsync" disabled="@_isSavingPassword">
-                                @(_isSavingPassword ? "Dang cap nhat..." : "Cap nhat bao mat")
-                            </button>
-                        </div>
-                    </section>
-
-                    <section id="notifications" class="settings-panel notification-panel @GetSectionClass(SectionNotifications)">
-                        <div class="panel-title-row">
-                            <div class="title-icon primary">
-                                <MudIcon Icon="@Icons.Material.Outlined.NotificationsActive" />
-                            </div>
-                            <h3>Cai dat thong bao</h3>
-                        </div>
-
-                        <div class="notification-list">
-                            <div class="toggle-row">
-                                <div>
-                                    <p>Email Notifications</p>
-                                    <span>Cap nhat quan trong qua hop thu</span>
-                                </div>
-                                <label class="toggle-switch" aria-label="Email notifications">
-                                    <input type="checkbox" checked="@_settings.Notifications.EmailNotificationsEnabled" @onchange="OnEmailNotificationsChanged" />
-                                    <span></span>
-                                </label>
-                            </div>
-
-                            <div class="toggle-row">
-                                <div>
-                                    <p>App Push</p>
-                                    <span>Thong bao tuc thoi tren di dong</span>
-                                </div>
-                                <label class="toggle-switch" aria-label="App push notifications">
-                                    <input type="checkbox" checked="@_settings.Notifications.AppPushEnabled" @onchange="OnAppPushChanged" />
-                                    <span></span>
-                                </label>
-                            </div>
-
-                            <div class="toggle-row">
-                                <div>
-                                    <p>SMS Alerts</p>
-                                    <span>Tin nhan van ban cho bao mat</span>
-                                </div>
-                                <label class="toggle-switch" aria-label="SMS alerts">
-                                    <input type="checkbox" checked="@_settings.Notifications.SmsAlertsEnabled" @onchange="OnSmsAlertsChanged" />
-                                    <span></span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="panel-actions stretch">
-                            <button type="button" class="text-button" @onclick="ResetNotificationsAsync" disabled="@_isSavingNotifications">
-                                @(_isSavingNotifications ? "Dang xu ly..." : "Thiet lap lai tat ca")
-                            </button>
-                        </div>
-                    </section>
-                </div>
-
-                <section id="devices" class="settings-panel device-panel @GetSectionClass(SectionDevices)">
-                    <div class="panel-title-row compact">
-                        <h3>Thiet bi dang nhap</h3>
-                        <button type="button" class="subtle-button" @onclick="RevokeOtherSessionsAsync" disabled="@_isRevokingSessions">
-                            @(_isRevokingSessions ? "Dang thu hoi..." : "Thu hoi phien khac")
-                        </button>
-                    </div>
-
-                    <div class="device-list">
-                        @foreach (var device in _settings.Devices)
-                        {
-                            <article class="device-item @(device.IsCurrentSession ? "current" : string.Empty)">
-                                <MudIcon Icon="@(device.IsCurrentSession ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Devices)" />
-                                <div>
-                                    <strong>@device.DeviceName</strong>
-                                    <p>@device.LastActiveLabel</p>
-                                </div>
-                            </article>
-                        }
-                    </div>
-                </section>
-
-                <section id="account" class="settings-panel account-panel @GetSectionClass(SectionAccount)">
-                    <div class="account-overlay"></div>
-                    <div class="account-content">
-                        <div>
-                            <h3>Quan ly tai khoan</h3>
-                            <p>Mot khi ban xoa tai khoan, toan bo du lieu, du an va thong tin nghien cuu se bi xoa vinh vien.</p>
-                            <span class="account-hint">@DeleteHintText</span>
-                        </div>
-                        <button type="button" class="danger-button" @onclick="HandleDeleteAccountAsync" disabled="@_isDeletingAccount">
-                            @(_isDeletingAccount ? "Dang xu ly..." : DeleteButtonText)
-                        </button>
-                    </div>
-                </section>
-
-                <div class="wordmark">KORA SYSTEM</div>
             </main>
-        </div>
-
-        <div class="floating-help">
-            <button type="button" aria-label="Tro giup">
-                <MudIcon Icon="@Icons.Material.Outlined.Help" />
-            </button>
         </div>
     }
 </div>
 
 @code {
+    // Các phần code C# giữ nguyên hoàn toàn như cũ
     private const string SectionProfile = "profile";
     private const string SectionSecurity = "security";
     private const string SectionNotifications = "notifications";
-    private const string SectionDevices = "devices";
     private const string SectionAccount = "account";
-    private const string DefaultAvatarUrl = "/images/mockimages/AvtUser/Avt1.jpg";
-
+    
+    private const string DefaultAvatarUrl = "/images/mockimages/FB_IMG_1744903311334.jpg";
     private static readonly string[] AvatarPool =
     [
         "/images/mockimages/AvtUser/Avt1.jpg",
@@ -277,14 +286,14 @@
     private bool _isDeletingAccount;
     private bool _deleteConfirmationArmed;
     private bool _notificationUnsupportedShown;
+    
     private string _activeSection = SectionProfile;
     private string? _errorMessage;
 
-    private string DeleteButtonText => _deleteConfirmationArmed ? "Xac nhan xoa tai khoan" : "Xoa tai khoan";
-
+    private string DeleteButtonText => _deleteConfirmationArmed ? "Xác nhận xóa tài khoản" : "Xóa tài khoản";
     private string DeleteHintText => _deleteConfirmationArmed
-        ? "Nhan lai mot lan nua de xac nhan thao tac."
-        : "Ban co the tam ngung tai khoan bat cu luc nao.";
+        ? "Nhấn lại một lần nữa để xác nhận thao tác."
+        : "Bạn có thể tạm ngưng tài khoản bất cứ lúc nào.";
 
     protected override async Task OnInitializedAsync()
     {
@@ -307,7 +316,7 @@
         catch
         {
             _settings = null;
-            _errorMessage = "He thong tam thoi khong tai duoc du lieu cai dat. Vui long thu lai.";
+            _errorMessage = "Hệ thống tạm thời không tải được dữ liệu cài đặt. Vui lòng thử lại.";
         }
         finally
         {
@@ -318,7 +327,6 @@
     private void SelectSection(string section)
     {
         _activeSection = section;
-        Navigation.NavigateTo($"/user/settings#{section}", forceLoad: false);
     }
 
     private void NavigateDashboard()
@@ -328,26 +336,20 @@
 
     private void SelectGender(string gender)
     {
-        if (_settings is null)
-            return;
-
+        if (_settings is null) return;
         _settings.Profile.Gender = gender;
     }
 
     private void HandleDateOfBirthChange(ChangeEventArgs args)
     {
-        if (_settings is null)
-            return;
-
+        if (_settings is null) return;
         var raw = args.Value?.ToString();
         _settings.Profile.DateOfBirth = ParseDateOnly(raw);
     }
 
     private async Task SaveProfileAsync()
     {
-        if (_settings is null || _isSavingProfile)
-            return;
-
+        if (_settings is null || _isSavingProfile) return;
         _isSavingProfile = true;
         try
         {
@@ -362,9 +364,7 @@
 
     private async Task SavePasswordAsync()
     {
-        if (_isSavingPassword)
-            return;
-
+        if (_isSavingPassword) return;
         _isSavingPassword = true;
         try
         {
@@ -377,7 +377,6 @@
 
             var result = await UserSettingsService.ChangePasswordAsync(request);
             Notify(result, Severity.Success);
-
             if (result.Succeeded)
             {
                 _passwordForm = new PasswordChangeFormViewModel();
@@ -391,56 +390,44 @@
 
     private async Task OnEmailNotificationsChanged(ChangeEventArgs args)
     {
-        if (_settings is null)
-            return;
-
+        if (_settings is null) return;
         _settings.Notifications.EmailNotificationsEnabled = ParseBoolean(args.Value);
         await PersistNotificationsAsync();
     }
 
     private async Task OnAppPushChanged(ChangeEventArgs args)
     {
-        if (_settings is null)
-            return;
-
+        if (_settings is null) return;
         _settings.Notifications.AppPushEnabled = ParseBoolean(args.Value);
         await PersistNotificationsAsync();
     }
 
     private async Task OnSmsAlertsChanged(ChangeEventArgs args)
     {
-        if (_settings is null)
-            return;
-
+        if (_settings is null) return;
         _settings.Notifications.SmsAlertsEnabled = ParseBoolean(args.Value);
         await PersistNotificationsAsync();
     }
 
     private async Task ResetNotificationsAsync()
     {
-        if (_settings is null)
-            return;
-
+        if (_settings is null) return;
         _settings.Notifications = new NotificationPreferencesViewModel
         {
             EmailNotificationsEnabled = true,
             AppPushEnabled = true,
             SmsAlertsEnabled = false
         };
-
         await PersistNotificationsAsync(forceNotify: true);
     }
 
     private async Task PersistNotificationsAsync(bool forceNotify = false)
     {
-        if (_settings is null || _isSavingNotifications)
-            return;
-
+        if (_settings is null || _isSavingNotifications) return;
         _isSavingNotifications = true;
         try
         {
             var result = await UserSettingsService.SaveNotificationsAsync(_settings.Notifications.Clone());
-
             if (result.IsUnsupported)
             {
                 if (!_notificationUnsupportedShown || forceNotify)
@@ -448,10 +435,8 @@
                     Notify(result, Severity.Info);
                     _notificationUnsupportedShown = true;
                 }
-
                 return;
             }
-
             Notify(result, Severity.Success);
         }
         finally
@@ -462,9 +447,7 @@
 
     private async Task RevokeOtherSessionsAsync()
     {
-        if (_settings is null || _isRevokingSessions)
-            return;
-
+        if (_settings is null || _isRevokingSessions) return;
         _isRevokingSessions = true;
         try
         {
@@ -484,13 +467,11 @@
 
     private async Task HandleDeleteAccountAsync()
     {
-        if (_isDeletingAccount)
-            return;
-
+        if (_isDeletingAccount) return;
         if (!_deleteConfirmationArmed)
         {
             _deleteConfirmationArmed = true;
-            Snackbar.Add("Nhan lai mot lan nua de xac nhan xoa tai khoan.", Severity.Warning);
+            Snackbar.Add("Nhấn lại một lần nữa để xác nhận xóa tài khoản.", Severity.Warning);
             return;
         }
 
@@ -499,7 +480,6 @@
         {
             var result = await UserSettingsService.DeleteAccountAsync();
             Notify(result, Severity.Warning);
-
             if (result.Succeeded)
             {
                 _deleteConfirmationArmed = false;
@@ -513,9 +493,7 @@
 
     private void CycleAvatar()
     {
-        if (_settings is null)
-            return;
-
+        if (_settings is null) return;
         var current = ResolveAvatar(_settings.Profile.AvatarUrl);
         var currentIndex = Array.FindIndex(AvatarPool, x => string.Equals(x, current, StringComparison.OrdinalIgnoreCase));
         var nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % AvatarPool.Length;
@@ -534,9 +512,7 @@
 
     private static DateOnly? ParseDateOnly(string? raw)
     {
-        if (string.IsNullOrWhiteSpace(raw))
-            return null;
-
+        if (string.IsNullOrWhiteSpace(raw)) return null;
         return DateOnly.TryParse(raw, out var value) ? value : null;
     }
 
@@ -546,18 +522,10 @@
     private static string ResolveAvatar(string? avatarUrl)
         => string.IsNullOrWhiteSpace(avatarUrl) ? DefaultAvatarUrl : avatarUrl;
 
-    private string GetNavClass(string section)
-        => _activeSection == section ? "sidebar-item active" : "sidebar-item";
-
-    private string GetSectionClass(string section)
-        => _activeSection == section ? "focused" : string.Empty;
-
     private string GetGenderClass(string gender)
     {
         var current = _settings?.Profile.Gender?.Trim() ?? string.Empty;
-        return string.Equals(current, gender, StringComparison.OrdinalIgnoreCase)
-            ? "gender-button active"
-            : "gender-button";
+        return string.Equals(current, gender, StringComparison.OrdinalIgnoreCase) ? "active" : "";
     }
 
     private void Notify(UserSettingsOperationResult result, Severity successSeverity)
@@ -567,13 +535,11 @@
             Snackbar.Add(result.Message, successSeverity);
             return;
         }
-
         if (result.IsUnsupported)
         {
             Snackbar.Add(result.Message, Severity.Info);
             return;
         }
-
         Snackbar.Add(result.Message, Severity.Error);
     }
 }

@@ -147,7 +147,7 @@
                     </div>
                     <div style="width: 15%;">
                         <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" 
-                                 Style="@(task.Status == "TODO" ? "background-color: #f97316; color: white;" : (task.Status == "IN_PROGRESS" ? "background-color: #1e293b; color: white;" : "background-color: #10b981; color: white;"))" 
+                                 Style="@(task.Status == "TODO" ? "background-color: #1e293b; color: white;" : (task.Status == "IN_PROGRESS" ? "background-color: #f97316; color: white;" : "background-color: #10b981; color: white;"))" 
                                  Class="fw-bold rounded">
                             @(task.Status == "TODO" ? "TODO" : (task.Status == "IN_PROGRESS" ? "IN PROGRESS" : "COMPLETED"))
                         </MudChip>
@@ -255,4 +255,4 @@
             StateHasChanged();
         }
     }
-}
+}
