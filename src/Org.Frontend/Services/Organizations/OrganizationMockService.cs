@@ -127,6 +127,6 @@ public sealed class OrganizationMockService(
     private static string? ResolveUserAvatar(Guid userId, MockDataSet data)
     {
         var user = data.Users.FirstOrDefault(u => u.Id == userId);
-        return user?.AvatarUrl ?? "/images/avatars/user.png";
+        return user?.AvatarUrl ?? "/images/mockimages/AvtUser/Avt1.jpg";
     }
 }

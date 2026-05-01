@@ -48,7 +48,7 @@ public sealed class EventMockService(
                 StatusLabel = "UPCOMING",
                 Location = string.IsNullOrWhiteSpace(req.Location) ? "To be announced" : req.Location.Trim(),
                 TotalSlots = req.TotalSlots <= 0 ? 150 : req.TotalSlots,
-                ImageUrl = "/images/mockimages/Messenger_creation_AB4B9ECA-C460-4F7E-B13B-8EDAC50BF4B0.jpeg",
+                ImageUrl = "/images/mockimages/Org1/Card1.jpg",
                 CompletionLabel = "0%",
                 BudgetLabel = "0%",
                 RiskLevel = "Low",

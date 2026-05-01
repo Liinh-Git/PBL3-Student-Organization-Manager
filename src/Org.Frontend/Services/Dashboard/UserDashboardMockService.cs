@@ -11,8 +11,8 @@ public sealed class UserDashboardMockService(
     FrontendMockDataStore mockDataStore,
     AuthenticationStateProvider authStateProvider) : IUserDashboardService
 {
-    private const string DefaultOrganizationImageUrl = "/images/mockimages/1773043475804.png";
-    private const string DefaultEventImageUrl = "/images/mockimages/IMG_20260301_060428.jpg";
+    private const string DefaultOrganizationImageUrl = "/images/mockimages/Org1/Avt.jpg";
+    private const string DefaultEventImageUrl = "/images/mockimages/Org1/Card1.jpg";
 
     private readonly FrontendMockDataStore _mockDataStore = mockDataStore;
     private readonly AuthenticationStateProvider _authStateProvider = authStateProvider;

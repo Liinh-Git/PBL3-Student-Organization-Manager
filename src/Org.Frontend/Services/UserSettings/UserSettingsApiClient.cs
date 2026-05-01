@@ -7,7 +7,7 @@ namespace Org.Frontend.Services.UserSettings;
 
 public sealed class UserSettingsApiClient(HttpClient httpClient) : IUserSettingsService
 {
-    private const string DefaultAvatarUrl = "/images/mockimages/FB_IMG_1744903311334.jpg";
+    private const string DefaultAvatarUrl = "/images/mockimages/AvtUser/Avt1.jpg";
 
     private readonly HttpClient _httpClient = httpClient;
 
