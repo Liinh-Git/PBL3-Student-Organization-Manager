@@ -28,215 +28,112 @@
 
         <section class="hero-section">
             <img class="hero-img" 
-                 src="/images/mockimages/IMG_20250416_104429.jpg" 
+                 src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1600&h=600&fit=crop&q=80" 
                  alt="Background" />
             <div class="hero-gradient"></div>
             <div class="hero-content">
                 <div class="hero-badge-row">
                     <span class="status-pill">@eventDetail.StatusLabel</span>
-                    <span class="hero-subtitle">@eventDetail.StartDate.ToString("MMM dd") - @eventDetail.EndDate.ToString("MMM dd, yyyy")</span>
+                    <span class="hero-subtitle">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" />
+                        @eventDetail.StartDate.ToString("MMM dd") - @eventDetail.EndDate.ToString("MMM dd, yyyy")
+                    </span>
                 </div>
                 <h1 class="hero-title">@eventDetail.Name</h1>
                 <p class="hero-desc">@eventDetail.Description</p>
             </div>
         </section>
 
-        <div class="content-grid">
-            <div class="main-col">
-                
-                <div class="stats-row">
-                    <div class="stat-card accent">
-                        <p class="stat-label">Completion</p>
-                        <h3 class="stat-value">@eventDetail.CompletionLabel</h3>
-                        <div class="stat-progress-rail">
-                            <div class="stat-progress-fill" style="width: @(GetPercent(eventDetail.CompletionLabel) + "%")"></div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <p class="stat-label">Budget Used</p>
-                        <h3 class="stat-value">@eventDetail.BudgetLabel</h3>
-                        <p class="stat-trend" style="color: #ff9b51; font-weight: 700;">↑ Near Limit</p>
-                    </div>
-                    <div class="stat-card">
-                        <p class="stat-label">Days Left</p>
-                        <h3 class="stat-value">@((eventDetail.StartDate.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days)</h3>
-                        <p class="stat-label" style="font-size: 0.6rem; color: rgba(37, 52, 63, 0.4); margin-top: 0.5rem;">@eventDetail.StartDate.ToString("MMM dd") Deadline</p>
-                    </div>
-                    <div class="stat-card">
-                        <p class="stat-label">Risk Level</p>
-                        <h3 class="stat-value risk" style="color: #ff9b51;">@eventDetail.RiskLevel</h3>
-                        <p class="stat-label" style="font-size: 0.6rem; color: rgba(37, 52, 63, 0.4); margin-top: 0.5rem;">Stability: High</p>
-                    </div>
+        <div class="content-container">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Lộ trình dự án</h2>
+                    <p>Quản lý giai đoạn và hạng mục công việc.</p>
                 </div>
-
-                <div class="content-block" style="background: transparent; border: none; padding: 0;">
-                    <div class="d-flex justify-space-between align-center mb-6">
-                        <h2 class="block-title" style="margin: 0;">Department Workflows by Phase</h2>
-                        <button class="styled-btn d-flex align-center" style="box-shadow: none; padding: 6px 12px; font-size: 0.75rem; color: var(--secondary); background: white; border-radius: 6px;" @onclick="OpenCreateCategoryDialog">
-                            <span class="material-symbols-outlined" style="font-size: 1.1rem; margin-right: 4px;">add</span>
-                            ADD CATEGORY
-                        </button>
-                    </div>
-
-                    <div class="d-flex flex-column gap-6">
-                        @foreach (var ms in milestones.Select((value, index) => new { value, index }))
-                        {
-                            var cats = categoriesByMilestone.ContainsKey(ms.value.Id) ? categoriesByMilestone[ms.value.Id] : new();
-                            
-                            <div class="phase-card" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
-                                
-                                <div class="phase-header d-flex justify-space-between align-center" style="background: #eef4f9; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
-                                    <div class="d-flex align-center gap-4">
-                                        <!-- Cập nhật màu cam cho badge số -->
-                                        <span class="phase-num" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; background: #ff9b51; color: white; border-radius: 8px; font-weight: 800; font-size: 1.1rem;">
-                                            @((ms.index + 1).ToString("D2"))
-                                        </span>
-                                        <div>
-                                            <!-- Cập nhật màu cam cho chữ, in hoa -->
-                                            <h4 style="margin: 0; color: #ff9b51; font-weight: 800; font-size: 1.1rem; text-transform: uppercase;">@ms.value.Name</h4>
-                                            <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #64748b; font-weight: 600;">
-                                                Thời hạn: @(ms.value.StartDate.ToString("dd/MM/yyyy") ?? "Chưa set") - @(ms.value.EndDate.ToString("dd/MM/yyyy") ?? "Chưa set")
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <!-- Đã bỏ hai nút mũi tên -->
-                                </div>
-
-                                <div class="phase-body" style="padding: 12px 24px;">
-                                    @if (cats.Any())
-                                    {
-                                        <table class="workflow-table" style="width: 100%; border-collapse: collapse;">
-                                            <thead class="table-header">
-                                                <tr style="text-transform: uppercase; font-size: 0.7rem; color: #64748b;">
-                                                    <th style="padding: 16px 8px; text-align: left; font-weight: 800;">Department</th>
-                                                    <th style="padding: 16px 8px; text-align: left; font-weight: 800;">Lead</th>
-                                                    <th style="padding: 16px 8px; text-align: left; font-weight: 800;">Progress</th>
-                                                    <th style="padding: 16px 8px; text-align: right; font-weight: 800;">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var cat in cats)
-                                                {
-                                                    <tr class="table-row" style="border-top: 1px solid #f1f5f9; transition: background 0.2s;">
-                                                        <td style="padding: 16px 8px;">
-                                                            <p class="dept-name" style="margin: 0; font-weight: 700; color: var(--primary, #0f1f29); font-size: 0.95rem;">@cat.Name</p>
-                                                            <p class="dept-sub" style="margin: 4px 0 0; font-size: 0.75rem; color: #64748b;">@cat.ActiveSubtasks Active Subtasks</p>
-                                                        </td>
-                                                        <td style="padding: 16px 8px;">
-                                                            <div class="lead-box d-flex align-center gap-2">
-                                                                <div class="d-flex align-center justify-center" style="width: 28px; height: 28px; border-radius: 50%; background-color: #e2e8f0; font-size: 0.7rem; font-weight: 800; color: var(--primary, #0f1f29);">
-                                                                    @GetLeadInitial(cat.LeadName)
-                                                                </div>
-                                                                <span class="lead-name" style="font-size: 0.85rem; font-weight: 600;">@(string.IsNullOrWhiteSpace(cat.LeadName) ? "Chưa rõ" : cat.LeadName)</span>
-                                                            </div>
-                                                        </td>
-                                                        <td style="padding: 16px 8px;">
-                                                            <div class="progress-rail-small" style="width: 120px; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                                                                <div class="progress-fill-small" style="height: 100%; background: var(--secondary, #f97316); width: @(cat.ProgressPercentage)%; border-radius: 4px;"></div>
-                                                            </div>
-                                                        </td>
-                                                        <td style="padding: 16px 8px; text-align: right;">
-                                                            <a class="action-link" href="@BuildTaskBoardRoute(cat.Id)" style="color: var(--secondary, #f97316); font-weight: 800; font-size: 0.8rem; text-decoration: none;">View Details</a>
-                                                        </td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    }
-                                    else
-                                    {
-                                        <div style="padding: 32px 0; text-align: center; color: #94a3b8;">
-                                            <span class="material-symbols-outlined" style="font-size: 2rem; opacity: 0.5; margin-bottom: 8px;">inventory_2</span>
-                                            <p style="margin: 0; font-size: 0.85rem; font-style: italic;">Chưa có bộ phận nào phụ trách trong giai đoạn này.</p>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-
+                <button class="add-ms-btn" @onclick="OpenCreateMilestoneDialog">
+                    <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
+                    THÊM MILESTONE
+                </button>
             </div>
 
-            <div class="side-col">
-                
-                <div class="content-block timeline-block">
-                    <div class="d-flex justify-space-between align-center mb-6">
-                        <h2 class="block-title">Timeline Milestones</h2>
-                        <div class="d-flex align-center gap-2">
-                            <button type="button" 
-                                    @onclick="OpenCreateMilestoneDialog" 
-                                    style="background: none; border: none; padding: 4px; display: flex; align-items: center; cursor: pointer;">
-                                <span class="material-symbols-outlined" 
-                                      style="color: var(--secondary); font-size: 1.8rem; font-variation-settings: 'FILL' 1;">
-                                    add_circle
-                                </span>
-                            </button>
+            <div class="roadmap-container">
+                @foreach (var ms in milestones.Select((value, index) => new { value, index }))
+                {
+                    var cats = categoriesByMilestone.ContainsKey(ms.value.Id) ? categoriesByMilestone[ms.value.Id] : new();
+                    var today = DateTime.Today;
+                    
+                    bool isAllCatsCompleted = cats.Any() && cats.All(c => c.ProgressPercentage >= 100);
+                    bool isCompleted = isAllCatsCompleted || ms.value.EndDate.Date < today;
+                    bool isCurrent = !isCompleted && ms.value.StartDate.Date <= today;
+
+                    <div class="milestone-node">
+                        <div class="node-icon @(isCompleted ? "completed" : isCurrent ? "active" : "future")">
+                            @if (isCompleted) { <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" /> }
+                            else if (isCurrent) { <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" /> }
+                            else { <MudIcon Icon="@Icons.Material.Filled.RadioButtonUnchecked" Size="Size.Small" /> }
+                        </div>
+
+                        <div class="ms-card @(isCurrent ? "current-active" : "")">
+                            <div class="ms-card-header">
+                                <div class="ms-header-info">
+                                    <span class="phase-label" style="color: @(isCompleted ? "#22c55e" : isCurrent ? "#f97316" : "#94a3b8")">Phase @(ms.index + 1)</span>
+                                    <h3>@ms.value.Name</h3>
+                                    <div class="ms-date-range">
+                                         <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Style="font-size: 14px;" />
+                                         @ms.value.StartDate.ToString("dd/MM/yyyy") 
+                                         <MudIcon Icon="@Icons.Material.Filled.ArrowRightAlt" Size="Size.Small" /> 
+                                         @ms.value.EndDate.ToString("dd/MM/yyyy")
+                                    </div>
+                                </div>
+                                <button class="add-cat-btn" @onclick="OpenCreateCategoryDialog">
+                                    <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
+                                    HẠNG MỤC
+                                </button>
+                            </div>
+
+                            <div class="ms-card-body">
+                                @if (cats.Any())
+                                {
+                                    @foreach (var cat in cats)
+                                    {
+                                        <div class="cat-item" @onclick="@(() => NavigationManager.NavigateTo(BuildTaskBoardRoute(cat.Id)))">
+                                            <div class="cat-info">
+                                                <div class="cat-title">
+                                                    <p>@cat.Name</p>
+                                                    <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Class="opacity-0 hover-show" Style="font-size: 14px; color: #cbd5e1;" />
+                                                </div>
+                                                <p class="cat-sub">@cat.ActiveSubtasks công việc phụ đang chạy</p>
+                                            </div>
+
+                                            <div class="cat-stats">
+                                                <div class="lead-pill">
+                                                    <div class="lead-avatar">@GetLeadInitial(cat.LeadName)</div>
+                                                    <span class="lead-name">@(string.IsNullOrWhiteSpace(cat.LeadName) ? "Chưa gán" : cat.LeadName)</span>
+                                                </div>
+
+                                                <div class="progress-box">
+                                                    <span class="progress-label">@cat.ProgressPercentage%</span>
+                                                    <div class="progress-bar-bg">
+                                                        <div class="progress-bar-fill" style="width: @(cat.ProgressPercentage)%; background: @(cat.ProgressPercentage == 100 ? "#22c55e" : "#f97316")"></div>
+                                                    </div>
+                                                </div>
+
+                                                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Style="color: #cbd5e1" />
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="empty-cat">
+                                        <MudIcon Icon="@Icons.Material.Filled.Inbox" Style="color: #e2e8f0; font-size: 2rem;" />
+                                        <p>Hạng mục trống</p>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     </div>
-
-                    <div class="timeline-container">
-                        <div class="timeline-line"></div>
-                        @foreach (var ms in milestones.Select((value, index) => new { value, index }))
-                        {
-                            var today = DateTime.Today;
-                            var cats = categoriesByMilestone.ContainsKey(ms.value.Id) ? categoriesByMilestone[ms.value.Id] : new();
-                            
-                            // Kiểm tra: Nếu tất cả category hoàn thành HOẶC đã qua ngày EndDate thì tính là Completed
-                            bool isAllCatsCompleted = cats.Any() && cats.All(c => c.ProgressPercentage >= 100);
-                            bool isCompleted = isAllCatsCompleted || ms.value.EndDate.Date < today;
-                            
-                            bool isCurrent = !isCompleted && ms.value.StartDate.Date <= today;
-                            bool isFuture = !isCompleted && !isCurrent;
-
-                            string dotClass = isCompleted ? "dot-completed" : (isCurrent ? "dot-active" : "dot-future");
-
-                            <div class="timeline-item">
-                                <div class="timeline-dot @dotClass">
-                                    @if (isCompleted) {
-                                        <span class="material-symbols-outlined" style="font-size: 0.9rem; color: white; font-weight: 900;">check</span>
-                                    } else if (isCurrent) {
-                                        <div class="inner-dot"></div>
-                                    }
-                                </div>
-                                <p class="timeline-phase" style="color: @(isFuture ? "#94a3b8" : "#ff9b51");">
-                                    PHASE @(ms.index + 1): @(ms.value.Name?.Split(':').LastOrDefault()?.Trim().ToUpper() ?? "PLANNING")
-                                </p>
-                                <h4 class="timeline-title" style="color: @(isFuture ? "#94a3b8" : "var(--primary)");">
-                                    @(ms.value.Name?.Split(':').FirstOrDefault()?.Trim() ?? "Stage")
-                                </h4>
-                                <p class="timeline-date" style="color: @(isFuture ? "#cbd5e1" : "rgba(37, 52, 63, 0.6)");">
-                                    @(isCompleted
-                                        ? $"Completed: {ms.value.EndDate:MMM dd, yyyy}"
-                                        : isCurrent
-                                            ? $"Active: Est. End {ms.value.EndDate:MMM dd}"
-                                            : $"Scheduled: {ms.value.StartDate:MMM dd, yyyy}")
-                                </p>
-                            </div>
-                        }
-                    </div>
-                </div>
-
-                <div class="info-grid mt-8">
-                    <div class="info-card">
-                        <span class="material-symbols-outlined info-icon">description</span>
-                        <p class="info-label">Total Files</p>
-                        <h3 class="info-value">@eventDetail.TotalFiles</h3>
-                    </div>
-                    <div class="info-card">
-                        <span class="material-symbols-outlined info-icon">payments</span>
-                        <p class="info-label">Spending</p>
-                        <h3 class="info-value">$@eventDetail.ActualSpending.ToString("N0")</h3>
-                    </div>
-                </div>
-
-                <div class="cta-card mt-8">
-                    <p class="cta-text">Need a customized report for the board?</p>
-                    <button class="cta-btn">Generate Summary</button>
-                    <button class="cta-btn" style="background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); margin-top: 0.5rem;" @onclick="OpenCreateTaskDialog">
-                        Add New Task
-                    </button>
-                </div>
+                }
             </div>
         </div>
     }

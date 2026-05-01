@@ -4,8 +4,10 @@
 @inject NavigationManager Navigation
 @inject IOrganizationRouteAccessGate OrganizationRouteAccessGate
 @inject Org.Frontend.Services.Dashboard.IUserDashboardService DashboardService
+@inject Org.Frontend.Services.Notifications.INotificationService NotificationService
 @implements IDisposable
 @using System.Security.Claims
+@using Org.Frontend.Components.Notifications
 
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -27,48 +29,69 @@
 
                 <div class="org-top-right">
                     <div class="org-icon-group" role="group" aria-label="Organization actions">
-                        <button class="org-icon-button" type="button" aria-label="Notifications">
-                            <MudIcon Icon="@Icons.Material.Outlined.Notifications" />
-                        </button>
+                        <NotificationBadge />
                         <button class="org-icon-button" type="button" aria-label="Settings">
                             <MudIcon Icon="@Icons.Material.Outlined.Settings" />
                         </button>
                     </div>
 
-                    <button type="button" class="org-profile clickable-profile" @onclick="NavigateToUserSettings">
-                        <div class="org-profile-meta">
-                            <strong>@DisplayName</strong>
-                            <span>Quản trị viên</span>
-                        </div>
-                        <div class="org-profile-avatar">
-                            <img src="/images/avatars/admin.jpg" alt="@DisplayName" />
-                        </div>
-                    </button>
+                    <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <ActivatorContent>
+                            <button type="button" class="org-profile clickable-profile">
+                                <div class="org-profile-meta">
+                                    <strong>@DisplayName</strong>
+                                    <span>Quản trị viên</span>
+                                </div>
+                                <div class="org-profile-avatar">
+                                    <img src="/images/avatars/admin.jpg" alt="@DisplayName" />
+                                </div>
+                            </button>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudMenuItem OnClick="NavigateToUserSettings" Icon="@Icons.Material.Outlined.Settings">Cài đặt</MudMenuItem>
+                            <MudMenuItem OnClick="HandleSignOut" Icon="@Icons.Material.Outlined.Logout">Đăng xuất</MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
                 </div>
             </header>
         }
         else
         {
             <header class="user-top-row">
-                <div class="user-top-spacer"></div>
+                @if (IsDiscoverPage)
+                {
+                    <div class="discover-top-middle" style="flex: 2; max-width: 600px;">
+                        <Org.Frontend.Components.Pages.User.DiscoverSearchBar />
+                    </div>
+                }
+                else
+                {
+                    <div class="user-top-spacer"></div>
+                }
 
                 <div class="user-top-actions">
-                    <button class="user-icon-button" type="button" aria-label="Notifications">
-                        <MudIcon Icon="@Icons.Material.Outlined.Notifications" />
-                    </button>
+                    <NotificationBadge />
                     <button class="user-icon-button" type="button" aria-label="Messages">
                         <MudIcon Icon="@Icons.Material.Outlined.Mail" />
                     </button>
 
-                    <button type="button" class="user-profile clickable-profile" @onclick="NavigateToUserSettings">
-                        <div class="user-profile-meta">
-                            <strong>@DisplayName</strong>
-                            <span>@UserWorkspaceLabel</span>
-                        </div>
-                        <div class="user-profile-avatar">
-                            <img src="/images/avatars/admin.jpg" alt="@DisplayName" />
-                        </div>
-                    </button>
+                    <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <ActivatorContent>
+                            <button type="button" class="user-profile clickable-profile">
+                                <div class="user-profile-meta">
+                                    <strong>@DisplayName</strong>
+                                    <span>@UserWorkspaceLabel</span>
+                                </div>
+                                <div class="user-profile-avatar">
+                                    <img src="/images/avatars/admin.jpg" alt="@DisplayName" />
+                                </div>
+                            </button>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudMenuItem OnClick="NavigateToUserSettings" Icon="@Icons.Material.Outlined.Settings">Cài đặt</MudMenuItem>
+                            <MudMenuItem OnClick="HandleSignOut" Icon="@Icons.Material.Outlined.Logout">Đăng xuất</MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
                 </div>
             </header>
         }
@@ -102,6 +125,8 @@
         _user.FindFirst(ClaimTypes.Email)?.Value
         ?? "User Workspace";
 
+    private bool IsDiscoverPage => Navigation.Uri.EndsWith("/user/discover", StringComparison.OrdinalIgnoreCase);
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -123,6 +148,12 @@
     // Đã thêm lại hàm này để sửa lỗi CS0103
     private void NavigateToUserSettings()
         => Navigation.NavigateTo("/user/settings");
+
+    private async Task HandleSignOut()
+    {
+        await AuthStateProvider.SignOutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
 
     private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
