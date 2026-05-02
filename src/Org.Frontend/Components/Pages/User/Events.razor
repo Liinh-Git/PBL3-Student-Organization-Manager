@@ -20,7 +20,7 @@
         {
             <section class="featured-section">
                 <div class="featured-card">
-                    <img class="featured-image" src="@(string.IsNullOrEmpty(FeaturedEvent.ImageUrl) ? "/images/mockimages/IMG_20260301_060428.jpg" : FeaturedEvent.ImageUrl)" alt="@FeaturedEvent.Name" />
+                    <img class="featured-image" src="@(string.IsNullOrEmpty(FeaturedEvent.ImageUrl) ? "/images/mockimages/Org1/Card1.jpg" : FeaturedEvent.ImageUrl)" alt="@FeaturedEvent.Name" />
                     <div class="featured-overlay"></div>
                     <div class="featured-content">
                         <span class="featured-badge">Nổi bật</span>
@@ -74,7 +74,7 @@
                 {
                     <div class="event-card">
                         <div class="event-image-wrap">
-                            <img src="@(string.IsNullOrEmpty(evt.ImageUrl) ? "/images/mockimages/IMG_20260301_060443.jpg" : evt.ImageUrl)" alt="Event" class="event-image" />
+                            <img src="@(string.IsNullOrEmpty(evt.ImageUrl) ? "/images/mockimages/Org1/Card2.jpg" : evt.ImageUrl)" alt="Event" class="event-image" />
                         </div>
                         <div class="event-details">
                             <div class="event-category">
@@ -91,7 +91,7 @@
                         </div>
                         <div class="event-actions">
                             <div class="attendees-faces">
-                                <img src="/images/mockimages/Screenshot_20260406_231459.jpg" alt="User" />
+                                <img src="/images/mockimages/AvtUser/Avt1.jpg" alt="User" />
                                 <div class="more-attendees">+42</div>
                             </div>
                             @if (IsAttendee(evt.RegistrationStatus))

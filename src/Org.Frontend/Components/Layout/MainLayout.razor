@@ -35,23 +35,27 @@
                         </button>
                     </div>
 
-                    <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                        <ActivatorContent>
-                            <button type="button" class="org-profile clickable-profile">
-                                <div class="org-profile-meta">
-                                    <strong>@DisplayName</strong>
-                                    <span>Quản trị viên</span>
-                                </div>
-                                <div class="org-profile-avatar">
-                                    <img src="/images/avatars/admin.jpg" alt="@DisplayName" />
-                                </div>
+                    <div class="profile-menu">
+                        <button type="button" class="org-profile clickable-profile" @onclick="NavigateToUserSettings">
+                            <div class="org-profile-meta">
+                                <strong>@DisplayName</strong>
+                                <span>Quản trị viên</span>
+                            </div>
+                            <div class="org-profile-avatar">
+                                <img src="/images/mockimages/AvtUser/Avt1.jpg" alt="@DisplayName" />
+                            </div>
+                        </button>
+                        <div class="profile-dropdown" role="menu" aria-label="Tài khoản">
+                            <button type="button" class="profile-menu-item" @onclick="NavigateToUserSettings">
+                                <MudIcon Icon="@Icons.Material.Outlined.Settings" Size="Size.Small" />
+                                <span>Cài đặt</span>
                             </button>
-                        </ActivatorContent>
-                        <ChildContent>
-                            <MudMenuItem OnClick="NavigateToUserSettings" Icon="@Icons.Material.Outlined.Settings">Cài đặt</MudMenuItem>
-                            <MudMenuItem OnClick="HandleSignOut" Icon="@Icons.Material.Outlined.Logout">Đăng xuất</MudMenuItem>
-                        </ChildContent>
-                    </MudMenu>
+                            <button type="button" class="profile-menu-item danger" @onclick="HandleSignOut">
+                                <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" />
+                                <span>Đăng xuất</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </header>
         }
@@ -71,27 +75,31 @@
 
                 <div class="user-top-actions">
                     <NotificationBadge />
-                    <button class="user-icon-button" type="button" aria-label="Messages">
+                    <button class="user-icon-button" type="button" aria-label="Messages" @onclick="NavigateToMessages">
                         <MudIcon Icon="@Icons.Material.Outlined.Mail" />
                     </button>
 
-                    <MudMenu ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                        <ActivatorContent>
-                            <button type="button" class="user-profile clickable-profile">
-                                <div class="user-profile-meta">
-                                    <strong>@DisplayName</strong>
-                                    <span>@UserWorkspaceLabel</span>
-                                </div>
-                                <div class="user-profile-avatar">
-                                    <img src="/images/avatars/admin.jpg" alt="@DisplayName" />
-                                </div>
+                    <div class="profile-menu">
+                        <button type="button" class="user-profile clickable-profile" @onclick="NavigateToUserSettings">
+                            <div class="user-profile-meta">
+                                <strong>@DisplayName</strong>
+                                <span>@UserWorkspaceLabel</span>
+                            </div>
+                            <div class="user-profile-avatar">
+                                <img src="/images/mockimages/AvtUser/Avt1.jpg" alt="@DisplayName" />
+                            </div>
+                        </button>
+                        <div class="profile-dropdown" role="menu" aria-label="Tài khoản">
+                            <button type="button" class="profile-menu-item" @onclick="NavigateToUserSettings">
+                                <MudIcon Icon="@Icons.Material.Outlined.Settings" Size="Size.Small" />
+                                <span>Cài đặt</span>
                             </button>
-                        </ActivatorContent>
-                        <ChildContent>
-                            <MudMenuItem OnClick="NavigateToUserSettings" Icon="@Icons.Material.Outlined.Settings">Cài đặt</MudMenuItem>
-                            <MudMenuItem OnClick="HandleSignOut" Icon="@Icons.Material.Outlined.Logout">Đăng xuất</MudMenuItem>
-                        </ChildContent>
-                    </MudMenu>
+                            <button type="button" class="profile-menu-item danger" @onclick="HandleSignOut">
+                                <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" />
+                                <span>Đăng xuất</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </header>
         }
@@ -125,7 +133,8 @@
         _user.FindFirst(ClaimTypes.Email)?.Value
         ?? "User Workspace";
 
-    private bool IsDiscoverPage => Navigation.Uri.EndsWith("/user/discover", StringComparison.OrdinalIgnoreCase);
+    private bool IsDiscoverPage
+        => Navigation.ToBaseRelativePath(Navigation.Uri).StartsWith("user/discover", StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
@@ -148,6 +157,9 @@
     // Đã thêm lại hàm này để sửa lỗi CS0103
     private void NavigateToUserSettings()
         => Navigation.NavigateTo("/user/settings");
+
+    private void NavigateToMessages()
+        => Navigation.NavigateTo("/user/messages");
 
     private async Task HandleSignOut()
     {
