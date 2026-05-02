@@ -1,199 +1,260 @@
 @page "/org-overview"
-@inject IDialogService DialogService
-@inject IUserDashboardService DashboardService
 @inject Org.Frontend.Services.Organizations.IOrganizationService OrganizationService
-@inject Org.Frontend.Services.Events.IEventService EventService
 @inject NavigationManager Navigation
-@using Org.Frontend.Services.Dashboard
+@inject IDialogService DialogService
 @using Org.Frontend.Services.Organizations
-@using Org.Frontend.ViewModels
+@using Org.Frontend.Components.Pages.Organizations
 
-<PageTitle>@(_detail?.Name ?? "Tổng quan tổ chức")</PageTitle>
+<PageTitle>@(_overview?.Name ?? "Organization Overview")</PageTitle>
 
 <div class="org-overview-page">
-    @if (_detail == null)
+    @if (_isLoading)
     {
-        <div class="loading-state">
+        <section class="page-state">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-            <p>Đang tải thông tin tổ chức...</p>
-        </div>
+            <p>Dang tai thong tin to chuc...</p>
+        </section>
     }
-    else
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
     {
-        <div class="org-container">
-            
-            @* ---- HERO SECTION ---- *@
-            <section class="hero-section">
-                <div class="hero-cover">
-                    <img src="@(_detail.CoverUrl)" alt="Cover" />
-                    <button class="btn-edit-cover"><MudIcon Icon="@Icons.Material.Outlined.Edit" /> Edit Cover</button>
-                </div>
-                <div class="hero-brand-row">
-                    <div class="brand-identity">
-                        <div class="brand-logo">
-                            <img src="@(_detail.AvatarUrl)" alt="Logo" />
-                        </div>
-                        <div class="brand-title">
-                            <h1>@_detail.Name</h1>
-                            <p>Tổ chức sinh viên - Kiến tạo những giá trị bền vững và phát triển kỹ năng cộng đồng.</p>
-                        </div>
-                    </div>
-                    <div class="brand-actions">
-                        <button class="btn-quick-edit">Quick Edit</button>
-                        <button class="btn-share"><MudIcon Icon="@Icons.Material.Filled.Share" /></button>
-                    </div>
-                </div>
-            </section>
-
-            @* ---- STATS ROW ---- *@
-            <section class="stats-row">
-                <div class="stat-card white-card">
-                    <span class="stat-kicker">LOCATION</span>
-                    <div class="stat-content">
-                        <div class="stat-icon-wrap"><MudIcon Icon="@Icons.Material.Filled.LocationOn" /></div>
-                        <div class="stat-text">
-                            <strong>@(_detail.Location ?? "Vietnam")</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card white-card">
-                    <span class="stat-kicker">TOTAL MEMBERS</span>
-                    <div class="stat-content">
-                        <div class="stat-icon-wrap"><MudIcon Icon="@Icons.Material.Filled.Person" /></div>
-                        <div class="stat-text">
-                            <strong>@(_detail.TotalMembers.ToString("N0"))</strong>
-                            <span>Members</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card dark-card">
-                    <span class="stat-kicker">NGÀY THÀNH LẬP</span>
-                    <div class="stat-dark-val">@_detail.FoundedDate.ToString("dd/MM/yyyy")</div>
-                    <span class="stat-dark-sub">Thông tin tổ chức đã được xác thực</span>
-                </div>
-            </section>
-
-            @* ---- MAIN CONTENT GRID ---- *@
-            <div class="content-grid">
-                
-                @* LEFT COLUMN *@
-                <div class="left-column">
-                    
-                    @* General Information *@
-                    <div class="section-block">
-                        <div class="section-title-wrap">
-                            <h2>General Information</h2>
-                        </div>
-                        <div class="general-info-card">
-                            <p>@_detail.Description</p>
-                            <p>Sứ mệnh cốt lõi của chúng tôi xoay quanh ba trụ cột: Giáo dục Bền vững, Gắn kết Cộng đồng và Vận động Chính sách. Chúng tôi thường xuyên tổ chức các buổi workshop, chiến dịch tình nguyện và hợp tác để tạo ra tác động rõ rệt.</p>
-                        </div>
-                    </div>
-
-                    @* Activity Timeline *@
-                    <div class="section-block">
-                        <div class="section-title-wrap">
-                            <h2>Activity Timeline</h2>
-                        </div>
-                        <div class="timeline-zigzag">
-                            <div class="timeline-line"></div>
-                            @for (int i = 0; i < _detail.Timeline.Take(4).Count(); i++)
-                            {
-                                var item = _detail.Timeline[i];
-                                bool isLeft = i % 2 != 0;
-                                <div class="timeline-row @(isLeft ? "left-side" : "right-side")">
-                                    <div class="timeline-dot"></div>
-                                    <div class="timeline-card">
-                                        <span class="t-month">@item.Month</span>
-                                        <h4>@item.Title</h4>
-                                        <p>@item.Description</p>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-
-                    @* Ongoing Campaigns (Đã cập nhật Pager và 3 item/hàng) *@
-                    <div class="section-block">
-                        <div class="section-title-wrap space-between">
-                            <h2>Ongoing Campaigns</h2>
-                            @if (_ongoingEvents.Any())
-                            {
-                                <div class="pager">
-                                    <button class="pager-btn" @onclick="PreviousOngoingPage" disabled="@(!CanGoPreviousOngoing)">
-                                        <MudIcon Icon="@Icons.Material.Filled.ChevronLeft" />
-                                    </button>
-                                    <span class="pager-text">@OngoingPageDisplay/@OngoingPageCount</span>
-                                    <button class="pager-btn" @onclick="NextOngoingPage" disabled="@(!CanGoNextOngoing)">
-                                        <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
-                                    </button>
-                                </div>
-                            }
-                        </div>
-                        <div class="ongoing-grid">
-                            @if (!_ongoingEvents.Any())
-                            {
-                                <p style="color:#64748b; padding-left: 10px;">Hiện tại chưa có chiến dịch/sự kiện nào đang diễn ra.</p>
-                            }
-                            @foreach (var ev in OngoingPageItems)
-                            {
-                                <div class="event-modern-card">
-                                    <div class="event-cover">
-                                        <span class="event-date-badge">@ev.StartDate.ToString("MMM yyyy").ToUpper()</span>
-                                        <img src="@(ev.ImageUrl ?? "/images/banners/org-banner.jpg")" alt="Event cover" />
-                                    </div>
-                                    <div class="event-body">
-                                        <h4>@ev.Name</h4>
-                                        <p>@ev.Description</p>
-                                        <div class="event-footer">
-                                            <div class="member-bubbles">
-                                                <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
-                                                <span class="bubble-count">+@ev.ParticipantCount</span>
-                                            </div>
-                                            <button class="btn-details" @onclick="() => NavigateToEvent(ev.Id)">Xem chi tiết &rarr;</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-
-                </div>
-
-                @* RIGHT COLUMN *@
-                <div class="right-column">
-                    <div class="section-block">
-                        <div class="section-title-wrap space-between">
-                            <h2>Leadership</h2>
-                            <a href="/org/members" class="view-all">View All</a>
-                        </div>
-                        <div class="leadership-card">
-                            @foreach (var admin in _detail.Admins.Take(4))
-                            {
-                                <div class="leader-row">
-                                    <img src="@admin.Avatar" alt="Avatar" />
-                                    <div class="leader-info">
-                                        <strong>@admin.Name</strong>
-                                        <span>@admin.Role</span>
-                                    </div>
-                                    <button class="btn-msg"><MudIcon Icon="@Icons.Material.Filled.Mail" /></button>
-                                </div>
-                            }
-                        </div>
-                    </div>
-
-                    @if (!_isMember)
+        <section class="page-state error">
+            <h2>Khong tai duoc thong tin to chuc</h2>
+            <p>@_errorMessage</p>
+            <button type="button" class="ghost-btn" @onclick="ReloadAsync">Thu lai</button>
+        </section>
+    }
+    else if (_overview is not null)
+    {
+        <div class="overview-shell">
+            <section class="hero">
+                <img class="hero-cover" src="@ResolveCover(_overview)" alt="@_overview.Name" />
+                <div class="hero-top-actions">
+                    <button type="button" class="ghost-btn" @onclick="HandleBack">Quay lai</button>
+                    @if (_overview.ViewerPermission.CanAccessWorkspace)
                     {
-                        <div class="join-banner">
-                            <h3>Tham gia cùng chúng tôi</h3>
-                            <p>Đăng ký thành viên để nhận thông báo về những hoạt động mới nhất của tổ chức.</p>
-                            <button class="btn-join-org" @onclick="OpenJoinDialogAsync">Tham gia CLB</button>
-                        </div>
+                        <button type="button" class="ghost-btn" @onclick="EnterWorkspace">Vao workspace</button>
+                    }
+                    @if (_overview.ViewerPermission.CanEditOverview)
+                    {
+                        <button type="button" class="primary-btn" @onclick="ToggleEditMode">
+                            @(_isEditMode ? "Dong sua" : "Chinh sua")
+                        </button>
                     }
                 </div>
+                <div class="hero-content">
+                    <img class="hero-avatar" src="@ResolveAvatar(_overview)" alt="@_overview.Name" />
+                    <div class="hero-text">
+                        <h1>@_overview.Name</h1>
+                        <p>@(string.IsNullOrWhiteSpace(_overview.ShortDescription) ? "Organization overview" : _overview.ShortDescription)</p>
+                        <span class="mode-chip @GetViewerModeClass(_overview.ViewerPermission.ViewerMode)">
+                            @GetViewerModeLabel(_overview.ViewerPermission)
+                        </span>
+                    </div>
+                </div>
+            </section>
 
+            <section class="stats-grid">
+                <article class="stat-card"><span>Thanh vien</span><strong>@_overview.MemberCount</strong></article>
+                <article class="stat-card"><span>Su kien</span><strong>@_overview.EventCount</strong></article>
+                <article class="stat-card"><span>Su kien sap toi</span><strong>@_overview.UpcomingEventCount</strong></article>
+                <article class="stat-card"><span>Task dang mo</span><strong>@_overview.ActiveTaskCount</strong></article>
+                <article class="stat-card"><span>Milestones</span><strong>@_overview.MilestoneCount</strong></article>
+            </section>
+
+            <div class="main-grid">
+                <div class="main-column">
+                    <section class="block">
+                        <div class="block-head">
+                            <h2>Thong tin chung</h2>
+                            @if (_isSaving)
+                            {
+                                <span class="saving">Dang luu...</span>
+                            }
+                        </div>
+
+                        @if (_isEditMode && _overview.ViewerPermission.CanEditOverview)
+                        {
+                            <EditForm Model="_editModel" OnValidSubmit="SaveOverviewAsync" class="edit-form">
+                                <label>Ten to chuc</label>
+                                <InputText @bind-Value="_editModel.Name" />
+
+                                <label>Mo ta ngan</label>
+                                <InputText @bind-Value="_editModel.ShortDescription" />
+
+                                <label>Mo ta day du</label>
+                                <InputTextArea @bind-Value="_editModel.Description" />
+
+                                <label>Mission</label>
+                                <InputTextArea @bind-Value="_editModel.Mission" />
+
+                                <label>Vision</label>
+                                <InputTextArea @bind-Value="_editModel.Vision" />
+
+                                <label>Dia diem</label>
+                                <InputText @bind-Value="_editModel.Location" />
+
+                                <label>Email lien he</label>
+                                <InputText @bind-Value="_editModel.ContactEmail" />
+
+                                <label>So dien thoai</label>
+                                <InputText @bind-Value="_editModel.ContactPhone" />
+
+                                <label>Website</label>
+                                <InputText @bind-Value="_editModel.WebsiteUrl" />
+
+                                <label>Facebook</label>
+                                <InputText @bind-Value="_editModel.FacebookUrl" />
+
+                                <label>Avatar URL (wwwroot)</label>
+                                <InputText @bind-Value="_editModel.AvatarUrl" />
+
+                                <label>Cover URL (wwwroot)</label>
+                                <InputText @bind-Value="_editModel.CoverUrl" />
+
+                                <label>Tags (comma separated)</label>
+                                <InputText @bind-Value="_tagEditor" />
+
+                                <div class="edit-actions">
+                                    <button type="button" class="ghost-btn" @onclick="CancelEdit" disabled="@_isSaving">Huy</button>
+                                    <button type="submit" class="primary-btn" disabled="@_isSaving">Luu thay doi</button>
+                                </div>
+                            </EditForm>
+                        }
+                        else
+                        {
+                            <p>@(string.IsNullOrWhiteSpace(_overview.Description) ? "Chua co mo ta." : _overview.Description)</p>
+                            @if (!string.IsNullOrWhiteSpace(_overview.Mission))
+                            {
+                                <h3>Mission</h3>
+                                <p>@_overview.Mission</p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(_overview.Vision))
+                            {
+                                <h3>Vision</h3>
+                                <p>@_overview.Vision</p>
+                            }
+                        }
+                    </section>
+
+                    <section class="block">
+                        <h2>Lich su hoat dong</h2>
+                        @if (_overview.Timeline.Count == 0)
+                        {
+                            <p class="hint">Chua co du lieu timeline.</p>
+                        }
+                        else
+                        {
+                            <div class="timeline-scroll">
+                                @foreach (var item in _overview.Timeline)
+                                {
+                                    <article class="timeline-card">
+                                        <span>@item.PeriodLabel</span>
+                                        <h4>@item.Title</h4>
+                                        <p>@item.Description</p>
+                                    </article>
+                                }
+                            </div>
+                        }
+                    </section>
+
+                    <section class="block">
+                        <h2>Su kien noi bat</h2>
+                        @if (_overview.HighlightEvents.Count == 0)
+                        {
+                            <p class="hint">Khong co su kien sap toi.</p>
+                        }
+                        else
+                        {
+                            <div class="event-scroll">
+                                @foreach (var item in _overview.HighlightEvents)
+                                {
+                                    <button type="button" class="event-card" @onclick="() => OpenEvent(item.EventId)">
+                                        <img src="@(item.ImageUrl ?? "/images/mockimages/Org1/Card1.jpg")" alt="@item.Name" />
+                                        <div>
+                                            <strong>@item.Name</strong>
+                                            <span>@item.StartDate.ToString("dd/MM/yyyy")</span>
+                                            <small>@(string.IsNullOrWhiteSpace(item.Location) ? "No location" : item.Location)</small>
+                                        </div>
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </section>
+                </div>
+
+                <aside class="side-column">
+                    <section class="block">
+                        <h2>Lanh dao</h2>
+                        @if (_overview.Leadership.Count == 0)
+                        {
+                            <p class="hint">Chua co du lieu lanh dao.</p>
+                        }
+                        else
+                        {
+                            @foreach (var leader in _overview.Leadership)
+                            {
+                                <div class="person-row">
+                                    <img src="@(leader.Avatar ?? "/images/mockimages/AvtUser/Avt1.jpg")" alt="@leader.Name" />
+                                    <div>
+                                        <strong>@leader.Name</strong>
+                                        <span>@leader.Role</span>
+                                    </div>
+                                    <button type="button" class="icon-btn" @onclick="() => MessageUser(leader.UserId)">
+                                        <MudIcon Icon="@Icons.Material.Filled.Chat" />
+                                    </button>
+                                </div>
+                            }
+                        }
+                    </section>
+
+                    <section class="block">
+                        <h2>Phong ban</h2>
+                        @if (_overview.Departments.Count == 0)
+                        {
+                            <p class="hint">Chua co phong ban.</p>
+                        }
+                        else
+                        {
+                            @foreach (var dept in _overview.Departments)
+                            {
+                                <div class="dept-row">
+                                    <span>@dept.Name</span>
+                                    <strong>@dept.MemberCount</strong>
+                                </div>
+                            }
+                        }
+                    </section>
+
+                    <section class="block">
+                        <h2>Lien he</h2>
+                        <div class="contact-line"><span>Email</span><strong>@(_overview.ContactEmail ?? "N/A")</strong></div>
+                        <div class="contact-line"><span>Phone</span><strong>@(_overview.ContactPhone ?? "N/A")</strong></div>
+                        <div class="contact-line"><span>Website</span><strong>@(_overview.WebsiteUrl ?? "N/A")</strong></div>
+                        <div class="contact-line"><span>Facebook</span><strong>@(_overview.FacebookUrl ?? "N/A")</strong></div>
+                    </section>
+
+                    @if (_overview.Tags.Count > 0)
+                    {
+                        <section class="block">
+                            <h2>Tags</h2>
+                            <div class="tag-wrap">
+                                @foreach (var tag in _overview.Tags)
+                                {
+                                    <span class="tag">@tag</span>
+                                }
+                            </div>
+                        </section>
+                    }
+
+                    @if (!_overview.ViewerPermission.IsMember)
+                    {
+                        <section class="join-banner">
+                            <h3>Ban chua la thanh vien</h3>
+                            <p>Gui yeu cau tham gia de truy cap workspace noi bo.</p>
+                            <button type="button" class="primary-btn" @onclick="OpenJoinDialogAsync">Gui yeu cau tham gia</button>
+                        </section>
+                    }
+                </aside>
             </div>
         </div>
     }
@@ -203,85 +264,201 @@
     [SupplyParameterFromQuery(Name = "orgId")]
     public Guid? OrganizationId { get; set; }
 
-    private OrganizationDetailViewModel? _detail;
-    private List<EventViewModel> _ongoingEvents = [];
-    private bool _isMember = false;
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
 
-    // ---- Pagination logic cho Ongoing Campaigns ----
-    private const int OngoingPageSize = 3;
-    private int _ongoingPageIndex = 0;
+    [SupplyParameterFromQuery(Name = "edit")]
+    public int? Edit { get; set; }
 
-    private int OngoingPageCount => GetPageCount(_ongoingEvents.Count, OngoingPageSize);
-    private int OngoingPageDisplay => Math.Min(_ongoingPageIndex + 1, OngoingPageCount);
-    private bool CanGoPreviousOngoing => _ongoingPageIndex > 0;
-    private bool CanGoNextOngoing => _ongoingPageIndex < OngoingPageCount - 1;
-
-    private IReadOnlyList<EventViewModel> OngoingPageItems => _ongoingEvents
-        .Skip(_ongoingPageIndex * OngoingPageSize)
-        .Take(OngoingPageSize)
-        .ToList();
-
-    private static readonly IReadOnlyList<string> PreferredDepartments =
-    [
-        "Ban truyền thông", "Ban sự kiện", "Ban kỹ thuật", "Ban nhân sự", "Ban tài chính"
-    ];
+    private OrganizationOverviewViewModel? _overview;
+    private UpdateOrganizationOverviewRequest _editModel = new();
+    private bool _isLoading;
+    private bool _isSaving;
+    private bool _isEditMode;
+    private string? _errorMessage;
+    private string _tagEditor = string.Empty;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!OrganizationId.HasValue) return;
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        if (!OrganizationId.HasValue)
+        {
+            _errorMessage = "Missing organization id.";
+            _overview = null;
+            return;
+        }
+
+        _isLoading = true;
+        _errorMessage = null;
+        _isEditMode = false;
+        try
+        {
+            _overview = await OrganizationService.GetOrganizationOverviewAsync(OrganizationId.Value);
+            SeedEditModel();
+            if (Edit == 1 && _overview.ViewerPermission.CanEditOverview)
+                _isEditMode = true;
+        }
+        catch (Exception ex)
+        {
+            _overview = null;
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void SeedEditModel()
+    {
+        if (_overview is null)
+            return;
+
+        _editModel = new UpdateOrganizationOverviewRequest
+        {
+            Name = _overview.Name,
+            ShortDescription = _overview.ShortDescription,
+            Description = _overview.Description,
+            Mission = _overview.Mission,
+            Vision = _overview.Vision,
+            Tags = _overview.Tags.ToList(),
+            Location = _overview.Location,
+            ContactEmail = _overview.ContactEmail,
+            ContactPhone = _overview.ContactPhone,
+            WebsiteUrl = _overview.WebsiteUrl,
+            FacebookUrl = _overview.FacebookUrl,
+            AvatarUrl = _overview.AvatarUrl,
+            CoverUrl = _overview.CoverUrl
+        };
+        _tagEditor = string.Join(", ", _overview.Tags);
+    }
+
+    private void ToggleEditMode()
+    {
+        _isEditMode = !_isEditMode;
+        if (_isEditMode)
+            SeedEditModel();
+    }
+
+    private void CancelEdit()
+    {
+        _isEditMode = false;
+        SeedEditModel();
+    }
+
+    private async Task SaveOverviewAsync()
+    {
+        if (_overview is null || !OrganizationId.HasValue)
+            return;
+
+        _isSaving = true;
+        _errorMessage = null;
 
         try
         {
-            _detail = await OrganizationService.GetOrganizationDetailAsync(OrganizationId.Value);
-            var allEvents = await EventService.GetEventsAsync(OrganizationId.Value);
-            var today = DateOnly.FromDateTime(DateTime.Today);
-            
-            _ongoingEvents = allEvents.Where(e => e.StartDate <= today && e.EndDate >= today).ToList();
-            
-            // Demo data nếu không có sự kiện nào
-            if (!_ongoingEvents.Any())
-            {
-                _ongoingEvents = allEvents.Where(e => e.StartDate > today).OrderBy(e => e.StartDate).Take(5).ToList();
-            }
+            _editModel.Tags = _tagEditor
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
-            var dashboard = await DashboardService.GetDashboardAsync();
-            _isMember = dashboard.Organizations.Any(x => x.OrganizationId == OrganizationId.Value);
-            
-            _ongoingPageIndex = 0; // Reset page index
+            _overview = await OrganizationService.UpdateOrganizationOverviewAsync(OrganizationId.Value, _editModel);
+            _isEditMode = false;
+            SeedEditModel();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+        }
     }
 
-    private void PreviousOngoingPage() { if (CanGoPreviousOngoing) _ongoingPageIndex--; }
-    private void NextOngoingPage() { if (CanGoNextOngoing) _ongoingPageIndex++; }
-
-    private static int GetPageCount(int totalItems, int pageSize)
+    private void HandleBack()
     {
-        if (totalItems <= 0) return 1;
-        return (int)Math.Ceiling(totalItems / (double)pageSize);
+        if (!string.IsNullOrWhiteSpace(ReturnUrl) && ReturnUrl.StartsWith("/", StringComparison.Ordinal))
+        {
+            Navigation.NavigateTo(ReturnUrl);
+            return;
+        }
+
+        Navigation.NavigateTo("/home");
     }
 
-    private void NavigateToEvent(Guid eventId)
+    private void EnterWorkspace()
     {
-        Navigation.NavigateTo($"/events/{eventId}");
+        if (!OrganizationId.HasValue)
+            return;
+        Navigation.NavigateTo($"/org/members?orgId={OrganizationId.Value:D}");
     }
+
+    private void OpenEvent(Guid eventId)
+    {
+        if (_overview?.ViewerPermission.IsMember == true && OrganizationId.HasValue)
+        {
+            Navigation.NavigateTo($"/org/events/{eventId:D}?orgId={OrganizationId.Value:D}");
+            return;
+        }
+
+        Navigation.NavigateTo($"/events/{eventId:D}");
+    }
+
+    private void MessageUser(Guid userId)
+        => Navigation.NavigateTo($"/user/messages/user/{userId:D}");
 
     private async Task OpenJoinDialogAsync()
     {
+        if (_overview is null)
+            return;
+
+        var preferredDepartments = _overview.Departments
+            .Select(x => x.Name)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (preferredDepartments.Count == 0)
+            preferredDepartments.Add("Thanh vien");
+
         var parameters = new DialogParameters
         {
-            [nameof(JoinOrganizationDialog.OrganizationName)] = _detail?.Name ?? "Tổ chức",
-            [nameof(JoinOrganizationDialog.PreferredDepartments)] = PreferredDepartments,
+            [nameof(JoinOrganizationDialog.OrganizationName)] = _overview.Name,
+            [nameof(JoinOrganizationDialog.PreferredDepartments)] = preferredDepartments,
             [nameof(JoinOrganizationDialog.Prefill)] = new JoinOrganizationDialog.JoinOrganizationRequest
             {
-                PreferredDepartment = PreferredDepartments[0],
-                DesiredPosition = "Thành viên",
-                Experience = "Có mong muốn học hỏi và phát triển bản thân.",
-                Strengths = "Nhiệt tình, trách nhiệm.",
-                Reason = $"Tôi muốn đóng góp sức trẻ cho {_detail?.Name}."
+                PreferredDepartment = preferredDepartments[0],
+                DesiredPosition = "Thanh vien",
+                Experience = "San sang dong gop va phat trien cung to chuc.",
+                Strengths = "Ky luat, tinh than hop tac.",
+                Reason = $"Toi muon dong gop cho {_overview.Name}."
             }
         };
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        await DialogService.ShowAsync<JoinOrganizationDialog>("Đăng ký tham gia", parameters, options);
+        await DialogService.ShowAsync<JoinOrganizationDialog>("Dang ky tham gia", parameters, options);
     }
+
+    private static string ResolveCover(OrganizationOverviewViewModel model)
+        => string.IsNullOrWhiteSpace(model.CoverUrl) ? "/images/mockimages/Org1/Bia.jpg" : model.CoverUrl;
+
+    private static string ResolveAvatar(OrganizationOverviewViewModel model)
+        => string.IsNullOrWhiteSpace(model.AvatarUrl) ? "/images/mockimages/Org1/Avt.jpg" : model.AvatarUrl;
+
+    private static string GetViewerModeClass(string mode)
+        => mode switch
+        {
+            "INTERNAL_WRITE" => "mode-write",
+            "INTERNAL_READ" => "mode-read",
+            _ => "mode-external"
+        };
+
+    private static string GetViewerModeLabel(OrganizationViewerPermissionViewModel permission)
+        => permission.ViewerMode switch
+        {
+            "INTERNAL_WRITE" => $"Noi bo - Co quyen chinh sua ({permission.MemberRole})",
+            "INTERNAL_READ" => $"Noi bo - Chi xem ({permission.MemberRole})",
+            _ => "Ben ngoai - Chi xem"
+        };
 }

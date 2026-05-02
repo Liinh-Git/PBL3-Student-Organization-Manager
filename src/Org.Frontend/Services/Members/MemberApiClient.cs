@@ -12,6 +12,7 @@ using FeatureGetMembersResponse = Org.Shared.Features.Members.GetMembersResponse
 using FeatureMemberDto = Org.Shared.Features.Members.MemberDto;
 using FeatureUpdateMemberDepartmentRequest = Org.Shared.Features.Members.UpdateMemberDepartmentRequest;
 using FeatureUpdateMemberRoleRequest = Org.Shared.Features.Members.UpdateMemberRoleRequest;
+using FeatureGetMyOrganizationsResponse = Org.Shared.Features.Users.GetMyOrganizationsResponse;
 
 namespace Org.Frontend.Services.Members;
 
@@ -93,6 +94,46 @@ public sealed class MemberApiClient(
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task<bool> CanManageOrganizationMembersAsync(Guid orgId)
+    {
+        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, "api/users/me/organizations", CancellationToken.None);
+        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+
+        response.EnsureSuccessStatusCode();
+
+        var payload = await response.Content.ReadFromJsonAsync<FeatureGetMyOrganizationsResponse>(cancellationToken: CancellationToken.None)
+            ?? new FeatureGetMyOrganizationsResponse([]);
+
+        var membership = payload.Items.FirstOrDefault(x => x.OrganizationId == orgId);
+        if (membership is null)
+        {
+            return false;
+        }
+
+        return string.Equals(membership.MemberRole, "President", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(membership.MemberRole, "VicePresident", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(membership.MemberRole, "Manager", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(membership.MemberRole, "Owner", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(membership.MemberRole, "Admin", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public async Task LeaveOrganizationAsync(Guid orgId)
+    {
+        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Post, $"api/organizations/{orgId}/leave", CancellationToken.None);
+        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new NotSupportedException("Leave organization endpoint is not available in current backend.");
+        }
+
+        response.EnsureSuccessStatusCode();
+    }
+
     private async Task<HttpRequestMessage> CreateAuthorizedRequestAsync(HttpMethod method, string uri, CancellationToken ct)
     {
         var request = new HttpRequestMessage(method, uri);
@@ -134,6 +175,7 @@ public sealed class MemberApiClient(
             Email = source.Email,
             DepartmentId = source.DepartmentId,
             RoleId = MapFeatureRole(source.Role),
+            RoleName = source.Role.ToString(),
             JoinDate = source.JoinedAtUtc.UtcDateTime
         };
     }

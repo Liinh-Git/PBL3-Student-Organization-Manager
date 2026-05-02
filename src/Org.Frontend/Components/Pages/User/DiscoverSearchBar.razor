@@ -1,0 +1,28 @@
+@using MudBlazor
+
+<div class="discover-search">
+    <div class="icon-wrap">
+        <MudIcon Icon="@Icons.Material.Filled.Search" Class="search-icon" />
+    </div>
+    <input type="text"
+           value="@Value"
+           placeholder="Tìm kiếm tổ chức, sự kiện, người dùng..."
+           @oninput="HandleInput" />
+    @if (!string.IsNullOrWhiteSpace(Value))
+    {
+        <button type="button" class="clear-btn" @onclick="ClearAsync" aria-label="Clear search">
+            <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    private Task HandleInput(ChangeEventArgs args)
+        => ValueChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task ClearAsync()
+        => ValueChanged.InvokeAsync(string.Empty);
+}

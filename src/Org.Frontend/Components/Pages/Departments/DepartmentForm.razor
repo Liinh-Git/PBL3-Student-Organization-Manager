@@ -3,7 +3,7 @@
 @if (IsOpen)
 {
     <div class="dept-dialog-backdrop" @onclick="OnCancel">
-        <section class="dept-dialog-panel" role="dialog" aria-modal="true" aria-label="@Title" @onclick:stopPropagation="true">
+        <section class="dept-dialog-panel custom-scrollbar" role="dialog" aria-modal="true" aria-label="@Title" @onclick:stopPropagation="true">
             <header class="dept-dialog-head">
                 <div class="dept-dialog-title-wrap">
                     <h2>@Title</h2>
@@ -19,20 +19,60 @@
                 <DataAnnotationsValidator />
 
                 <div class="department-field">
-                    <label class="form-label">Tên phòng ban</label>
+                    <label class="form-label">Tên phòng ban <span style="color:#ef4444">*</span></label>
                     <InputText class="form-control department-input" @bind-Value="Model.DeptName" placeholder="Ví dụ: Ban Truyền thông, Ban Đối ngoại..." />
                     <ValidationMessage For="@(() => Model.DeptName)" />
                 </div>
 
+                @* Manager Field *@
                 <div class="department-field">
-                    <label class="form-label">Người quản lý (Không bắt buộc)</label>
-                    <InputSelect TValue="Guid?" class="form-select department-input" @bind-Value="Model.ManagerId">
-                        <option value="">-- Chọn người quản lý --</option>
-                        @foreach (var option in ManagerOptions)
+                    <label class="form-label">Người quản lý (Chỉ 1 người)</label>
+                    @if (Model.ManagerId.HasValue)
+                    {
+                        var manager = ManagerOptions.FirstOrDefault(x => x.Id == Model.ManagerId.Value);
+                        <div class="selected-chip manager-chip">
+                            <div class="chip-avatar">@GetInitials(manager?.DisplayName)</div>
+                            <span class="chip-text">@manager?.DisplayName</span>
+                            <button type="button" class="chip-remove" @onclick="() => Model.ManagerId = null"><span class="material-symbols-outlined">close</span></button>
+                        </div>
+                    }
+                    else
+                    {
+                        <InputSelect TValue="Guid?" class="form-select department-input" @bind-Value="Model.ManagerId" @bind-Value:after="OnManagerChanged">
+                            <option value="">-- Chọn người quản lý --</option>
+                            @foreach (var option in GetManagerSelectionOptions())
+                            {
+                                <option value="@option.Id">@option.DisplayName</option>
+                            }
+                        </InputSelect>
+                    }
+                </div>
+
+                @* Members Field *@
+                <div class="department-field">
+                    <label class="form-label">Thành viên ban (Có thể chọn nhiều)</label>
+                    @if (Model.MemberIds.Any())
+                    {
+                        <div class="chip-list">
+                            @foreach (var mId in Model.MemberIds.ToList())
+                            {
+                                var member = ManagerOptions.FirstOrDefault(x => x.Id == mId);
+                                <div class="selected-chip member-chip">
+                                    <div class="chip-avatar">@GetInitials(member?.DisplayName)</div>
+                                    <span class="chip-text">@member?.DisplayName</span>
+                                    <button type="button" class="chip-remove" @onclick="() => Model.MemberIds.Remove(mId)"><span class="material-symbols-outlined">close</span></button>
+                                </div>
+                            }
+                        </div>
+                    }
+                    
+                    <select class="form-select department-input" @bind="_selectedMemberId" @bind:after="OnMemberSelected">
+                        <option value="">-- Chọn thêm thành viên --</option>
+                        @foreach (var option in GetMemberSelectionOptions())
                         {
                             <option value="@option.Id">@option.DisplayName</option>
                         }
-                    </InputSelect>
+                    </select>
                 </div>
 
                 <div class="department-field">
@@ -69,13 +109,63 @@
     [Parameter]
     public IReadOnlyList<ManagerOption> ManagerOptions { get; set; } = [];
 
+    private string _selectedMemberId = "";
+
+    private IEnumerable<ManagerOption> GetManagerSelectionOptions()
+    {
+        return ManagerOptions.Where(option => !Model.MemberIds.Contains(option.Id));
+    }
+
+    private IEnumerable<ManagerOption> GetMemberSelectionOptions()
+    {
+        return ManagerOptions.Where(option =>
+            !Model.MemberIds.Contains(option.Id)
+            && (!Model.ManagerId.HasValue || option.Id != Model.ManagerId.Value));
+    }
+
+    private void OnManagerChanged()
+    {
+        if (Model.ManagerId.HasValue)
+        {
+            Model.MemberIds.Remove(Model.ManagerId.Value);
+        }
+    }
+
+    private void OnMemberSelected()
+    {
+        if (Guid.TryParse(_selectedMemberId, out var newId))
+        {
+            if (!Model.MemberIds.Contains(newId) && (!Model.ManagerId.HasValue || Model.ManagerId.Value != newId))
+            {
+                Model.MemberIds.Add(newId);
+            }
+        }
+        _selectedMemberId = ""; // Reset dropdown
+    }
+
+    private string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant();
+        return string.Concat(parts[0][0], parts[^1][0]).ToUpperInvariant();
+    }
+
     private Task HandleValidSubmit()
-        => OnSubmit.InvokeAsync();
+    {
+        if (Model.ManagerId.HasValue)
+        {
+            Model.MemberIds.Remove(Model.ManagerId.Value);
+        }
+
+        return OnSubmit.InvokeAsync();
+    }
 
     public sealed class DepartmentFormModel
     {
         public string DeptName { get; set; } = string.Empty;
         public Guid? ManagerId { get; set; }
+        public List<Guid> MemberIds { get; set; } = new();
         public string? Function { get; set; }
     }
 

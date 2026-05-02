@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Org.Backend.Domain.Entities;
 using Org.Shared;
 using Org.Shared.Features.Departments;
@@ -45,8 +46,10 @@ internal static class ContractMapping
             DateOnly.FromDateTime(entity.StartDate),
             DateOnly.FromDateTime(entity.EndDate),
             entity.Status,
+            entity.Visibility.ToString(),
             ToUtcOffset(entity.CreatedAt),
-            entity.UpdatedAt is null ? null : ToUtcOffset(entity.UpdatedAt.Value));
+            entity.UpdatedAt is null ? null : ToUtcOffset(entity.UpdatedAt.Value),
+            ParseTags(entity.Tags));
 
     public static MilestoneDto ToMilestoneDto(Milestone entity)
         => new(
@@ -108,4 +111,23 @@ internal static class ContractMapping
 
     private static DateTimeOffset ToUtcOffset(DateTime value)
         => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
+
+    private static IReadOnlyList<string> ParseTags(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return Array.Empty<string>();
+
+        try
+        {
+            var tags = JsonSerializer.Deserialize<List<string>>(raw) ?? new List<string>();
+            return tags.Where(tag => !string.IsNullOrWhiteSpace(tag))
+                .Select(tag => tag.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+        catch
+        {
+            return Array.Empty<string>();
+        }
+    }
 }

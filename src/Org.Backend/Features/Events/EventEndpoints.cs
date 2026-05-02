@@ -3,10 +3,12 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Domain.Enums;
 using Org.Backend.Features.Common;
 using Org.Backend.Infrastructure.Database;
+using Org.Backend.Services;
 using Org.Shared;
 using Org.Shared.Features.Events;
 using Org.Shared.Features.Users;
@@ -277,7 +279,8 @@ public sealed class CreateEventEndpoint(AppDbContext db) : Endpoint<CreateEventR
             Description = EventValidation.NormalizeOptional(req.Description),
             StartDate = req.StartDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
             EndDate = req.EndDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-            Status = EventStatus.Draft
+            Status = EventStatus.Draft,
+            Tags = EventTagSerializer.SerializeTags(req.Tags)
         };
 
         db.Events.Add(entity);
@@ -316,7 +319,7 @@ public sealed class GetEventByIdEndpoint(AppDbContext db) : EndpointWithoutReque
 }
 
 // ---- PUT /api/events/{id} — cập nhật thông tin và trạng thái sự kiện ----
-public sealed class UpdateEventEndpoint(AppDbContext db) : Endpoint<UpdateEventRequest, EventDto>
+public sealed class UpdateEventEndpoint(AppDbContext db, INotificationService notificationService) : Endpoint<UpdateEventRequest, EventDto>
 {
     public override void Configure()
     {
@@ -343,19 +346,70 @@ public sealed class UpdateEventEndpoint(AppDbContext db) : Endpoint<UpdateEventR
         if (callerContext is null || !OrganizationAuthorization.CanPlan(callerContext.Value.Role))
             ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
 
+        var userIdText = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var updaterId = Guid.TryParse(userIdText, out var uid) ? uid : (Guid?)null;
+        if (updaterId is null)
+            ThrowError("Invalid token subject.", StatusCodes.Status401Unauthorized);
+
         entity!.EventName = normalizedName;
         entity.Description = EventValidation.NormalizeOptional(req.Description);
         entity.StartDate = req.StartDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
         entity.EndDate = req.EndDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
         entity.Status = req.Status;
 
+        if (req.Tags is not null)
+        {
+            entity.Tags = EventTagSerializer.SerializeTags(req.Tags);
+        }
+
         await db.SaveChangesAsync(ct);
+
+        // Notify all non-cancelled attendees about the event update
+        try
+        {
+            var attendees = await db.Attendees
+                .AsNoTracking()
+                .Where(a => a.EventId == id && 
+                            a.Status != AttendeeStatus.Cancelled &&
+                            a.UserId != null)
+                .Select(a => a.UserId!.Value)
+                .ToListAsync(ct);
+
+            foreach (var attendeeUserId in attendees)
+            {
+                await notificationService.NotifyEventUpdated(attendeeUserId, updaterId.Value, id);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't throw - notification failure should not block business logic
+            Console.WriteLine($"Failed to send event update notifications: {ex.Message}");
+        }
+
         await Send.OkAsync(ContractMapping.ToEventDto(entity), ct);
+    }
+
+}
+
+internal static class EventTagSerializer
+{
+    public static string? SerializeTags(IReadOnlyList<string>? tags)
+    {
+        if (tags is null)
+            return null;
+
+        var normalized = tags
+            .Where(tag => !string.IsNullOrWhiteSpace(tag))
+            .Select(tag => tag.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return normalized.Count == 0 ? null : JsonSerializer.Serialize(normalized);
     }
 }
 
 // ---- DELETE /api/events/{id} — xóa mềm sự kiện và toàn bộ dữ liệu con ----
-public sealed class DeleteEventEndpoint(AppDbContext db) : EndpointWithoutRequest
+public sealed class DeleteEventEndpoint(AppDbContext db, INotificationService notificationService) : EndpointWithoutRequest
 {
     public override void Configure()
     {
@@ -374,6 +428,20 @@ public sealed class DeleteEventEndpoint(AppDbContext db) : EndpointWithoutReques
         var callerContext = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, entity!.OrgId, ct);
         if (callerContext is null || !OrganizationAuthorization.CanDelete(callerContext.Value.Role))
             ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
+
+        var userIdText = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var cancellerId = Guid.TryParse(userIdText, out var uid) ? uid : (Guid?)null;
+        if (cancellerId is null)
+            ThrowError("Invalid token subject.", StatusCodes.Status401Unauthorized);
+
+        // Get attendees before deleting
+        var attendees = await db.Attendees
+            .AsNoTracking()
+            .Where(a => a.EventId == id && 
+                        a.Status != AttendeeStatus.Cancelled &&
+                        a.UserId != null)
+            .Select(a => a.UserId!.Value)
+            .ToListAsync(ct);
 
         var milestones = await db.Milestones
             .IgnoreQueryFilters()
@@ -409,6 +477,20 @@ public sealed class DeleteEventEndpoint(AppDbContext db) : EndpointWithoutReques
 
         entity!.IsDeleted = true;
         await db.SaveChangesAsync(ct);
+
+        // Notify all non-cancelled attendees about the event cancellation
+        try
+        {
+            foreach (var attendeeUserId in attendees)
+            {
+                await notificationService.NotifyEventCancelled(attendeeUserId, cancellerId.Value, id);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't throw - notification failure should not block business logic
+            Console.WriteLine($"Failed to send event cancellation notifications: {ex.Message}");
+        }
 
         await Send.NoContentAsync(ct);
     }
@@ -489,3 +571,120 @@ public sealed class RestoreEventEndpoint(AppDbContext db) : EndpointWithoutReque
 }
 
 
+
+// ---- PUT /api/events/{id}/visibility — cập nhật visibility sự kiện (chỉ President/VicePresident) ----
+public sealed class UpdateEventVisibilityEndpoint(AppDbContext db) : Endpoint<UpdateEventVisibilityRequest, EventDto>
+{
+    public override void Configure()
+    {
+        Put("/api/events/{id:guid}/visibility");
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
+    }
+
+    public override async Task HandleAsync(UpdateEventVisibilityRequest req, CancellationToken ct)
+    {
+        var id = Route<Guid>("id");
+
+        if (!Enum.TryParse<EventVisibility>(req.Visibility, ignoreCase: true, out var visibility))
+            ThrowError("Invalid visibility value. Must be Private, MembersOnly, or Public.", StatusCodes.Status400BadRequest);
+
+        var entity = await db.Events.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (entity is null)
+            ThrowError("Event not found.", StatusCodes.Status404NotFound);
+
+        var callerContext = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, entity!.OrgId, ct);
+        if (callerContext is null || !OrganizationAuthorization.CanDelete(callerContext.Value.Role))
+            ThrowError("Forbidden. Only President or VicePresident can change event visibility.", StatusCodes.Status403Forbidden);
+
+        entity!.Visibility = visibility;
+        await db.SaveChangesAsync(ct);
+
+        await Send.OkAsync(ContractMapping.ToEventDto(entity), ct);
+    }
+}
+
+// ---- GET /api/events/public — danh sách sự kiện public từ tất cả tổ chức (cho trang khám phá) ----
+public sealed class GetPublicEventsEndpoint(AppDbContext db) : EndpointWithoutRequest<GetPublicEventsResponse>
+{
+    public override void Configure()
+    {
+        Get("/api/events/public");
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
+    }
+
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var today = DateTime.UtcNow.Date;
+
+        var items = await db.Events
+            .AsNoTracking()
+            .Where(x => x.Visibility == EventVisibility.Public && x.EndDate >= today)
+            .OrderBy(x => x.StartDate)
+            .ThenBy(x => x.EventName)
+            .Take(20)
+            .Select(x => new
+            {
+                x.Id,
+                x.EventName,
+                x.Status,
+                x.StartDate,
+                x.EndDate,
+                MilestoneCount = x.Milestones.Count,
+                CategoryCount = x.Milestones.SelectMany(m => m.Categories).Count(),
+                TaskCounts = x.Milestones
+                    .SelectMany(m => m.Categories)
+                    .SelectMany(c => c.Tasks)
+                    .GroupBy(_ => 1)
+                    .Select(g => new
+                    {
+                        Total = g.Count(),
+                        Done = g.Count(t => t.Status == Org.Shared.TaskStatus.Done)
+                    })
+                    .FirstOrDefault()
+            })
+            .Select(x => new EventTreeNodeDto(
+                x.Id,
+                x.EventName,
+                x.Status,
+                DateOnly.FromDateTime(x.StartDate),
+                DateOnly.FromDateTime(x.EndDate),
+                x.MilestoneCount,
+                x.CategoryCount,
+                x.TaskCounts == null ? 0 : x.TaskCounts.Total,
+                x.TaskCounts == null ? 0 : x.TaskCounts.Done))
+            .ToListAsync(ct);
+
+        await Send.OkAsync(new GetPublicEventsResponse(items), ct);
+    }
+}
+
+// ---- GET /api/events/{id}/public — chi tiết sự kiện public cho non-member ----
+public sealed class GetPublicEventByIdEndpoint(AppDbContext db) : EndpointWithoutRequest<GetEventByIdResponse>
+{
+    public override void Configure()
+    {
+        Get("/api/events/{id:guid}/public");
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
+    }
+
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var id = Route<Guid>("id");
+
+        var entity = await db.Events
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+
+        if (entity is null)
+            ThrowError("Event not found.", StatusCodes.Status404NotFound);
+
+        if (entity!.Visibility != EventVisibility.Public)
+        {
+            var callerContext = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, entity.OrgId, ct);
+            if (callerContext is null || !OrganizationAuthorization.CanRead(callerContext.Value.Role))
+                ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
+        }
+
+        await Send.OkAsync(new GetEventByIdResponse(ContractMapping.ToEventDto(entity)), ct);
+    }
+}

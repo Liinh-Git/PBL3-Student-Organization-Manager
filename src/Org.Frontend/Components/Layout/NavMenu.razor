@@ -2,6 +2,9 @@
 @inject IOrganizationRouteAccessGate OrganizationRouteAccessGate
 @inject Org.Frontend.Services.Dashboard.IUserDashboardService DashboardService
 @inject FrontendAuthStateProvider AuthStateProvider
+@inject Org.Frontend.Services.Messages.IMessageService MessageService
+@inject Org.Frontend.Services.Messages.MessageStateBridge MessageStateBridge
+@inject Org.Frontend.Services.Requests.IRequestService RequestService
 @implements IDisposable
 
 <div class="nav-scrollable">
@@ -16,10 +19,19 @@
                 </button>
             </div>
 
+            <div class="user-message">
+                <button class="rail-icon message-icon @(IsMessageWorkspaceActive ? "active" : string.Empty)"
+                        type="button"
+                        title="Tin nhắn"
+                        @onclick="ActivateMessageWorkspaceAsync">
+                    <MudIcon Icon="@Icons.Material.Filled.Chat" Class="rail-message-icon" />
+                </button>
+            </div>
+
             <div class="rail-separator"></div>
 
             <div class="rail-org-list">
-                @if (_joinedOrganizations != null)
+                @if (_joinedOrganizations is not null)
                 {
                     @foreach (var org in _joinedOrganizations)
                     {
@@ -33,16 +45,12 @@
                 }
             </div>
 
-            @* Nút đăng xuất nằm ở phần rìa dưới cùng của Rail *@
-         
-
-            <div style="position: absolute; bottom: 24px; left: 14px;">
+            <div class="rail-logout-anchor">
                 <button class="rail-icon logout-icon-force" type="button" title="Đăng xuất" @onclick="HandleSignOut">
-                    <MudIcon Icon="@Icons.Material.Filled.Logout" Style="color: #8f4c11; font-size: 20px; margin-left: 2px;" />
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" Class="rail-logout-icon" />
                 </button>
             </div>
         </aside>
-
 
         <section class="workspace-menu-pane">
             <header class="workspace-head">
@@ -51,16 +59,86 @@
 
             <div class="workspace-nav-margin">
                 <nav class="workspace-menu-list">
-                    @foreach (var item in ActiveMenuItems)
+                    @if (_activeWorkspace == WorkspaceKind.Message)
                     {
                         <button type="button"
-                                class="workspace-menu-item @(IsMenuItemActive(item.Key) ? "active" : string.Empty)"
-                                @onclick="@(() => NavigateToMenu(item))">
+                                class="workspace-menu-item @(IsMenuItemActive("messages-home") ? "active" : string.Empty)"
+                                @onclick="NavigateToMessageHome">
                             <span class="menu-icon-box">
-                                <MudIcon Icon="@item.Icon" Class="workspace-menu-icon" />
+                                <MudIcon Icon="@Icons.Material.Filled.Forum" Class="workspace-menu-icon" />
                             </span>
-                            <span class="menu-label">@item.Label</span>
+                            <span class="menu-label">Tổng quan chat</span>
                         </button>
+
+                        <p class="workspace-menu-section-title">Cuộc trò chuyện</p>
+                        @if (_isMessageMenuLoading)
+                        {
+                            <p class="workspace-menu-state">Đang tải...</p>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_messageMenuError))
+                        {
+                            <p class="workspace-menu-state error">@_messageMenuError</p>
+                        }
+                        else if (_messageConversationMenu.Count == 0)
+                        {
+                            <p class="workspace-menu-state">Chưa có hội thoại.</p>
+                        }
+                        else
+                        {
+                            @foreach (var item in _messageConversationMenu)
+                            {
+                                <button type="button"
+                                        class="workspace-menu-item @(IsMenuItemActive(item.Key) ? "active" : string.Empty)"
+                                        @onclick="@(() => NavigateToMenu(item))">
+                                    <span class="menu-icon-box">
+                                        <MudIcon Icon="@item.Icon" Class="workspace-menu-icon" />
+                                    </span>
+                                    <span class="menu-label">@item.Label</span>
+                                </button>
+                            }
+                        }
+
+                        <p class="workspace-menu-section-title">Bạn bè có thể nhắn</p>
+                        @if (_isMessageMenuLoading)
+                        {
+                            <p class="workspace-menu-state">Đang tải...</p>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_messageMenuError))
+                        {
+                            <p class="workspace-menu-state error">@_messageMenuError</p>
+                        }
+                        else if (_messageUserMenu.Count == 0)
+                        {
+                            <p class="workspace-menu-state">Không có bạn bè nào để nhắn mới.</p>
+                        }
+                        else
+                        {
+                            @foreach (var item in _messageUserMenu)
+                            {
+                                <button type="button"
+                                        class="workspace-menu-item @(IsMenuItemActive(item.Key) ? "active" : string.Empty)"
+                                        @onclick="@(() => NavigateToMenu(item))">
+                                    <span class="menu-icon-box">
+                                        <MudIcon Icon="@item.Icon" Class="workspace-menu-icon" />
+                                    </span>
+                                    <span class="menu-label">@item.Label</span>
+                                </button>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        @foreach (var item in ActiveMenuItems)
+                        {
+                            <button type="button"
+                                    class="workspace-menu-item @(IsMenuItemActive(item.Key) ? "active" : string.Empty)"
+                                    @onclick="@(() => NavigateToMenu(item))">
+                                <span class="menu-icon-box">
+                                    <MudIcon Icon="@item.Icon" Class="workspace-menu-icon" />
+                                </span>
+                                <span class="menu-label">@item.Label</span>
+                            </button>
+                        }
                     }
                 </nav>
             </div>
@@ -85,7 +163,8 @@
     private enum WorkspaceKind
     {
         User,
-        Organization
+        Organization,
+        Message
     }
 
     private sealed record WorkspaceMenuItem(string Key, string Label, string Href, string Icon);
@@ -93,6 +172,7 @@
     private static readonly IReadOnlyList<WorkspaceMenuItem> UserWorkspaceMenu =
     [
         new("user-dashboard", "Tổng quan", "/home", Icons.Material.Filled.SpaceDashboard),
+        new("user-discover", "Khám phá", "/user/discover", Icons.Material.Filled.Explore),
         new("user-organizations", "Tổ chức của tôi", "/user/organizations", Icons.Material.Filled.Groups),
         new("user-events", "Sự kiện của tôi", "/user/events", Icons.Material.Filled.Event),
         new("user-settings", "Cài đặt", "/user/settings", Icons.Material.Filled.Settings)
@@ -114,85 +194,107 @@
     private Guid? _activeOrganizationId;
     private string _activeUserMenuKey = "user-dashboard";
     private string _activeOrganizationMenuKey = "org-overview";
+    private string _activeMessageMenuKey = "messages-home";
     private IReadOnlyList<UserOrganizationViewModel>? _joinedOrganizations;
+    private List<WorkspaceMenuItem> _messageConversationMenu = [];
+    private List<WorkspaceMenuItem> _messageUserMenu = [];
+    private bool _isMessageMenuLoading;
+    private string? _messageMenuError;
+    private bool _canViewOrganizationRequests;
 
     protected override async Task OnInitializedAsync()
     {
         Navigation.LocationChanged += HandleLocationChanged;
-        var currentRoute = GetCurrentRoute(Navigation.Uri);
-        SyncWorkspaceAndMenuWithRoute(currentRoute);
-        
-        await LoadJoinedOrganizationsAsync();
-    }
+        MessageStateBridge.Changed += HandleMessageStateChanged;
 
-    private async Task LoadJoinedOrganizationsAsync()
-    {
-        try 
-        {
-            var dashboard = await DashboardService.GetDashboardAsync();
-            _joinedOrganizations = dashboard.Organizations;
-            StateHasChanged();
-        }
-        catch 
-        {
-            _joinedOrganizations = [];
-        }
+        var currentRoute = GetCurrentRoute(Navigation.Uri);
+        SyncWorkspaceAndMenuWithRoute(currentRoute, Navigation.Uri);
+
+        await LoadJoinedOrganizationsAsync();
+        await RefreshOrganizationPermissionsAsync();
+        if (_activeWorkspace == WorkspaceKind.Message)
+            await LoadMessageWorkspaceMenuAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
+        if (!firstRender)
+            return;
+
         await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
         var currentRoute = GetCurrentRoute(Navigation.Uri);
-        SyncWorkspaceAndMenuWithRoute(currentRoute);
+        SyncWorkspaceAndMenuWithRoute(currentRoute, Navigation.Uri);
+        await RefreshOrganizationPermissionsAsync();
+        if (_activeWorkspace == WorkspaceKind.Message)
+            await LoadMessageWorkspaceMenuAsync();
         await InvokeAsync(StateHasChanged);
     }
 
     private IReadOnlyList<WorkspaceMenuItem> ActiveMenuItems =>
-        _activeWorkspace == WorkspaceKind.User ? UserWorkspaceMenu : OrganizationWorkspaceMenu;
+        _activeWorkspace == WorkspaceKind.User
+            ? UserWorkspaceMenu
+            : GetOrganizationMenuItems();
 
     private bool IsUserWorkspaceActive => _activeWorkspace == WorkspaceKind.User;
+    private bool IsMessageWorkspaceActive => _activeWorkspace == WorkspaceKind.Message;
 
     private string ActiveWorkspaceHeading =>
-        _activeWorkspace == WorkspaceKind.User
-            ? "WORKSPACE CÁ NHÂN"
-            : ActiveWorkspaceTitle.ToUpperInvariant();
+        _activeWorkspace == WorkspaceKind.User ? "WORKSPACE CÁ NHÂN" :
+        _activeWorkspace == WorkspaceKind.Message ? "TIN NHẮN" :
+        ActiveWorkspaceTitle.ToUpperInvariant();
 
     private string ActiveWorkspaceTitle
     {
         get
         {
             if (_activeWorkspace == WorkspaceKind.User || _activeOrganizationId == null)
-            {
                 return "Không gian cá nhân";
-            }
 
             var org = _joinedOrganizations?.FirstOrDefault(x => x.OrganizationId == _activeOrganizationId);
             return org?.Name ?? "Tổ chức";
         }
     }
 
-    private string ActiveOrganizationShortName 
+    private string ActiveOrganizationShortName
     {
-        get 
+        get
         {
-            if (_activeOrganizationId == null || _joinedOrganizations == null) return "ORG";
+            if (_activeOrganizationId == null || _joinedOrganizations == null)
+                return "ORG";
+
             var org = _joinedOrganizations.FirstOrDefault(x => x.OrganizationId == _activeOrganizationId);
-            if (org == null) return "ORG";
-            
+            if (org == null)
+                return "ORG";
+
             var words = org.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length >= 2) return (words[0][0].ToString() + words[1][0].ToString()).ToUpper();
-            return org.Name[..Math.Min(2, org.Name.Length)].ToUpper();
+            if (words.Length >= 2)
+                return (words[0][0].ToString() + words[1][0].ToString()).ToUpperInvariant();
+
+            return org.Name[..Math.Min(2, org.Name.Length)].ToUpperInvariant();
         }
     }
 
-    private bool IsOrganizationWorkspaceActive(string key) =>
-        _activeWorkspace == WorkspaceKind.Organization && _activeOrganizationId?.ToString() == key;
+    private bool IsOrganizationWorkspaceActive(string key)
+        => _activeWorkspace == WorkspaceKind.Organization && _activeOrganizationId?.ToString() == key;
 
-    private bool IsMenuItemActive(string key) =>
-        _activeWorkspace == WorkspaceKind.User
-            ? _activeUserMenuKey == key
-            : _activeOrganizationMenuKey == key;
+    private bool IsMenuItemActive(string key)
+        => _activeWorkspace == WorkspaceKind.User ? _activeUserMenuKey == key :
+           _activeWorkspace == WorkspaceKind.Message ? _activeMessageMenuKey == key :
+           _activeOrganizationMenuKey == key;
+
+    private async Task ActivateMessageWorkspaceAsync()
+    {
+        _activeWorkspace = WorkspaceKind.Message;
+        _activeMessageMenuKey = "messages-home";
+        await LoadMessageWorkspaceMenuAsync();
+        Navigation.NavigateTo("/user/messages");
+    }
+
+    private void NavigateToMessageHome()
+    {
+        _activeMessageMenuKey = "messages-home";
+        Navigation.NavigateTo("/user/messages");
+    }
 
     private void ActivateUserWorkspace()
     {
@@ -219,20 +321,92 @@
             return;
         }
 
-        string targetHref = item.Href;
-        if (_activeWorkspace == WorkspaceKind.Organization && _activeOrganizationId.HasValue)
+        var targetHref = item.Href;
+        if (_activeWorkspace == WorkspaceKind.Organization && _activeOrganizationId.HasValue && targetHref.StartsWith("/org", StringComparison.Ordinal))
         {
-            if (targetHref.StartsWith("/org"))
-            {
-                var sep = targetHref.Contains('?') ? "&" : "?";
-                targetHref += $"{sep}orgId={_activeOrganizationId}";
-            }
+            var sep = targetHref.Contains('?') ? "&" : "?";
+            targetHref += $"{sep}orgId={_activeOrganizationId}";
         }
 
-        if (_activeWorkspace == WorkspaceKind.User) _activeUserMenuKey = item.Key;
-        else _activeOrganizationMenuKey = item.Key;
+        if (_activeWorkspace == WorkspaceKind.User)
+            _activeUserMenuKey = item.Key;
+        else if (_activeWorkspace == WorkspaceKind.Message)
+            _activeMessageMenuKey = item.Key;
+        else
+            _activeOrganizationMenuKey = item.Key;
 
         Navigation.NavigateTo(targetHref);
+    }
+
+    private async Task LoadJoinedOrganizationsAsync()
+    {
+        try
+        {
+            var dashboard = await DashboardService.GetDashboardAsync();
+            _joinedOrganizations = dashboard.Organizations;
+            StateHasChanged();
+        }
+        catch
+        {
+            _joinedOrganizations = [];
+        }
+    }
+
+    private async Task LoadMessageWorkspaceMenuAsync()
+    {
+        _isMessageMenuLoading = true;
+        _messageMenuError = null;
+        StateHasChanged();
+
+        try
+        {
+            var conversations = await MessageService.GetConversationsAsync();
+            _messageConversationMenu = conversations
+                .Select(x => new WorkspaceMenuItem(
+                    $"conv:{x.ConversationId:D}",
+                    TrimMenuLabel(x.Title),
+                    $"/user/messages/{x.ConversationId:D}",
+                    x.IsGroup ? Icons.Material.Filled.Groups : Icons.Material.Filled.Person))
+                .ToList();
+
+            var messageableUsers = await MessageService.GetMessageableUsersAsync();
+            _messageUserMenu = messageableUsers
+                .Where(x => !x.HasConversation)
+                .Select(x => new WorkspaceMenuItem(
+                    $"user:{x.UserId:D}",
+                    TrimMenuLabel(x.FullName),
+                    $"/user/messages/user/{x.UserId:D}",
+                    Icons.Material.Filled.Person))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _messageConversationMenu = [];
+            _messageUserMenu = [];
+            _messageMenuError = ex.Message;
+        }
+        finally
+        {
+            _isMessageMenuLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private static string TrimMenuLabel(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Không tên";
+        var text = value.Trim();
+        return text.Length <= 26 ? text : $"{text[..26]}...";
+    }
+
+    private void HandleMessageStateChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await LoadMessageWorkspaceMenuAsync();
+            StateHasChanged();
+        });
     }
 
     private async Task HandleSignOut()
@@ -247,7 +421,10 @@
         {
             await OrganizationRouteAccessGate.SyncFromUriAsync(e.Location);
             var route = GetCurrentRoute(e.Location);
-            SyncWorkspaceAndMenuWithRoute(route);
+            SyncWorkspaceAndMenuWithRoute(route, e.Location);
+            await RefreshOrganizationPermissionsAsync();
+            if (_activeWorkspace == WorkspaceKind.Message)
+                await LoadMessageWorkspaceMenuAsync();
             StateHasChanged();
         });
     }
@@ -255,33 +432,44 @@
     private string GetCurrentRoute(string uri)
     {
         var route = "/" + Navigation.ToBaseRelativePath(uri).Trim('/');
-        if (string.IsNullOrWhiteSpace(route)) return "/";
+        if (string.IsNullOrWhiteSpace(route))
+            return "/";
 
         var queryIndex = route.IndexOf('?');
-        if (queryIndex >= 0) route = route[..queryIndex];
+        if (queryIndex >= 0)
+            route = route[..queryIndex];
 
         var hashIndex = route.IndexOf('#');
-        if (hashIndex >= 0) route = route[..hashIndex];
+        if (hashIndex >= 0)
+            route = route[..hashIndex];
 
         return string.IsNullOrWhiteSpace(route) ? "/" : route;
     }
 
-    private void SyncWorkspaceAndMenuWithRoute(string route)
+    private void SyncWorkspaceAndMenuWithRoute(string route, string fullUri)
     {
-        _activeWorkspace = OrganizationRouteAccessGate.ShouldUseOrganizationWorkspace(route)
-            ? WorkspaceKind.Organization
-            : WorkspaceKind.User;
-
-        if (_activeWorkspace == WorkspaceKind.Organization) 
+        if (route.StartsWith("/user/messages", StringComparison.OrdinalIgnoreCase))
         {
-            if (Uri.TryCreate(Navigation.Uri, UriKind.Absolute, out var uri))
-            {
-                var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-                if (query.TryGetValue("orgId", out var rawId) && Guid.TryParse(rawId, out var parsedId))
-                {
-                    _activeOrganizationId = parsedId;
-                }
-            }
+            _activeWorkspace = WorkspaceKind.Message;
+        }
+        else
+        {
+            _activeWorkspace = OrganizationRouteAccessGate.ShouldUseOrganizationWorkspace(route)
+                ? WorkspaceKind.Organization
+                : WorkspaceKind.User;
+        }
+
+        if (_activeWorkspace == WorkspaceKind.Organization && Uri.TryCreate(fullUri, UriKind.Absolute, out var uri))
+        {
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+            if (query.TryGetValue("orgId", out var rawId) && Guid.TryParse(rawId, out var parsedId))
+                _activeOrganizationId = parsedId;
+            else
+                _activeOrganizationId = null;
+        }
+        else if (_activeWorkspace != WorkspaceKind.Organization)
+        {
+            _activeOrganizationId = null;
         }
 
         SyncActiveMenuWithRoute(route);
@@ -289,19 +477,78 @@
 
     private void SyncActiveMenuWithRoute(string route)
     {
-        if (string.IsNullOrWhiteSpace(route) || route == "/") return;
+        if (string.IsNullOrWhiteSpace(route) || route == "/")
+            return;
+
         var normalized = route.ToLowerInvariant();
+
         var userMatch = UserWorkspaceMenu.FirstOrDefault(item =>
             normalized.StartsWith(item.Href.ToLowerInvariant(), StringComparison.Ordinal));
-        if (userMatch is not null) _activeUserMenuKey = userMatch.Key;
+        if (userMatch is not null)
+            _activeUserMenuKey = userMatch.Key;
 
         var organizationMatch = OrganizationWorkspaceMenu.FirstOrDefault(item =>
             normalized.StartsWith(item.Href.ToLowerInvariant(), StringComparison.Ordinal));
-        if (organizationMatch is not null) _activeOrganizationMenuKey = organizationMatch.Key;
+        if (organizationMatch is not null)
+            _activeOrganizationMenuKey = organizationMatch.Key;
+
+        if (normalized.StartsWith("/user/messages/user/", StringComparison.Ordinal))
+        {
+            var userIdText = route["/user/messages/user/".Length..];
+            _activeMessageMenuKey = Guid.TryParse(userIdText, out var userId)
+                ? $"user:{userId:D}"
+                : "messages-home";
+            return;
+        }
+
+        if (normalized.StartsWith("/user/messages/", StringComparison.Ordinal))
+        {
+            var conversationIdText = route["/user/messages/".Length..];
+            _activeMessageMenuKey = Guid.TryParse(conversationIdText, out var conversationId)
+                ? $"conv:{conversationId:D}"
+                : "messages-home";
+            return;
+        }
+
+        if (normalized.StartsWith("/user/messages", StringComparison.Ordinal))
+        {
+            _activeMessageMenuKey = "messages-home";
+        }
     }
 
     public void Dispose()
     {
         Navigation.LocationChanged -= HandleLocationChanged;
+        MessageStateBridge.Changed -= HandleMessageStateChanged;
+    }
+
+    private IReadOnlyList<WorkspaceMenuItem> GetOrganizationMenuItems()
+    {
+        if (_canViewOrganizationRequests)
+        {
+            return OrganizationWorkspaceMenu;
+        }
+
+        return OrganizationWorkspaceMenu
+            .Where(x => !string.Equals(x.Key, "org-requests", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private async Task RefreshOrganizationPermissionsAsync()
+    {
+        if (_activeWorkspace != WorkspaceKind.Organization || !_activeOrganizationId.HasValue)
+        {
+            _canViewOrganizationRequests = false;
+            return;
+        }
+
+        try
+        {
+            _canViewOrganizationRequests = await RequestService.CanViewOrganizationRequestsAsync(_activeOrganizationId.Value);
+        }
+        catch
+        {
+            _canViewOrganizationRequests = false;
+        }
     }
 }

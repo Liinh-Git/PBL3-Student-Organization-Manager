@@ -29,4 +29,5 @@ public class Member : BaseEntity
     public ICollection<EventMember> EventMembers { get; set; } = [];
     public ICollection<OrgTask> AssignedTasks { get; set; } = [];
     public ICollection<DigitalAsset> UploadedAssets { get; set; } = [];
+    public ICollection<OrganizationPost> CreatedPosts { get; set; } = [];
 }

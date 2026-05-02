@@ -93,20 +93,34 @@ public sealed class OrganizationRouteAccessGate(IUserDashboardService dashboardS
     {
         if (_joinedOrganizationIds is null)
         {
-            try
-            {
-                var dashboard = await _dashboardService.GetDashboardAsync(ct);
-                _joinedOrganizationIds = dashboard.Organizations
-                    .Select(x => x.OrganizationId)
-                    .ToHashSet();
-            }
-            catch
-            {
-                _joinedOrganizationIds = [];
-            }
+            await RefreshJoinedOrganizationsAsync(ct);
         }
 
-        return _joinedOrganizationIds.Contains(organizationId);
+        var joinedIds = _joinedOrganizationIds ?? [];
+        if (joinedIds.Contains(organizationId))
+        {
+            return true;
+        }
+
+        // Refresh once to avoid stale cache after create/join flows.
+        await RefreshJoinedOrganizationsAsync(ct);
+        joinedIds = _joinedOrganizationIds ?? [];
+        return joinedIds.Contains(organizationId);
+    }
+
+    private async Task RefreshJoinedOrganizationsAsync(CancellationToken ct)
+    {
+        try
+        {
+            var dashboard = await _dashboardService.GetDashboardAsync(ct);
+            _joinedOrganizationIds = dashboard.Organizations
+                .Select(x => x.OrganizationId)
+                .ToHashSet();
+        }
+        catch
+        {
+            _joinedOrganizationIds = [];
+        }
     }
 
     private static bool IsInternalOrganizationRoute(string route)

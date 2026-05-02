@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<FriendRequest> FriendRequests => Set<FriendRequest>();
 
     // Module: Tổ chức
     public DbSet<Organization> Organizations => Set<Organization>();
@@ -35,6 +36,13 @@ public class AppDbContext : DbContext
     public DbSet<OrgTask> Tasks => Set<OrgTask>();
     public DbSet<Attendee> Attendees => Set<Attendee>();
     public DbSet<DigitalAsset> DigitalAssets => Set<DigitalAsset>();
+    public DbSet<EventRating> EventRatings => Set<EventRating>();
+
+    // Module: Bài viết
+    public DbSet<OrganizationPost> OrganizationPosts => Set<OrganizationPost>();
+
+    // Module: Thông báo
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     // ---- Tự động set CreatedAt/UpdatedAt cho các entity kế thừa BaseEntity ----
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -78,6 +86,26 @@ public class AppDbContext : DbContext
         {
             e.HasIndex(u => u.Email).IsUnique();
             e.Property(u => u.Status).HasConversion<int>();
+            e.Property(u => u.ProfileVisibility).HasConversion<int>();
+        });
+
+        // ── FriendRequest ───────────────────────────────────────────────────────
+        modelBuilder.Entity<FriendRequest>(e =>
+        {
+            e.HasOne(fr => fr.Sender)
+             .WithMany(u => u.SentFriendRequests)
+             .HasForeignKey(fr => fr.SenderId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(fr => fr.Receiver)
+             .WithMany(u => u.ReceivedFriendRequests)
+             .HasForeignKey(fr => fr.ReceiverId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.Property(fr => fr.Status).HasConversion<int>();
+            
+            // Prevent duplicate friend requests
+            e.HasIndex(fr => new { fr.SenderId, fr.ReceiverId, fr.Status });
         });
 
         // ── Role ────────────────────────────────────────────────────────────────
@@ -183,6 +211,56 @@ public class AppDbContext : DbContext
 
             e.Property(ev => ev.Budget).HasColumnType("numeric(15,2)");
             e.Property(ev => ev.Status).HasConversion<int>();
+            e.Property(ev => ev.Visibility).HasConversion<int>();
+        });
+
+        // ── EventRating ──────────────────────────────────────────────────────────
+        modelBuilder.Entity<EventRating>(e =>
+        {
+            e.HasOne(er => er.Event)
+             .WithMany(ev => ev.Ratings)
+             .HasForeignKey(er => er.EventId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(er => er.User)
+             .WithMany(u => u.EventRatings)
+             .HasForeignKey(er => er.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.Property(er => er.Aspect).HasConversion<int>();
+            
+            // Unique constraint: một user chỉ đánh giá một aspect của event một lần
+            e.HasIndex(er => new { er.EventId, er.UserId, er.Aspect }).IsUnique();
+        });
+
+        // ── OrganizationPost ─────────────────────────────────────────────────────
+        modelBuilder.Entity<OrganizationPost>(e =>
+        {
+            e.HasOne(p => p.Organization)
+             .WithMany(o => o.Posts)
+             .HasForeignKey(p => p.OrgId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(p => p.Creator)
+             .WithMany(m => m.CreatedPosts)
+             .HasForeignKey(p => p.CreatedBy)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(p => p.TargetDepartment)
+             .WithMany(d => d.TargetedPosts)
+             .HasForeignKey(p => p.TargetDepartmentId)
+             .OnDelete(DeleteBehavior.SetNull);
+
+            e.HasOne(p => p.RelatedEvent)
+             .WithMany(ev => ev.RelatedPosts)
+             .HasForeignKey(p => p.RelatedEventId)
+             .OnDelete(DeleteBehavior.SetNull);
+
+            e.Property(p => p.PostType).HasConversion<int>();
+            e.Property(p => p.Visibility).HasConversion<int>();
+            
+            e.HasIndex(p => new { p.OrgId, p.CreatedAt });
+            e.HasIndex(p => new { p.Visibility, p.CreatedAt });
         });
 
         // ── Resource ─────────────────────────────────────────────────────────────
@@ -310,6 +388,27 @@ public class AppDbContext : DbContext
              .OnDelete(DeleteBehavior.SetNull);
 
             e.Property(da => da.FileType).HasConversion<int>();
+        });
+
+        // ── Notification ──────────────────────────────────────────────────────────
+        modelBuilder.Entity<Notification>(e =>
+        {
+            e.HasOne(n => n.Receiver)
+             .WithMany(u => u.ReceivedNotifications)
+             .HasForeignKey(n => n.ReceiverId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(n => n.Actor)
+             .WithMany(u => u.CreatedNotifications)
+             .HasForeignKey(n => n.ActorId)
+             .OnDelete(DeleteBehavior.SetNull);
+
+            e.Property(n => n.Type).HasConversion<int>();
+            
+            // Index cho query thông báo của user (quan trọng cho performance)
+            e.HasIndex(n => new { n.ReceiverId, n.CreatedAt });
+            e.HasIndex(n => new { n.ReceiverId, n.IsRead });
+            e.HasIndex(n => new { n.ReceiverId, n.Type });
         });
 
         // ---- Áp dụng soft-delete filter cho mọi entity kế thừa BaseEntity ----

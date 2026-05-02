@@ -52,3 +52,11 @@ public sealed class JoinRequestFormViewModel
     public string? Strengths { get; set; }
     public string Reason { get; set; } = string.Empty;
 }
+
+public sealed class CreateOrganizationRequestViewModel
+{
+    public Guid OrgId { get; set; }
+    public string RequestType { get; set; } = "GeneralOrgRequest";
+    public string Title { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+}

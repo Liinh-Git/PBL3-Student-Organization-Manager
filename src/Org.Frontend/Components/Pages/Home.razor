@@ -1,278 +1,177 @@
 @page "/home"
-@inject IUserDashboardService DashboardService
+@using Org.Frontend.Services.Overview
+@using Org.Frontend.Components.Pages.HomeComponents
+@inject IOverviewService OverviewService
 @inject NavigationManager Navigation
-@using Org.Frontend.Services.Dashboard
-@using Org.Frontend.ViewModels
-@using System.Globalization
 
-<PageTitle>Hoạt động của tôi</PageTitle>
+<PageTitle>Overview</PageTitle>
 
-<div class="home-shell">
+<div class="home-shell app-page">
     @if (_isLoading)
     {
-        <section class="dashboard-state">
-            <h1>Đang tải dữ liệu</h1>
-            <p>Xin vui lòng chờ trong giây lát...</p>
+        <section class="app-loading">
+            <h2>Đang tải tổng quan...</h2>
+            <p>Hệ thống đang tổng hợp hoạt động cá nhân của bạn.</p>
         </section>
     }
     else if (!string.IsNullOrWhiteSpace(_errorMessage))
     {
-        <section class="dashboard-state error">
-            <h1>Không tải được dữ liệu</h1>
+        <section class="app-error">
+            <h2>Không tải được dữ liệu tổng quan</h2>
             <p>@_errorMessage</p>
-            <button type="button" class="state-button" @onclick="ReloadAsync">Thử lại</button>
+            <button type="button" class="app-button app-button--primary" @onclick="ReloadAsync">Thử lại</button>
         </section>
     }
-    else if (_dashboard is not null)
+    else if (_overview is not null)
     {
-        @* ---- SECTION: HOẠT ĐỘNG CỦA TÔI ---- *@
-        <div class="page-header">
-            <h1>Hoạt động của tôi</h1>
-            <p>Tổng quan các sự kiện và câu lạc bộ đang tham gia.</p>
-        </div>
+        <header class="overview-header app-page-header">
+            <div>
+                <p class="app-kicker">Workspace cá nhân</p>
+                <h1 class="app-page-title">Tổng quan</h1>
+                <p class="app-page-subtitle">Xin chào @_overview.DisplayName, đây là những hoạt động quan trọng của bạn.</p>
+            </div>
+        </header>
 
-        <div class="activities-grid">
-            @* Cột 1: Sự kiện đã ghi danh *@
-            <div class="activity-column">
-                <div class="column-head">
-                    <h2>Sự kiện đã ghi danh</h2>
-                    <button class="text-link" @onclick="OpenMyEvents">Xem tất cả</button>
+        <section class="overview-section app-section">
+            <div class="app-section-header">
+                <div>
+                    <h2 class="app-section-title">Tổ chức đang tham gia</h2>
+                    <p class="app-section-subtitle">Các cộng đồng và tổ chức bạn đang là thành viên.</p>
                 </div>
-                <div class="mini-card-list">
-                    @if (MyRegisteredEventItems.Count == 0)
+                <span class="app-badge app-badge--info">@_overview.JoinedOrganizations.Count</span>
+            </div>
+            @if (_overview.JoinedOrganizations.Count == 0)
+            {
+                <div class="app-empty">Bạn chưa tham gia tổ chức nào.</div>
+            }
+            else
+            {
+                <div class="overview-grid organizations">
+                    @foreach (var item in _overview.JoinedOrganizations)
                     {
-                        <div class="empty-block"><p>Bạn chưa đăng ký sự kiện nào.</p></div>
-                    }
-                    else
-                    {
-                        @foreach (var item in MyRegisteredEventItems)
-                        {
-                            <article class="mini-event-card clickable" @onclick="() => OpenEventDetail(item.EventId)">
-                                <div class="mini-event-img">
-                                    <img src="@ResolveImage(item.ImageUrl, DefaultEventImageUrl)" alt="@item.Name" />
-                                </div>
-                                <div class="mini-event-info">
-                                    <span class="mini-pill">@BuildEventTypeLabel(item.Name)</span>
-                                    <h4>@item.Name</h4>
-                                    <div class="mini-meta">
-                                        <span><MudIcon Icon="@Icons.Material.Outlined.Schedule" /> @FormatEventTimeOnly(item.StartDate)</span>
-                                        <span><MudIcon Icon="@Icons.Material.Outlined.LocationOn" /> @ResolveLocationShort(item.Location)</span>
-                                    </div>
-                                </div>
-                            </article>
-                        }
+                        <OverviewOrganizationCard Item="item" OnOpen="OpenOrganization" />
                     }
                 </div>
-            </div>
+            }
+        </section>
 
-            @* Cột 2: Câu lạc bộ của tôi *@
-            <div class="activity-column">
-                <div class="column-head">
-                    <h2>Câu lạc bộ của tôi</h2>
-                    <button class="text-link" @onclick="OpenMyOrganizations">Quản lý</button>
+        <section class="overview-section app-section">
+            <div class="app-section-header">
+                <div>
+                    <h2 class="app-section-title">Sự kiện bạn đang tổ chức</h2>
+                    <p class="app-section-subtitle">Những sự kiện bạn tham gia với vai trò ban tổ chức.</p>
                 </div>
-                <div class="mini-card-list">
-                    @if (MyOrganizationItems.Count == 0)
+                <span class="app-badge app-badge--warning">@_overview.OrganizingEvents.Count</span>
+            </div>
+            @if (_overview.OrganizingEvents.Count == 0)
+            {
+                <div class="app-empty">Bạn không có sự kiện nào trong ban tổ chức.</div>
+            }
+            else
+            {
+                <div class="overview-grid events">
+                    @foreach (var item in _overview.OrganizingEvents)
                     {
-                        <div class="empty-block"><p>Bạn chưa tham gia câu lạc bộ nào.</p></div>
-                    }
-                    else
-                    {
-                        @foreach (var org in MyOrganizationItems)
-                        {
-                            <article class="mini-org-card clickable" @onclick="() => OpenOrganizationDetail(org.OrganizationId)">
-                                <div class="mini-org-avatar">
-                                    <img src="@ResolveImage(org.AvatarUrl, DefaultOrganizationImageUrl)" alt="@org.Name" />
-                                </div>
-                                <div class="mini-org-info">
-                                    <h4>@org.Name</h4>
-                                    <p>@org.Role</p>
-                                </div>
-                                <div class="mini-action-icon">
-                                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
-                                </div>
-                            </article>
-                        }
+                        <OverviewEventCard Item="item" OnOpen="OpenEvent" />
                     }
                 </div>
-            </div>
-        </div>
+            }
+        </section>
 
-        @* ---- SECTION: KHÁM PHÁ ---- *@
-        <div class="page-header mt-4">
-            <h1>Khám phá</h1>
-            <p>Cơ hội mới để phát triển kỹ năng và mở rộng mạng lưới.</p>
-        </div>
-
-        @* Tổ chức đề xuất *@
-        <div class="discover-panel">
-            <div class="discover-head">
-                <h3>Tổ chức đề xuất</h3>
-                <div class="pager">
-                    <button class="pager-btn" @onclick="PreviousOrganizationPage" disabled="@(!CanGoPreviousOrganizations)"><MudIcon Icon="@Icons.Material.Filled.ChevronLeft" /></button>
-                    <span class="pager-text">@OrganizationPageDisplay/@OrganizationPageCount</span>
-                    <button class="pager-btn" @onclick="NextOrganizationPage" disabled="@(!CanGoNextOrganizations)"><MudIcon Icon="@Icons.Material.Filled.ChevronRight" /></button>
+        <section class="overview-section app-section">
+            <div class="app-section-header">
+                <div>
+                    <h2 class="app-section-title">Sự kiện bạn tham gia</h2>
+                    <p class="app-section-subtitle">Các sự kiện bạn đăng ký với vai trò người tham dự.</p>
                 </div>
+                <span class="app-badge app-badge--success">@_overview.AttendingEvents.Count</span>
             </div>
-
-            <div class="discover-grid">
-                @foreach (var org in OrganizationDiscoverItems)
-                {
-                    <article class="discover-card org-discover-card">
-                        <div class="card-cover">
-                            <img src="@ResolveImage(org.ImageUrl, DefaultOrganizationImageUrl)" alt="Cover" />
-                            <div class="floating-avatar">
-                                <img src="@ResolveImage(org.ImageUrl, DefaultOrganizationImageUrl)" alt="@org.Name" />
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <span class="kicker">CÂU LẠC BỘ</span>
-                            <h4>@org.Name</h4>
-                            <p class="desc">@BuildDescription(org.Description, 80)</p>
-                            <div class="card-footer">
-                                <div class="member-bubbles">
-                                    @foreach (var bubble in BuildMemberBubbles(org.Name, org.MemberCount))
-                                    {
-                                        <span>@bubble</span>
-                                    }
-                                </div>
-                                <button class="btn-dark" @onclick="() => OpenOrganizationDetail(org.OrganizationId)">Xem chi tiết</button>
-                            </div>
-                        </div>
-                    </article>
-                }
-            </div>
-        </div>
-
-        @* Sự kiện đề xuất *@
-        <div class="discover-panel mt-2">
-            <div class="discover-head">
-                <h3>Sự kiện đề xuất</h3>
-                <div class="pager">
-                    <button class="pager-btn" @onclick="PreviousEventPage" disabled="@(!CanGoPreviousEvents)"><MudIcon Icon="@Icons.Material.Filled.ChevronLeft" /></button>
-                    <span class="pager-text">@EventPageDisplay/@EventPageCount</span>
-                    <button class="pager-btn" @onclick="NextEventPage" disabled="@(!CanGoNextEvents)"><MudIcon Icon="@Icons.Material.Filled.ChevronRight" /></button>
+            @if (_overview.AttendingEvents.Count == 0)
+            {
+                <div class="app-empty">Bạn chưa đăng ký sự kiện nào với vai trò người tham dự.</div>
+            }
+            else
+            {
+                <div class="overview-grid events">
+                    @foreach (var item in _overview.AttendingEvents)
+                    {
+                        <OverviewEventCard Item="item" OnOpen="OpenPublicEvent" />
+                    }
                 </div>
-            </div>
+            }
+        </section>
 
-            <div class="discover-grid">
-                @foreach (var item in EventDiscoverItems)
-                {
-                    <article class="discover-card event-discover-card">
-                        <div class="card-cover">
-                            <img src="@ResolveImage(item.ImageUrl, DefaultEventImageUrl)" alt="@item.Name" />
-                            <span class="tag-orange">@BuildEventTypeLabel(item.Name)</span>
-                            <div class="overlay-title">
-                                <h4>@item.Name</h4>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <ul class="meta-list">
-                                <li><MudIcon Icon="@Icons.Material.Outlined.CalendarToday" /> @FormatEventDate(item.StartDate)</li>
-                                <li><MudIcon Icon="@Icons.Material.Outlined.Schedule" /> @FormatEventTimeRange(item.StartDate, item.EndDate)</li>
-                                <li><MudIcon Icon="@Icons.Material.Outlined.LocationOn" /> @ResolveLocation(item.Location)</li>
-                            </ul>
-                            <button class="btn-outline-full" @onclick="() => OpenEventDetail(item.EventId)">Xem chi tiết</button>
-                        </div>
-                    </article>
-                }
+        <section class="overview-section app-section">
+            <div class="app-section-header">
+                <div>
+                    <h2 class="app-section-title">Task được giao</h2>
+                    <p class="app-section-subtitle">Các đầu việc đang gắn với vai trò của bạn trong tổ chức hoặc sự kiện.</p>
+                </div>
+                <span class="app-badge">@_overview.AssignedTasks.Count</span>
             </div>
-        </div>
+            @if (_overview.AssignedTasks.Count == 0)
+            {
+                <div class="app-empty">Bạn chưa có task nào được giao.</div>
+            }
+            else
+            {
+                <div class="overview-grid tasks">
+                    @foreach (var item in _overview.AssignedTasks)
+                    {
+                        <OverviewTaskCard Item="item" />
+                    }
+                </div>
+            }
+        </section>
     }
 </div>
 
 @code {
-    private const int DiscoverPageSize = 3;
-    private const string DefaultOrganizationImageUrl = "/images/mockimages/1773043475804.png";
-    private const string DefaultEventImageUrl = "/images/mockimages/IMG_20260301_060428.jpg";
-
-    private UserDashboardViewModel? _dashboard;
+    private OverviewPageViewModel? _overview;
     private bool _isLoading = true;
     private string? _errorMessage;
 
-    private int _organizationPageIndex;
-    private int _eventPageIndex;
-
-    private IReadOnlyList<UserOrganizationViewModel> MyOrganizationItems =>
-        _dashboard != null ? _dashboard.Organizations.Take(2).ToList() : Array.Empty<UserOrganizationViewModel>();
-
-    private IReadOnlyList<UserRegisteredEventViewModel> MyRegisteredEventItems =>
-        _dashboard != null ? _dashboard.RegisteredEvents.Take(2).ToList() : Array.Empty<UserRegisteredEventViewModel>();
-
-    private int OrganizationPageCount => GetPageCount(AvailableSuggestedOrganizations.Count);
-    private int EventPageCount => GetPageCount(_dashboard?.SuggestedEvents.Count ?? 0);
-
-    private int OrganizationPageDisplay => Math.Min(_organizationPageIndex + 1, OrganizationPageCount);
-    private int EventPageDisplay => Math.Min(_eventPageIndex + 1, EventPageCount);
-
-    private bool CanGoPreviousOrganizations => _organizationPageIndex > 0;
-    private bool CanGoNextOrganizations => _organizationPageIndex < OrganizationPageCount - 1;
-
-    private bool CanGoPreviousEvents => _eventPageIndex > 0;
-    private bool CanGoNextEvents => _eventPageIndex < EventPageCount - 1;
-
-    private IReadOnlyList<SuggestedOrganizationViewModel> OrganizationDiscoverItems =>
-        AvailableSuggestedOrganizations.Skip(_organizationPageIndex * DiscoverPageSize).Take(DiscoverPageSize).ToList();
-
-    private IReadOnlyList<SuggestedOrganizationViewModel> AvailableSuggestedOrganizations
-    {
-        get
-        {
-            if (_dashboard is null) return Array.Empty<SuggestedOrganizationViewModel>();
-            var joinedIds = _dashboard.Organizations.Select(x => x.OrganizationId).ToHashSet();
-            return _dashboard.SuggestedOrganizations.Where(x => !joinedIds.Contains(x.OrganizationId)).ToList();
-        }
-    }
-
-    private IReadOnlyList<SuggestedEventViewModel> EventDiscoverItems =>
-        _dashboard != null ? _dashboard.SuggestedEvents.Skip(_eventPageIndex * DiscoverPageSize).Take(DiscoverPageSize).ToList() : Array.Empty<SuggestedEventViewModel>();
-
-    protected override async Task OnInitializedAsync() => await ReloadAsync();
+    protected override async Task OnInitializedAsync()
+        => await ReloadAsync();
 
     private async Task ReloadAsync()
     {
-        _isLoading = true; _errorMessage = null;
+        _isLoading = true;
+        _errorMessage = null;
+
         try
         {
-            _dashboard = await DashboardService.GetDashboardAsync();
-            _organizationPageIndex = 0; _eventPageIndex = 0;
+            _overview = await OverviewService.GetOverviewAsync();
         }
-        catch { _errorMessage = "Hệ thống tạm thời không tải được dữ liệu dashboard. Vui lòng thử lại."; }
-        finally { _isLoading = false; }
+        catch (Exception ex)
+        {
+            _overview = null;
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
-    private void PreviousOrganizationPage() { if (CanGoPreviousOrganizations) _organizationPageIndex--; }
-    private void NextOrganizationPage() { if (CanGoNextOrganizations) _organizationPageIndex++; }
-    private void PreviousEventPage() { if (CanGoPreviousEvents) _eventPageIndex--; }
-    private void NextEventPage() { if (CanGoNextEvents) _eventPageIndex++; }
+    private void OpenOrganization(Guid organizationId)
+        => Navigation.NavigateTo($"/org-overview?orgId={organizationId:D}&returnUrl=%2Fhome");
 
-    private void OpenMyOrganizations() => Navigation.NavigateTo("/user/organizations");
-    private void OpenMyEvents() => Navigation.NavigateTo("/user/events");
-    private void OpenOrganizationDetail(Guid id) => Navigation.NavigateTo($"/org-overview?orgId={id}");
-    private void OpenEventDetail(Guid id) => Navigation.NavigateTo($"/events/{id}");
-
-    private static int GetPageCount(int total) => total <= 0 ? 1 : (int)Math.Ceiling(total / (double)DiscoverPageSize);
-    private static string BuildDescription(string? val, int max) => string.IsNullOrWhiteSpace(val) ? "Chưa có mô tả." : (val.Length <= max ? val : val[..max] + "...");
-    private static string ResolveImage(string? url, string fallback) => string.IsNullOrWhiteSpace(url) ? fallback : url;
-    private static string ResolveLocation(string? loc) => string.IsNullOrWhiteSpace(loc) ? "Đang cập nhật" : loc;
-    private static string ResolveLocationShort(string? loc) => string.IsNullOrWhiteSpace(loc) ? "Đang cập nhật" : (loc.Length > 20 ? loc[..20] + "..." : loc);
-
-    private static string BuildEventTypeLabel(string name)
+    private void OpenEvent(Guid eventId)
     {
-        var n = name?.ToLowerInvariant() ?? "";
-        if (n.Contains("workshop")) return "WORKSHOP";
-        if (n.Contains("summit") || n.Contains("conference") || n.Contains("hội thảo")) return "HỘI THẢO";
-        return "SỰ KIỆN";
+        var orgId = _overview?.OrganizingEvents
+            .FirstOrDefault(x => x.EventId == eventId)?
+            .OrganizationId;
+
+        if (orgId.HasValue)
+        {
+            Navigation.NavigateTo($"/org/events/{eventId:D}?orgId={orgId.Value:D}&returnUrl=%2Fhome");
+            return;
+        }
+
+        Navigation.NavigateTo($"/org/events/{eventId:D}?returnUrl=%2Fhome");
     }
 
-    private static string FormatEventDate(DateOnly date) => date.ToString("'Thứ' (ddd), dd 'Tháng' MM, yyyy", new CultureInfo("vi-VN")).Replace("(T", "T");
-    private static string FormatEventTimeOnly(DateOnly date) => "08:00"; 
-    private static string FormatEventTimeRange(DateOnly start, DateOnly end) => "08:00 - 11:30"; 
-    
-    private static IReadOnlyList<string> BuildMemberBubbles(string? name, int count)
-    {
-        var initials = string.IsNullOrWhiteSpace(name) ? "CL" : string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => x[0])).ToUpper();
-        initials = initials.Length > 2 ? initials[..2] : initials;
-        return [initials, "", $"+{Math.Max(1, count)}"];
-    }
+    private void OpenPublicEvent(Guid eventId)
+        => Navigation.NavigateTo($"/events/{eventId:D}?returnUrl=%2Fhome");
 }

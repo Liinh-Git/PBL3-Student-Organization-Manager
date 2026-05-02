@@ -56,12 +56,13 @@ public sealed class FrontendMockDataStore(IWebHostEnvironment env, ILogger<Front
             _isLoaded = true;
 
             _logger.LogInformation(
-                "Loaded FE mock dataset: {Users} users, {Organizations} organizations, {Members} members, {Events} events, {Attendees} attendees.",
+                "Loaded FE mock dataset: {Users} users, {Organizations} organizations, {Members} members, {Events} events, {Attendees} attendees, {Notifications} notifications.",
                 _data.Users.Count,
                 _data.Organizations.Count,
                 _data.Members.Count,
                 _data.Events.Count,
-                _data.Attendees.Count);
+                _data.Attendees.Count,
+                _data.Notifications.Count);
         }
         finally
         {
@@ -75,6 +76,7 @@ public sealed class FrontendMockDataStore(IWebHostEnvironment env, ILogger<Front
         {
             Users = await ReadDomainAsync<MockUser>("users.mock.json", ct),
             Organizations = await ReadDomainAsync<MockOrganization>("organizations.mock.json", ct),
+            OrganizationRoles = await ReadDomainAsync<MockOrganizationRole>("organization-roles.mock.json", ct),
             Departments = await ReadDomainAsync<MockDepartment>("departments.mock.json", ct),
             Members = await ReadDomainAsync<MockMember>("members.mock.json", ct),
             Events = await ReadDomainAsync<MockEvent>("events.mock.json", ct),
@@ -83,7 +85,16 @@ public sealed class FrontendMockDataStore(IWebHostEnvironment env, ILogger<Front
             Milestones = await ReadDomainAsync<MockMilestone>("milestones.mock.json", ct),
             EventCategories = await ReadDomainAsync<MockEventCategory>("event-categories.mock.json", ct),
             Tasks = await ReadDomainAsync<MockTask>("tasks.mock.json", ct),
-            Requests = await ReadDomainAsync<MockRequest>("requests.mock.json", ct)
+            DepartmentTasks = await ReadDomainAsync<MockDepartmentTask>("department-tasks.mock.json", ct),
+            Requests = await ReadDomainAsync<MockRequest>("requests.mock.json", ct),
+            Notifications = await ReadDomainAsync<MockNotification>("notifications.mock.json", ct),
+            FriendRequests = await ReadDomainAsync<MockFriendRequest>("friend-requests.mock.json", ct),
+            Friendships = await ReadDomainAsync<MockFriendship>("friendships.mock.json", ct),
+            Posts = await ReadDomainAsync<MockPost>("posts.mock.json", ct),
+            PostComments = await ReadDomainAsync<MockPostComment>("post-comments.mock.json", ct),
+            Conversations = await ReadDomainAsync<MockConversation>("conversations.mock.json", ct),
+            ConversationParticipants = await ReadDomainAsync<MockConversationParticipant>("conversation-participants.mock.json", ct),
+            Messages = await ReadDomainAsync<MockMessage>("messages.mock.json", ct)
         };
     }
 

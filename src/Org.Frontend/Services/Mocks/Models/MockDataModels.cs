@@ -7,6 +7,7 @@ public sealed class MockDataSet
 {
     public List<MockUser> Users { get; set; } = [];
     public List<MockOrganization> Organizations { get; set; } = [];
+    public List<MockOrganizationRole> OrganizationRoles { get; set; } = [];
     public List<MockDepartment> Departments { get; set; } = [];
     public List<MockMember> Members { get; set; } = [];
     public List<MockEvent> Events { get; set; } = [];
@@ -15,7 +16,16 @@ public sealed class MockDataSet
     public List<MockMilestone> Milestones { get; set; } = [];
     public List<MockEventCategory> EventCategories { get; set; } = [];
     public List<MockTask> Tasks { get; set; } = [];
+    public List<MockDepartmentTask> DepartmentTasks { get; set; } = [];
     public List<MockRequest> Requests { get; set; } = [];
+    public List<MockNotification> Notifications { get; set; } = [];
+    public List<MockFriendRequest> FriendRequests { get; set; } = [];
+    public List<MockFriendship> Friendships { get; set; } = [];
+    public List<MockPost> Posts { get; set; } = [];
+    public List<MockPostComment> PostComments { get; set; } = [];
+    public List<MockConversation> Conversations { get; set; } = [];
+    public List<MockConversationParticipant> ConversationParticipants { get; set; } = [];
+    public List<MockMessage> Messages { get; set; } = [];
 }
 
 public sealed class MockRequest
@@ -23,10 +33,10 @@ public sealed class MockRequest
     public Guid Id { get; set; }
     public Guid OrgId { get; set; }
     public Guid UserId { get; set; }
-    /// <summary>JOIN hoặc OTHER</summary>
-    public string RequestType { get; set; } = "JOIN";
-    /// <summary>PENDING, APPROVED, REJECTED</summary>
-    public string Status { get; set; } = "PENDING";
+    /// <summary>JoinClub, ApproveEvent, ResourceBorrow</summary>
+    public string RequestType { get; set; } = "JoinClub";
+    /// <summary>Pending, Approved, Rejected</summary>
+    public string Status { get; set; } = "Pending";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string? Title { get; set; }
     public string? Message { get; set; }
@@ -50,6 +60,7 @@ public sealed class MockUser
     public string? Gender { get; set; }
     public string? Address { get; set; }
     public string? Bio { get; set; }
+    public string ProfileVisibility { get; set; } = "Public";
     public string? Status { get; set; }
     public bool? EmailNotificationsEnabled { get; set; }
     public bool? AppPushEnabled { get; set; }
@@ -62,12 +73,30 @@ public sealed class MockOrganization
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public string OrgName { get; set; } = string.Empty;
+    public string? ShortDescription { get; set; }
     public string? Description { get; set; }
+    public string? Mission { get; set; }
+    public string? Vision { get; set; }
+    public List<string> Tags { get; set; } = [];
     public string? AvatarUrl { get; set; }
     public string? CoverUrl { get; set; }
     public string? Location { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? ContactPhone { get; set; }
+    public string? WebsiteUrl { get; set; }
+    public string? FacebookUrl { get; set; }
+    public DateOnly? FoundedDate { get; set; }
+    public DateTime? LastActivityAtUtc { get; set; }
     public int TotalMembers { get; set; }
     public int Status { get; set; }
+}
+
+public sealed class MockOrganizationRole
+{
+    public Guid Id { get; set; }
+    public Guid OrgId { get; set; }
+    public string RoleName { get; set; } = "Member";
+    public List<string> Permissions { get; set; } = [];
 }
 
 public sealed class MockDepartment
@@ -107,6 +136,7 @@ public sealed class MockEvent
     public string? RiskLevel { get; set; }
     public int TotalFiles { get; set; }
     public decimal ActualSpending { get; set; }
+    public List<string> Tags { get; set; } = [];
 }
 
 public sealed class MockEventMember
@@ -159,7 +189,116 @@ public sealed class MockTask
     public Guid CategoryId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Status { get; set; } = "TODO";
+    public string? Priority { get; set; }
+    public string? Description { get; set; }
     public Guid? AssigneeMemberId { get; set; }
+    public List<Guid> CoAssigneeMemberIds { get; set; } = [];
     public DateTime? DueDate { get; set; }
     public string? Note { get; set; }
+}
+
+public sealed class MockDepartmentTask
+{
+    public Guid Id { get; set; }
+    public Guid OrganizationId { get; set; }
+    public Guid DepartmentId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime? DeadlineAt { get; set; }
+    // TODO | DONE
+    public string Status { get; set; } = "TODO";
+    public Guid CreatedByUserId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public List<Guid> AssigneeMemberIds { get; set; } = [];
+}
+
+public sealed class MockNotification
+{
+    public Guid Id { get; set; }
+    public Guid ReceiverId { get; set; }
+    public Guid? ActorId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string Type { get; set; } = "General";
+    public bool IsRead { get; set; } = false;
+    public DateTime? ReadAt { get; set; }
+    public string? ActionUrl { get; set; }
+    public string? IconUrl { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class MockFriendRequest
+{
+    public Guid Id { get; set; }
+    public Guid SenderId { get; set; }
+    public Guid ReceiverId { get; set; }
+    public string Status { get; set; } = "Pending";
+    public string? Message { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? RespondedAt { get; set; }
+}
+
+public sealed class MockFriendship
+{
+    public Guid Id { get; set; }
+    public Guid UserAId { get; set; }
+    public Guid UserBId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class MockPost
+{
+    public Guid Id { get; set; }
+    public Guid OrgId { get; set; }
+    public Guid AuthorUserId { get; set; }
+    public Guid? RelatedEventId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public string PostType { get; set; } = "General";
+    public string Visibility { get; set; } = "Public";
+    public List<string> MediaUrls { get; set; } = [];
+    public int LikeCount { get; set; }
+    public int CommentCount { get; set; }
+    public int ShareCount { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class MockPostComment
+{
+    public Guid Id { get; set; }
+    public Guid PostId { get; set; }
+    public Guid AuthorUserId { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class MockConversation
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public bool IsGroup { get; set; }
+    public string Type { get; set; } = "DIRECT";
+    public Guid? LastMessageId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class MockConversationParticipant
+{
+    public Guid ConversationId { get; set; }
+    public Guid UserId { get; set; }
+    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+}
+
+public sealed class MockMessage
+{
+    public Guid Id { get; set; }
+    public Guid ConversationId { get; set; }
+    public Guid SenderId { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public string MessageType { get; set; } = "TEXT";
+    public string Status { get; set; } = "SENT";
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime SentAt { get; set; } = DateTime.UtcNow;
+    public List<Guid> ReadByUserIds { get; set; } = [];
 }

@@ -1,6 +1,7 @@
 @page "/org/requests"
 @inject Org.Frontend.Services.Requests.IRequestService RequestService
 @inject Org.Frontend.Services.Organizations.IOrganizationContext OrgContext
+@inject NavigationManager Navigation
 @using Org.Frontend.ViewModels
 
 <PageTitle>Yêu cầu đang chờ duyệt | Kora</PageTitle>
@@ -14,6 +15,10 @@
     @if (_isLoading)
     {
         <p class="loading-text">Dang tai du lieu...</p>
+    }
+    else if (!_canViewRequests)
+    {
+        <p class="empty-text">Ban khong co quyen xem yeu cau cua to chuc.</p>
     }
     else
     {
@@ -62,8 +67,16 @@
                             </button>
 
                             <div class="card-actions">
-                                <button class="action-btn accept-btn" @onclick="() => Approve(req.Id)">CHAP NHAN</button>
-                                <button class="action-btn reject-btn" @onclick="() => Reject(req.Id)">TU CHOI</button>
+                                @if (_canReviewRequests)
+                                {
+                                    <button class="action-btn accept-btn" @onclick="() => Approve(req.Id)">CHAP NHAN</button>
+                                    <button class="action-btn reject-btn" @onclick="() => Reject(req.Id)">TU CHOI</button>
+                                }
+                                else
+                                {
+                                    <button class="action-btn accept-btn" disabled title="Ban khong co quyen duyet yeu cau.">CHAP NHAN</button>
+                                    <button class="action-btn reject-btn" disabled title="Ban khong co quyen duyet yeu cau.">TU CHOI</button>
+                                }
                             </div>
                         </div>
                     }
@@ -102,12 +115,24 @@
                                     <p class="meta-desc">@req.Message</p>
                                 </div>
                                 <div class="item-actions">
-                                    <button class="icon-btn accept" title="Chấp nhận" @onclick="() => Approve(req.Id)">
-                                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                    </button>
-                                    <button class="icon-btn reject" title="Từ chối" @onclick="() => Reject(req.Id)">
-                                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
-                                    </button>
+                                    @if (_canReviewRequests)
+                                    {
+                                        <button class="icon-btn accept" title="Chấp nhận" @onclick="() => Approve(req.Id)">
+                                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        </button>
+                                        <button class="icon-btn reject" title="Từ chối" @onclick="() => Reject(req.Id)">
+                                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="icon-btn accept" disabled title="Ban khong co quyen duyet yeu cau.">
+                                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        </button>
+                                        <button class="icon-btn reject" disabled title="Ban khong co quyen duyet yeu cau.">
+                                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -122,6 +147,7 @@
 @if (_showDetail && _selectedDetail is not null)
 {
     <RequestDetailModal Detail="@_selectedDetail"
+                        CanReview="@_canReviewRequests"
                         OnClose="CloseDetail"
                         OnApprove="ApproveFromModal"
                         OnReject="RejectFromModal" />
@@ -131,6 +157,8 @@
     private bool _isLoading = true;
     private List<RequestViewModel> _joinRequests = [];
     private List<RequestViewModel> _otherRequests = [];
+    private bool _canViewRequests;
+    private bool _canReviewRequests;
 
     // Detail modal state
     private bool _showDetail;
@@ -147,9 +175,32 @@
         try
         {
             var orgId = await OrgContext.GetOrganizationIdAsync();
+            _canViewRequests = await RequestService.CanViewOrganizationRequestsAsync(orgId);
+            _canReviewRequests = await RequestService.CanReviewOrganizationRequestsAsync(orgId);
+            if (!_canViewRequests)
+            {
+                _joinRequests = [];
+                _otherRequests = [];
+                return;
+            }
             var all = await RequestService.GetPendingRequestsAsync(orgId);
             _joinRequests = all.Where(r => string.Equals(r.RequestType, "JOIN", StringComparison.OrdinalIgnoreCase)).ToList();
             _otherRequests = all.Where(r => !string.Equals(r.RequestType, "JOIN", StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _canViewRequests = false;
+            _canReviewRequests = false;
+            _joinRequests = [];
+            _otherRequests = [];
+        }
+        catch
+        {
+            // Live/API mode may not support organization request endpoints yet.
+            _canViewRequests = false;
+            _canReviewRequests = false;
+            _joinRequests = [];
+            _otherRequests = [];
         }
         finally
         {
@@ -159,12 +210,22 @@
 
     private async Task Approve(Guid requestId)
     {
+        if (!_canReviewRequests)
+        {
+            return;
+        }
+
         await RequestService.ApproveRequestAsync(requestId);
         await LoadDataAsync();
     }
 
     private async Task Reject(Guid requestId)
     {
+        if (!_canReviewRequests)
+        {
+            return;
+        }
+
         await RequestService.RejectRequestAsync(requestId);
         await LoadDataAsync();
     }
@@ -183,6 +244,12 @@
 
     private async Task ApproveFromModal()
     {
+        if (!_canReviewRequests)
+        {
+            CloseDetail();
+            return;
+        }
+
         if (_selectedDetail is not null)
         {
             await Approve(_selectedDetail.Id);
@@ -192,6 +259,12 @@
 
     private async Task RejectFromModal()
     {
+        if (!_canReviewRequests)
+        {
+            CloseDetail();
+            return;
+        }
+
         if (_selectedDetail is not null)
         {
             await Reject(_selectedDetail.Id);

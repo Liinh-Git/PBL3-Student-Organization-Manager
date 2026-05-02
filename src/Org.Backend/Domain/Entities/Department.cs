@@ -27,4 +27,5 @@ public class Department : BaseEntity
     public ICollection<Member> Members { get; set; } = [];
     public ICollection<EventCategory> OwnedEventCategories { get; set; } = [];
     public ICollection<OrgTask> Tasks { get; set; } = [];
+    public ICollection<OrganizationPost> TargetedPosts { get; set; } = [];
 }

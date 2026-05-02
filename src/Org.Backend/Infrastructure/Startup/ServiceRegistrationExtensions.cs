@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Org.Backend.Infrastructure.Auth;
 using Org.Backend.Infrastructure.Database;
+using FastEndpoints.Swagger;
+using Org.Backend.Services;
 using System.Text;
 
 namespace Org.Backend.Infrastructure.Startup;
@@ -35,13 +37,20 @@ public static class ServiceRegistrationExtensions
 
                 policy.WithOrigins(allowedOrigins)
                       .AllowAnyMethod()
-                      .AllowAnyHeader();
+                      .AllowAnyHeader()
+                      .AllowCredentials(); // Required for SignalR
             });
         });
 
         // ---- Bind JWT options + service tạo access token ----
         services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+        // ---- Đăng ký Notification Service ----
+        services.AddScoped<INotificationService, NotificationService>();
+
+        // ---- Đăng ký SignalR ----
+        services.AddSignalR();
 
         var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
         var hasWeakSigningKey = string.IsNullOrWhiteSpace(jwtOptions.SigningKey)
@@ -77,6 +86,23 @@ public static class ServiceRegistrationExtensions
                     IssuerSigningKey = new SymmetricSecurityKey(jwtSigningKey),
                     ClockSkew = TimeSpan.FromMinutes(1)
                 };
+
+                // ---- Support SignalR authentication via query string ----
+                opt.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         services.AddAuthorization();
@@ -92,6 +118,17 @@ public static class ServiceRegistrationExtensions
             // Seed mode chỉ cần DI lõi để migrate + seed, không cần endpoint runtime.
             return services;
         }
+
+        // ---- Đăng ký Swagger ----
+        services.SwaggerDocument(o => 
+        {
+            o.DocumentSettings = s =>
+            {
+                s.Title = "Org.Backend API";
+                s.Version = "v1";
+                s.Description = "API cho dự án quản lý tổ chức";
+            };
+        });
 
         services.AddFastEndpoints();
         services.AddOpenApi();

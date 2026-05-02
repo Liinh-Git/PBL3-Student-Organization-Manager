@@ -5,7 +5,7 @@ using System.Security.Claims;
 
 namespace Org.Backend.Features.Common;
 
-internal readonly record struct OrganizationMemberContext(Guid MemberId, MemberRole Role);
+internal readonly record struct OrganizationMemberContext(Guid MemberId, Guid? RoleId, MemberRole Role);
 
 internal static class OrganizationAuthorization
 {
@@ -27,7 +27,7 @@ internal static class OrganizationAuthorization
         if (membership is null)
             return null;
 
-        return new OrganizationMemberContext(membership.Id, ParseRole(membership.Role?.RoleName));
+        return new OrganizationMemberContext(membership.Id, membership.RoleId, ParseRoleName(membership.Role?.RoleName));
     }
 
     public static bool CanRead(MemberRole role) => role >= MemberRole.Member;
@@ -36,7 +36,7 @@ internal static class OrganizationAuthorization
 
     public static bool CanDelete(MemberRole role) => role >= MemberRole.VicePresident;
 
-    private static MemberRole ParseRole(string? roleName)
+    public static MemberRole ParseRoleName(string? roleName)
     {
         if (string.IsNullOrWhiteSpace(roleName))
             return MemberRole.Member;

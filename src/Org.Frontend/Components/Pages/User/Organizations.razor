@@ -1,131 +1,170 @@
 @page "/user/organizations"
 @rendermode InteractiveServer
-@using Org.Frontend.ViewModels
-@using Org.Frontend.Services.Dashboard
-@using Org.Frontend.Components.Pages.Organizations
-@inject IUserDashboardService DashboardService
 @inject Org.Frontend.Services.Organizations.IOrganizationService OrganizationService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@using Org.Frontend.Services.Organizations
+@using Org.Frontend.Components.Pages.Organizations
 
-<PageTitle>Tổ chức của tôi - Kora</PageTitle>
+<PageTitle>Tổ chức của tôi</PageTitle>
 
-<div class="org-page-container">
-    <!-- HEADER MỚI -->
-    <header class="page-header">
-        <div class="header-icon-box">
-            <span class="material-symbols-outlined">account_balance</span>
-        </div>
-        <div class="header-text-box">
-            <h1 class="page-title">Tổ chức của tôi</h1>
-            <p class="page-subtitle">QUẢN LÝ VÀ THAM GIA KIẾN TẠO CỘNG ĐỒNG</p>
-        </div>
-    </header>
-
-    @if (_dashboard == null)
+<div class="my-orgs-page app-page">
+    @if (_isLoading)
     {
-        <div class="d-flex justify-center pa-12">
+        <section class="app-loading orgs-state">
             <MudProgressCircular Color="MudBlazor.Color.Primary" Indeterminate="true" />
-        </div>
+            <p>Đang tải danh sách tổ chức...</p>
+        </section>
     }
-    else
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
     {
-        var ownedOrgs = _dashboard!.Organizations.Where(o => o.Role == "Owner" || o.Role == "Admin").ToList();
-        var joinedOrgs = _dashboard!.Organizations.Where(o => o.Role != "Owner" && o.Role != "Admin").ToList();
+        <section class="app-error orgs-state">
+            <h2>Không tải được dữ liệu</h2>
+            <p>@_errorMessage</p>
+            <button type="button" class="app-button app-button--ghost" @onclick="LoadAsync">Thử lại</button>
+        </section>
+    }
+    else if (_myOrganizations is not null)
+    {
+        <header class="app-page-header my-orgs-header">
+            <div>
+                <p class="app-kicker">Workspace cá nhân</p>
+                <h1 class="app-page-title">Tổ chức của tôi</h1>
+                <p class="app-page-subtitle">Theo dõi tổ chức bạn phụ trách và các cộng đồng bạn đang tham gia.</p>
+            </div>
+        </header>
 
-        <!-- SECTION: CÁC TỔ CHỨC TÔI CHỦ NHIỆM -->
-        <section class="org-section">
-            <div class="section-header">
-                <h2>Các tổ chức tôi chủ nhiệm</h2>
-                <div class="header-line"></div>
-                <span class="header-badge owner-badge">CHỦ NHIỆM (@ownedOrgs.Count)</span>
+        <section class="section app-section">
+            <div class="app-section-header">
+                <div>
+                    <h2 class="app-section-title">Tổ chức đang phụ trách</h2>
+                    <p class="app-section-subtitle">Các tổ chức bạn có vai trò quản lý hoặc điều phối.</p>
+                </div>
+                @if (LeadingPageCount > 1)
+                {
+                    <div class="pager">
+                        <button type="button" class="app-button app-icon-button" @onclick="PrevLeading" disabled="@(!CanPrevLeading)">
+                            <MudIcon Icon="@Icons.Material.Filled.ChevronLeft" />
+                        </button>
+                        <span>@LeadingPageDisplay/@LeadingPageCount</span>
+                        <button type="button" class="app-button app-icon-button" @onclick="NextLeading" disabled="@(!CanNextLeading)">
+                            <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
+                        </button>
+                    </div>
+                }
             </div>
 
-            <div class="org-grid">
-                <!-- Nút tạo tổ chức mới -->
-                <div class="org-card create-card" @onclick="OnCreateOrganizationClick">
-                    <div class="create-icon-circle">
-                        <span class="material-symbols-outlined">add</span>
-                    </div>
-                    <h3>Tạo tổ chức mới</h3>
-                    <p>Bắt đầu hành trình kiến tạo một cộng đồng sinh viên mới của riêng bạn.</p>
-                </div>
+            <div class="card-grid">
+                <button type="button" class="org-card create-card app-card app-card--interactive" @onclick="OnCreateOrganizationClick">
+                    <MudIcon Icon="@Icons.Material.Filled.Add" />
+                    <strong>Tạo tổ chức mới</strong>
+                    <p>Khởi tạo một tổ chức mới trong workspace của bạn.</p>
+                </button>
 
-                @foreach (var org in ownedOrgs)
+                @if (LeadingPageItems.Count == 0)
                 {
-                    <div class="org-card owned-card" @onclick="() => NavigateToOrg(org.OrganizationId)">
-                        <div class="card-top">
-                            <div class="org-icon">
-                                <span class="material-symbols-outlined">@GetRandomIcon(org.Name)</span>
+                    <article class="org-card empty-card app-empty">
+                        <strong>Chưa có tổ chức đang phụ trách</strong>
+                        <p>Bạn vẫn có thể tạo tổ chức mới từ card bên trái.</p>
+                    </article>
+                }
+                else
+                {
+                    @foreach (var item in LeadingPageItems)
+                    {
+                        <article class="org-card app-card">
+                            <div class="card-top">
+                                <img class="app-avatar" src="@ResolveAvatar(item)" alt="@item.Name" />
+                                <span class="app-badge app-badge--success">@item.MembershipRole</span>
                             </div>
-                            <span class="role-badge">CHỦ NHIỆM</span>
-                        </div>
-                        <div class="card-body">
-                            <h3>@org.Name</h3>
-                            <p class="org-desc">@(string.IsNullOrWhiteSpace(org.Description) ? "Chưa có mô tả cho tổ chức này." : org.Description)</p>
-                        </div>
-                        <div class="card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">THÀNH VIÊN</span>
-                                <span class="stat-value">@GetRandomNumber(100, 500)</span>
+                            <h3>@item.Name</h3>
+                            <p>@BuildDescription(item.ShortDescription)</p>
+                            <div class="stats app-meta-list">
+                                <span>@item.MemberCount thành viên</span>
+                                <span>@item.UpcomingEventCount sự kiện sắp tới</span>
+                                <span>@item.ActiveTaskCount task đang mở</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-label">CHIẾN DỊCH</span>
-                                <span class="stat-value">@GetRandomNumber(5, 20)</span>
+                            @if (item.Tags.Count > 0)
+                            {
+                                <div class="tags">
+                                    @foreach (var tag in item.Tags.Take(3))
+                                    {
+                                        <span class="app-chip">@tag</span>
+                                    }
+                                </div>
+                            }
+                            <div class="actions app-action-row">
+                                <button type="button" class="app-button app-button--ghost" @onclick="() => ViewDetails(item.OrganizationId)">Xem chi tiết</button>
+                                <button type="button" class="app-button app-button--ghost" @onclick="() => EnterWorkspace(item.OrganizationId)" disabled="@(!item.CanAccessWorkspace)">Vào workspace</button>
+                                <button type="button" class="app-button app-button--primary" @onclick="() => ManageOrganization(item.OrganizationId)" disabled="@(!item.CanManage)">Quản lý</button>
                             </div>
-                        </div>
-                        <div class="card-footer">
-                            <span class="action-link">Xem chi tiết <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_forward</span></span>
-                        </div>
-                    </div>
+                        </article>
+                    }
                 }
             </div>
         </section>
 
-        <!-- SECTION: CÁC TỔ CHỨC TÔI ĐANG THAM GIA -->
-        <section class="org-section mt-5">
-            <div class="section-header">
-                <h2>Các tổ chức tôi đang tham gia</h2>
-                <div class="header-line"></div>
-                <span class="header-badge member-badge">THÀNH VIÊN (@joinedOrgs.Count)</span>
-            </div>
-
-            <div class="org-list-grid">
-                @foreach (var org in joinedOrgs)
+        <section class="section app-section">
+            <div class="app-section-header">
+                <div>
+                    <h2 class="app-section-title">Tổ chức đang tham gia</h2>
+                    <p class="app-section-subtitle">Các tổ chức bạn tham gia với vai trò thành viên.</p>
+                </div>
+                @if (ParticipatingPageCount > 1)
                 {
-                    <div class="org-list-card" @onclick="() => NavigateToOrg(org.OrganizationId)">
-                        <div class="list-card-icon">
-                            <span class="material-symbols-outlined" style="color: #ff9b51;">@GetRandomIcon(org.Name)</span>
-                        </div>
-                        <div class="list-card-content">
-                            <div class="list-card-title-row">
-                                <h3>@org.Name</h3>
-                                <span class="role-badge-small">THÀNH VIÊN</span>
-                            </div>
-                            <p class="org-desc-small">@(string.IsNullOrWhiteSpace(org.Description) ? "Nơi kết nối các tâm hồn yêu thích hoạt động và phát triển kỹ năng." : org.Description)</p>
-                            <div class="list-card-stats">
-                                <div class="stat-sm">
-                                    <span class="material-symbols-outlined">group</span>
-                                    <span>@GetRandomNumber(50, 200) thành viên</span>
-                                </div>
-                                <div class="stat-sm">
-                                    <span class="material-symbols-outlined">campaign</span>
-                                    <span>@GetRandomNumber(2, 10) chiến dịch</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="list-card-action">
-                            <button class="btn-arrow"><span class="material-symbols-outlined">chevron_right</span></button>
-                        </div>
+                    <div class="pager">
+                        <button type="button" class="app-button app-icon-button" @onclick="PrevParticipating" disabled="@(!CanPrevParticipating)">
+                            <MudIcon Icon="@Icons.Material.Filled.ChevronLeft" />
+                        </button>
+                        <span>@ParticipatingPageDisplay/@ParticipatingPageCount</span>
+                        <button type="button" class="app-button app-icon-button" @onclick="NextParticipating" disabled="@(!CanNextParticipating)">
+                            <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
+                        </button>
                     </div>
                 }
-                
-                @if (joinedOrgs.Count == 0)
+            </div>
+
+            <div class="card-grid">
+                @if (ParticipatingPageItems.Count == 0)
                 {
-                    <div class="empty-state">
-                        <p>Bạn chưa tham gia tổ chức nào khác.</p>
-                    </div>
+                    <article class="org-card empty-card app-empty">
+                        <strong>Bạn chưa tham gia thêm tổ chức nào</strong>
+                        <p>Truy cập Discover để tìm tổ chức phù hợp.</p>
+                    </article>
+                }
+                else
+                {
+                    @foreach (var item in ParticipatingPageItems)
+                    {
+                        <article class="org-card app-card">
+                            <div class="card-top">
+                                <img class="app-avatar" src="@ResolveAvatar(item)" alt="@item.Name" />
+                                <span class="app-badge">@item.MembershipRole</span>
+                            </div>
+                            <h3>@item.Name</h3>
+                            <p>@BuildDescription(item.ShortDescription)</p>
+                            <div class="stats app-meta-list">
+                                <span>@item.MemberCount thành viên</span>
+                                <span>@item.UpcomingEventCount sự kiện sắp tới</span>
+                                <span>@item.ActiveTaskCount task đang mở</span>
+                            </div>
+                            @if (item.Tags.Count > 0)
+                            {
+                                <div class="tags">
+                                    @foreach (var tag in item.Tags.Take(3))
+                                    {
+                                        <span class="app-chip">@tag</span>
+                                    }
+                                </div>
+                            }
+                            <div class="actions app-action-row">
+                                <button type="button" class="app-button app-button--ghost" @onclick="() => ViewDetails(item.OrganizationId)">Xem chi tiết</button>
+                                <button type="button" class="app-button app-button--ghost" @onclick="() => EnterWorkspace(item.OrganizationId)" disabled="@(!item.CanAccessWorkspace)">Vào workspace</button>
+                                <button type="button" class="app-button app-button--primary" @onclick="() => ManageOrganization(item.OrganizationId)" disabled="@(!item.CanManage)">Quản lý</button>
+                            </div>
+                        </article>
+                    }
                 }
             </div>
         </section>
@@ -133,22 +172,103 @@
 </div>
 
 @code {
-    private UserDashboardViewModel? _dashboard;
+    private const int CardsPerPage = 3;
+
+    private MyOrganizationsViewModel? _myOrganizations;
+    private bool _isLoading;
+    private string? _errorMessage;
+    private int _leadingPageIndex;
+    private int _participatingPageIndex;
 
     protected override async Task OnInitializedAsync()
+        => await LoadAsync();
+
+    private async Task LoadAsync()
     {
-        await LoadDashboardAsync();
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            _myOrganizations = await OrganizationService.GetMyOrganizationsAsync();
+            _leadingPageIndex = 0;
+            _participatingPageIndex = 0;
+        }
+        catch (Exception ex)
+        {
+            _myOrganizations = null;
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
-    private async Task LoadDashboardAsync()
+    private IReadOnlyList<MyOrganizationCardViewModel> LeadingOrganizations
+        => _myOrganizations?.LeadingOrganizations ?? [];
+
+    private IReadOnlyList<MyOrganizationCardViewModel> ParticipatingOrganizations
+        => _myOrganizations?.ParticipatingOrganizations ?? [];
+
+    private int LeadingPageCount => ComputePageCount(LeadingOrganizations.Count);
+    private int ParticipatingPageCount => ComputePageCount(ParticipatingOrganizations.Count);
+    private int LeadingPageDisplay => Math.Min(_leadingPageIndex + 1, LeadingPageCount);
+    private int ParticipatingPageDisplay => Math.Min(_participatingPageIndex + 1, ParticipatingPageCount);
+
+    private bool CanPrevLeading => _leadingPageIndex > 0;
+    private bool CanNextLeading => _leadingPageIndex < LeadingPageCount - 1;
+    private bool CanPrevParticipating => _participatingPageIndex > 0;
+    private bool CanNextParticipating => _participatingPageIndex < ParticipatingPageCount - 1;
+
+    private IReadOnlyList<MyOrganizationCardViewModel> LeadingPageItems => LeadingOrganizations
+        .Skip(_leadingPageIndex * CardsPerPage)
+        .Take(CardsPerPage)
+        .ToList();
+
+    private IReadOnlyList<MyOrganizationCardViewModel> ParticipatingPageItems => ParticipatingOrganizations
+        .Skip(_participatingPageIndex * CardsPerPage)
+        .Take(CardsPerPage)
+        .ToList();
+
+    private void PrevLeading()
     {
-        _dashboard = await DashboardService.GetDashboardAsync();
+        if (CanPrevLeading)
+            _leadingPageIndex--;
     }
 
-    private void NavigateToOrg(Guid orgId)
+    private void NextLeading()
     {
-        NavigationManager.NavigateTo($"/org-overview?orgId={orgId}");
+        if (CanNextLeading)
+            _leadingPageIndex++;
     }
+
+    private void PrevParticipating()
+    {
+        if (CanPrevParticipating)
+            _participatingPageIndex--;
+    }
+
+    private void NextParticipating()
+    {
+        if (CanNextParticipating)
+            _participatingPageIndex++;
+    }
+
+    private static int ComputePageCount(int count)
+    {
+        if (count <= 0)
+            return 1;
+        return (int)Math.Ceiling(count / (double)CardsPerPage);
+    }
+
+    private void ViewDetails(Guid organizationId)
+        => NavigationManager.NavigateTo($"/org-overview?orgId={organizationId:D}&returnUrl=%2Fuser%2Forganizations");
+
+    private void EnterWorkspace(Guid organizationId)
+        => NavigationManager.NavigateTo($"/org/members?orgId={organizationId:D}");
+
+    private void ManageOrganization(Guid organizationId)
+        => NavigationManager.NavigateTo($"/org-overview?orgId={organizationId:D}&returnUrl=%2Fuser%2Forganizations&edit=1");
 
     private async Task OnCreateOrganizationClick()
     {
@@ -156,33 +276,30 @@
         var dialog = await DialogService.ShowAsync<CreateOrganizationDialog>("Tạo tổ chức", options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is CreateOrganizationViewModel model)
+        if (result is null || result.Canceled || result.Data is not CreateOrganizationViewModel model)
+            return;
+
+        try
         {
-            try
-            {
-                var newOrg = await OrganizationService.CreateOrganizationAsync(model);
-                Snackbar.Add($"Đã tạo tổ chức {newOrg.Name} thành công!", Severity.Success);
-                await LoadDashboardAsync();
-            }
-            catch (Exception ex)
-            {
-                Snackbar.Add($"Lỗi khi tạo tổ chức: {ex.Message}", Severity.Error);
-            }
+            var newOrg = await OrganizationService.CreateOrganizationAsync(model);
+            Snackbar.Add($"Đã tạo tổ chức {newOrg.Name} thành công.", Severity.Success);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Lỗi khi tạo tổ chức: {ex.Message}", Severity.Error);
         }
     }
 
-    // Mock data helpers
-    private string GetRandomIcon(string? name)
+    private static string ResolveAvatar(MyOrganizationCardViewModel item)
+        => string.IsNullOrWhiteSpace(item.AvatarUrl) ? "/images/mockimages/Org1/Avt.jpg" : item.AvatarUrl;
+
+    private static string BuildDescription(string? value)
     {
-        if (string.IsNullOrWhiteSpace(name)) return "eco";
-        
-        var icons = new[] { "eco", "menu_book", "terminal", "music_note", "sports_esports", "palette" };
-        var index = Math.Abs(name.GetHashCode()) % icons.Length;
-        return icons[index];
-    }
-    
-    private int GetRandomNumber(int min, int max)
-    {
-        return new Random().Next(min, max);
+        if (string.IsNullOrWhiteSpace(value))
+            return "Chưa có mô tả.";
+
+        var text = value.Trim();
+        return text.Length <= 140 ? text : $"{text[..140]}...";
     }
 }

@@ -18,7 +18,7 @@ main {
 
 .org-main {
   padding: 0;
-  background: #eaefef;
+  background: var(--bg-soft);
 }
 
 .user-main {
@@ -42,12 +42,12 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem;
-  min-height: 64px;
-  padding: 16px 32px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border-bottom: 1px solid rgba(15, 31, 41, 0.08);
+  min-height: 62px;
+  padding: 12px 28px;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(15, 31, 41, 0.1);
 }
 
 .org-top-left {
@@ -64,7 +64,7 @@ main {
   font-size: 1.4rem;
   font-weight: 900;
   color: #212c3a;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -83,11 +83,12 @@ main {
 }
 
 .org-icon-button {
-  width: 20px;
-  height: 20px;
-  border: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid rgba(215, 226, 236, 0.9);
+  border-radius: 999px;
   padding: 0;
-  background: transparent;
+  background: #fff;
   color: #25343f;
   display: inline-flex;
   align-items: center;
@@ -97,6 +98,8 @@ main {
 
 .org-icon-button:hover {
   color: #0f1f29;
+  background: #f4f8fc;
+  border-color: #b9c9d7;
 }
 
 .org-profile {
@@ -136,7 +139,7 @@ main {
 }
 
 .org-profile-meta span {
-  color: #c3c7cb;
+  color: #70859c;
   font-size: 10px;
   font-weight: 500;
   line-height: 15px;
@@ -166,8 +169,8 @@ main {
   border-bottom: 1px solid rgba(14, 35, 58, 0.12);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  min-height: 64px;
-  padding: 16px 32px;
+  min-height: 62px;
+  padding: 12px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -176,6 +179,11 @@ main {
 
 .user-top-spacer {
   flex: 1;
+}
+
+.discover-top-middle {
+  flex: 1 1 36rem;
+  max-width: 38rem;
 }
 
 .user-top-actions {
@@ -205,28 +213,6 @@ main {
 
 .user-icon-button ::deep .mud-icon-root {
   font-size: 1.1rem;
-}
-
-.user-logout-button {
-  min-height: 2.3rem;
-  border: 1px solid #e8c2a0;
-  border-radius: 0.66rem;
-  padding: 0.35rem 0.78rem;
-  background: #fff7ef;
-  color: #8f4c11;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.user-logout-button:hover {
-  border-color: #dc9d67;
-  background: #ffe8d4;
-}
-
-.user-logout-icon {
-  font-size: 1rem;
 }
 
 .user-profile {
@@ -268,6 +254,65 @@ main {
   display: block;
 }
 
+.profile-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid rgba(15, 31, 41, 0.12);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-soft);
+  padding: 0.4rem;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 1200;
+}
+
+.profile-menu:hover .profile-dropdown,
+.profile-menu:focus-within .profile-dropdown {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.profile-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #0f2438;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.profile-menu-item:hover {
+  background: #f1f5f9;
+}
+
+.profile-menu-item.danger {
+  color: #b45309;
+}
+
+.profile-menu-item.danger:hover {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
 .app-main-surface {
   min-height: 100vh;
 }
@@ -279,7 +324,7 @@ main {
 
 .user-main-surface {
   min-height: calc(100vh - 64px);
-  padding: 1rem 1.2rem 1.6rem;
+  padding: 0.9rem 1rem 1.5rem;
 }
 
 .content {
@@ -341,6 +386,10 @@ main {
   .user-top-row {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .discover-top-middle {
+    max-width: none;
   }
 
   .user-top-actions {

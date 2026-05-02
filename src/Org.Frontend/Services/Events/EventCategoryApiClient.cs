@@ -75,6 +75,17 @@ public sealed class EventCategoryApiClient(HttpClient httpClient) : IEventCatego
 
     private static EventCategoryViewModel MapCategory(EventCategoryDto x)
     {
+        var responsible = new List<CategoryMemberViewModel>();
+        if (!string.IsNullOrWhiteSpace(x.LeadName))
+        {
+            responsible.Add(new CategoryMemberViewModel
+            {
+                MemberId = null,
+                Name = x.LeadName,
+                Role = "Category Lead"
+            });
+        }
+
         return new EventCategoryViewModel
         {
             Id = x.Id,
@@ -87,19 +98,11 @@ public sealed class EventCategoryApiClient(HttpClient httpClient) : IEventCatego
             ProgressPercentage = x.TaskCount == 0
                 ? 0
                 : (int)Math.Round((double)x.CompletedTaskCount * 100 / x.TaskCount, MidpointRounding.AwayFromZero),
-            
-            // ---- PLACEHOLDERS CHO BE INTEGRATION ----
-            // TODO BE: Cần bổ sung các trường này vào EventCategoryDto hoặc tạo endpoint Dashboard riêng
-            DetailedDescription = x.Description ?? "Vui lòng cập nhật mô tả chi tiết cho hạng mục này từ backend.",
-            Guidelines = new List<string> { 
-                "Placeholder: Quy trình vận hành 1", 
-                "Placeholder: Quy trình vận hành 2" 
-            },
+
+            DetailedDescription = x.Description,
+            Guidelines = [],
             IsUrgent = false,
-            ResponsibleMembers = new List<CategoryMemberViewModel> 
-            {
-                new CategoryMemberViewModel { Name = x.LeadName ?? "Lead", Role = "Team Lead" }
-            }
+            ResponsibleMembers = responsible
         };
     }
 

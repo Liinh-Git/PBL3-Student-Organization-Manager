@@ -20,11 +20,17 @@
   {
     "id": "2644bf66-9f53-4401-9528-14f0a023ecac",
     "categoryId": "3ec83e9a-3d0f-4fa0-8039-2985fe059859",
-    "title": "Task 21",
-    "status": "TODO",
+    "title": "Chot danh sach tiet muc",
+    "status": "IN_PROGRESS",
+    "priority": "HIGH",
+    "description": "Tong hop, doi soat va chot danh sach tiet muc cho dem nhac.",
     "assigneeMemberId": "efa00d8a-b417-4021-9686-fe897cedb39b",
-    "dueDate": null,
-    "note": null
+    "coAssigneeMemberIds": [
+      "ccb9306a-1567-4c87-9808-4a82924883f8",
+      "b28448be-ccb3-4e9a-9d52-8a38c46ac675"
+    ],
+    "dueDate": "2026-05-10T17:00:00Z",
+    "note": "Can xac nhan ban nhac nen truoc khi dong chuong trinh."
   },
   {
     "id": "290122ae-614d-4cd0-8138-1703967fa83a",
@@ -110,11 +116,16 @@
   {
     "id": "5cddfe15-f304-4854-ae1f-6a028c1d53b8",
     "categoryId": "cf674040-95c6-43cf-a98b-ce629b659ded",
-    "title": "Task 35",
+    "title": "Lien he dien gia khach moi",
     "status": "TODO",
+    "priority": "MEDIUM",
+    "description": "Phu trach email, thu moi va thong tin tiep don dien gia.",
     "assigneeMemberId": "efa00d8a-b417-4021-9686-fe897cedb39b",
-    "dueDate": null,
-    "note": null
+    "coAssigneeMemberIds": [
+      "30e585f2-854e-4e46-a3d0-894d9d558b63"
+    ],
+    "dueDate": "2026-05-18T10:00:00Z",
+    "note": "Uu tien dien gia co kinh nghiem to chuc su kien sinh vien."
   },
   {
     "id": "5e8d367e-4964-4e03-bc48-3d067159ea67",
@@ -182,11 +193,17 @@
   {
     "id": "7fb6f009-7d6a-4907-9ee8-75a3e28e99b0",
     "categoryId": "f98cba35-c68b-432f-b298-3cc47b5397bb",
-    "title": "Task 8",
-    "status": "TODO",
+    "title": "Phe duyet kich ban chuong trinh",
+    "status": "IN_PROGRESS",
+    "priority": "URGENT",
+    "description": "Ra soat timeline va phe duyet kich ban tong duyet.",
     "assigneeMemberId": "efa00d8a-b417-4021-9686-fe897cedb39b",
-    "dueDate": null,
-    "note": null
+    "coAssigneeMemberIds": [
+      "bdce97f2-558f-477e-83f2-f7b5b379b36b",
+      "ccb9306a-1567-4c87-9808-4a82924883f8"
+    ],
+    "dueDate": "2026-05-12T12:00:00Z",
+    "note": "Bao cao ngay neu co xung dot lich tong duyet."
   },
   {
     "id": "8849a3e6-8499-4362-b67e-542f5ffadf07",
@@ -290,11 +307,16 @@
   {
     "id": "d9a39846-b30b-4ff7-8973-8a5ec35f3732",
     "categoryId": "f98cba35-c68b-432f-b298-3cc47b5397bb",
-    "title": "Task 7",
+    "title": "Dieu phoi nhom hau can",
     "status": "TODO",
+    "priority": "LOW",
+    "description": "Phan cong nguoi truc san khau, am thanh, anh sang trong ngay su kien.",
     "assigneeMemberId": "efa00d8a-b417-4021-9686-fe897cedb39b",
-    "dueDate": null,
-    "note": null
+    "coAssigneeMemberIds": [
+      "b28448be-ccb3-4e9a-9d52-8a38c46ac675"
+    ],
+    "dueDate": "2026-05-14T09:00:00Z",
+    "note": "Dam bao moi ca truc co it nhat 2 thanh vien."
   },
   {
     "id": "daf741b6-942c-423f-bf54-bfb58a7f04c7",
@@ -353,11 +375,17 @@
   {
     "id": "eccc41c2-a738-4237-bbda-f36d7e3fae61",
     "categoryId": "3ec83e9a-3d0f-4fa0-8039-2985fe059859",
-    "title": "Task 22",
-    "status": "TODO",
+    "title": "Tong hop checklist truoc gio G",
+    "status": "DONE",
+    "priority": "MEDIUM",
+    "description": "Tong hop checklist vat tu, nhan su va an toan truoc gio mo cua.",
     "assigneeMemberId": "efa00d8a-b417-4021-9686-fe897cedb39b",
-    "dueDate": null,
-    "note": null
+    "coAssigneeMemberIds": [
+      "ccb9306a-1567-4c87-9808-4a82924883f8",
+      "30e585f2-854e-4e46-a3d0-894d9d558b63"
+    ],
+    "dueDate": "2026-05-08T16:00:00Z",
+    "note": "Checklist da duoc thong nhat voi ban truyen thong."
   },
   {
     "id": "f1690120-3cb6-41dd-a0e4-8425d5719f58",

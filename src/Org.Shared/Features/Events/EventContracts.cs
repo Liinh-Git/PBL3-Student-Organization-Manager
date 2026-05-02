@@ -10,8 +10,10 @@ public sealed record EventDto(
     DateOnly StartDate,
     DateOnly EndDate,
     EventStatus Status,
+    string Visibility,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? UpdatedAtUtc);
+    DateTimeOffset? UpdatedAtUtc,
+    IReadOnlyList<string>? Tags = null);
 
 // ---- Thông tin rút gọn của sự kiện kế hợp số liệu tổng hợp (dùng cho danh sách) ----
 // MilestoneCount / CategoryCount / TaskCount: số lượng các hạng mục con
@@ -42,7 +44,8 @@ public sealed record CreateEventRequest(
     string Name,
     string? Description,
     DateOnly StartDate,
-    DateOnly EndDate);
+    DateOnly EndDate,
+    IReadOnlyList<string>? Tags = null);
 
 // ---- Yêu cầu cập nhật sự kiện (bao gồm thay đổi trạng thái) ----
 public sealed record UpdateEventRequest(
@@ -50,4 +53,12 @@ public sealed record UpdateEventRequest(
     string? Description,
     DateOnly StartDate,
     DateOnly EndDate,
-    EventStatus Status);
+    EventStatus Status,
+    IReadOnlyList<string>? Tags = null,
+    string? Visibility = null);
+
+// ---- Yêu cầu cập nhật visibility sự kiện (chỉ President/VicePresident) ----
+public sealed record UpdateEventVisibilityRequest(string Visibility);
+
+// ---- Phản hồi danh sách sự kiện public ----
+public sealed record GetPublicEventsResponse(IReadOnlyList<EventTreeNodeDto> Items);

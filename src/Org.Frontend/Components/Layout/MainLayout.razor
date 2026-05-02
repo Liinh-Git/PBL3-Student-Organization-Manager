@@ -30,7 +30,7 @@
                 <div class="org-top-right">
                     <div class="org-icon-group" role="group" aria-label="Organization actions">
                         <NotificationBadge />
-                        <button class="org-icon-button" type="button" aria-label="Settings">
+                        <button class="org-icon-button" type="button" aria-label="Settings" @onclick="NavigateToUserSettings">
                             <MudIcon Icon="@Icons.Material.Outlined.Settings" />
                         </button>
                     </div>
@@ -64,7 +64,7 @@
             <header class="user-top-row">
                 @if (IsDiscoverPage)
                 {
-                    <div class="discover-top-middle" style="flex: 2; max-width: 600px;">
+                    <div class="discover-top-middle">
                         <Org.Frontend.Components.Pages.User.DiscoverSearchBar />
                     </div>
                 }
@@ -115,7 +115,7 @@
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <span class="dismiss">x</span>
 </div>
 
 @code {
@@ -131,7 +131,7 @@
 
     private string UserWorkspaceLabel =>
         _user.FindFirst(ClaimTypes.Email)?.Value
-        ?? "User Workspace";
+        ?? "Workspace cá nhân";
 
     private bool IsDiscoverPage
         => Navigation.ToBaseRelativePath(Navigation.Uri).StartsWith("user/discover", StringComparison.OrdinalIgnoreCase);
@@ -154,7 +154,6 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    // Đã thêm lại hàm này để sửa lỗi CS0103
     private void NavigateToUserSettings()
         => Navigation.NavigateTo("/user/settings");
 
@@ -184,7 +183,6 @@
 
         if (_isOrganizationWorkspace)
         {
-            // Trích xuất orgId từ URI để tìm tên tổ chức
             if (Uri.TryCreate(Navigation.ToAbsoluteUri(uri).ToString(), UriKind.Absolute, out var parsedUri))
             {
                 var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(parsedUri.Query);
@@ -195,13 +193,13 @@
                         try { _dashboard = await DashboardService.GetDashboardAsync(); }
                         catch { /* Bỏ qua nếu lỗi mạng */ }
                     }
-                    
+
                     var org = _dashboard?.Organizations.FirstOrDefault(o => o.OrganizationId == orgId);
-                    _activeOrganizationName = org?.Name ?? "Workspace Tổ chức";
+                    _activeOrganizationName = org?.Name ?? "Workspace tổ chức";
                 }
                 else
                 {
-                    _activeOrganizationName = "Workspace Tổ chức";
+                    _activeOrganizationName = "Workspace tổ chức";
                 }
             }
         }

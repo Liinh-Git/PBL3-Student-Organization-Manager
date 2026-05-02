@@ -1,0 +1,40 @@
+.discover-search {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 0.44rem 0.72rem;
+  box-shadow: 0 1px 0 rgba(15, 31, 41, 0.03);
+}
+
+.icon-wrap {
+  color: var(--ink-500);
+}
+
+.discover-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.88rem;
+  color: var(--ink-900);
+  outline: none;
+}
+
+.clear-btn {
+  border: none;
+  background: transparent;
+  color: var(--ink-500);
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.clear-btn:hover {
+  background: var(--surface-subtle);
+}

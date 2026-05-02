@@ -247,6 +247,9 @@ namespace Org.Backend.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OrgId");
@@ -334,6 +337,46 @@ namespace Org.Backend.Migrations
                     b.ToTable("EventMembers");
                 });
 
+            modelBuilder.Entity("Org.Backend.Domain.Entities.EventRating", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Aspect")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("EventId", "UserId", "Aspect")
+                        .IsUnique();
+
+                    b.ToTable("EventRatings");
+                });
+
             modelBuilder.Entity("Org.Backend.Domain.Entities.EventReport", b =>
                 {
                     b.Property<Guid>("Id")
@@ -370,6 +413,42 @@ namespace Org.Backend.Migrations
                         .IsUnique();
 
                     b.ToTable("EventReports");
+                });
+
+            modelBuilder.Entity("Org.Backend.Domain.Entities.FriendRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ReceiverId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId", "ReceiverId", "Status");
+
+                    b.ToTable("FriendRequests");
                 });
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.Member", b =>
@@ -554,6 +633,71 @@ namespace Org.Backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Organizations");
+                });
+
+            modelBuilder.Entity("Org.Backend.Domain.Entities.OrganizationPost", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("LikeCount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("PostType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("RelatedEventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("TargetDepartmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("RelatedEventId");
+
+                    b.HasIndex("TargetDepartmentId");
+
+                    b.HasIndex("OrgId", "CreatedAt");
+
+                    b.HasIndex("Visibility", "CreatedAt");
+
+                    b.ToTable("OrganizationPosts");
                 });
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.Permission", b =>
@@ -774,6 +918,9 @@ namespace Org.Backend.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
+                    b.Property<int>("ProfileVisibility")
+                        .HasColumnType("integer");
+
                     b.Property<string>("SocialLinks")
                         .HasColumnType("text");
 
@@ -904,6 +1051,25 @@ namespace Org.Backend.Migrations
                     b.Navigation("Member");
                 });
 
+            modelBuilder.Entity("Org.Backend.Domain.Entities.EventRating", b =>
+                {
+                    b.HasOne("Org.Backend.Domain.Entities.Event", "Event")
+                        .WithMany("Ratings")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Org.Backend.Domain.Entities.User", "User")
+                        .WithMany("EventRatings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Org.Backend.Domain.Entities.EventReport", b =>
                 {
                     b.HasOne("Org.Backend.Domain.Entities.Event", "Event")
@@ -913,6 +1079,25 @@ namespace Org.Backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("Org.Backend.Domain.Entities.FriendRequest", b =>
+                {
+                    b.HasOne("Org.Backend.Domain.Entities.User", "Receiver")
+                        .WithMany("ReceivedFriendRequests")
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Org.Backend.Domain.Entities.User", "Sender")
+                        .WithMany("SentFriendRequests")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.Member", b =>
@@ -982,6 +1167,39 @@ namespace Org.Backend.Migrations
                     b.Navigation("Department");
 
                     b.Navigation("EventCategory");
+                });
+
+            modelBuilder.Entity("Org.Backend.Domain.Entities.OrganizationPost", b =>
+                {
+                    b.HasOne("Org.Backend.Domain.Entities.Member", "Creator")
+                        .WithMany("CreatedPosts")
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Org.Backend.Domain.Entities.Organization", "Organization")
+                        .WithMany("Posts")
+                        .HasForeignKey("OrgId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Org.Backend.Domain.Entities.Event", "RelatedEvent")
+                        .WithMany("RelatedPosts")
+                        .HasForeignKey("RelatedEventId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Org.Backend.Domain.Entities.Department", "TargetDepartment")
+                        .WithMany("TargetedPosts")
+                        .HasForeignKey("TargetDepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("RelatedEvent");
+
+                    b.Navigation("TargetDepartment");
                 });
 
             modelBuilder.Entity("Org.Backend.Domain.Entities.Request", b =>
@@ -1057,6 +1275,8 @@ namespace Org.Backend.Migrations
 
                     b.Navigation("OwnedEventCategories");
 
+                    b.Navigation("TargetedPosts");
+
                     b.Navigation("Tasks");
                 });
 
@@ -1072,6 +1292,10 @@ namespace Org.Backend.Migrations
 
                     b.Navigation("Milestones");
 
+                    b.Navigation("Ratings");
+
+                    b.Navigation("RelatedPosts");
+
                     b.Navigation("Resources");
                 });
 
@@ -1083,6 +1307,8 @@ namespace Org.Backend.Migrations
             modelBuilder.Entity("Org.Backend.Domain.Entities.Member", b =>
                 {
                     b.Navigation("AssignedTasks");
+
+                    b.Navigation("CreatedPosts");
 
                     b.Navigation("EventMembers");
 
@@ -1103,6 +1329,8 @@ namespace Org.Backend.Migrations
                     b.Navigation("Events");
 
                     b.Navigation("Members");
+
+                    b.Navigation("Posts");
 
                     b.Navigation("Requests");
 
@@ -1127,9 +1355,15 @@ namespace Org.Backend.Migrations
                 {
                     b.Navigation("Attendees");
 
+                    b.Navigation("EventRatings");
+
                     b.Navigation("Members");
 
+                    b.Navigation("ReceivedFriendRequests");
+
                     b.Navigation("Requests");
+
+                    b.Navigation("SentFriendRequests");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,64 @@
+[
+  {
+    "id": "10000000-0000-0000-0000-000000000001",
+    "receiverId": "99124ae0-730b-4dff-b618-e20e6ee89d68",
+    "actorId": "bf3c92e8-3ec0-422e-a4bb-8ccaa33eb1bc",
+    "title": "Lời mời kết bạn mới",
+    "message": "User 1 đã gửi lời mời kết bạn cho bạn.",
+    "type": "FriendRequestReceived",
+    "isRead": false,
+    "actionUrl": "/user/friends",
+    "iconUrl": "/images/icons/friend-request.svg",
+    "createdAt": "2026-05-01T10:00:00Z"
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000002",
+    "receiverId": "99124ae0-730b-4dff-b618-e20e6ee89d68",
+    "actorId": "9c9f2292-7943-45e2-bd95-a30de623a544",
+    "title": "Sự kiện đã được cập nhật",
+    "message": "Sự kiện của CLB Văn nghệ vừa cập nhật lịch trình mới.",
+    "type": "EventUpdated",
+    "isRead": false,
+    "actionUrl": "/events/9ce7f2dd-438d-406d-a79f-279b4d519e95",
+    "iconUrl": "/images/icons/event.svg",
+    "createdAt": "2026-05-01T09:30:00Z"
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000003",
+    "receiverId": "99124ae0-730b-4dff-b618-e20e6ee89d68",
+    "actorId": "056ef919-d7fe-40b9-a5a6-f1902117c662",
+    "title": "Nhiệm vụ mới được giao",
+    "message": "Bạn vừa được giao nhiệm vụ trong workspace tổ chức.",
+    "type": "TaskAssigned",
+    "isRead": true,
+    "readAt": "2026-05-01T08:00:00Z",
+    "actionUrl": "/user/events",
+    "iconUrl": "/images/icons/task.svg",
+    "createdAt": "2026-05-01T08:00:00Z"
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000004",
+    "receiverId": "bf3c92e8-3ec0-422e-a4bb-8ccaa33eb1bc",
+    "actorId": "99124ae0-730b-4dff-b618-e20e6ee89d68",
+    "title": "Vai trò thành viên đã thay đổi",
+    "message": "Vai trò của bạn trong tổ chức đã được cập nhật.",
+    "type": "MemberRoleChanged",
+    "isRead": false,
+    "actionUrl": "/org/members?orgId=c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "iconUrl": "/images/icons/role.svg",
+    "createdAt": "2026-05-01T07:00:00Z"
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000005",
+    "receiverId": "bf3c92e8-3ec0-422e-a4bb-8ccaa33eb1bc",
+    "actorId": "c73cd5f4-50e8-4e07-94f5-2673592515b4",
+    "title": "Lời mời tham gia tổ chức",
+    "message": "Bạn vừa nhận lời mời tham gia CLB Văn nghệ Sinh viên.",
+    "type": "InvitationReceived",
+    "isRead": true,
+    "readAt": "2026-05-01T06:00:00Z",
+    "actionUrl": "/org-overview?orgId=c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "iconUrl": "/images/icons/join.svg",
+    "createdAt": "2026-05-01T06:00:00Z"
+  }
+]

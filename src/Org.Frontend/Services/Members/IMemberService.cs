@@ -17,4 +17,8 @@ public interface IMemberService
     Task AssignDepartment(Guid memberId, Guid departmentId);
     // ---- Xóa mềm thành viên khỏi tổ chức ----
     Task DeleteMember(Guid memberId);
+    // ---- Kiểm tra người dùng hiện tại có quyền quản lý thành viên của tổ chức không ----
+    Task<bool> CanManageOrganizationMembersAsync(Guid orgId);
+    // ---- Rời tổ chức (self leave, không dùng luồng xóa thành viên quản trị) ----
+    Task LeaveOrganizationAsync(Guid orgId);
 }

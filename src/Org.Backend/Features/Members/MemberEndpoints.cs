@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Features.Common;
 using Org.Backend.Infrastructure.Database;
+using Org.Backend.Services;
 using Org.Shared.Features.Members;
+using System.Security.Claims;
 
 namespace Org.Backend.Features.Members;
 
@@ -133,7 +135,7 @@ public sealed class CreateMemberEndpoint(AppDbContext db) : Endpoint<CreateMembe
 
 // ---- PUT /api/members/{id}/role — gán/đổi vai trò thành viên (yêu cầu VicePresident+) ----
 // Tự tạo Role mới trong tổ chức nếu chưa có
-public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateMemberRoleRequest, MemberDto>
+public sealed class UpdateMemberRoleEndpoint(AppDbContext db, INotificationService notificationService) : Endpoint<UpdateMemberRoleRequest, MemberDto>
 {
     public override void Configure()
     {
@@ -156,6 +158,11 @@ public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateM
         var callerContext = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, member!.OrgId, ct);
         if (callerContext is null || !OrganizationAuthorization.CanDelete(callerContext.Value.Role))
             ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
+
+        var userIdText = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var changerId = Guid.TryParse(userIdText, out var uid) ? uid : (Guid?)null;
+        if (changerId is null)
+            ThrowError("Invalid token subject.", StatusCodes.Status401Unauthorized);
 
         var roleName = req.Role.ToString();
 
@@ -192,6 +199,17 @@ public sealed class UpdateMemberRoleEndpoint(AppDbContext db) : Endpoint<UpdateM
 
         member!.RoleId = role.Id;
         await db.SaveChangesAsync(ct);
+
+        // Notify member about role change
+        try
+        {
+            await notificationService.NotifyMemberRoleChanged(memberId, changerId.Value, member.OrgId, roleName);
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't throw - notification failure should not block business logic
+            Console.WriteLine($"Failed to send member role change notification: {ex.Message}");
+        }
 
         member.Role = role;
         await Send.OkAsync(ContractMapping.ToMemberDto(member), ct);
@@ -240,7 +258,7 @@ public sealed class UpdateMemberDepartmentEndpoint(AppDbContext db) : Endpoint<U
 }
 
 // ---- DELETE /api/members/{id} — xóa mềm thành viên, giải phóng khỏi phòng ban ----
-public sealed class DeleteMemberEndpoint(AppDbContext db) : EndpointWithoutRequest
+public sealed class DeleteMemberEndpoint(AppDbContext db, INotificationService notificationService) : EndpointWithoutRequest
 {
     public override void Configure()
     {
@@ -260,6 +278,11 @@ public sealed class DeleteMemberEndpoint(AppDbContext db) : EndpointWithoutReque
         if (callerContext is null || !OrganizationAuthorization.CanDelete(callerContext.Value.Role))
             ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
 
+        var userIdText = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var removerId = Guid.TryParse(userIdText, out var uid) ? uid : (Guid?)null;
+        if (removerId is null)
+            ThrowError("Invalid token subject.", StatusCodes.Status401Unauthorized);
+
         var managedDepartments = await db.Departments
             .Where(x => x.ManagerId == memberId)
             .ToListAsync(ct);
@@ -271,6 +294,93 @@ public sealed class DeleteMemberEndpoint(AppDbContext db) : EndpointWithoutReque
 
         member!.IsDeleted = true;
         member.DepartmentId = null;
+
+        await db.SaveChangesAsync(ct);
+
+        // Notify member about removal
+        try
+        {
+            await notificationService.NotifyMemberRemoved(member.UserId, removerId.Value, member.OrgId);
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't throw - notification failure should not block business logic
+            Console.WriteLine($"Failed to send member removal notification: {ex.Message}");
+        }
+
+        await Send.NoContentAsync(ct);
+    }
+}
+
+// ---- POST /api/organizations/{orgId}/leave — current authenticated user leaves organization ----
+public sealed class LeaveOrganizationEndpoint(AppDbContext db) : EndpointWithoutRequest
+{
+    public override void Configure()
+    {
+        Post("/api/organizations/{orgId:guid}/leave");
+        AuthSchemes(JwtBearerDefaults.AuthenticationScheme);
+    }
+
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var orgId = Route<Guid>("orgId");
+        var userIdText = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdText, out var userId))
+            ThrowError("Invalid token subject.", StatusCodes.Status401Unauthorized);
+
+        var membership = await db.Members
+            .Include(x => x.Role)
+            .FirstOrDefaultAsync(x => x.OrgId == orgId && x.UserId == userId, ct);
+
+        if (membership is null)
+            ThrowError("Membership not found.", StatusCodes.Status404NotFound);
+
+        var roleName = membership.Role?.RoleName?.Trim();
+        var isTopLeader = roleName is not null
+            && (string.Equals(roleName, "President", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(roleName, "Owner", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(roleName, "Chairman", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(roleName, "Founder", StringComparison.OrdinalIgnoreCase));
+
+        if (isTopLeader)
+        {
+            var otherTopLeaderExists = await db.Members
+                .AsNoTracking()
+                .Include(x => x.Role)
+                .AnyAsync(x =>
+                    x.OrgId == orgId
+                    && x.Id != membership.Id
+                    && x.Role != null
+                    && (
+                        x.Role.RoleName.ToLower() == "president"
+                        || x.Role.RoleName.ToLower() == "owner"
+                        || x.Role.RoleName.ToLower() == "chairman"
+                        || x.Role.RoleName.ToLower() == "founder"), ct);
+
+            if (!otherTopLeaderExists)
+            {
+                ThrowError("Cannot leave organization as the last primary leader. Transfer ownership first.", StatusCodes.Status409Conflict);
+            }
+        }
+
+        var managedDepartments = await db.Departments
+            .Where(x => x.ManagerId == membership.Id)
+            .ToListAsync(ct);
+
+        foreach (var department in managedDepartments)
+        {
+            department.ManagerId = null;
+        }
+
+        membership.DepartmentId = null;
+        membership.IsDeleted = true;
+
+        var org = await db.Organizations.FirstOrDefaultAsync(x => x.Id == orgId, ct);
+        if (org is not null)
+        {
+            var remainingMembers = await db.Members.CountAsync(x => x.OrgId == orgId && !x.IsDeleted && x.Id != membership.Id, ct);
+            org.TotalMembers = Math.Max(remainingMembers, 0);
+        }
 
         await db.SaveChangesAsync(ct);
         await Send.NoContentAsync(ct);

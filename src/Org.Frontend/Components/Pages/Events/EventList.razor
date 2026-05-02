@@ -1,5 +1,8 @@
 @page "/org/events"
 @rendermode InteractiveServer
+@using Org.Frontend.Services.Events
+@using Org.Frontend.Services.Organizations
+@using Org.Frontend.ViewModels
 @inject IEventService EventService
 @inject IOrganizationContext OrganizationContext
 @inject IDialogService DialogService
@@ -8,8 +11,6 @@
 @inject IJSRuntime JS
 
 <div class="events-page">
-    
-    <!-- Thanh điều hướng trên cùng (Sticky Glass) -->
     <header class="glass-header">
         <div class="header-main">
             <h1 class="header-title">Manage Events</h1>
@@ -19,134 +20,127 @@
                 <span class="breadcrumb-active">All Events</span>
             </div>
         </div>
-        
+
         <div class="header-actions">
             <div class="search-container">
                 <span class="material-symbols-outlined search-icon">search</span>
-                <input class="search-input" 
-                       placeholder="Search events..." 
+                <input class="search-input"
+                       placeholder="Search events..."
                        type="text"
                        @bind="SearchTerm"
                        @bind:event="oninput" />
             </div>
-            <button class="icon-btn">
-                <span class="material-symbols-outlined">notifications</span>
-            </button>
-            <button class="icon-btn">
-                <span class="material-symbols-outlined">help</span>
-            </button>
         </div>
     </header>
 
-    <!-- Nội dung trang có thể cuộn -->
     <div class="page-content">
-        
-        <!-- Bộ lọc và các điều khiển phụ -->
         <div class="controls-bar">
             <div class="filter-capsule">
-                <button class="filter-item @(statusFilter == "All" ? "active" : "")" 
-                        @onclick='() => OnStatusFilterChanged("All")'>All Events</button>
-                <button class="filter-item @(statusFilter == "Upcoming" ? "active" : "")" 
-                        @onclick='() => OnStatusFilterChanged("Upcoming")'>Upcoming</button>
-                <button class="filter-item @(statusFilter == "Past" ? "active" : "")" 
-                        @onclick='() => OnStatusFilterChanged("Past")'>Past Events</button>
-            </div>
-            
-            <div class="action-buttons">
-                <button class="styled-btn">
-                    <span class="material-symbols-outlined">filter_list</span>
-                    <span>Filter</span>
-                </button>
-                <button class="styled-btn">
-                    <span class="material-symbols-outlined">sort</span>
-                    <span>Sort by Date</span>
-                </button>
+                <button class="filter-item @(statusFilter == "All" ? "active" : "")" @onclick='() => OnStatusFilterChanged("All")'>All Events</button>
+                <button class="filter-item @(statusFilter == "Upcoming" ? "active" : "")" @onclick='() => OnStatusFilterChanged("Upcoming")'>Upcoming</button>
+                <button class="filter-item @(statusFilter == "Ongoing" ? "active" : "")" @onclick='() => OnStatusFilterChanged("Ongoing")'>Ongoing</button>
+                <button class="filter-item @(statusFilter == "Past" ? "active" : "")" @onclick='() => OnStatusFilterChanged("Past")'>Past Events</button>
             </div>
         </div>
 
-        <!-- Bố cục lưới Bento -->
-        <div class="bento-grid">
-            
-            <!-- Thẻ "Thêm mới" theo ngữ cảnh -->
-            <div class="create-card" @onclick="OpenCreateDialog">
-                <div class="create-icon-circle">
-                    <span class="material-symbols-outlined" style="font-size: 2.5rem; font-weight: 300;">add</span>
-                </div>
-                <span style="font-weight: 800; color: var(--primary); font-size: 1.1rem;">Create New Event</span>
-                <p style="font-size: 0.85rem; color: rgba(37, 52, 63, 0.6); margin-top: 0.5rem; text-align: center; max-width: 200px;">
-                    Schedule a meeting, workshop, or seminar
-                </p>
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center pa-10">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
             </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <div class="d-flex flex-column gap-4 pa-8">
+                <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadEvents">Retry</MudButton>
+            </div>
+        }
+        else
+        {
+            <div class="bento-grid">
+                @if (_canCreateEvent)
+                {
+                    <div class="create-card" @onclick="OpenCreateDialog">
+                        <div class="create-icon-circle">
+                            <span class="material-symbols-outlined" style="font-size: 2.5rem; font-weight: 300;">add</span>
+                        </div>
+                        <span style="font-weight: 800; color: var(--primary); font-size: 1.1rem;">Create New Event</span>
+                        <p style="font-size: 0.85rem; color: rgba(37, 52, 63, 0.6); margin-top: 0.5rem; text-align: center; max-width: 220px;">
+                            Event moi chi tao tu du lieu nguoi dung nhap.
+                        </p>
+                    </div>
+                }
 
-            @if (events != null)
-            {
                 @foreach (var evt in filteredEvents)
                 {
-                    var status = evt.StatusLabel?.ToLower() ?? "upcoming";
-                    var isCompleted = status == "completed";
-                    
-                    var statusClass = status switch {
+                    var status = evt.StatusLabel?.ToLowerInvariant() ?? "upcoming";
+                    var statusClass = status switch
+                    {
                         "ongoing" => "status-ongoing",
-                        "upcoming" => "status-upcoming",
                         "completed" => "status-completed",
                         _ => "status-upcoming"
                     };
 
-                    var imageUrl = evt.ImageUrl ?? "/images/mockimages/Org1/Avt.jpg";
-
-                    <div class="premium-card @(isCompleted ? "event-card-completed" : "")" @onclick="() => GoToDetail(evt.Id)">
+                    <div class="premium-card">
                         <div class="card-img-box">
-                            <img class="card-image" src="@imageUrl" alt="@evt.Name" />
-                            <div class="status-tag @statusClass">
-                                @evt.StatusLabel
-                            </div>
-                            
-                            <!-- Các hành động nội bộ (Sửa/Xóa) -->
-                            <div class="card-dropdown" @onclick:stopPropagation="true">
-                                <MudMenu Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Surface" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
-                                    <MudMenuItem OnClick="@(async () => await OpenUpdateDialog(evt))">Sửa</MudMenuItem>
-                                    <MudMenuItem OnClick="@(async () => await DeleteEventAsync(evt))">Xóa</MudMenuItem>
-                                </MudMenu>
-                            </div>
+                            <img class="card-image" src="@ResolveImage(evt.ImageUrl)" alt="@evt.Name" />
+                            <div class="status-tag @statusClass">@evt.StatusLabel</div>
+                            @if (evt.CanManage)
+                            {
+                                <div class="card-dropdown" @onclick:stopPropagation="true">
+                                    <MudMenu Icon="@Icons.Material.Filled.MoreHoriz" Color="Color.Surface" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                        <MudMenuItem OnClick="@(async () => await OpenUpdateDialog(evt))">Edit</MudMenuItem>
+                                        <MudMenuItem OnClick="@(async () => await DeleteEventAsync(evt))">Delete</MudMenuItem>
+                                    </MudMenu>
+                                </div>
+                            }
                         </div>
 
                         <div class="card-body">
                             <h3 class="card-title">@evt.Name</h3>
-                            
                             <div class="card-meta-list">
                                 <div class="meta-row">
                                     <span class="material-symbols-outlined">calendar_today</span>
-                                    <span>@FormatEventDate(evt)</span>
+                                    <span>@evt.StartDate.ToString("dd/MM/yyyy") - @evt.EndDate.ToString("dd/MM/yyyy")</span>
                                 </div>
                                 <div class="meta-row">
                                     <span class="material-symbols-outlined">location_on</span>
-                                    <span>@evt.Location</span>
+                                    <span>@(string.IsNullOrWhiteSpace(evt.Location) ? "Dia diem se cap nhat" : evt.Location)</span>
                                 </div>
                             </div>
 
-                            <div class="card-footer-box">
-                                <div class="progress-meta">
-                                    <span class="participants-count">@GetParticipantText(evt)</span>
-                                    <span class="capacity-percent text-@status">@GetCapacityText(evt)</span>
-                                </div>
-                                <div class="progress-rail-modern">
-                                    <div class="progress-fill-modern fill-@status" 
-                                         style="width: @(isCompleted ? "100%" : GetProgress(evt).ToString("F0") + "%")"></div>
-                                </div>
+                            <div class="progress-meta">
+                                <span class="participants-count">@evt.RegisteredCount/@evt.TotalSlots</span>
+                                <span class="capacity-percent text-@status">@evt.CompletionLabel</span>
+                            </div>
+                            <div class="progress-rail-modern">
+                                <div class="progress-fill-modern fill-@status" style="width:@(Math.Clamp(evt.CompletionPercentage, 0, 100))%"></div>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mt-4">
+                                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => GoToPublicDetail(evt.Id))">View Details</MudButton>
+                                <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Disabled="@(!evt.CanEnterWorkspace)" OnClick="@(() => GoToWorkspace(evt.Id))">Enter Workspace</MudButton>
+                                @if (evt.CanManage)
+                                {
+                                    <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Warning" OnClick="@(async () => await OpenUpdateDialog(evt))">Edit</MudButton>
+                                    <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Error" OnClick="@(async () => await DeleteEventAsync(evt))">Delete</MudButton>
+                                }
                             </div>
                         </div>
                     </div>
                 }
-            }
-        </div>
+            </div>
+        }
     </div>
 
-    <!-- Nút hành động nổi (FAB) -->
-    <button class="context-fab" @onclick="OpenCreateDialog">
-        <span class="material-symbols-outlined" style="font-size: 2rem;">add</span>
-    </button>
+    @if (_canCreateEvent)
+    {
+        <button class="context-fab" @onclick="OpenCreateDialog">
+            <span class="material-symbols-outlined" style="font-size: 2rem;">add</span>
+        </button>
+    }
 </div>
-
 
 @code {
     private List<EventViewModel>? events;
@@ -154,7 +148,9 @@
     private string searchTerm = string.Empty;
     private string statusFilter = "All";
     private Guid currentOrgId;
-    private bool _isOrganizationRoute;
+    private bool _canCreateEvent;
+    private bool _isLoading = true;
+    private string? _errorMessage;
 
     private string SearchTerm
     {
@@ -162,9 +158,7 @@
         set
         {
             if (string.Equals(searchTerm, value, StringComparison.Ordinal))
-            {
                 return;
-            }
 
             searchTerm = value;
             ApplyFilters();
@@ -173,17 +167,28 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var currentRoute = "/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Trim('/');
-        _isOrganizationRoute = currentRoute.StartsWith("/org/", StringComparison.OrdinalIgnoreCase);
-
         currentOrgId = await OrganizationContext.GetOrganizationIdAsync();
         await LoadEvents();
     }
 
     private async Task LoadEvents()
     {
-        events = await EventService.GetEventsAsync(currentOrgId);
-        ApplyFilters();
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            _canCreateEvent = await EventService.CanCreateEventAsync(currentOrgId);
+            events = await EventService.GetEventsAsync(currentOrgId);
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     private void OnStatusFilterChanged(string value)
@@ -200,45 +205,50 @@
             return;
         }
 
-        var normalizedSearch = searchTerm.Trim();
-        var today = DateOnly.FromDateTime(DateTime.Today);
-
         filteredEvents = events
-            .Where(evt => string.IsNullOrWhiteSpace(normalizedSearch)
-                || evt.Name.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase))
+            .Where(evt => string.IsNullOrWhiteSpace(searchTerm) || evt.Name.Contains(searchTerm.Trim(), StringComparison.OrdinalIgnoreCase))
             .Where(evt => statusFilter switch
             {
-                "Past" => string.Equals(evt.StatusLabel, "COMPLETED", StringComparison.OrdinalIgnoreCase)
-                    || evt.EndDate < today,
-                "Upcoming" => !(string.Equals(evt.StatusLabel, "COMPLETED", StringComparison.OrdinalIgnoreCase)
-                    || evt.EndDate < today),
+                "Past" => string.Equals(evt.StatusLabel, "COMPLETED", StringComparison.OrdinalIgnoreCase),
+                "Ongoing" => string.Equals(evt.StatusLabel, "ONGOING", StringComparison.OrdinalIgnoreCase),
+                "Upcoming" => string.Equals(evt.StatusLabel, "UPCOMING", StringComparison.OrdinalIgnoreCase),
                 _ => true
             })
+            .OrderBy(x => x.StartDate)
+            .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 
     private async Task OpenCreateDialog()
     {
+        if (!_canCreateEvent)
+        {
+            Snackbar.Add("Ban khong co quyen tao su kien.", Severity.Warning);
+            return;
+        }
+
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<CreateEventDialog>("Tạo Chiến Dịch/Sự Kiện", options);
-        
-        if (dialog == null) return;
+        var dialog = await DialogService.ShowAsync<CreateEventDialog>("Tao su kien", options);
+        if (dialog is null)
+            return;
 
         var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not CreateEventViewModel req)
+            return;
 
-        if (result != null && !result.Canceled && result.Data != null)
-        {
-            var req = (CreateEventViewModel)result.Data;
-            await EventService.CreateEventAsync(req);
-            
-            await LoadEvents();
-            Snackbar.Add("Tạo sự kiện thành công!", Severity.Success);
-            StateHasChanged();
-        }
+        await EventService.CreateEventAsync(req);
+        await LoadEvents();
+        Snackbar.Add("Tao su kien thanh cong.", Severity.Success);
     }
 
     private async Task OpenUpdateDialog(EventViewModel evt)
     {
+        if (!evt.CanManage)
+        {
+            Snackbar.Add("Ban khong co quyen cap nhat su kien nay.", Severity.Warning);
+            return;
+        }
+
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var parameters = new DialogParameters
         {
@@ -254,66 +264,39 @@
             }
         };
 
-        var dialog = await DialogService.ShowAsync<UpdateEventDialog>("Cập nhật sự kiện", parameters, options);
+        var dialog = await DialogService.ShowAsync<UpdateEventDialog>("Cap nhat su kien", parameters, options);
         var result = await dialog.Result;
-
         if (result is null || result.Canceled || result.Data is not UpdateEventViewModel req)
-        {
             return;
-        }
 
         await EventService.UpdateEventAsync(evt.Id, req);
         await LoadEvents();
-        Snackbar.Add("Cập nhật sự kiện thành công.", Severity.Success);
+        Snackbar.Add("Cap nhat su kien thanh cong.", Severity.Success);
     }
 
     private async Task DeleteEventAsync(EventViewModel evt)
     {
-        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Xóa sự kiện '{evt.Name}'?");
-        if (!confirmed)
+        if (!evt.CanManage)
         {
+            Snackbar.Add("Ban khong co quyen xoa su kien nay.", Severity.Warning);
             return;
         }
 
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Xoa su kien '{evt.Name}'?");
+        if (!confirmed)
+            return;
+
         await EventService.DeleteEventAsync(evt.Id);
         await LoadEvents();
-        Snackbar.Add("Đã xóa sự kiện.", Severity.Success);
+        Snackbar.Add("Da xoa su kien.", Severity.Success);
     }
 
-    private string FormatEventDate(EventViewModel evt)
-    {
-        if (evt.StatusLabel == "ONGOING")
-            return "Today, 09:00 AM";
-            
-        if (evt.StartDate == DateOnly.FromDateTime(DateTime.Today))
-            return "Today";
-            
-        return evt.StartDate.ToString("MMM dd, yyyy") + " • 02:00 PM";
-    }
+    private static string ResolveImage(string? imageUrl)
+        => string.IsNullOrWhiteSpace(imageUrl) ? "/images/mockimages/Org1/Avt.jpg" : imageUrl;
 
-    private double GetProgress(EventViewModel evt)
-    {
-        if (evt.TotalSlots == 0) return 0;
-        return ((double)evt.RegisteredCount / evt.TotalSlots) * 100;
-    }
+    private void GoToPublicDetail(Guid eventId)
+        => NavigationManager.NavigateTo($"/events/{eventId:D}");
 
-    private string GetParticipantText(EventViewModel evt) => evt.StatusLabel switch
-    {
-        "COMPLETED" => $"{evt.RegisteredCount} Attendees",
-        "ONGOING" => $"{evt.RegisteredCount} Participants",
-        _ => $"{evt.RegisteredCount} Registered"
-    };
-
-    private string GetCapacityText(EventViewModel evt) => evt.StatusLabel switch
-    {
-        "COMPLETED" => "Closed",
-        "ONGOING" => $"{Math.Round(GetProgress(evt))}% Capacity",
-        _ => $"{evt.RegisteredCount}/{evt.TotalSlots} Slots"
-    };
-
-    private void GoToDetail(Guid eventId)
-    {
-        const string eventsBaseRoute = "/org/events";
-        NavigationManager.NavigateTo($"{eventsBaseRoute}/{eventId}");
-    }
+    private void GoToWorkspace(Guid eventId)
+        => NavigationManager.NavigateTo($"/org/events/{eventId:D}?orgId={currentOrgId:D}");
 }

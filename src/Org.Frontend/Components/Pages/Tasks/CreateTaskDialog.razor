@@ -27,6 +27,28 @@
                            Margin="Margin.Dense" 
                            IconSize="Size.Small" 
                            Class="mb-4" />
+
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Mức ưu tiên</MudText>
+            <MudSelect T="string" @bind-Value="model.Priority" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4">
+                <MudSelectItem Value="@("LOW")">LOW</MudSelectItem>
+                <MudSelectItem Value="@("MEDIUM")">MEDIUM</MudSelectItem>
+                <MudSelectItem Value="@("HIGH")">HIGH</MudSelectItem>
+                <MudSelectItem Value="@("URGENT")">URGENT</MudSelectItem>
+            </MudSelect>
+
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Assignees</MudText>
+            <MudSelect T="Guid"
+                       MultiSelection="true"
+                       SelectedValuesChanged="OnAssigneesChanged"
+                       SelectedValues="SelectedAssignees"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Class="mb-2">
+                @foreach (var member in Members)
+                {
+                    <MudSelectItem T="Guid" Value="@member.Id">@member.Name</MudSelectItem>
+                }
+            </MudSelect>
         </div>
     </DialogContent>
    
@@ -65,8 +87,10 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
-    
+    [Parameter] public List<MemberOption> Members { get; set; } = [];
+
     private CreateTaskViewModel model = new CreateTaskViewModel();
+    private HashSet<Guid> SelectedAssignees { get; set; } = [];
 
     private void Submit() 
     {
@@ -78,6 +102,14 @@
         
         MudDialog?.Close(DialogResult.Ok(model));
     }
+
+    private void OnAssigneesChanged(IEnumerable<Guid> values)
+    {
+        SelectedAssignees = values.ToHashSet();
+        model.AssigneeMemberIds = SelectedAssignees.ToList();
+    }
     
     private void Cancel() => MudDialog?.Cancel();
+
+    public sealed record MemberOption(Guid Id, string Name);
 }

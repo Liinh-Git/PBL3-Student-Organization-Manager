@@ -1,102 +1,164 @@
-@* ---- Dialog tạo sự kiện mới: nhập tên, ngày, địa điểm và số luợng slot ---- *@
+@* ---- Dialog tạo sự kiện mới: Thiết kế chuyên nghiệp, phân tách Header/Footer và đồng bộ ViewModel ---- *@
 @using MudBlazor
 @using Org.Frontend.ViewModels
 @inject ISnackbar Snackbar
 
 <MudDialog DisableSidePadding="true" Class="custom-dialog-border">
     <TitleContent>
-        <div class="px-6 pt-4 pb-2">
-            <MudText Typo="Typo.h5" Class="fw-bold mb-1" Style="color: #1e293b;">Tạo sự kiện mới</MudText>
-            <MudText Typo="Typo.body2" Style="color: #64748b;">Khai báo thông tin cơ bản để khởi tạo một sự kiện mới cho tổ chức.</MudText>
+        <div class="px-6 py-5" style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+            <div class="d-flex align-center gap-4">
+                <div class="pa-2 rounded-lg" style="background-color: #fff7ed; color: #f97316; display: flex; align-items: center; justify-content: center;">
+                    <MudIcon Icon="@Icons.Material.Filled.Event" Size="Size.Large" />
+                </div>
+                <div class="flex-grow-1">
+                    <MudText Typo="Typo.h5" Class="fw-extrabold mb-1" Style="color: #1e293b; font-weight: 800;">Tạo sự kiện mới</MudText>
+                    <MudText Typo="Typo.body2" Style="color: #64748b; font-weight: 500;">Khai báo thông tin chi tiết để khởi tạo một sự kiện mới cho tổ chức.</MudText>
+                </div>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="Cancel" Size="Size.Small" Style="color: #94a3b8;" />
+            </div>
         </div>
     </TitleContent>
     
     <DialogContent>
-        <div class="px-6">
-            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Tên sự kiện</MudText>
-            <MudTextField @bind-Value="model.Title" 
-                          Placeholder="Ví dụ: UI/UX Summit 2024, Hackathon..." 
-                          Variant="Variant.Outlined" 
-                          Margin="Margin.Dense" 
-                          Class="mb-4" />
+        <div class="px-8 py-6" style="max-height: 65vh; overflow-y: auto;">
+            
+            @* Tên sự kiện *@
+            <div class="mb-5">
+                <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1.5" Style="color: #334155;">Tên sự kiện</MudText>
+                <MudTextField @bind-Value="model.Title" 
+                              Placeholder="Ví dụ: UI/UX Summit 2024, Hackathon..." 
+                              Variant="Variant.Outlined" 
+                              Margin="Margin.Dense" />
+            </div>
 
-            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Mô tả sự kiện</MudText>
-            <MudTextField @bind-Value="model.Description" 
-                          Placeholder="Sự kiện này dành cho ai, mục đích là gì..." 
-                          Variant="Variant.Outlined" 
-                          Margin="Margin.Dense" 
-                          Lines="3" 
-                          Class="mb-4" />
+            @* Mô tả sự kiện *@
+            <div class="mb-5">
+                <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1.5" Style="color: #334155;">Mô tả sự kiện</MudText>
+                <MudTextField @bind-Value="model.Description" 
+                              Placeholder="Sự kiện này dành cho ai, mục đích là gì..." 
+                              Variant="Variant.Outlined" 
+                              Margin="Margin.Dense" 
+                              Lines="2" />
+            </div>
 
-            <MudGrid Class="mb-4" Spacing="2">
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Ngày tổ chức</MudText>
-                    <MudDatePicker @bind-Date="model.Date" 
-                                   Placeholder="-- Chọn ngày --" 
-                                   Variant="Variant.Outlined" 
-                                   Margin="Margin.Dense" 
-                                   IconSize="Size.Small" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Giờ bắt đầu</MudText>
-                    <MudTimePicker @bind-Time="model.Time" 
-                                   Placeholder="-- Chọn giờ --" 
-                                   Variant="Variant.Outlined" 
-                                   Margin="Margin.Dense" 
-                                   IconSize="Size.Small" />
-                </MudItem>
-            </MudGrid>
+            @* Lịch trình *@
+            <div class="pa-4 mb-5 rounded-lg" style="background-color: #f1f5f9; border: 1px solid #e2e8f0;">
+                <MudGrid Spacing="4">
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1.5" Style="color: #334155;">Thời gian bắt đầu</MudText>
+                        <div class="d-flex gap-2">
+                            <MudDatePicker @bind-Date="model.StartDate" 
+                                           Variant="Variant.Outlined" 
+                                           Margin="Margin.Dense" 
+                                           Style="background-color: white; flex: 1;" />
+                            <MudTimePicker @bind-Time="model.StartTime" 
+                                           Variant="Variant.Outlined" 
+                                           Margin="Margin.Dense" 
+                                           Style="background-color: white; width: 110px;" />
+                        </div>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1.5" Style="color: #334155;">Thời gian kết thúc</MudText>
+                        <div class="d-flex gap-2">
+                            <MudDatePicker @bind-Date="model.EndDate" 
+                                           Variant="Variant.Outlined" 
+                                           Margin="Margin.Dense" 
+                                           Style="background-color: white; flex: 1;" />
+                            <MudTimePicker @bind-Time="model.EndTime" 
+                                           Variant="Variant.Outlined" 
+                                           Margin="Margin.Dense" 
+                                           Style="background-color: white; width: 110px;" />
+                        </div>
+                    </MudItem>
+                </MudGrid>
+            </div>
 
-            <MudGrid Spacing="2">
+            @* Địa điểm & Quy mô *@
+            <MudGrid Class="mb-5" Spacing="3">
                 <MudItem xs="12" sm="8">
-                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Địa điểm</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1.5" Style="color: #334155;">Địa điểm</MudText>
                     <MudTextField @bind-Value="model.Location" 
                                   Placeholder="Ví dụ: Phòng 402, Tòa nhà Kora Hub..." 
                                   Variant="Variant.Outlined" 
-                                  Margin="Margin.Dense" />
+                                  Margin="Margin.Dense" 
+                                  Adornment="Adornment.End" 
+                                  AdornmentIcon="@Icons.Material.Filled.Place" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Số lượng slot</MudText>
-                    <MudNumericField @bind-Value="model.TotalSlots" 
+                    <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1.5" Style="color: #334155;">Số người tham gia</MudText>
+                    <MudNumericField @bind-Value="model.ExpectedParticipants" 
                                      Min="0" 
-                                     Placeholder="0 = Không giới hạn" 
                                      Variant="Variant.Outlined" 
-                                     Margin="Margin.Dense" />
+                                     Margin="Margin.Dense" 
+                                     Adornment="Adornment.End" 
+                                     AdornmentIcon="@Icons.Material.Filled.People" />
                 </MudItem>
             </MudGrid>
+
+            @* Tags *@
+            <div>
+                <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1.5" Style="color: #334155;">Tags sự kiện</MudText>
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    @foreach (var tag in model.Tags)
+                    {
+                        <MudChip T="string" 
+                                 Text="@tag" 
+                                 OnClose="(() => RemoveTag(tag))" 
+                                 Variant="Variant.Filled" 
+                                 Style="background-color: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; font-weight: 700; font-size: 12px;" 
+                                 Size="Size.Small" />
+                    }
+                </div>
+                <div class="d-flex gap-2">
+                    <MudTextField @bind-Value="newTag" 
+                                  Placeholder="Thêm tag (Nhấn Enter)..." 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense" 
+                                  OnKeyDown="HandleTagKeyDown" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Add" 
+                                   OnClick="AddTag" 
+                                   Variant="Variant.Filled" 
+                                   Style="background-color: #f1f5f9; border: 1px solid #cbd5e1;" 
+                                   Size="Size.Small" />
+                </div>
+            </div>
+            
         </div>
     </DialogContent>
    
     <DialogActions>
-        <div class="px-6 pb-4 pt-2 w-100 d-flex justify-end gap-3">
+        <div class="px-8 py-5 w-100 d-flex justify-end gap-3" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
             <MudButton OnClick="Cancel" 
                        Variant="Variant.Filled" 
-                       Style="background-color: #64748b; color: white; border-radius: 6px; text-transform: none; padding: 8px 20px; font-weight: 500;">
+                       Style="background-color: #64748b; color: white; border-radius: 6px; text-transform: none; padding: 10px 24px; font-weight: 600;">
                 Hủy bỏ
             </MudButton>
             <MudButton OnClick="Submit" 
                        Variant="Variant.Filled" 
-                       Style="background-color: #f97316; color: white; border-radius: 6px; text-transform: none; padding: 8px 28px; font-weight: 600;">
-                Tạo mới
+                       Style="background-color: #f97316; color: white; border-radius: 6px; text-transform: none; padding: 10px 36px; font-weight: 700; box-shadow: 0 4px 6px -1px rgb(249 115 22 / 0.1);">
+                TẠO MỚI
             </MudButton>
         </div>
     </DialogActions>
 </MudDialog>
 
 <style>
-    /* Ẩn label mặc định của MudBlazor vì chúng ta đã tự viết nhãn ở trên */
     .mud-input-label {
         display: none !important;
     }
     
-    /* Làm bo góc cho toàn bộ Dialog */
     .custom-dialog-border {
         border-radius: 12px !important;
+        overflow: hidden !important;
     }
     
-    /* Chỉnh lại màu viền của input cho thanh thoát hơn */
     .mud-input-outlined-border {
         border-color: #cbd5e1 !important;
+    }
+
+    .mud-input-outlined.mud-input-focused .mud-input-outlined-border {
+        border-color: #f97316 !important;
+        border-width: 1px !important;
     }
 </style>
 
@@ -104,6 +166,23 @@
     [CascadingParameter] IMudDialogInstance? MudDialog { get; set; }
 
     private CreateEventViewModel model = new CreateEventViewModel();
+    private string newTag = "";
+
+    private void AddTag()
+    {
+        if (!string.IsNullOrWhiteSpace(newTag) && !model.Tags.Contains(newTag.Trim()))
+        {
+            model.Tags.Add(newTag.Trim());
+            newTag = "";
+        }
+    }
+
+    private void RemoveTag(string tag) => model.Tags.Remove(tag);
+
+    private void HandleTagKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") AddTag();
+    }
 
     private void Submit()
     {
@@ -112,8 +191,6 @@
             Snackbar.Add("Vui lòng nhập tên sự kiện!", Severity.Error);
             return;
         }
-        
-        // Gửi data về cho trang EventList
         MudDialog?.Close(DialogResult.Ok(model));
     }
 

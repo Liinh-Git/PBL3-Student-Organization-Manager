@@ -69,8 +69,11 @@
 
         <div class="modal-footer">
             <button class="btn-cancel" @onclick="OnClose">Dong</button>
-            <button class="btn-reject" @onclick="OnReject">Tu choi</button>
-            <button class="btn-approve" @onclick="OnApprove">Chap nhan</button>
+            @if (CanReview)
+            {
+                <button class="btn-reject" @onclick="OnReject">Tu choi</button>
+                <button class="btn-approve" @onclick="OnApprove">Chap nhan</button>
+            }
         </div>
     </div>
 </div>
@@ -87,4 +90,7 @@
 
     [Parameter]
     public EventCallback OnReject { get; set; }
+
+    [Parameter]
+    public bool CanReview { get; set; } = true;
 }

@@ -1,199 +1,201 @@
 @page "/user/events"
 @rendermode InteractiveServer
+@using Org.Frontend.Services.Events
 @using Org.Frontend.ViewModels
-@using Org.Frontend.Services.Dashboard
-@inject IUserDashboardService DashboardService
+@inject IEventService EventService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Sự kiện của tôi - Kora</PageTitle>
 
 <div class="user-events-dashboard">
-    @if (_dashboard == null)
+    @if (_isLoading)
     {
         <div class="d-flex justify-center pa-12">
             <MudProgressCircular Color="MudBlazor.Color.Primary" Indeterminate="true" />
         </div>
     }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="events-empty-state">
+            <p class="empty-note">@_errorMessage</p>
+            <button class="btn-dark" @onclick="LoadAsync">Thử lại</button>
+        </div>
+    }
     else
     {
-        <!-- Featured Event Section (Lấy sự kiện sắp tới nhất) -->
-        @if (FeaturedEvent != null)
-        {
-            <section class="featured-section">
-                <div class="featured-card">
-                    <img class="featured-image" src="@(string.IsNullOrEmpty(FeaturedEvent.ImageUrl) ? "/images/mockimages/Org1/Card1.jpg" : FeaturedEvent.ImageUrl)" alt="@FeaturedEvent.Name" />
-                    <div class="featured-overlay"></div>
-                    <div class="featured-content">
-                        <span class="featured-badge">Nổi bật</span>
-                        <h2 class="featured-title">@FeaturedEvent.Name</h2>
-                        <p class="featured-desc">@FeaturedEvent.Description</p>
-                        
-                        <div class="featured-meta">
-                            <div class="meta-item">
-                                <span class="material-symbols-outlined icon-orange">calendar_today</span>
-                                <span>@FeaturedEvent.StartDate.ToString("dd/MM/yyyy") - @FeaturedEvent.EndDate.ToString("dd/MM/yyyy")</span>
-                            </div>
-                            <div class="meta-item">
-                                <span class="material-symbols-outlined icon-orange">location_on</span>
-                                <span>@FeaturedEvent.Location</span>
-                            </div>
-                        </div>
-                        
-                        <button class="btn-primary-orange">
-                            <span>Chi tiết sự kiện</span>
-                            <span class="material-symbols-outlined">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
-        }
-
-        <!-- Dynamic Navigation Tabs -->
         <div class="events-tabs">
-            <button class="tab-btn @(currentFilter == "All" ? "active" : "")" @onclick='() => currentFilter = "All"'>
-                Tất cả (@_dashboard.RegisteredEvents.Count)
+            <button class="tab-btn @(_activeStatus == EventStatusFilter.All ? "active" : "")" @onclick='() => _activeStatus = EventStatusFilter.All'>
+                Tất cả (@(OrganizerEvents.Count + AttendeeEvents.Count))
             </button>
-            <button class="tab-btn @(currentFilter == "Ongoing" ? "active" : "")" @onclick='() => currentFilter = "Ongoing"'>
-                Đang diễn ra (@_dashboard.RegisteredEvents.Count(e => e.EventStatus == "ONGOING"))
+            <button class="tab-btn @(_activeStatus == EventStatusFilter.Ongoing ? "active" : "")" @onclick='() => _activeStatus = EventStatusFilter.Ongoing'>
+                Đang diễn ra (@CountByStatus("ONGOING"))
             </button>
-            <button class="tab-btn @(currentFilter == "Upcoming" ? "active" : "")" @onclick='() => currentFilter = "Upcoming"'>
-                Sắp tới (@_dashboard.RegisteredEvents.Count(e => e.EventStatus == "PLANNING" || e.EventStatus == "UPCOMING" || (e.StartDate > DateOnly.FromDateTime(DateTime.Today) && e.EventStatus != "COMPLETED")))
+            <button class="tab-btn @(_activeStatus == EventStatusFilter.Upcoming ? "active" : "")" @onclick='() => _activeStatus = EventStatusFilter.Upcoming'>
+                Sắp tới (@CountByStatus("UPCOMING"))
             </button>
-            <button class="tab-btn @(currentFilter == "Completed" ? "active" : "")" @onclick='() => currentFilter = "Completed"'>
-                Đã tham gia (@_dashboard.RegisteredEvents.Count(e => e.EventStatus == "COMPLETED"))
+            <button class="tab-btn @(_activeStatus == EventStatusFilter.Ended ? "active" : "")" @onclick='() => _activeStatus = EventStatusFilter.Ended'>
+                Đã kết thúc (@CountByStatus("COMPLETED"))
             </button>
         </div>
 
         <section class="events-group">
             <div class="group-header">
-                <h3>@GetFilterLabel()</h3>
+                <h3>Sự kiện tôi tổ chức</h3>
                 <div class="group-divider"></div>
             </div>
-            
+
             <div class="events-list">
-                @foreach (var evt in EventsToShow)
+                @if (OrganizerEvents.Count == 0)
                 {
-                    <div class="event-card">
-                        <div class="event-image-wrap">
-                            <img src="@(string.IsNullOrEmpty(evt.ImageUrl) ? "/images/mockimages/Org1/Card2.jpg" : evt.ImageUrl)" alt="Event" class="event-image" />
-                        </div>
-                        <div class="event-details">
-                            <div class="event-category">
-                                <span class="cat-badge @(IsAttendee(evt.RegistrationStatus) ? "attendee-badge" : "staff-badge")">
-                                    @(GetRoleBadge(evt.RegistrationStatus))
-                                </span>
-                                <span class="cat-label">@evt.OrganizationName</span>
-                            </div>
-                            <h4 class="event-title">@evt.Name</h4>
-                            <div class="event-meta-info">
-                                <span class="meta-text"><span class="material-symbols-outlined">schedule</span> @evt.StartDate.ToString("dd/MM/yyyy")</span>
-                                <span class="meta-text"><span class="material-symbols-outlined">location_on</span> @evt.Location</span>
-                            </div>
-                        </div>
-                        <div class="event-actions">
-                            <div class="attendees-faces">
-                                <img src="/images/mockimages/AvtUser/Avt1.jpg" alt="User" />
-                                <div class="more-attendees">+42</div>
-                            </div>
-                            @if (IsAttendee(evt.RegistrationStatus))
-                            {
-                                <button class="btn-dark" @onclick='() => GoToEvent(evt)'>Xem chi tiết</button>
-                            }
-                            else
-                            {
-                                <button class="btn-primary-orange" @onclick='() => GoToEvent(evt)'>Quản trị góc nhìn</button>
-                            }
-                        </div>
+                    <div class="events-empty-state w-100 pa-8 text-center text-muted">
+                        <p class="empty-note">Bạn chưa có sự kiện tổ chức trong danh mục này.</p>
                     </div>
                 }
-
-                @if (!EventsToShow.Any())
+                else
                 {
-                    <div class="events-empty-state w-100 pa-12 text-center text-muted">
-                        <p class="empty-note">Không tìm thấy sự kiện nào trong danh mục này.</p>
-                    </div>
+                    @foreach (var evt in OrganizerEvents)
+                    {
+                        <div class="event-card">
+                            <div class="event-image-wrap">
+                                <img src="@ResolveImage(evt.ImageUrl)" alt="Event" class="event-image" />
+                            </div>
+                            <div class="event-details">
+                                <div class="event-category">
+                                    <span class="cat-badge staff-badge">Ban tổ chức</span>
+                                    <span class="cat-label">@evt.OrganizationName</span>
+                                </div>
+                                <h4 class="event-title">@evt.Name</h4>
+                                <div class="event-meta-info">
+                                    <span class="meta-text"><span class="material-symbols-outlined">schedule</span> @evt.StartDate.ToString("dd/MM/yyyy")</span>
+                                    <span class="meta-text"><span class="material-symbols-outlined">location_on</span> @ResolveLocation(evt.Location)</span>
+                                </div>
+                            </div>
+                            <div class="event-actions">
+                                <button class="btn-dark" @onclick='() => OpenPublicDetail(evt.EventId)'>Xem public</button>
+                                @if (evt.CanEnterWorkspace)
+                                {
+                                    <button class="btn-primary-orange" @onclick='() => OpenWorkspace(evt)'>Vào workspace</button>
+                                }
+                            </div>
+                        </div>
+                    }
                 }
             </div>
         </section>
 
-        @if (currentFilter == "All" && _dashboard.RegisteredEvents.Count > 0)
-        {
-            <div class="events-empty-state">
-                <p class="empty-note">Bạn đã xem hết các sự kiện.</p>
-                <button class="btn-text-history">
-                    <span>Xem lịch sử sự kiện</span>
-                    <span class="material-symbols-outlined">history</span>
-                </button>
+        <section class="events-group">
+            <div class="group-header">
+                <h3>Sự kiện tôi tham gia</h3>
+                <div class="group-divider"></div>
             </div>
-        }
+
+            <div class="events-list">
+                @if (AttendeeEvents.Count == 0)
+                {
+                    <div class="events-empty-state w-100 pa-8 text-center text-muted">
+                        <p class="empty-note">Bạn chưa có sự kiện tham gia trong danh mục này.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var evt in AttendeeEvents)
+                    {
+                        <div class="event-card">
+                            <div class="event-image-wrap">
+                                <img src="@ResolveImage(evt.ImageUrl)" alt="Event" class="event-image" />
+                            </div>
+                            <div class="event-details">
+                                <div class="event-category">
+                                    <span class="cat-badge attendee-badge">Người tham dự</span>
+                                    <span class="cat-label">@evt.OrganizationName</span>
+                                </div>
+                                <h4 class="event-title">@evt.Name</h4>
+                                <div class="event-meta-info">
+                                    <span class="meta-text"><span class="material-symbols-outlined">schedule</span> @evt.StartDate.ToString("dd/MM/yyyy")</span>
+                                    <span class="meta-text"><span class="material-symbols-outlined">location_on</span> @ResolveLocation(evt.Location)</span>
+                                </div>
+                            </div>
+                            <div class="event-actions">
+                                <button class="btn-dark" @onclick='() => OpenPublicDetail(evt.EventId)'>Xem chi tiết</button>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </section>
     }
 </div>
 
 @code {
-    private UserDashboardViewModel? _dashboard;
-    private string currentFilter = "All";
+    private MyEventsViewModel _myEvents = new();
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private EventStatusFilter _activeStatus = EventStatusFilter.All;
+
+    private enum EventStatusFilter
+    {
+        All,
+        Upcoming,
+        Ongoing,
+        Ended
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        _dashboard = await DashboardService.GetDashboardAsync();
+        await LoadAsync();
     }
 
-    private UserRegisteredEventViewModel? FeaturedEvent => _dashboard?.RegisteredEvents
-        .Where(e => e.StartDate >= DateOnly.FromDateTime(DateTime.Today))
-        .OrderBy(e => e.StartDate)
-        .FirstOrDefault();
-
-    private IEnumerable<UserRegisteredEventViewModel> EventsToShow
+    private async Task LoadAsync()
     {
-        get
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
         {
-            if (_dashboard == null) return Enumerable.Empty<UserRegisteredEventViewModel>();
-            
-            var today = DateOnly.FromDateTime(DateTime.Today);
-            return currentFilter switch
+            _myEvents = await EventService.GetMyEventsAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private List<MyEventItemViewModel> OrganizerEvents => ApplyStatusFilter(_myEvents.OrganizerEvents);
+    private List<MyEventItemViewModel> AttendeeEvents => ApplyStatusFilter(_myEvents.AttendeeEvents);
+
+    private List<MyEventItemViewModel> ApplyStatusFilter(List<MyEventItemViewModel> items)
+    {
+        return items
+            .Where(x => _activeStatus switch
             {
-                "Ongoing" => _dashboard.RegisteredEvents.Where(e => e.EventStatus == "ONGOING"),
-                "Upcoming" => _dashboard.RegisteredEvents.Where(e => e.StartDate > today && e.EventStatus != "COMPLETED"),
-                "Completed" => _dashboard.RegisteredEvents.Where(e => e.EventStatus == "COMPLETED"),
-                _ => _dashboard.RegisteredEvents
-            };
-        }
+                EventStatusFilter.Upcoming => string.Equals(x.StatusLabel, "UPCOMING", StringComparison.OrdinalIgnoreCase),
+                EventStatusFilter.Ongoing => string.Equals(x.StatusLabel, "ONGOING", StringComparison.OrdinalIgnoreCase),
+                EventStatusFilter.Ended => string.Equals(x.StatusLabel, "COMPLETED", StringComparison.OrdinalIgnoreCase),
+                _ => true
+            })
+            .ToList();
     }
 
-    private string GetFilterLabel() => currentFilter switch
+    private int CountByStatus(string status)
     {
-        "Ongoing" => "Sự kiện đang diễn ra",
-        "Upcoming" => "Sự kiện sắp diễn ra",
-        "Completed" => "Sự kiện đã kết thúc",
-        _ => "Tất cả sự kiện"
-    };
-
-    private bool IsAttendee(string status) => 
-        status == "REGISTERED" || status == "ATTENDED" || status == "CANCELLED";
-
-    private string GetRoleBadge(string status) => IsAttendee(status) ? "Ghi danh" : "Ban tổ chức";
-
-    private void GoToEvent(UserRegisteredEventViewModel evt)
-    {
-        if (IsAttendee(evt.RegistrationStatus))
-        {
-            NavigationManager.NavigateTo($"/events/{evt.EventId}");
-        }
-        else
-        {
-            NavigationManager.NavigateTo($"/org/events/{evt.EventId}");
-        }
+        return _myEvents.OrganizerEvents
+            .Concat(_myEvents.AttendeeEvents)
+            .Count(x => string.Equals(x.StatusLabel, status, StringComparison.OrdinalIgnoreCase));
     }
 
-    [Inject] public NavigationManager NavigationManager { get; set; } = default!;
+    private static string ResolveImage(string? imageUrl)
+        => string.IsNullOrWhiteSpace(imageUrl) ? "/images/mockimages/Org1/Card2.jpg" : imageUrl;
+
+    private static string ResolveLocation(string? location)
+        => string.IsNullOrWhiteSpace(location) ? "Địa điểm sẽ cập nhật" : location;
+
+    private void OpenPublicDetail(Guid eventId)
+        => NavigationManager.NavigateTo($"/events/{eventId:D}");
+
+    private void OpenWorkspace(MyEventItemViewModel evt)
+        => NavigationManager.NavigateTo($"/org/events/{evt.EventId:D}?orgId={evt.OrganizationId:D}");
 }
-
-<style>
-    .attendee-badge {
-        background: var(--mud-palette-info-subtle, rgba(33,150,243,0.1));
-        color: var(--mud-palette-info, #2196f3);
-    }
-    .staff-badge {
-        background: var(--mud-palette-secondary-subtle, rgba(255,152,0,0.1));
-        color: var(--mud-palette-secondary, #ff9800);
-    }
-</style>

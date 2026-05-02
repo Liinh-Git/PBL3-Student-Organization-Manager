@@ -1,0 +1,36 @@
+[
+  {
+    "id": "30000000-0000-0000-0000-000000000001",
+    "orgId": "c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "authorUserId": "bf3c92e8-3ec0-422e-a4bb-8ccaa33eb1bc",
+    "relatedEventId": "9ce7f2dd-438d-406d-a79f-279b4d519e95",
+    "title": "Đêm nhạc Acoustic sắp diễn ra",
+    "content": "Mọi người nhớ đăng ký trước 12/05 để nhận vé sớm nhé.",
+    "postType": "Event",
+    "visibility": "Public",
+    "mediaUrls": [
+      "/images/mockimages/Org1/Card3.jpg"
+    ],
+    "likeCount": 24,
+    "commentCount": 6,
+    "shareCount": 3,
+    "createdAt": "2026-05-01T07:30:00Z"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000002",
+    "orgId": "316d5027-807b-415b-8dfc-28775986e7a1",
+    "authorUserId": "99124ae0-730b-4dff-b618-e20e6ee89d68",
+    "relatedEventId": null,
+    "title": "Tuyển cộng tác viên media",
+    "content": "CLB CNTT đang cần bạn hỗ trợ quay dựng cho chuỗi workshop tháng này.",
+    "postType": "Recruitment",
+    "visibility": "MembersOnly",
+    "mediaUrls": [
+      "/images/mockimages/Org4/Card1.jpg"
+    ],
+    "likeCount": 17,
+    "commentCount": 4,
+    "shareCount": 2,
+    "createdAt": "2026-04-30T15:00:00Z"
+  }
+]

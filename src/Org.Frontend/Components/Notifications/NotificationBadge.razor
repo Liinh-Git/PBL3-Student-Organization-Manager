@@ -1,0 +1,257 @@
+@* ---- Badge thông báo: icon + popover danh sách thông báo có thể cuộn ---- *@
+@using Org.Frontend.Services.Notifications
+@using Org.Shared.Features.Notifications
+@inject INotificationService NotificationService
+@inject NavigationManager NavigationManager
+
+@* ---- Nút chuông với badge số chưa đọc ---- *@
+<div class="notif-badge-wrapper" @ref="_anchorRef">
+    <button class="notif-icon-btn" type="button" @onclick="TogglePopover" aria-label="Thông báo">
+        <MudIcon Icon="@Icons.Material.Outlined.Notifications" />
+        @if (_unreadCount > 0)
+        {
+            <span class="notif-count-dot">@(_unreadCount > 99 ? "99+" : _unreadCount.ToString())</span>
+        }
+    </button>
+</div>
+
+@* ---- Popover danh sách thông báo ---- *@
+<MudPopover Open="_isOpen" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight"
+            Fixed="false">
+    <div class="notif-popover">
+        @* Header *@
+        <div class="notif-popover-header">
+            <span class="notif-popover-title">Thông báo</span>
+            @if (_unreadCount > 0)
+            {
+                <button class="notif-mark-all-btn" type="button" @onclick="MarkAllAsRead">
+                    Đánh dấu tất cả đã đọc
+                </button>
+            }
+        </div>
+
+        @* Danh sách thông báo có thể cuộn *@
+        <div class="notif-list">
+            @if (_isLoading)
+            {
+                <div class="notif-loading">
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                </div>
+            }
+            else if (_notifications.Count == 0)
+            {
+                <div class="notif-empty">
+                    <MudIcon Icon="@Icons.Material.Outlined.NotificationsNone" Class="notif-empty-icon" />
+                    <span>Không có thông báo nào</span>
+                </div>
+            }
+            else
+            {
+                @foreach (var notif in _notifications)
+                {
+                    <div class="notif-item @(notif.IsRead ? "notif-item--read" : "notif-item--unread")"
+                         @key="notif.Id">
+                        @* Dot chưa đọc *@
+                        @if (!notif.IsRead)
+                        {
+                            <span class="notif-unread-dot"></span>
+                        }
+
+                        @* Nội dung *@
+                        <div class="notif-item-body" @onclick="() => HandleNotifClick(notif)">
+                            <div class="notif-item-title">@notif.Title</div>
+                            <div class="notif-item-message">@notif.Message</div>
+                            <div class="notif-item-time">@FormatTime(notif.CreatedAt)</div>
+                        </div>
+
+                        @* Nút đánh dấu đã đọc *@
+                        @if (!notif.IsRead)
+                        {
+                            <button class="notif-read-btn" type="button"
+                                    title="Đánh dấu đã đọc"
+                                    @onclick="() => MarkAsRead(notif.Id)"
+                                    @onclick:stopPropagation="true">
+                                <MudIcon Icon="@Icons.Material.Outlined.DoneAll" Size="Size.Small" />
+                            </button>
+                        }
+                    </div>
+                }
+
+                @* Load more *@
+                @if (_hasMore)
+                {
+                    <button class="notif-load-more" type="button" @onclick="LoadMore">
+                        Xem thêm
+                    </button>
+                }
+            }
+        </div>
+    </div>
+</MudPopover>
+
+@* Overlay để đóng popover khi click ra ngoài *@
+@if (_isOpen)
+{
+    <div class="notif-overlay" @onclick="ClosePopover"></div>
+}
+
+@implements IDisposable
+
+@code {
+    private int _unreadCount = 0;
+    private bool _isOpen = false;
+    private bool _isLoading = false;
+    private bool _hasMore = false;
+    private int _currentPage = 1;
+    private const int PageSize = 10;
+    private List<NotificationDto> _notifications = [];
+    private ElementReference _anchorRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        NotificationService.OnNotificationReceived += HandleRealtimeNotification;
+        await NotificationService.StartRealtimeAsync();
+        await RefreshUnreadCountAsync();
+    }
+
+    public void Dispose()
+    {
+        NotificationService.OnNotificationReceived -= HandleRealtimeNotification;
+    }
+
+    // ---- Toggle popover ----
+    private async Task TogglePopover()
+    {
+        if (_isOpen)
+        {
+            ClosePopover();
+        }
+        else
+        {
+            _isOpen = true;
+            _currentPage = 1;
+            _notifications = [];
+            await LoadNotificationsAsync();
+        }
+    }
+
+    private void ClosePopover()
+    {
+        _isOpen = false;
+    }
+
+    // ---- Load danh sách thông báo ----
+    private async Task LoadNotificationsAsync()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await NotificationService.GetNotificationsAsync(
+                page: _currentPage,
+                pageSize: PageSize);
+
+            if (_currentPage == 1)
+                _notifications = result.Items.ToList();
+            else
+                _notifications.AddRange(result.Items);
+
+            _hasMore = _notifications.Count < result.TotalCount;
+            _unreadCount = result.UnreadCount;
+        }
+        catch
+        {
+            // Bỏ qua lỗi mạng, giữ danh sách cũ
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadMore()
+    {
+        _currentPage++;
+        await LoadNotificationsAsync();
+    }
+
+    // ---- Refresh chỉ unread count (không mở popover) ----
+    private async Task RefreshUnreadCountAsync()
+    {
+        try
+        {
+            _unreadCount = await NotificationService.GetUnreadCountAsync();
+            StateHasChanged();
+        }
+        catch { }
+    }
+
+    // ---- Đánh dấu đã đọc từng thông báo ----
+    private async Task MarkAsRead(Guid id)
+    {
+        try
+        {
+            await NotificationService.MarkAsReadAsync(id);
+            var idx = _notifications.FindIndex(n => n.Id == id);
+            if (idx >= 0)
+            {
+                var n = _notifications[idx];
+                _notifications[idx] = n with { IsRead = true, ReadAt = DateTime.UtcNow };
+            }
+            if (_unreadCount > 0) _unreadCount--;
+            StateHasChanged();
+        }
+        catch { }
+    }
+
+    // ---- Đánh dấu tất cả đã đọc ----
+    private async Task MarkAllAsRead()
+    {
+        try
+        {
+            await NotificationService.MarkAllAsReadAsync();
+            _notifications = _notifications
+                .Select(n => n with { IsRead = true, ReadAt = DateTime.UtcNow })
+                .ToList();
+            _unreadCount = 0;
+            StateHasChanged();
+        }
+        catch { }
+    }
+
+    // ---- Click vào thông báo: đánh dấu đọc + navigate nếu có ActionUrl ----
+    private async Task HandleNotifClick(NotificationDto notif)
+    {
+        if (!notif.IsRead)
+            await MarkAsRead(notif.Id);
+        if (!string.IsNullOrWhiteSpace(notif.ActionUrl))
+            NavigationManager.NavigateTo(notif.ActionUrl);
+        ClosePopover();
+    }
+
+    private void HandleRealtimeNotification(NotificationMessage message)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await RefreshUnreadCountAsync();
+            if (_isOpen)
+            {
+                _currentPage = 1;
+                await LoadNotificationsAsync();
+            }
+        });
+    }
+
+    // ---- Format thời gian tương đối ----
+    private static string FormatTime(DateTimeOffset createdAt)
+    {
+        var diff = DateTimeOffset.UtcNow - createdAt;
+        return diff.TotalMinutes < 1 ? "Vừa xong"
+            : diff.TotalHours < 1 ? $"{(int)diff.TotalMinutes} phút trước"
+            : diff.TotalDays < 1 ? $"{(int)diff.TotalHours} giờ trước"
+            : diff.TotalDays < 7 ? $"{(int)diff.TotalDays} ngày trước"
+            : createdAt.ToString("dd/MM/yyyy");
+    }
+}

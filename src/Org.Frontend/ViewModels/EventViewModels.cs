@@ -1,6 +1,9 @@
 // ---- ViewModels dùng riêng cho frontend (UI display) — tách biệt với API contracts ----
 namespace Org.Frontend.ViewModels;
 
+using System;
+using System.Collections.Generic;
+
 /// <summary>
 /// Display model used by EventList and EventDetail pages.
 /// It intentionally contains UI-only fields that do not exist in API contracts.
@@ -8,6 +11,7 @@ namespace Org.Frontend.ViewModels;
 public sealed class EventViewModel
 {
     public Guid Id { get; set; }
+    public Guid OrganizationId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public DateOnly StartDate { get; set; }
@@ -26,19 +30,52 @@ public sealed class EventViewModel
     public string? RiskLevel { get; set; }                    // "Low", "Medium", "High"
     public int TotalFiles { get; set; }
     public decimal ActualSpending { get; set; }
+    public bool CanManage { get; set; }
+    public bool CanEnterWorkspace { get; set; }
+}
+
+public sealed class MyEventsViewModel
+{
+    public List<MyEventItemViewModel> OrganizerEvents { get; set; } = [];
+    public List<MyEventItemViewModel> AttendeeEvents { get; set; } = [];
+}
+
+public sealed class MyEventItemViewModel
+{
+    public Guid EventId { get; set; }
+    public Guid OrganizationId { get; set; }
+    public string OrganizationName { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
+    public string StatusLabel { get; set; } = "UPCOMING";
+    public string? Location { get; set; }
+    public string? ImageUrl { get; set; }
+    public bool IsOrganizer { get; set; }
+    public bool CanEnterWorkspace { get; set; }
+    public bool CanManage { get; set; }
 }
 
 /// <summary>
 /// Form input model for creating a new event from FE dialog.
+/// (Đã bổ sung EndDate, EndTime, Tags và đổi TotalSlots thành ExpectedParticipants)
 /// </summary>
 public sealed class CreateEventViewModel
 {
     public string Title { get; set; } = string.Empty;
-    public DateTime? Date { get; set; } = DateTime.Today;
-    public TimeSpan? Time { get; set; } = new TimeSpan(8, 0, 0);
-    public string? Location { get; set; }
-    public int TotalSlots { get; set; }
     public string? Description { get; set; }
+    
+    public DateTime? StartDate { get; set; } = DateTime.Today;
+    public TimeSpan? StartTime { get; set; } = new TimeSpan(8, 0, 0);
+    
+    public DateTime? EndDate { get; set; } = DateTime.Today;
+    public TimeSpan? EndTime { get; set; } = new TimeSpan(17, 0, 0);
+    
+    public string? Location { get; set; }
+    public int ExpectedParticipants { get; set; }
+    
+    public List<string> Tags { get; set; } = new List<string>();
 }
 
 /// <summary>

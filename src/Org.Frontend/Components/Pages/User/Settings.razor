@@ -101,6 +101,15 @@
                                         <span>Mô tả ngắn</span>
                                         <textarea rows="3" class="modern-input" @bind="_settings.Profile.Bio"></textarea>
                                     </label>
+
+                                    <label class="modern-field full-width">
+                                        <span>Che do hien thi ho so</span>
+                                        <select class="modern-input" @bind="_settings.Profile.ProfileVisibility">
+                                            <option value="Public">Cong khai</option>
+                                            <option value="OrganizationOnly">Chi nguoi cung to chuc</option>
+                                            <option value="Private">Rieng tu</option>
+                                        </select>
+                                    </label>
                                 </div>
 
                                 <div class="form-actions">
@@ -254,7 +263,7 @@
     private const string SectionNotifications = "notifications";
     private const string SectionAccount = "account";
     
-    private const string DefaultAvatarUrl = "/images/mockimages/FB_IMG_1744903311334.jpg";
+    private const string DefaultAvatarUrl = "/images/mockimages/AvtUser/Avt1.jpg";
     private static readonly string[] AvatarPool =
     [
         "/images/mockimages/AvtUser/Avt1.jpg",

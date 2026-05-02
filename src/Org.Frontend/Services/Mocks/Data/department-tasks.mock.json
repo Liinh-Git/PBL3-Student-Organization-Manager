@@ -1,0 +1,86 @@
+[
+  {
+    "id": "5b8e9428-5dc0-4f26-b1b7-4a515fb6e6ab",
+    "organizationId": "316d5027-807b-415b-8dfc-28775986e7a1",
+    "departmentId": "be03662b-627f-4afb-bb24-78e76a7bd25b",
+    "title": "Chot ke hoach dao tao tan thanh vien",
+    "description": "Xac dinh noi dung va lich training cho thanh vien moi trong thang nay.",
+    "deadlineAt": "2026-05-15T08:00:00Z",
+    "status": "TODO",
+    "createdByUserId": "99124ae0-730b-4dff-b618-e20e6ee89d68",
+    "createdAt": "2026-04-29T04:00:00Z",
+    "assigneeMemberIds": [
+      "02d94eba-5117-4e62-9bc1-9ff618ce8672"
+    ]
+  },
+  {
+    "id": "f337cb4f-a2c5-46e6-b917-c2ad59cd4b85",
+    "organizationId": "316d5027-807b-415b-8dfc-28775986e7a1",
+    "departmentId": "be03662b-627f-4afb-bb24-78e76a7bd25b",
+    "title": "Tong hop chi phi ha tang quy 1",
+    "description": "Hoan tat doi soat va gui bao cao tai chinh ha tang.",
+    "deadlineAt": "2026-04-15T08:00:00Z",
+    "status": "TODO",
+    "createdByUserId": "99124ae0-730b-4dff-b618-e20e6ee89d68",
+    "createdAt": "2026-04-01T06:00:00Z",
+    "assigneeMemberIds": [
+      "02d94eba-5117-4e62-9bc1-9ff618ce8672"
+    ]
+  },
+  {
+    "id": "f9df4905-2865-4b32-95f9-dac5f6215bb9",
+    "organizationId": "ead36523-0b20-43e0-9acb-ab31056e07eb",
+    "departmentId": "553684af-abc6-4c19-9d7e-7e710208a152",
+    "title": "Cap nhat tai lieu huan luyen dau mua",
+    "description": "Dong bo bo tai lieu huan luyen cho thanh vien doi tuyen.",
+    "deadlineAt": "2026-05-20T08:00:00Z",
+    "status": "TODO",
+    "createdByUserId": "3609749e-144f-4569-b6d6-c5a4aad613fd",
+    "createdAt": "2026-04-28T07:00:00Z",
+    "assigneeMemberIds": [
+      "40a3ed4b-9300-4bcc-b437-5f00ee4e7e17"
+    ]
+  },
+  {
+    "id": "1bcfa163-a4d1-45c6-a60b-1ad57f1e942d",
+    "organizationId": "ead36523-0b20-43e0-9acb-ab31056e07eb",
+    "departmentId": "553684af-abc6-4c19-9d7e-7e710208a152",
+    "title": "Tong ket giai dau noi bo",
+    "description": "Da hoan tat tong ket va cap nhat bai viet tong hop.",
+    "deadlineAt": "2026-04-10T08:00:00Z",
+    "status": "DONE",
+    "createdByUserId": "3609749e-144f-4569-b6d6-c5a4aad613fd",
+    "createdAt": "2026-03-29T03:00:00Z",
+    "assigneeMemberIds": [
+      "40a3ed4b-9300-4bcc-b437-5f00ee4e7e17"
+    ]
+  },
+  {
+    "id": "19f5fe95-8df4-4b88-bf67-2cde48be6c78",
+    "organizationId": "d7a1ac59-aedf-4c6a-8348-e8e249f0c411",
+    "departmentId": "90ef5684-d335-437e-a46d-d226aefcdd3f",
+    "title": "Lap ke hoach workshop quy tiep theo",
+    "description": "Xac dinh chu de, dien gia va timeline trien khai.",
+    "deadlineAt": "2026-04-20T08:00:00Z",
+    "status": "TODO",
+    "createdByUserId": "c73cd5f4-50e8-4e07-94f5-2673592515b4",
+    "createdAt": "2026-04-05T08:00:00Z",
+    "assigneeMemberIds": [
+      "40dbf523-52c2-4405-825d-a50cddb8a47a"
+    ]
+  },
+  {
+    "id": "f486ec9f-3c0e-4b0f-9bae-f97b83d4ef3f",
+    "organizationId": "3e5433e2-88f4-4806-8108-638df97a1f82",
+    "departmentId": "aff0844e-6d1d-4929-8bcd-55d05cbd1f97",
+    "title": "Cap nhat danh sach tinh nguyen vien",
+    "description": "Ra soat va cap nhat du lieu lien he tinh nguyen vien theo chien dich.",
+    "deadlineAt": null,
+    "status": "TODO",
+    "createdByUserId": "3d5934e4-e26a-46bb-9031-cf1251a1452d",
+    "createdAt": "2026-04-27T09:00:00Z",
+    "assigneeMemberIds": [
+      "163fa12b-5653-448f-b8d9-db0a9910106a"
+    ]
+  }
+]

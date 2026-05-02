@@ -65,7 +65,13 @@
   position: relative;
   transition:
     opacity 0.16s ease,
-    border-color 0.16s ease;
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.rail-icon:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .rail-icon img {
@@ -95,6 +101,34 @@
 .rail-icon:focus-visible {
   outline: 2px solid #ff9b51;
   outline-offset: 2px;
+}
+
+.rail-message-icon {
+  color: #94a3b8;
+  font-size: 23px;
+}
+
+.rail-logout-anchor {
+  position: absolute;
+  bottom: 24px;
+  left: 14px;
+}
+
+.rail-logout-icon {
+  color: #8f4c11;
+  font-size: 20px;
+  margin-left: 2px;
+}
+
+.logout-icon-force {
+  background-color: #fff7ef;
+  border: 1px solid #e8c2a0;
+  opacity: 1;
+}
+
+.logout-icon-force:hover {
+  background-color: #ffe8d4;
+  border-color: #dc9d67;
 }
 
 .workspace-menu-pane {
@@ -134,7 +168,7 @@
   line-height: 24px;
   display: flex;
   align-items: center;
-  letter-spacing: -0.45px;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -177,7 +211,7 @@
   font-weight: 500;
   font-size: 14px;
   line-height: 20px;
-  letter-spacing: 0.35px;
+  letter-spacing: 0;
   cursor: pointer;
   transition:
     background-color 0.16s ease,
@@ -216,6 +250,25 @@
 .menu-label {
   display: flex;
   align-items: center;
+}
+
+.workspace-menu-section-title {
+  margin: 12px 16px 6px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.workspace-menu-state {
+  margin: 0 16px 8px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.workspace-menu-state.error {
+  color: #fca5a5;
 }
 
 .workspace-footer-card {
@@ -319,7 +372,7 @@
   .workspace-footer-card {
     width: 100%;
   }
-  .logout-icon-force {
+.logout-icon-force {
     background-color: #fff7ef !important;
     border: 1px solid #e8c2a0 !important;
     opacity: 1 !important;

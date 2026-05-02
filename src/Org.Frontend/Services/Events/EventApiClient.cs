@@ -1,6 +1,3 @@
-// ---- API client thực cho module sự kiện — ánh xạ EventDto sang EventViewModel ----
-// BuildDetailFromEventDtoAsync: tải lazy Milestone → Category để tính % hoàn thành.
-// ToStatusLabel: map EventStatus enum sang chuỗi UI (ONGOING / UPCOMING / COMPLETED).
 using System.Net;
 using System.Net.Http.Json;
 using Org.Frontend.Services.Organizations;
@@ -9,6 +6,7 @@ using Org.Shared;
 using Org.Shared.Features.EventCategories;
 using Org.Shared.Features.Events;
 using Org.Shared.Features.Milestones;
+using Org.Shared.Features.Users;
 
 namespace Org.Frontend.Services.Events;
 
@@ -22,21 +20,147 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
         var payload = await _httpClient.GetFromJsonAsync<GetOrganizationEventsResponse>($"api/organizations/{orgId}/events")
             ?? new GetOrganizationEventsResponse([]);
 
-        return payload.Items.Select(MapTreeNode).ToList();
+        var canManage = await CanCreateEventAsync(orgId);
+        return payload.Items
+            .Select(node => MapTreeNode(node, orgId, canManage))
+            .ToList();
+    }
+
+    public async Task<MyEventsViewModel> GetMyEventsAsync()
+    {
+        var organizationsPayload = await _httpClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
+            "api/users/me/organizations") ?? new GetMyOrganizationsResponse([]);
+
+        var registeredPayload = await _httpClient.GetFromJsonAsync<GetMyRegisteredEventsResponse>(
+            "api/users/me/events") ?? new GetMyRegisteredEventsResponse([]);
+
+        var organizerEvents = new List<MyEventItemViewModel>();
+        var organizerRoles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "PRESIDENT",
+            "VICEPRESIDENT",
+            "MANAGER",
+            "OWNER",
+            "ADMIN"
+        };
+
+        foreach (var org in organizationsPayload.Items.Where(x => organizerRoles.Contains(x.MemberRole?.Trim() ?? string.Empty)))
+        {
+            var eventsPayload = await _httpClient.GetFromJsonAsync<GetOrganizationEventsResponse>(
+                $"api/organizations/{org.OrganizationId}/events") ?? new GetOrganizationEventsResponse([]);
+
+            organizerEvents.AddRange(eventsPayload.Items.Select(x => new MyEventItemViewModel
+            {
+                EventId = x.Id,
+                OrganizationId = org.OrganizationId,
+                OrganizationName = org.OrganizationName,
+                Name = x.Name,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                StatusLabel = ToStatusLabel(x.Status),
+                Location = null,
+                IsOrganizer = true,
+                CanEnterWorkspace = true,
+                CanManage = true
+            }));
+        }
+
+        var organizerEventIds = organizerEvents.Select(x => x.EventId).ToHashSet();
+
+        var attendeeEvents = registeredPayload.Items
+            .Where(x => !organizerEventIds.Contains(x.EventId))
+            .Select(x => new MyEventItemViewModel
+            {
+                EventId = x.EventId,
+                OrganizationId = x.OrganizationId,
+                OrganizationName = x.OrganizationName,
+                Name = x.EventName,
+                Description = x.EventDescription,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                StatusLabel = ToStatusLabel(x.EventStatus),
+                Location = x.Location,
+                ImageUrl = x.EventImageUrl,
+                IsOrganizer = false,
+                CanEnterWorkspace = false,
+                CanManage = false
+            })
+            .OrderBy(x => x.StartDate)
+            .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return new MyEventsViewModel
+        {
+            OrganizerEvents = organizerEvents
+                .DistinctBy(x => x.EventId)
+                .OrderBy(x => x.StartDate)
+                .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList(),
+            AttendeeEvents = attendeeEvents
+        };
+    }
+
+    public async Task<EventViewModel?> GetPublicEventDetailAsync(Guid eventId)
+    {
+        using var response = await _httpClient.GetAsync($"api/events/{eventId:D}/public");
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        response.EnsureSuccessStatusCode();
+        var payload = await response.Content.ReadFromJsonAsync<GetEventByIdResponse>()
+            ?? throw new InvalidOperationException("API returned no public event detail payload.");
+
+        return await BuildDetailFromEventDtoAsync(payload.Data);
+    }
+
+    public async Task<bool> CanCreateEventAsync(Guid orgId)
+    {
+        var payload = await _httpClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
+            "api/users/me/organizations") ?? new GetMyOrganizationsResponse([]);
+
+        var member = payload.Items.FirstOrDefault(x => x.OrganizationId == orgId);
+        if (member is null)
+            return false;
+
+        return member.MemberRole.Trim().ToUpperInvariant() switch
+        {
+            "PRESIDENT" => true,
+            "VICEPRESIDENT" => true,
+            "MANAGER" => true,
+            "OWNER" => true,
+            "ADMIN" => true,
+            _ => false
+        };
+    }
+
+    public async Task<bool> CanManageEventAsync(Guid eventId)
+    {
+        using var response = await _httpClient.GetAsync($"api/events/{eventId}");
+        if (!response.IsSuccessStatusCode)
+            return false;
+
+        var payload = await response.Content.ReadFromJsonAsync<GetEventByIdResponse>()
+            ?? throw new InvalidOperationException("API returned no event detail payload.");
+
+        return await CanCreateEventAsync(payload.Data.OrganizationId);
     }
 
     public async Task<EventViewModel> CreateEventAsync(CreateEventViewModel request)
     {
         var orgId = await _organizationContext.GetOrganizationIdAsync();
-        var date = request.Date?.Date ?? DateTime.Today;
-        var startDate = DateOnly.FromDateTime(date);
+
+        var startDate = DateOnly.FromDateTime((request.StartDate ?? DateTime.Today).Date);
+        var endDate = DateOnly.FromDateTime((request.EndDate ?? request.StartDate ?? DateTime.Today).Date);
+        if (endDate < startDate)
+            endDate = startDate;
 
         var payload = new CreateEventRequest(
             orgId,
             NormalizeTitle(request.Title),
-            request.Location?.Trim(),
+            request.Description?.Trim(),
             startDate,
-            startDate);
+            endDate,
+            NormalizeTags(request.Tags));
 
         using var response = await _httpClient.PostAsJsonAsync("api/events", payload);
         response.EnsureSuccessStatusCode();
@@ -75,16 +199,15 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
             : current.Data.EndDate;
 
         if (endDate < startDate)
-        {
             endDate = startDate;
-        }
 
         var payload = new UpdateEventRequest(
             string.IsNullOrWhiteSpace(req.Name) ? current.Data.Name : req.Name.Trim(),
             req.Description?.Trim() ?? current.Data.Description,
             startDate,
             endDate,
-            current.Data.Status);
+            current.Data.Status,
+            current.Data.Tags);
 
         using var response = await _httpClient.PutAsJsonAsync($"api/events/{eventId}", payload);
         response.EnsureSuccessStatusCode();
@@ -101,17 +224,11 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task RegisterEventAsync(Guid eventId)
-    {
-        // TODO BE: Implement POST api/events/{eventId}/register
-        await Task.Delay(500);
-    }
+    public Task RegisterEventAsync(Guid eventId)
+        => throw new NotSupportedException("Live API endpoint for event registration is not available yet.");
 
-    public async Task UnregisterEventAsync(Guid eventId)
-    {
-        // TODO BE: Implement DELETE api/events/{eventId}/register
-        await Task.Delay(500);
-    }
+    public Task UnregisterEventAsync(Guid eventId)
+        => throw new NotSupportedException("Live API endpoint for event unregistration is not available yet.");
 
     private async Task<EventViewModel> BuildDetailFromEventDtoAsync(EventDto dto)
     {
@@ -134,53 +251,65 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
             ? 0
             : (int)Math.Round((double)completedTasks * 100 / totalTasks, MidpointRounding.AwayFromZero);
 
-        var budgetUsed = Math.Clamp(completion + 12, 0, 100);
-
         return new EventViewModel
         {
             Id = dto.Id,
+            OrganizationId = dto.OrganizationId,
             Name = dto.Name,
-            Description = string.IsNullOrWhiteSpace(dto.Description)
-                ? "Sự kiện đang được triển khai theo kế hoạch đã phê duyệt."
-                : dto.Description,
+            Description = dto.Description,
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
             StatusLabel = ToStatusLabel(dto.Status),
-            Location = "Campus Workspace",
+            Location = null,
             RegisteredCount = completedTasks,
             TotalSlots = totalTasks,
             CompletionLabel = $"{completion}%",
-            BudgetLabel = $"{budgetUsed}%",
-            RiskLevel = completion >= 80 ? "Low" : completion >= 40 ? "Medium" : "High",
-            TotalFiles = Math.Max(1, totalTasks * 2),
-            ActualSpending = Math.Max(250_000m, totalTasks * 150_000m)
+            CompletionPercentage = completion,
+            BudgetLabel = null,
+            RiskLevel = null,
+            TotalFiles = 0,
+            ActualSpending = 0,
+            CanManage = await CanCreateEventAsync(dto.OrganizationId),
+            CanEnterWorkspace = await CanCreateEventAsync(dto.OrganizationId)
         };
     }
 
-    private static EventViewModel MapTreeNode(EventTreeNodeDto node)
+    private static EventViewModel MapTreeNode(EventTreeNodeDto node, Guid orgId, bool canManage)
     {
+        var completion = node.TaskCount == 0
+            ? 0
+            : (int)Math.Round((double)node.CompletedTaskCount * 100 / node.TaskCount, MidpointRounding.AwayFromZero);
+
         return new EventViewModel
         {
             Id = node.Id,
+            OrganizationId = orgId,
             Name = node.Name,
             StartDate = node.StartDate,
             EndDate = node.EndDate,
             StatusLabel = ToStatusLabel(node.Status),
-            Location = $"{node.MilestoneCount} milestones",
+            Location = null,
             RegisteredCount = node.CompletedTaskCount,
             TotalSlots = node.TaskCount,
-            CompletionLabel = node.TaskCount == 0
-                ? "0%"
-                : $"{(int)Math.Round((double)node.CompletedTaskCount * 100 / node.TaskCount, MidpointRounding.AwayFromZero)}%"
+            CompletionLabel = $"{completion}%",
+            CompletionPercentage = completion,
+            CanManage = canManage,
+            CanEnterWorkspace = canManage
         };
     }
 
     private static string NormalizeTitle(string? title)
-    {
-        if (string.IsNullOrWhiteSpace(title))
-            return "Untitled Event";
+        => string.IsNullOrWhiteSpace(title) ? string.Empty : title.Trim();
 
-        return title.Trim();
+    private static IReadOnlyList<string> NormalizeTags(IReadOnlyList<string>? tags)
+    {
+        if (tags is null)
+            return Array.Empty<string>();
+
+        return tags.Where(tag => !string.IsNullOrWhiteSpace(tag))
+            .Select(tag => tag.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     private static string ToStatusLabel(EventStatus status)

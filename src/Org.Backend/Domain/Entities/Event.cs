@@ -27,6 +27,8 @@ public class Event : BaseEntity
     // Tags lưu dạng JSON: ["music","outdoor",...]
     public string? Tags { get; set; }
     public EventStatus Status { get; set; } = EventStatus.Draft;
+    // Visibility setting cho sự kiện
+    public EventVisibility Visibility { get; set; } = EventVisibility.MembersOnly;
     // Điểm đánh giá trung bình từ EventReport (cập nhật thủ công)
     public float AverageRating { get; set; } = 0;
 
@@ -38,4 +40,6 @@ public class Event : BaseEntity
     public ICollection<Attendee> Attendees { get; set; } = [];
     public ICollection<DigitalAsset> DigitalAssets { get; set; } = [];
     public ICollection<Resource> Resources { get; set; } = [];
+    public ICollection<EventRating> Ratings { get; set; } = [];
+    public ICollection<OrganizationPost> RelatedPosts { get; set; } = [];
 }

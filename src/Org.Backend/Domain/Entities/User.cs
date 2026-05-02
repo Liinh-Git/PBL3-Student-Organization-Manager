@@ -27,6 +27,8 @@ public class User : BaseEntity
     // Liên kết mạng xã hội lưu dạng JSON: { "platform": "url" }
     public string? SocialLinks { get; set; }
     public UserStatus Status { get; set; } = UserStatus.Active;
+    // Profile visibility setting
+    public ProfileVisibility ProfileVisibility { get; set; } = ProfileVisibility.OrganizationOnly;
     // Thời điểm đăng nhập lần cuối, null nếu chưa từng đăng nhập
     public DateTime? LastLogin { get; set; }
 
@@ -34,4 +36,9 @@ public class User : BaseEntity
     public ICollection<Member> Members { get; set; } = [];
     public ICollection<Attendee> Attendees { get; set; } = [];
     public ICollection<Request> Requests { get; set; } = [];
+    public ICollection<FriendRequest> SentFriendRequests { get; set; } = [];
+    public ICollection<FriendRequest> ReceivedFriendRequests { get; set; } = [];
+    public ICollection<EventRating> EventRatings { get; set; } = [];
+    public ICollection<Notification> ReceivedNotifications { get; set; } = [];
+    public ICollection<Notification> CreatedNotifications { get; set; } = [];
 }

@@ -4,14 +4,21 @@
 using Org.Frontend.Components;
 using Org.Frontend.Services.Auth;
 using Org.Frontend.Services.Dashboard;
+using Org.Frontend.Services.Discover;
 using Org.Frontend.Services.Departments;
 using Org.Frontend.Services.Events;
 using Org.Frontend.Services.Members;
+using Org.Frontend.Services.Messages;
 using Org.Frontend.Services.Mocks;
+using Org.Frontend.Services.Notifications;
+using Org.Frontend.Services.Overview;
 using Org.Frontend.Services.Organizations;
+using Org.Frontend.Services.Posts;
 using Org.Frontend.Services.Requests;
+using Org.Frontend.Services.SignalR;
 using Org.Frontend.Services.Tasks;
 using Org.Frontend.Services.UserSettings;
+using Org.Frontend.Services.Friends;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 using System.Net.Http.Headers;
@@ -63,6 +70,8 @@ public static class FrontendStartupExtensions
 
             services.AddHttpClient<OrganizationApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
                     .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
+            services.AddHttpClient<OrganizationServiceApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
+                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
 
             services.AddHttpClient<EventApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
                     .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
@@ -81,6 +90,24 @@ public static class FrontendStartupExtensions
 
             services.AddHttpClient<UserSettingsApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
                     .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
+
+            services.AddHttpClient<NotificationService>(c => ConfigureApiClient(c, backendApiBaseUrl))
+                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
+
+            services.AddHttpClient<MessageApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
+                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
+
+            services.AddHttpClient<DiscoverApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
+                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
+
+            services.AddHttpClient<UserProfileApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
+                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
+
+            services.AddHttpClient<RequestApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
+                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
+
+            services.AddHttpClient<OrganizationRoleApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
+                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
         }
 
         // ---- Mock services (Singleton/Scoped) — luôn đăng ký để DI có thể resolve ----
@@ -94,16 +121,27 @@ public static class FrontendStartupExtensions
         services.AddScoped<TaskMockService>();
         services.AddScoped<UserDashboardMockService>();
         services.AddScoped<UserSettingsMockService>();
+        services.AddScoped<UserProfileMockService>();
         services.AddScoped<MockOrganizationContext>();
         services.AddScoped<RequestMockService>();
         services.AddScoped<OrganizationMockService>();
+        services.AddScoped<OrganizationRoleMockService>();
+        services.AddScoped<NotificationMockService>();
+        services.AddScoped<FriendMockService>();
+        services.AddScoped<DiscoverMockService>();
+        services.AddScoped<OverviewMockService>();
+        services.AddScoped<PostMockService>();
+        services.AddScoped<MessageMockService>();
+        services.AddScoped<MessageStateBridge>();
+        services.AddScoped<OverviewApiClient>();
+        services.AddScoped<FriendApiClient>();
 
         // ---- Chọn implementation thực hoặc mock theo cấu hình FrontendData:UseMockServices ----
         services.AddScoped<IAuthService>(sp =>
             useMockServices ? sp.GetRequiredService<AuthMockService>() : sp.GetRequiredService<AuthApiClient>());
 
         services.AddScoped<IOrganizationService>(sp =>
-            sp.GetRequiredService<OrganizationMockService>()); // TODO BE: Add OrganizationApiClient 
+            useMockServices ? sp.GetRequiredService<OrganizationMockService>() : sp.GetRequiredService<OrganizationServiceApiClient>());
 
         services.AddScoped<IOrganizationContext>(sp =>
             useMockServices ? sp.GetRequiredService<MockOrganizationContext>() : sp.GetRequiredService<OrganizationApiClient>());
@@ -134,8 +172,34 @@ public static class FrontendStartupExtensions
         services.AddScoped<IUserSettingsService>(sp =>
             useMockServices ? sp.GetRequiredService<UserSettingsMockService>() : sp.GetRequiredService<UserSettingsApiClient>());
 
+        services.AddScoped<INotificationService>(sp =>
+            useMockServices ? sp.GetRequiredService<NotificationMockService>() : sp.GetRequiredService<NotificationService>());
+
+        services.AddScoped<ISignalRService, SignalRService>();
+
         services.AddScoped<IRequestService>(sp =>
-            sp.GetRequiredService<RequestMockService>());
+            useMockServices ? sp.GetRequiredService<RequestMockService>() : sp.GetRequiredService<RequestApiClient>());
+
+        services.AddScoped<IOrganizationRoleService>(sp =>
+            useMockServices ? sp.GetRequiredService<OrganizationRoleMockService>() : sp.GetRequiredService<OrganizationRoleApiClient>());
+
+        services.AddScoped<IUserProfileService>(sp =>
+            useMockServices ? sp.GetRequiredService<UserProfileMockService>() : sp.GetRequiredService<UserProfileApiClient>());
+
+        services.AddScoped<IFriendService>(sp =>
+            useMockServices ? sp.GetRequiredService<FriendMockService>() : sp.GetRequiredService<FriendApiClient>());
+
+        services.AddScoped<IDiscoverService>(sp =>
+            useMockServices ? sp.GetRequiredService<DiscoverMockService>() : sp.GetRequiredService<DiscoverApiClient>());
+
+        services.AddScoped<IOverviewService>(sp =>
+            useMockServices ? sp.GetRequiredService<OverviewMockService>() : sp.GetRequiredService<OverviewApiClient>());
+
+        services.AddScoped<IPostService>(sp =>
+            sp.GetRequiredService<PostMockService>());
+
+        services.AddScoped<IMessageService>(sp =>
+            useMockServices ? sp.GetRequiredService<MessageMockService>() : sp.GetRequiredService<MessageApiClient>());
 
         return services;
     }

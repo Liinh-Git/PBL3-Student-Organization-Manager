@@ -9,8 +9,11 @@ using Org.Frontend.ViewModels;
 using Org.Shared.Contracts;
 using FeatureCreateDepartmentRequest = Org.Shared.Features.Departments.CreateDepartmentRequest;
 using FeatureDepartmentDto = Org.Shared.Features.Departments.DepartmentDto;
+using FeatureGetDepartmentMembersResponse = Org.Shared.Features.Departments.GetDepartmentMembersResponse;
 using FeatureGetDepartmentsResponse = Org.Shared.Features.Departments.GetDepartmentsResponse;
 using FeatureGetDepartmentTasksOverviewResponse = Org.Shared.Features.Departments.GetDepartmentTasksOverviewResponse;
+using FeatureMemberDto = Org.Shared.Features.Members.MemberDto;
+using FeatureUpdateDepartmentManagerRequest = Org.Shared.Features.Departments.UpdateDepartmentManagerRequest;
 using FeatureUpdateDepartmentRequest = Org.Shared.Features.Departments.UpdateDepartmentRequest;
 
 namespace Org.Frontend.Services.Departments;
@@ -95,6 +98,88 @@ public sealed class DepartmentApiClient(
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task<List<MemberDto>> GetDepartmentMembersAsync(Guid departmentId)
+    {
+        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, $"api/departments/{departmentId}/members", CancellationToken.None);
+        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+
+        response.EnsureSuccessStatusCode();
+
+        var payload = await response.Content.ReadFromJsonAsync<FeatureGetDepartmentMembersResponse>(cancellationToken: CancellationToken.None)
+            ?? new FeatureGetDepartmentMembersResponse([]);
+
+        return payload.Items.Select(MapLegacyMemberDto).ToList();
+    }
+
+    public async Task<DepartmentDto> AssignManagerAsync(Guid departmentId, Guid? managerMemberId)
+    {
+        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"api/departments/{departmentId}/manager", CancellationToken.None);
+        request.Content = JsonContent.Create(new FeatureUpdateDepartmentManagerRequest(managerMemberId));
+
+        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+
+        response.EnsureSuccessStatusCode();
+
+        var updated = await response.Content.ReadFromJsonAsync<FeatureDepartmentDto>(cancellationToken: CancellationToken.None)
+            ?? throw new InvalidOperationException("API returned no department payload.");
+
+        return MapLegacyDto(updated);
+    }
+
+    public async Task AssignMemberAsync(Guid departmentId, Guid memberId)
+    {
+        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Post, $"api/departments/{departmentId}/members/{memberId}", CancellationToken.None);
+        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task RemoveMemberAsync(Guid departmentId, Guid memberId)
+    {
+        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Delete, $"api/departments/{departmentId}/members/{memberId}", CancellationToken.None);
+        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    public Task<List<DepartmentTaskDto>> GetDepartmentTasksAsync(Guid departmentId)
+    {
+        throw new NotSupportedException(
+            "Live/API mode does not yet expose dedicated organization-department task endpoints. Department task list is only fully supported in mock mode.");
+    }
+
+    public Task<DepartmentTaskDto> CreateDepartmentTaskAsync(Guid departmentId, CreateDepartmentTaskRequest request)
+    {
+        throw new NotSupportedException(
+            "Live/API mode does not yet expose dedicated organization-department task create endpoint.");
+    }
+
+    public Task<DepartmentTaskDto> UpdateDepartmentTaskAsync(Guid taskId, UpdateDepartmentTaskRequest request)
+    {
+        throw new NotSupportedException(
+            "Live/API mode does not yet expose dedicated organization-department task update endpoint.");
+    }
+
+    public Task DeleteDepartmentTaskAsync(Guid taskId)
+    {
+        throw new NotSupportedException(
+            "Live/API mode does not yet expose dedicated organization-department task delete endpoint.");
+    }
+
+    public Task<DepartmentTaskDto> CompleteDepartmentTaskAsync(Guid taskId)
+    {
+        throw new NotSupportedException(
+            "Live/API mode does not yet expose dedicated organization-department task completion endpoint.");
+    }
+
     public async Task<DepartmentTasksOverviewViewModel> GetTasksOverviewAsync(Guid departmentId)
     {
         using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, $"api/departments/{departmentId}/tasks/overview", CancellationToken.None);
@@ -136,6 +221,22 @@ public sealed class DepartmentApiClient(
             DeptName = source.Name,
             ManagerId = source.ManagerMemberId,
             Function = source.Description
+        };
+    }
+
+    private static MemberDto MapLegacyMemberDto(FeatureMemberDto source)
+    {
+        return new MemberDto
+        {
+            Id = source.Id,
+            OrgId = source.OrganizationId,
+            UserId = Guid.Empty,
+            DisplayName = source.FullName,
+            Email = source.Email,
+            DepartmentId = source.DepartmentId,
+            RoleId = null,
+            RoleName = source.Role.ToString(),
+            JoinDate = source.JoinedAtUtc.UtcDateTime
         };
     }
 

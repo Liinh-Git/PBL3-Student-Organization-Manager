@@ -1,0 +1,110 @@
+[
+  {
+    "id": "22ef8616-4d2d-414a-a7a2-103c1eb65477",
+    "orgId": "316d5027-807b-415b-8dfc-28775986e7a1",
+    "roleName": "President",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.members.manage", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "e06a9e48-93a7-420a-af7f-efc984d86c4b",
+    "orgId": "316d5027-807b-415b-8dfc-28775986e7a1",
+    "roleName": "Manager",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "62134411-35d5-4e6b-b306-7c00fc526d5c",
+    "orgId": "316d5027-807b-415b-8dfc-28775986e7a1",
+    "roleName": "Member",
+    "permissions": ["org.overview.read", "org.workspace.access"]
+  },
+  {
+    "id": "fa5171ab-fac9-4ce2-9f8c-69bc1683f876",
+    "orgId": "3e5433e2-88f4-4806-8108-638df97a1f82",
+    "roleName": "Manager",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "5742549e-2d84-4a9f-8f45-42151b629874",
+    "orgId": "3e5433e2-88f4-4806-8108-638df97a1f82",
+    "roleName": "President",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.members.manage", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "01262bcb-4ff4-49fa-83b0-43913a5f2551",
+    "orgId": "3e5433e2-88f4-4806-8108-638df97a1f82",
+    "roleName": "Member",
+    "permissions": ["org.overview.read", "org.workspace.access"]
+  },
+  {
+    "id": "33d3d5ca-f9d0-41d5-8084-f4b82edf61d3",
+    "orgId": "89cfacb7-50c7-4e72-b117-6897c7ece3f7",
+    "roleName": "President",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.members.manage", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "a1b3e328-76d4-4659-ad96-37e38faeaa07",
+    "orgId": "89cfacb7-50c7-4e72-b117-6897c7ece3f7",
+    "roleName": "Manager",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "cda7dee2-a541-437e-a725-5a9cab036821",
+    "orgId": "89cfacb7-50c7-4e72-b117-6897c7ece3f7",
+    "roleName": "Member",
+    "permissions": ["org.overview.read", "org.workspace.access"]
+  },
+  {
+    "id": "120ef3d5-1af7-4fd6-8007-0a66a4231522",
+    "orgId": "c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "roleName": "President",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.members.manage", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "2879e2cf-f7fd-4161-99f0-077a5a4dfe28",
+    "orgId": "c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "roleName": "Manager",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "1dcffa0e-88c4-4919-863f-4f575d6ba054",
+    "orgId": "c02be5c5-581b-4024-bbfa-1da00d51cc3d",
+    "roleName": "Member",
+    "permissions": ["org.overview.read", "org.workspace.access"]
+  },
+  {
+    "id": "d1df7cd3-1b2e-43cd-a8ec-e560646e1549",
+    "orgId": "d7a1ac59-aedf-4c6a-8348-e8e249f0c411",
+    "roleName": "President",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.members.manage", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "01c9108b-6e32-4065-8535-369e87adf846",
+    "orgId": "d7a1ac59-aedf-4c6a-8348-e8e249f0c411",
+    "roleName": "Manager",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "580469f6-8c46-44ae-a8c9-7a2af79c51ad",
+    "orgId": "d7a1ac59-aedf-4c6a-8348-e8e249f0c411",
+    "roleName": "Member",
+    "permissions": ["org.overview.read", "org.workspace.access"]
+  },
+  {
+    "id": "3479b8a1-a823-44d9-a6df-b06e98dbb5ff",
+    "orgId": "ead36523-0b20-43e0-9acb-ab31056e07eb",
+    "roleName": "President",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.members.manage", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "81c88f3e-c97f-460d-865e-857e3ea4273f",
+    "orgId": "ead36523-0b20-43e0-9acb-ab31056e07eb",
+    "roleName": "Manager",
+    "permissions": ["org.overview.read", "org.overview.write", "org.workspace.access", "org.events.manage", "org.tasks.manage"]
+  },
+  {
+    "id": "b2b9e3c4-b45c-4c50-af69-bb68434d4870",
+    "orgId": "ead36523-0b20-43e0-9acb-ab31056e07eb",
+    "roleName": "Member",
+    "permissions": ["org.overview.read", "org.workspace.access"]
+  }
+]

@@ -1,258 +1,325 @@
 @page "/org/events/{EventId:guid}/tasks/board/{CategoryId:guid}"
 @rendermode InteractiveServer
-@using MudBlazor
+@using Org.Frontend.Services.Events
+@using Org.Frontend.Services.Members
 @using Org.Frontend.Services.Tasks
 @using Org.Frontend.ViewModels
-
-
+@using Org.Shared.Contracts
 @inject ITaskService TaskService
 @inject IEventCategoryService CategoryService
+@inject IEventService EventService
+@inject IMemberService MemberService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<style>
-    .page-bg { background-color: #f1f5f9; min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .fw-800 { font-weight: 800; }
-    .text-muted { color: #64748b; }
-    
-    .card-info { background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
-    .card-members { background-color: #1e293b; color: white; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); }
-    
-    .phase-header { border-left: 4px solid #f97316; background-color: white; border-radius: 8px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
-    
-    .task-row { background: white; border-radius: 12px; transition: 0.2s; border: 1px solid #f1f5f9; }
-    .task-row:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transform: translateY(-2px); border-color: #e2e8f0; }
-    
-    .table-header { font-size: 0.75rem; letter-spacing: 1px; color: #94a3b8; font-weight: 700; }
-    .fixed-fab { position: fixed; bottom: 40px; right: 40px; z-index: 100; width: 56px; height: 56px; }
-</style>
-
-<div class="page-bg pa-8">
-    <div class="d-flex justify-space-between align-start mb-8">
-        <div style="max-width: 700px;">
-            @if (_category?.IsUrgent ?? false)
-            {
-                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background-color: #ffedd5; color: #f97316;" Class="fw-bold mb-3 rounded-pill px-3">URGENT TASK</MudChip>
-            }
-            <MudText Typo="Typo.h3" Class="fw-800 mb-2" Style="color: #0f172a; letter-spacing: -1px;">
-                Chi tiết mục: @(_category?.Name ?? "Loading...")
-            </MudText>
-            <MudText Typo="Typo.body1" Class="text-muted" Style="font-size: 1.1rem;">
-                @(_category?.Description ?? "Đang tải dữ liệu mô tả hạng mục...")
-            </MudText>
+<div class="page-bg pa-6">
+    <div class="d-flex justify-space-between align-start mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Class="mb-2">Category Detail</MudText>
+            <MudText Typo="Typo.body1">@(_category?.Name ?? "Loading...")</MudText>
+            <MudText Typo="Typo.caption">Manager: @(string.IsNullOrWhiteSpace(_category?.LeadName) ? "Chua gan" : _category!.LeadName)</MudText>
         </div>
-        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Class="rounded-pill px-6 fw-bold elevation-0" Style="background-color: #f97316; color: white; text-transform: none;">
-            Quay lại
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack">
+            Quay lai
         </MudButton>
     </div>
 
-    <MudGrid Spacing="6" Class="mb-10">
-        <MudItem xs="12" md="7" lg="8">
-            <div class="card-info pa-8 h-100 position-relative overflow-hidden">
-                <div class="position-absolute" style="top: -20px; right: -20px; width: 150px; height: 150px; background-color: #fff7ed; border-radius: 50%; opacity: 0.5;"></div>
-                
-                <div class="d-flex align-center gap-2 mb-6">
-                    <MudIcon Icon="@Icons.Material.Filled.Info" Style="color: #f97316;" Size="Size.Small" />
-                    <MudText Typo="Typo.subtitle2" Class="fw-800" Style="letter-spacing: 1px; color: #0f172a;">THÔNG TIN MỤC</MudText>
-                </div>
-                <MudText Typo="Typo.body2" Class="mb-4" Style="color: #334155; font-weight: 500;">
-                    @(_category?.DetailedDescription ?? "Chưa có mô tả chi tiết cho hạng mục này.")
-                </MudText>
-                <ul class="pl-6" style="color: #475569; line-height: 2.2;">
-                    @if (_category?.Guidelines != null)
-                    {
-                        @foreach (var guide in _category.Guidelines)
-                        {
-                            <li>@guide</li>
-                        }
-                    }
-                </ul>
-            </div>
-        </MudItem>
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.subtitle1">Mo ta</MudText>
+        <MudText Typo="Typo.body2" Class="mt-2">@(_category?.DetailedDescription ?? _category?.Description ?? "Chua co mo ta.")</MudText>
+    </MudPaper>
 
-        <MudItem xs="12" md="5" lg="4">
-            <div class="card-members pa-8 h-100">
-                <div class="d-flex align-center gap-2 mb-8">
-                    <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Warning" Size="Size.Small" />
-                    <MudText Typo="Typo.subtitle2" Class="fw-800" Style="letter-spacing: 1px;">THÀNH VIÊN PHỤ TRÁCH</MudText>
-                </div>
-                
-                @if (_category?.ResponsibleMembers != null && _category.ResponsibleMembers.Any())
-                {
-                    @foreach (var member in _category.ResponsibleMembers)
-                    {
-                        <div class="d-flex align-center gap-4 mb-5">
-                            <MudAvatar Image="@member.AvatarUrl" Color="Color.Primary">@(string.IsNullOrEmpty(member.AvatarUrl) ? member.Name.FirstOrDefault().ToString() : "")</MudAvatar>
-                            <div>
-                                <MudText Typo="Typo.body2" Class="fw-bold">@member.Name</MudText>
-                                <MudText Typo="Typo.caption" Style="color: #94a3b8;">@member.Role</MudText>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2" Style="color: #94a3b8; font-style: italic;">Chưa có thành viên phụ trách.</MudText>
-                }
-            </div>
-        </MudItem>
-    </MudGrid>
-
-    <div class="d-flex justify-space-between align-center mb-6 mt-8">
-        <MudText Typo="Typo.h5" Class="fw-800" Style="color: #0f172a;">Phân chia nhiệm vụ</MudText>
-        
-        <div class="d-flex gap-4 align-center">
-            <MudToggleGroup T="bool" @bind-Value="isKanbanMode" Outline="true" Delimiters="true" Rounded="true" Size="Size.Small" Color="Color.Warning" SelectedClass="fw-bold">
-                <MudToggleItem Value="false">
-                    <div class="d-flex align-center gap-2 px-2"><MudIcon Icon="@Icons.Material.Filled.FormatListBulleted" Size="Size.Small"/> List View</div>
-                </MudToggleItem>
-                <MudToggleItem Value="true">
-                    <div class="d-flex align-center gap-2 px-2"><MudIcon Icon="@Icons.Material.Filled.ViewColumn" Size="Size.Small"/> Kanban</div>
-                </MudToggleItem>
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h6">Nhiem vu</MudText>
+        <div class="d-flex gap-3 align-center">
+            <MudToggleGroup T="bool" @bind-Value="_isKanbanMode" Outline="true" Delimiters="true" Rounded="true" Size="Size.Small">
+                <MudToggleItem Value="false">List</MudToggleItem>
+                <MudToggleItem Value="true">Kanban</MudToggleItem>
             </MudToggleGroup>
-
-            <MudIconButton Icon="@Icons.Material.Filled.FilterList" Variant="Variant.Outlined" Size="Size.Small" Class="bg-white rounded-circle border-slate-200 text-muted" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_canManageTasks)" OnClick="OpenCreateDialog">
+                Tao task
+            </MudButton>
         </div>
     </div>
 
-    @if (_tasks == null)
+    @if (_isLoading)
     {
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="ma-auto d-block" />
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+    }
+    else if (_tasks is null || _tasks.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">Category nay chua co task.</MudAlert>
+    }
+    else if (!_isKanbanMode)
+    {
+        <MudTable Items="_tasks" Dense="true" Hover="true">
+            <HeaderContent>
+                <MudTh>Task</MudTh>
+                <MudTh>Priority</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Assignees</MudTh>
+                <MudTh>Deadline</MudTh>
+                <MudTh>Action</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Title</MudTd>
+                <MudTd>@(context.Priority ?? "MEDIUM")</MudTd>
+                <MudTd>
+                    <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)">@context.Status</MudChip>
+                </MudTd>
+                <MudTd>@BuildAssigneeText(context)</MudTd>
+                <MudTd>@(context.DueDate?.ToString("dd/MM/yyyy") ?? "-")</MudTd>
+                <MudTd>
+                    <MudButton Size="Size.Small"
+                               Variant="Variant.Outlined"
+                               Disabled="@(!CanCompleteTask(context))"
+                               OnClick="@(() => MarkDoneAsync(context))">
+                        Mark Completed
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
     }
     else
     {
-        @if (!isKanbanMode)
-        {
-            <div class="phase-header pa-3 mb-4 d-flex align-center shadow-sm">
-                <MudText Typo="Typo.caption" Class="fw-800 mr-4" Style="color: #f97316; letter-spacing: 1px;">PHASE 01</MudText>
-                <MudText Typo="Typo.subtitle2" Class="fw-bold" Style="color: #0f172a;">Giai đoạn: @(_category?.Name ?? "Chưa rõ")</MudText>
-            </div>
-
-            <div class="table-header d-flex px-6 py-2 mb-2">
-                <div style="width: 25%;">TASK NAME</div>
-                <div style="width: 15%;">STATUS</div>
-                <div style="width: 15%;">DEADLINE</div>
-                <div style="width: 15%;">ASSIGNEE</div>
-                <div style="width: 10%; text-align: center;">ATTACHMENTS</div>
-                <div style="width: 10%;">PROGRESS</div>
-                <div style="width: 10%;">NOTES</div>
-            </div>
-
-            @foreach (var task in _tasks)
-            {
-                <div class="task-row d-flex align-center px-6 py-5 mb-4 shadow-sm">
-                    <div style="width: 25%; padding-right: 16px;">
-                        <MudText Typo="Typo.subtitle2" Class="fw-bold" Style="color: #0f172a;">@task.Title</MudText>
-                    </div>
-                    <div style="width: 15%;">
-                        <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" 
-                                 Style="@(task.Status == "TODO" ? "background-color: #1e293b; color: white;" : (task.Status == "IN_PROGRESS" ? "background-color: #f97316; color: white;" : "background-color: #10b981; color: white;"))" 
-                                 Class="fw-bold rounded">
-                            @(task.Status == "TODO" ? "TODO" : (task.Status == "IN_PROGRESS" ? "IN PROGRESS" : "COMPLETED"))
-                        </MudChip>
-                    </div>
-                    <div style="width: 15%;">
-                        <MudText Typo="Typo.body2" Class="fw-bold" Style="color: #475569;">@task.DueDate?.ToString("dd MMM yyyy")</MudText>
-                    </div>
-                    <div style="width: 15%;">
-                        <MudAvatar Size="Size.Small" Color="Color.Primary">@task.AssigneeName?.FirstOrDefault()</MudAvatar>
-                    </div>
-                    <div style="width: 10%; text-align: center;">
-                        <MudIcon Icon="@Icons.Material.Filled.AttachFile" Size="Size.Small" Class="text-muted" />
-                    </div>
-                    <div style="width: 10%; padding-right: 16px;">
-                        <MudProgressLinear Value="@(task.Status == "DONE" ? 100 : (task.Status == "IN_PROGRESS" ? 50 : 0))" Color="Color.Warning" Rounded="true" Size="Size.Small" />
-                    </div>
-                    <div style="width: 10%;">
-                        <MudText Typo="Typo.caption" Class="text-muted" Style="font-style: italic;">
-                            @(task.Status == "DONE" ? "Completed" : "Pending")
-                        </MudText>
-                    </div>
+        <MudDropContainer T="TaskViewModel"
+                          Items="_tasks"
+                          ItemsSelector="@((item, zone) => item.Status == zone)"
+                          ItemDropped="TaskUpdated"
+                          Class="d-flex flex-nowrap gap-4"
+                          Style="overflow-x:auto; padding-bottom:16px;">
+            <ChildContent>
+                <div class="pa-3" style="background:#f1f5f9;border-radius:10px;min-width:320px;">
+                    <MudText Typo="Typo.subtitle2">TODO</MudText>
+                    <MudDropZone T="TaskViewModel" Identifier="TODO" Style="min-height:260px;" />
                 </div>
-            }
-        }
-        else
-        {
-            <MudDropContainer T="TaskViewModel" Items="_tasks" ItemsSelector="@((item, dropzone) => item.Status == dropzone)" ItemDropped="TaskUpdated" Class="d-flex flex-nowrap gap-6 mt-4" Style="overflow-x: auto; padding-bottom: 20px;">
-                <ChildContent>
-                    <div class="pa-4 pb-2" style="background-color: #e2e8f0; border-radius: 12px; min-width: 320px; flex: 1;">
-                        <MudText Typo="Typo.subtitle2" Class="fw-bold mb-4" Style="color: #475569;">CẦN LÀM (TODO)</MudText>
-                        <MudDropZone T="TaskViewModel" Identifier="TODO" Class="flex-grow-1" Style="min-height: 400px;" />
-                    </div>
-                    <div class="pa-4 pb-2" style="background-color: #e2e8f0; border-radius: 12px; min-width: 320px; flex: 1;">
-                        <MudText Typo="Typo.subtitle2" Class="fw-bold mb-4" Style="color: #ea580c;">ĐANG LÀM (IN PROGRESS)</MudText>
-                        <MudDropZone T="TaskViewModel" Identifier="IN_PROGRESS" Class="flex-grow-1" Style="min-height: 400px;" />
-                    </div>
-                    <div class="pa-4 pb-2" style="background-color: #e2e8f0; border-radius: 12px; min-width: 320px; flex: 1;">
-                        <MudText Typo="Typo.subtitle2" Class="fw-bold mb-4" Style="color: #059669;">ĐÃ XONG (DONE)</MudText>
-                        <MudDropZone T="TaskViewModel" Identifier="DONE" Class="flex-grow-1" Style="min-height: 400px;" />
-                    </div>
-                </ChildContent>
-                <ItemRenderer>
-                    <div class="task-row pa-4 mb-4 shadow-sm" style="cursor: grab; border-left: 4px solid @(context.Status == "DONE" ? "#10b981" : (context.Status == "IN_PROGRESS" ? "#f97316" : "#94a3b8"));">
-                        <MudText Typo="Typo.body1" Class="fw-bold mb-3" Style="color: #0f172a;">@context.Title</MudText>
-                        <div class="d-flex justify-space-between align-center">
-                            <MudAvatar Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@context.AssigneeName?.FirstOrDefault()</MudAvatar>
-                            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Event" Variant="Variant.Text" Style="color: #64748b; font-weight: 600;">@context.DueDate?.ToString("MMM dd")</MudChip>
-                        </div>
-                    </div>
-                </ItemRenderer>
-            </MudDropContainer>
-        }
+                <div class="pa-3" style="background:#f1f5f9;border-radius:10px;min-width:320px;">
+                    <MudText Typo="Typo.subtitle2">IN_PROGRESS</MudText>
+                    <MudDropZone T="TaskViewModel" Identifier="IN_PROGRESS" Style="min-height:260px;" />
+                </div>
+                <div class="pa-3" style="background:#f1f5f9;border-radius:10px;min-width:320px;">
+                    <MudText Typo="Typo.subtitle2">DONE</MudText>
+                    <MudDropZone T="TaskViewModel" Identifier="DONE" Style="min-height:260px;" />
+                </div>
+            </ChildContent>
+            <ItemRenderer>
+                <MudPaper Class="pa-3 mb-3">
+                    <MudText Typo="Typo.subtitle2">@context.Title</MudText>
+                    <MudText Typo="Typo.caption">@(context.Priority ?? "MEDIUM") • @(context.DueDate?.ToString("dd/MM") ?? "-")</MudText>
+                    <MudText Typo="Typo.caption" Class="d-block">@(BuildAssigneeText(context))</MudText>
+                </MudPaper>
+            </ItemRenderer>
+        </MudDropContainer>
     }
-    
-    <MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Add" Class="fixed-fab elevation-4" OnClick="OpenCreateDialog" />
 </div>
 
 @code {
     [Parameter] public Guid CategoryId { get; set; }
     [Parameter] public Guid EventId { get; set; }
+
     private List<TaskViewModel>? _tasks;
     private EventCategoryViewModel? _category;
-    
-    // Biến này để điều khiển bật/tắt giao diện
-    private bool isKanbanMode = false; 
+    private List<MemberDto> _orgMembers = [];
+    private bool _isKanbanMode;
+    private bool _canManageTasks;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private string? _safeReturnUrl;
+    private Guid? _orgIdFromQuery;
 
     protected override async Task OnInitializedAsync()
     {
-        // Load data song song
-        var tasksTask = TaskService.GetTasksAsync(CategoryId);
-        var categoryTask = CategoryService.GetCategoryDetailAsync(CategoryId);
+        ResolveNavigationContext();
+        await LoadAsync();
+    }
 
-        await Task.WhenAll(tasksTask, categoryTask);
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            var categoryTask = CategoryService.GetCategoryDetailAsync(CategoryId);
+            var tasksTask = TaskService.GetTasksAsync(CategoryId);
+            var canManageTask = TaskService.CanManageTasksAsync(CategoryId);
+            var eventTask = EventService.GetEventDetailAsync(EventId);
 
-        _tasks = tasksTask.Result;
-        _category = categoryTask.Result;
+            await Task.WhenAll(categoryTask, tasksTask, canManageTask, eventTask);
+
+            _category = categoryTask.Result;
+            _tasks = tasksTask.Result;
+            _canManageTasks = canManageTask.Result;
+
+            var eventDetail = eventTask.Result;
+            if (eventDetail is not null)
+            {
+                _orgMembers = await MemberService.GetMembers(eventDetail.OrganizationId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private static string BuildAssigneeText(TaskViewModel task)
+    {
+        var count = 0;
+        if (task.AssigneeMemberId.HasValue)
+            count++;
+        count += task.CoAssigneeMemberIds.Count;
+
+        return count <= 1
+            ? (string.IsNullOrWhiteSpace(task.AssigneeName) ? "Unassigned" : task.AssigneeName)
+            : $"{count} assignees";
+    }
+
+    private static Color GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "DONE" => Color.Success,
+            "IN_PROGRESS" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+
+    private bool CanCompleteTask(TaskViewModel task)
+        => task.Status != "DONE" && task.CanMarkCompleted;
+
+    private async Task MarkDoneAsync(TaskViewModel task)
+    {
+        if (!CanCompleteTask(task))
+        {
+            Snackbar.Add("Ban khong co quyen complete task nay.", Severity.Warning);
+            return;
+        }
+
+        await TaskService.UpdateTaskStatusAsync(task.Id, new UpdateTaskStatusViewModel { Status = "DONE" });
+        await ReloadTasksAsync();
     }
 
     private async Task TaskUpdated(MudItemDropInfo<TaskViewModel> dropItem)
     {
-        if (dropItem.Item != null && dropItem.DropzoneIdentifier != null)
+        if (dropItem.Item is null || string.IsNullOrWhiteSpace(dropItem.DropzoneIdentifier))
+            return;
+
+        var nextStatus = dropItem.DropzoneIdentifier;
+
+        if (string.Equals(nextStatus, "DONE", StringComparison.OrdinalIgnoreCase) && !CanCompleteTask(dropItem.Item))
         {
-            dropItem.Item.Status = dropItem.DropzoneIdentifier;
-            await TaskService.UpdateTaskStatusAsync(dropItem.Item.Id, new UpdateTaskStatusViewModel { Status = dropItem.DropzoneIdentifier });
+            Snackbar.Add("Chi nguoi duoc giao task (hoac manager) moi duoc danh dau hoan thanh.", Severity.Warning);
+            await ReloadTasksAsync();
+            return;
+        }
+
+        try
+        {
+            await TaskService.UpdateTaskStatusAsync(dropItem.Item.Id, new UpdateTaskStatusViewModel { Status = nextStatus });
+            await ReloadTasksAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+            await ReloadTasksAsync();
         }
     }
 
-    private void GoBack()
+    private async Task ReloadTasksAsync()
     {
-        NavigationManager.NavigateTo($"/org/events/{EventId}"); 
+        _tasks = await TaskService.GetTasksAsync(CategoryId);
+        StateHasChanged();
     }
 
     private async Task OpenCreateDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<CreateTaskDialog>("Thêm Công Việc Mới", options);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data != null)
+        if (!_canManageTasks)
         {
-            var req = (CreateTaskViewModel)result.Data;
-            await TaskService.CreateTaskAsync(CategoryId, req);
-            _tasks = await TaskService.GetTasksAsync(CategoryId); // Load lại data
-            Snackbar.Add("Đã thêm task!", Severity.Success);
-            StateHasChanged();
+            Snackbar.Add("Ban khong co quyen tao task trong category nay.", Severity.Warning);
+            return;
         }
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters
+        {
+            ["Members"] = _orgMembers
+                .Select(m => new CreateTaskDialog.MemberOption(m.Id, m.DisplayName))
+                .ToList()
+        };
+
+        var dialog = await DialogService.ShowAsync<CreateTaskDialog>("Them task moi", parameters, options);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not CreateTaskViewModel req)
+            return;
+
+        await TaskService.CreateTaskAsync(CategoryId, req);
+        await ReloadTasksAsync();
+        Snackbar.Add("Da them task moi.", Severity.Success);
+    }
+
+    private void GoBack()
+    {
+        if (!string.IsNullOrWhiteSpace(_safeReturnUrl))
+        {
+            NavigationManager.NavigateTo(_safeReturnUrl);
+            return;
+        }
+
+        var route = $"/org/events/{EventId:D}";
+        if (_orgIdFromQuery.HasValue)
+        {
+            route = $"{route}?orgId={_orgIdFromQuery.Value:D}";
+        }
+
+        NavigationManager.NavigateTo(route);
+    }
+
+    private void ResolveNavigationContext()
+    {
+        _safeReturnUrl = null;
+        _orgIdFromQuery = null;
+
+        var currentUri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(currentUri.Query);
+
+        if (query.TryGetValue("returnUrl", out var rawReturnUrl))
+        {
+            var candidate = rawReturnUrl.ToString();
+            if (IsSafeReturnUrl(candidate))
+            {
+                _safeReturnUrl = candidate;
+            }
+        }
+
+        if (query.TryGetValue("orgId", out var rawOrgId) && Guid.TryParse(rawOrgId, out var orgId))
+        {
+            _orgIdFromQuery = orgId;
+        }
+    }
+
+    private static bool IsSafeReturnUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        if (!value.StartsWith("/", StringComparison.Ordinal))
+            return false;
+
+        if (value.StartsWith("//", StringComparison.Ordinal))
+            return false;
+
+        if (value.Contains("://", StringComparison.Ordinal))
+            return false;
+
+        return true;
     }
 }

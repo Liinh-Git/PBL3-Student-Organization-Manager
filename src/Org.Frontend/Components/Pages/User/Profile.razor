@@ -1,0 +1,141 @@
+@page "/user/profile/{UserId:guid}"
+@inject Org.Frontend.Services.UserSettings.IUserProfileService UserProfileService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Thong tin nguoi dung</PageTitle>
+
+<section class="user-profile-page">
+    @if (_isLoading)
+    {
+        <p>Dang tai ho so...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <p class="profile-error">@_error</p>
+        <button type="button" @onclick="LoadAsync">Thu lai</button>
+    }
+    else if (_profile is not null)
+    {
+        <header class="profile-header">
+            <img class="profile-avatar" src="@(_profile.AvatarUrl ?? "/images/mockimages/AvtUser/Avt1.jpg")" alt="@_profile.FullName" />
+            <div>
+                <h2>@_profile.FullName</h2>
+                <p>@_profile.ProfileVisibility</p>
+            </div>
+        </header>
+
+        @if (!_profile.IsProfileVisibleToViewer)
+        {
+            <div class="profile-private-state">
+                <p>@(_profile.HiddenReason ?? "Ho so nay dang o che do rieng tu.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="profile-content">
+                @if (!string.IsNullOrWhiteSpace(_profile.Bio))
+                {
+                    <p>@_profile.Bio</p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_profile.Email))
+                {
+                    <p>Email: @_profile.Email</p>
+                }
+
+                @if (_profile.IsOwnerView && !string.IsNullOrWhiteSpace(_profile.PhoneNumber))
+                {
+                    <p>So dien thoai: @_profile.PhoneNumber</p>
+                }
+
+                @if (_profile.Organizations.Count > 0)
+                {
+                    <h3>To chuc tham gia</h3>
+                    <ul>
+                        @foreach (var org in _profile.Organizations)
+                        {
+                            <li>@org.OrganizationName (@org.RoleName)</li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+
+        <div class="profile-actions">
+            <button type="button" @onclick="GoBack">Quay lai</button>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter] public Guid UserId { get; set; }
+
+    private bool _isLoading = true;
+    private string? _error;
+    private Org.Frontend.ViewModels.UserProfileViewModel? _profile;
+    private string? _safeReturnUrl;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ResolveReturnUrl();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        _error = null;
+        try
+        {
+            _profile = await UserProfileService.GetUserProfileAsync(UserId);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            Snackbar.Add($"Khong the tai ho so: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo(_safeReturnUrl ?? "/org/members");
+    }
+
+    private void ResolveReturnUrl()
+    {
+        _safeReturnUrl = null;
+
+        var currentUri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(currentUri.Query);
+        if (!query.TryGetValue("returnUrl", out var rawValue))
+            return;
+
+        var candidate = rawValue.ToString();
+        if (IsSafeReturnUrl(candidate))
+        {
+            _safeReturnUrl = candidate;
+        }
+    }
+
+    private static bool IsSafeReturnUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        if (!value.StartsWith("/", StringComparison.Ordinal))
+            return false;
+
+        if (value.StartsWith("//", StringComparison.Ordinal))
+            return false;
+
+        if (value.Contains("://", StringComparison.Ordinal))
+            return false;
+
+        return true;
+    }
+}

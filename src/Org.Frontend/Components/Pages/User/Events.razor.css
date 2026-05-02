@@ -273,37 +273,14 @@
     flex-shrink: 0;
 }
 
-.attendees-faces {
-    display: flex;
-    align-items: center;
+.attendee-badge {
+    background-color: rgba(37, 52, 63, 0.1);
+    color: #25343f;
 }
 
-.attendees-faces img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 2px solid #f6faff;
-    margin-left: -12px;
-}
-
-.attendees-faces img:first-child {
-    margin-left: 0;
-}
-
-.more-attendees {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    margin-left: -12px;
-    background-color: #d4e5f3;
-    border: 2px solid #f6faff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-weight: 700;
-    color: #0f1f29;
-    z-index: 1;
+.staff-badge {
+    background-color: rgba(255, 155, 81, 0.12);
+    color: #703500;
 }
 
 .btn-dark {
@@ -337,20 +314,4 @@
     font-size: 14px;
     font-style: italic;
     margin: 0;
-}
-
-.btn-text-history {
-    background: none;
-    border: none;
-    color: #0f1f29;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: gap 0.2s ease;
-}
-
-.btn-text-history:hover {
-    gap: 16px;
 }

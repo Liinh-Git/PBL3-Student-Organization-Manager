@@ -1,4 +1,3 @@
-/* ---- THIẾT KẾ LẠI EVENTLIST: KHỚP HOÀN TOÀN VỚI MẪU ---- */
 :root {
     --primary: #25343F;
     --secondary: #FF9B51;
@@ -6,14 +5,10 @@
     --surface: #ffffff;
 }
 
-/* Ghi đè Header của Layout chung cho trang này */
-::deep .org-top-row, 
+::deep .org-top-row,
 ::deep .user-top-row {
     display: none !important;
 }
-
-/* Trong trường hợp ::deep không hoạt động cho cấp độ cao nhất, chúng ta có thể thử "che" nó hoặc sử dụng Layout cụ thể.
-   Tuy nhiên, đối với CSS scoped này, chúng ta tập trung vào nội dung trang. */
 
 .events-page {
     background-color: var(--background);
@@ -24,14 +19,13 @@
     flex-direction: column;
 }
 
-/* Header hiệu ứng Glass (Cố định) */
 .glass-header {
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     background-color: rgba(234, 239, 239, 0.8);
     position: sticky;
     top: 0;
-    z-index: 1001; /* Ensure it's above other elements */
+    z-index: 1001;
     padding: 2rem 3rem;
     display: flex;
     align-items: center;
@@ -39,9 +33,9 @@
 }
 
 .header-title {
-    font-size: 1.875rem; /* text-3xl */
-    font-weight: 900; /* font-black */
-    letter-spacing: -0.05em; /* tracking-tighter */
+    font-size: 1.875rem;
+    font-weight: 900;
+    letter-spacing: -0.05em;
     color: var(--primary);
     margin: 0;
 }
@@ -50,11 +44,11 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.65rem; /* text-xs */
-    font-weight: 800; /* font-semibold in mockup is quite bold */
+    font-size: 0.65rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.15em; /* tracking-widest */
-    color: rgba(37, 52, 63, 0.5); /* primary/50 */
+    letter-spacing: 0.15em;
+    color: rgba(37, 52, 63, 0.5);
     margin-top: 0.25rem;
 }
 
@@ -62,7 +56,6 @@
     color: var(--primary);
 }
 
-/* Khu vực tìm kiếm */
 .search-container {
     position: relative;
     width: 18rem;
@@ -100,35 +93,16 @@
     gap: 0.75rem;
 }
 
-.icon-btn {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 9999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--primary);
-    background: transparent;
-    border: none;
-    transition: all 0.2s;
-}
-
-.icon-btn:hover {
-    background-color: rgba(37, 52, 63, 0.05); /* bg-primary/5 */
-}
-
-/* Khu vực nội dung trang */
 .page-content {
     padding: 0 3rem 3rem 3rem;
     flex: 1;
 }
 
-/* Thanh bộ lọc */
 .controls-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 2.5rem; /* mb-10 */
+    margin-bottom: 2.5rem;
 }
 
 .filter-capsule {
@@ -157,41 +131,24 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.action-buttons {
-    display: flex;
-    gap: 1rem;
-}
-
-.styled-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1.25rem;
-    background-color: white;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    border: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.styled-btn:hover {
-    background-color: #f8fafc;
-}
-
-/* Lưới Bento */
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
     gap: 2rem;
 }
 
-@media (min-width: 768px) { .bento-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .bento-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 
-/* Thẻ tạo sự kiện mới */
+@media (min-width: 1024px) {
+    .bento-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 .create-card {
     border: 2px dashed rgba(37, 52, 63, 0.2);
     border-radius: 1rem;
@@ -215,7 +172,7 @@
     width: 4rem;
     height: 4rem;
     border-radius: 9999px;
-    background-color: rgba(37, 52, 63, 0.05); /* bg-primary/5 */
+    background-color: rgba(37, 52, 63, 0.05);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -228,10 +185,9 @@
     transform: scale(1.1);
 }
 
-/* Thẻ sự kiện cao cấp */
 .premium-card {
     background-color: white;
-    border-radius: 1rem; /* rounded-xl */
+    border-radius: 1rem;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -312,11 +268,6 @@
     margin-right: 0.5rem;
 }
 
-.card-footer-box {
-    margin-top: auto;
-}
-
-/* PHẦN FOOTER CHIA TÁCH VĂN BẢN (TRÁI/PHẢI) */
 .progress-meta {
     display: flex;
     justify-content: space-between;
@@ -357,13 +308,12 @@
 .fill-upcoming { background-color: var(--primary); }
 .fill-completed { background-color: rgba(37, 52, 63, 0.4); }
 
-/* Nút hành động nổi (FAB) theo ngữ cảnh */
 .context-fab {
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    width: 3.5rem; /* w-14 */
-    height: 3.5rem; /* h-14 */
+    width: 3.5rem;
+    height: 3.5rem;
     background-color: var(--secondary);
     color: white;
     border-radius: 9999px;
@@ -387,14 +337,3 @@
     right: 0.5rem;
     z-index: 20;
 }
-
-.event-card-completed {
-    opacity: 0.85;
-    filter: grayscale(0.5);
-}
-
-.event-card-completed:hover {
-    filter: grayscale(0);
-    opacity: 1;
-}
-

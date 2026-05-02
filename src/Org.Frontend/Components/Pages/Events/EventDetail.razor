@@ -1,140 +1,195 @@
 @page "/org/events/{EventId:guid}"
 @rendermode InteractiveServer
+@using Org.Frontend.Services.Events
+@using Org.Frontend.Services.Members
+@using Org.Frontend.ViewModels
+@using Org.Shared.Contracts
 @inject NavigationManager NavigationManager
 @inject IEventService EventService
 @inject IMilestoneService MilestoneService
 @inject IEventCategoryService CategoryService
+@inject IMemberService MemberService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
 <div class="detail-page">
-    @if (eventDetail == null)
+    @if (_isLoading)
     {
-        <div class="d-flex align-center justify-center" style="height: 100vh;">
+        <div class="d-flex align-center justify-center" style="height: 70vh;">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
         </div>
     }
-    else
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="pa-6">
+            <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="LoadEventDetailAsync">Retry</MudButton>
+        </div>
+    }
+    else if (eventDetail is not null)
     {
         <header class="app-bar">
             <div class="breadcrumb">
-                <span style="cursor:pointer" @onclick='() => NavigationManager.NavigateTo("/org/events")'>Events</span>
+                <span style="cursor:pointer" @onclick="GoBackToEventList">Events</span>
                 <span class="material-symbols-outlined" style="font-size: 1rem;">chevron_right</span>
                 <span class="breadcrumb-active">@eventDetail.Name</span>
             </div>
-            
-            <!-- Đã bỏ thanh search, chuông và avatar theo yêu cầu -->
+            <div class="d-flex gap-2">
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo(BuildPublicEventRoute()))">Public View</MudButton>
+                @if (_canManage)
+                {
+                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="OpenUpdateDialog">Edit Event</MudButton>
+                }
+            </div>
         </header>
 
         <section class="hero-section">
-              <img class="hero-img" 
-                  src="@(eventDetail.ImageUrl ?? "/images/mockimages/Org1/Card1.jpg")" 
-                 alt="Background" />
+            <img class="hero-img" src="@(string.IsNullOrWhiteSpace(eventDetail.ImageUrl) ? "/images/mockimages/Org1/Card1.jpg" : eventDetail.ImageUrl)" alt="Background" />
             <div class="hero-gradient"></div>
             <div class="hero-content">
                 <div class="hero-badge-row">
                     <span class="status-pill">@eventDetail.StatusLabel</span>
                     <span class="hero-subtitle">
                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" />
-                        @eventDetail.StartDate.ToString("MMM dd") - @eventDetail.EndDate.ToString("MMM dd, yyyy")
+                        @eventDetail.StartDate.ToString("dd/MM/yyyy") - @eventDetail.EndDate.ToString("dd/MM/yyyy")
                     </span>
                 </div>
                 <h1 class="hero-title">@eventDetail.Name</h1>
-                <p class="hero-desc">@eventDetail.Description</p>
+                <p class="hero-desc">@(string.IsNullOrWhiteSpace(eventDetail.Description) ? "Su kien dang cap nhat mo ta." : eventDetail.Description)</p>
             </div>
         </section>
 
         <div class="content-container">
-            <div class="section-header">
-                <div class="section-title">
-                    <h2>Lộ trình dự án</h2>
-                    <p>Quản lý giai đoạn và hạng mục công việc.</p>
-                </div>
-                <button class="add-ms-btn" @onclick="OpenCreateMilestoneDialog">
-                    <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
-                    THÊM MILESTONE
-                </button>
-            </div>
+            <MudTabs Rounded="true" PanelClass="pa-4">
+                <MudTabPanel Text="Details">
+                    <div class="d-flex flex-column gap-4">
+                        <MudPaper Class="pa-4">
+                            <MudText Typo="Typo.h6">Thong tin su kien</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Dia diem: @(string.IsNullOrWhiteSpace(eventDetail.Location) ? "Dang cap nhat" : eventDetail.Location)</MudText>
+                            <MudText Typo="Typo.body2">Nguoi tham gia: @eventDetail.RegisteredCount / @eventDetail.TotalSlots</MudText>
+                            <MudText Typo="Typo.body2">Tien do cong viec: @(eventDetail.CompletionLabel ?? "0%")</MudText>
+                        </MudPaper>
+                    </div>
+                </MudTabPanel>
 
-            <div class="roadmap-container">
-                @foreach (var ms in milestones.Select((value, index) => new { value, index }))
-                {
-                    var cats = categoriesByMilestone.ContainsKey(ms.value.Id) ? categoriesByMilestone[ms.value.Id] : new();
-                    var today = DateTime.Today;
-                    
-                    bool isAllCatsCompleted = cats.Any() && cats.All(c => c.ProgressPercentage >= 100);
-                    bool isCompleted = isAllCatsCompleted || ms.value.EndDate.Date < today;
-                    bool isCurrent = !isCompleted && ms.value.StartDate.Date <= today;
-
-                    <div class="milestone-node">
-                        <div class="node-icon @(isCompleted ? "completed" : isCurrent ? "active" : "future")">
-                            @if (isCompleted) { <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" /> }
-                            else if (isCurrent) { <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" /> }
-                            else { <MudIcon Icon="@Icons.Material.Filled.RadioButtonUnchecked" Size="Size.Small" /> }
+                <MudTabPanel Text="Timeline">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <h2>Lo trinh du an</h2>
+                            <p>Quan ly cac milestone theo tung giai doan.</p>
                         </div>
+                        @if (_canManage)
+                        {
+                            <button class="add-ms-btn" @onclick="OpenCreateMilestoneDialog">
+                                <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
+                                THEM MILESTONE
+                            </button>
+                        }
+                    </div>
 
-                        <div class="ms-card @(isCurrent ? "current-active" : "")">
-                            <div class="ms-card-header">
-                                <div class="ms-header-info">
-                                    <span class="phase-label" style="color: @(isCompleted ? "#22c55e" : isCurrent ? "#f97316" : "#94a3b8")">Phase @(ms.index + 1)</span>
-                                    <h3>@ms.value.Name</h3>
-                                    <div class="ms-date-range">
-                                         <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Style="font-size: 14px;" />
-                                         @ms.value.StartDate.ToString("dd/MM/yyyy") 
-                                         <MudIcon Icon="@Icons.Material.Filled.ArrowRightAlt" Size="Size.Small" /> 
-                                         @ms.value.EndDate.ToString("dd/MM/yyyy")
-                                    </div>
-                                </div>
-                                <button class="add-cat-btn" @onclick="OpenCreateCategoryDialog">
-                                    <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
-                                    HẠNG MỤC
-                                </button>
-                            </div>
+                    <div class="roadmap-container">
+                        @foreach (var ms in milestones.Select((value, index) => new { value, index }))
+                        {
+                            var cats = categoriesByMilestone.TryGetValue(ms.value.Id, out var categoryItems)
+                                ? categoryItems
+                                : [];
+                            var today = DateTime.Today;
+                            bool isAllCatsCompleted = cats.Any() && cats.All(c => c.ProgressPercentage >= 100);
+                            bool isCompleted = isAllCatsCompleted || ms.value.EndDate.Date < today;
+                            bool isCurrent = !isCompleted && ms.value.StartDate.Date <= today;
 
-                            <div class="ms-card-body">
-                                @if (cats.Any())
-                                {
-                                    @foreach (var cat in cats)
+                            <div class="milestone-node">
+                                <div class="node-icon @(isCompleted ? "completed" : isCurrent ? "active" : "future")">
+                                    @if (isCompleted)
                                     {
-                                        <div class="cat-item" @onclick="@(() => NavigationManager.NavigateTo(BuildTaskBoardRoute(cat.Id)))">
-                                            <div class="cat-info">
-                                                <div class="cat-title">
-                                                    <p>@cat.Name</p>
-                                                    <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Class="opacity-0 hover-show" Style="font-size: 14px; color: #cbd5e1;" />
-                                                </div>
-                                                <p class="cat-sub">@cat.ActiveSubtasks công việc phụ đang chạy</p>
-                                            </div>
+                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" />
+                                    }
+                                    else if (isCurrent)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.RadioButtonUnchecked" Size="Size.Small" />
+                                    }
+                                </div>
 
-                                            <div class="cat-stats">
-                                                <div class="lead-pill">
-                                                    <div class="lead-avatar">@GetLeadInitial(cat.LeadName)</div>
-                                                    <span class="lead-name">@(string.IsNullOrWhiteSpace(cat.LeadName) ? "Chưa gán" : cat.LeadName)</span>
-                                                </div>
-
-                                                <div class="progress-box">
-                                                    <span class="progress-label">@cat.ProgressPercentage%</span>
-                                                    <div class="progress-bar-bg">
-                                                        <div class="progress-bar-fill" style="width: @(cat.ProgressPercentage)%; background: @(cat.ProgressPercentage == 100 ? "#22c55e" : "#f97316")"></div>
-                                                    </div>
-                                                </div>
-
-                                                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Style="color: #cbd5e1" />
+                                <div class="ms-card @(isCurrent ? "current-active" : "")">
+                                    <div class="ms-card-header">
+                                        <div class="ms-header-info">
+                                            <span class="phase-label" style="color: @(isCompleted ? "#22c55e" : isCurrent ? "#f97316" : "#94a3b8")">Phase @(ms.index + 1)</span>
+                                            <h3>@ms.value.Name</h3>
+                                            <div class="ms-date-range">
+                                                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" Style="font-size: 14px;" />
+                                                @ms.value.StartDate.ToString("dd/MM/yyyy")
+                                                <MudIcon Icon="@Icons.Material.Filled.ArrowRightAlt" Size="Size.Small" />
+                                                @ms.value.EndDate.ToString("dd/MM/yyyy")
                                             </div>
                                         </div>
-                                    }
-                                }
-                                else
-                                {
-                                    <div class="empty-cat">
-                                        <MudIcon Icon="@Icons.Material.Filled.Inbox" Style="color: #e2e8f0; font-size: 2rem;" />
-                                        <p>Hạng mục trống</p>
+                                        @if (_canManage)
+                                        {
+                                            <button class="add-cat-btn" @onclick="@(() => OpenCreateCategoryDialog(ms.value.Id))">
+                                                <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
+                                                HANG MUC
+                                            </button>
+                                        }
                                     </div>
-                                }
+                                </div>
                             </div>
-                        </div>
+                        }
                     </div>
-                }
-            </div>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Work Assignment">
+                    <div class="d-flex flex-column gap-4">
+                        @if (milestones.Count == 0)
+                        {
+                            <MudAlert Severity="Severity.Info">Chua co milestone de phan cong cong viec.</MudAlert>
+                        }
+                        else
+                        {
+                            @foreach (var milestone in milestones.OrderBy(x => x.OrderIndex))
+                            {
+                                <MudPaper Class="pa-4">
+                                    <div class="d-flex justify-space-between align-center mb-3">
+                                        <MudText Typo="Typo.h6">@milestone.Name</MudText>
+                                        @if (_canManage)
+                                        {
+                                            <MudButton Size="Size.Small" Variant="Variant.Outlined" OnClick="@(() => OpenCreateCategoryDialog(milestone.Id))">Them category</MudButton>
+                                        }
+                                    </div>
+
+                                    @{
+                                        var categories = categoriesByMilestone.TryGetValue(milestone.Id, out var items) ? items : [];
+                                    }
+                                    @if (categories.Count == 0)
+                                    {
+                                        <MudText Typo="Typo.body2">Milestone nay chua co category.</MudText>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex flex-column gap-2">
+                                            @foreach (var category in categories.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+                                            {
+                                                <MudPaper Class="pa-3 d-flex justify-space-between align-center" Outlined="true">
+                                                    <div>
+                                                        <MudText Typo="Typo.subtitle1">@category.Name</MudText>
+                                                        <MudText Typo="Typo.caption">Manager: @(string.IsNullOrWhiteSpace(category.LeadName) ? "Chua gan" : category.LeadName)</MudText>
+                                                    </div>
+                                                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary"
+                                                               OnClick="@(() => NavigationManager.NavigateTo(BuildTaskBoardRoute(category.Id)))">
+                                                        View Category Detail
+                                                    </MudButton>
+                                                </MudPaper>
+                                            }
+                                        </div>
+                                    }
+                                </MudPaper>
+                            }
+                        }
+                    </div>
+                </MudTabPanel>
+            </MudTabs>
         </div>
     }
 </div>
@@ -143,133 +198,227 @@
     [Parameter] public Guid EventId { get; set; }
 
     private EventViewModel? eventDetail;
-    private List<MilestoneViewModel> milestones = new();
-    
-    private Dictionary<Guid, List<EventCategoryViewModel>> categoriesByMilestone = new();
-    private List<EventCategoryViewModel> allCategories = new();
-    
-    private bool _isOrganizationRoute;
-
-    private const string EventsBaseRoute = "/org/events";
+    private List<MilestoneViewModel> milestones = [];
+    private Dictionary<Guid, List<EventCategoryViewModel>> categoriesByMilestone = [];
+    private List<MemberDto> _members = [];
+    private bool _canManage;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private string? _safeReturnUrl;
+    private Guid? _orgIdFromQuery;
 
     protected override async Task OnInitializedAsync()
     {
-        var currentRoute = "/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Trim('/');
-        _isOrganizationRoute = currentRoute.StartsWith("/org/", StringComparison.OrdinalIgnoreCase);
-
+        ResolveNavigationContext();
         await LoadEventDetailAsync();
     }
 
     private async Task LoadEventDetailAsync()
     {
-        eventDetail = await EventService.GetEventDetailAsync(EventId);
-        milestones = await MilestoneService.GetMilestonesAsync(EventId);
-        
-        allCategories.Clear();
-        categoriesByMilestone.Clear();
+        _isLoading = true;
+        _errorMessage = null;
 
-        foreach (var ms in milestones)
+        try
         {
-            var cats = await CategoryService.GetCategoriesAsync(ms.Id);
-            if (cats != null)
+            eventDetail = await EventService.GetEventDetailAsync(EventId);
+            if (eventDetail is null)
             {
+                _errorMessage = "Event not found.";
+                return;
+            }
+
+            _canManage = await EventService.CanManageEventAsync(EventId);
+            milestones = await MilestoneService.GetMilestonesAsync(EventId);
+
+            categoriesByMilestone.Clear();
+            foreach (var ms in milestones)
+            {
+                var cats = await CategoryService.GetCategoriesAsync(ms.Id);
                 categoriesByMilestone[ms.Id] = cats.ToList();
-                allCategories.AddRange(cats);
             }
-            else
-            {
-                categoriesByMilestone[ms.Id] = new List<EventCategoryViewModel>();
-            }
+
+            _members = await MemberService.GetMembers(eventDetail.OrganizationId);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
         }
     }
 
-    private int GetPercent(string? label)
+    private string BuildTaskBoardRoute(Guid categoryId)
     {
-        if (string.IsNullOrEmpty(label)) return 0;
-        var clean = label.TrimEnd('%');
-        return int.TryParse(clean, out var val) ? val : 0;
+        var route = $"/org/events/{EventId:D}/tasks/board/{categoryId:D}";
+        var queryParts = new List<string>();
+
+        if (_orgIdFromQuery.HasValue)
+        {
+            queryParts.Add($"orgId={_orgIdFromQuery.Value:D}");
+        }
+
+        var currentRoute = BuildCurrentRouteWithQuery();
+        queryParts.Add($"returnUrl={Uri.EscapeDataString(currentRoute)}");
+
+        return queryParts.Count == 0 ? route : $"{route}?{string.Join("&", queryParts)}";
     }
 
-    private string BuildTaskBoardRoute(Guid categoryId) =>
-        $"{EventsBaseRoute}/{EventId}/tasks/board/{categoryId}";
-
-    private void OpenCreateTaskDialog()
+    private void GoBackToEventList()
     {
-        var firstCategoryId = allCategories.FirstOrDefault()?.Id;
-        if (firstCategoryId.HasValue && firstCategoryId.Value != Guid.Empty)
+        if (!string.IsNullOrWhiteSpace(_safeReturnUrl))
         {
-            NavigationManager.NavigateTo(BuildTaskBoardRoute(firstCategoryId.Value));
+            NavigationManager.NavigateTo(_safeReturnUrl);
             return;
         }
 
-        Snackbar.Add("Chưa có hạng mục để tạo task. Vui lòng tạo milestone/category trước.", Severity.Info);
+        var orgId = _orgIdFromQuery ?? eventDetail?.OrganizationId;
+        if (orgId.HasValue)
+        {
+            NavigationManager.NavigateTo($"/org/events?orgId={orgId.Value:D}");
+            return;
+        }
+
+        NavigationManager.NavigateTo("/org/events");
+    }
+
+    private string BuildPublicEventRoute()
+    {
+        var returnUrl = Uri.EscapeDataString(BuildCurrentRouteWithQuery());
+        return $"/events/{EventId:D}?returnUrl={returnUrl}";
+    }
+
+    private string BuildCurrentRouteWithQuery()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        return $"{uri.AbsolutePath}{uri.Query}";
+    }
+
+    private void ResolveNavigationContext()
+    {
+        _safeReturnUrl = null;
+        _orgIdFromQuery = null;
+
+        var currentUri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(currentUri.Query);
+
+        if (query.TryGetValue("returnUrl", out var rawReturnUrl))
+        {
+            var candidate = rawReturnUrl.ToString();
+            if (IsSafeReturnUrl(candidate))
+            {
+                _safeReturnUrl = candidate;
+            }
+        }
+
+        if (query.TryGetValue("orgId", out var rawOrgId) && Guid.TryParse(rawOrgId, out var orgId))
+        {
+            _orgIdFromQuery = orgId;
+        }
+    }
+
+    private static bool IsSafeReturnUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        if (!value.StartsWith("/", StringComparison.Ordinal))
+            return false;
+
+        if (value.StartsWith("//", StringComparison.Ordinal))
+            return false;
+
+        if (value.Contains("://", StringComparison.Ordinal))
+            return false;
+
+        return true;
+    }
+
+    private async Task OpenUpdateDialog()
+    {
+        if (!_canManage || eventDetail is null)
+            return;
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters
+        {
+            ["Model"] = new UpdateEventViewModel
+            {
+                EventId = eventDetail.Id,
+                Name = eventDetail.Name,
+                Description = eventDetail.Description,
+                StartDate = eventDetail.StartDate.ToDateTime(TimeOnly.MinValue),
+                EndDate = eventDetail.EndDate.ToDateTime(TimeOnly.MinValue),
+                Location = eventDetail.Location,
+                TotalSlots = eventDetail.TotalSlots
+            }
+        };
+
+        var dialog = await DialogService.ShowAsync<UpdateEventDialog>("Update event", parameters, options);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not UpdateEventViewModel req)
+            return;
+
+        await EventService.UpdateEventAsync(EventId, req);
+        await LoadEventDetailAsync();
+        Snackbar.Add("Cap nhat su kien thanh cong.", Severity.Success);
     }
 
     private async Task OpenCreateMilestoneDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var parameters = new DialogParameters
+        if (!_canManage)
         {
-            ["EventId"] = EventId
-        };
-        var dialog = await DialogService.ShowAsync<CreateMilestoneDialog>("Tạo Milestone", parameters, options);
-        var result = await dialog.Result;
-        
-        if (result is null || result.Canceled || result.Data is not CreateMilestoneViewModel req)
-        {
+            Snackbar.Add("Ban khong co quyen tao milestone.", Severity.Warning);
             return;
         }
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters { ["EventId"] = EventId };
+        var dialog = await DialogService.ShowAsync<CreateMilestoneDialog>("Tao Milestone", parameters, options);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled || result.Data is not CreateMilestoneViewModel req)
+            return;
 
         req.EventId = EventId;
         await MilestoneService.CreateMilestoneAsync(req);
         await LoadEventDetailAsync();
-        Snackbar.Add("Đã tạo milestone mới.", Severity.Success);
+        Snackbar.Add("Da tao milestone moi.", Severity.Success);
     }
 
-    private async Task OpenCreateCategoryDialog()
+    private async Task OpenCreateCategoryDialog(Guid defaultMilestoneId)
     {
+        if (!_canManage)
+        {
+            Snackbar.Add("Ban khong co quyen tao category.", Severity.Warning);
+            return;
+        }
+
         if (milestones.Count == 0)
         {
-            Snackbar.Add("Cần có milestone trước khi tạo hạng mục.", Severity.Info);
+            Snackbar.Add("Can co milestone truoc khi tao category.", Severity.Info);
             return;
         }
 
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var parameters = new DialogParameters
         {
-            ["Milestones"] = milestones.Select(m => new CreateCategoryDialog.MilestoneOption(m.Id, m.Name)).ToList()
+            ["Milestones"] = milestones
+                .Select(m => new CreateCategoryDialog.MilestoneOption(m.Id, m.Name))
+                .ToList(),
+            ["Members"] = _members
+                .Select(m => new CreateCategoryDialog.MemberOption(m.Id, m.DisplayName))
+                .ToList(),
+            ["DefaultMilestoneId"] = defaultMilestoneId
         };
-        var dialog = await DialogService.ShowAsync<CreateCategoryDialog>("Tạo Hạng Mục", parameters, options);
+
+        var dialog = await DialogService.ShowAsync<CreateCategoryDialog>("Tao category", parameters, options);
         var result = await dialog.Result;
-        
         if (result is null || result.Canceled || result.Data is not CreateEventCategoryViewModel req)
-        {
             return;
-        }
 
         await CategoryService.CreateCategoryAsync(req);
         await LoadEventDetailAsync();
-        Snackbar.Add("Đã tạo hạng mục mới.", Severity.Success);
-    }
-
-    private static string GetLeadInitial(string? leadName)
-    {
-        if (string.IsNullOrWhiteSpace(leadName))
-        {
-            return "NA";
-        }
-
-        var parts = leadName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0)
-        {
-            return "NA";
-        }
-
-        if (parts.Length == 1)
-        {
-            return parts[0][0].ToString().ToUpperInvariant();
-        }
-
-        return string.Concat(parts[0][0], parts[^1][0]).ToUpperInvariant();
+        Snackbar.Add("Da tao category moi.", Severity.Success);
     }
 }

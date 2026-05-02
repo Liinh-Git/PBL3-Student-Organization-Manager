@@ -49,9 +49,7 @@ public sealed class UserDashboardMockService(
                             Description = org.Description,
                             AvatarUrl = ResolveOrganizationImage(org),
                             JoinedAtUtc = new DateTimeOffset(DateTime.SpecifyKind(x.JoinDate, DateTimeKind.Utc)),
-                            // TODO BE: API nên trả về vai trò cụ thể của user trong tổ chức
-                            Role = x.RoleId?.ToString().ToLower().StartsWith("7e") == true ? "Owner" : 
-                                   x.RoleId?.ToString().ToLower().StartsWith("f8") == true ? "Admin" : "Member"
+                            Role = ResolveDashboardRoleName(x.RoleId, data)
                         };
 
                     })
@@ -240,6 +238,24 @@ public sealed class UserDashboardMockService(
             "ATTENDED" => "ATTENDED",
             "CANCELLED" => "CANCELLED",
             _ => "REGISTERED"
+        };
+    }
+
+    private static string ResolveDashboardRoleName(Guid? roleId, MockDataSet data)
+    {
+        if (!roleId.HasValue)
+            return "Member";
+
+        var role = data.OrganizationRoles.FirstOrDefault(x => x.Id == roleId.Value);
+        if (role is null || string.IsNullOrWhiteSpace(role.RoleName))
+            return "Member";
+
+        return role.RoleName.Trim() switch
+        {
+            "President" => "Owner",
+            "VicePresident" => "Admin",
+            "Manager" => "Admin",
+            _ => "Member"
         };
     }
 }

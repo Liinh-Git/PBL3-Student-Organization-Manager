@@ -1,0 +1,166 @@
+.discover-shell {
+  gap: 1rem;
+}
+
+.discover-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.discover-main,
+.discover-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-panel {
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.result-section,
+.side-card {
+  padding: 0.86rem;
+}
+
+.card-grid {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.card-grid.organizations {
+  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+}
+
+.card-grid.events {
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+}
+
+.entity-card {
+  padding: 0.62rem;
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  min-height: 78px;
+}
+
+.event-card img {
+  width: 68px;
+  height: 54px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.org-card img {
+  border-radius: 999px;
+}
+
+.entity-card h3 {
+  margin: 0.32rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+.entity-card p {
+  margin: 0.18rem 0 0;
+  color: var(--ink-600);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.entity-meta {
+  display: inline-block;
+  margin-top: 0.2rem;
+  color: var(--ink-600);
+  font-size: 0.72rem;
+}
+
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.user-card,
+.friend-item,
+.request-item {
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 0.62rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: center;
+  background: var(--surface-card);
+}
+
+.friend-item,
+.request-item {
+  box-shadow: none;
+}
+
+.user-main,
+.friend-main {
+  display: flex;
+  gap: 0.62rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.user-main h3,
+.friend-main strong {
+  margin: 0;
+  color: var(--ink-900);
+  font-size: 0.87rem;
+  line-height: 1.2;
+  display: block;
+}
+
+.user-main p,
+.friend-main span {
+  margin: 0.18rem 0 0;
+  color: var(--ink-600);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  display: block;
+}
+
+.user-actions,
+.friend-actions,
+.request-actions {
+  justify-content: flex-end;
+}
+
+.discover-sidebar {
+  position: sticky;
+  top: 0.8rem;
+}
+
+@media (max-width: 1024px) {
+  .discover-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .discover-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .user-card,
+  .friend-item,
+  .request-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .user-actions,
+  .friend-actions,
+  .request-actions {
+    justify-content: flex-start;
+  }
+}

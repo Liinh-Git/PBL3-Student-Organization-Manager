@@ -29,6 +29,7 @@ public sealed class UserProfileFormViewModel
     public string? Address { get; set; }
     public string? AvatarUrl { get; set; }
     public string? Bio { get; set; }
+    public string ProfileVisibility { get; set; } = "Public";
 
     public UserProfileFormViewModel Clone()
     {
@@ -43,7 +44,8 @@ public sealed class UserProfileFormViewModel
             Gender = Gender,
             Address = Address,
             AvatarUrl = AvatarUrl,
-            Bio = Bio
+            Bio = Bio,
+            ProfileVisibility = ProfileVisibility
         };
     }
 }

@@ -7,7 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Features.Common;
 using Org.Backend.Infrastructure.Database;
+using Org.Backend.Services;
 using Org.Shared.Features.Tasks;
+using System.Security.Claims;
 
 namespace Org.Backend.Features.Tasks;
 
@@ -218,7 +220,7 @@ public sealed class UpdateTaskEndpoint(AppDbContext db) : Endpoint<UpdateTaskReq
 }
 
 // ---- PUT /api/tasks/{taskId}/status — chuyển trạng thái (assignee cũng có thể cập nhật) ----
-public sealed class UpdateTaskStatusEndpoint(AppDbContext db) : Endpoint<UpdateTaskStatusRequest, TaskDto>
+public sealed class UpdateTaskStatusEndpoint(AppDbContext db, INotificationService notificationService) : Endpoint<UpdateTaskStatusRequest, TaskDto>
 {
     public override void Configure()
     {
@@ -234,6 +236,7 @@ public sealed class UpdateTaskStatusEndpoint(AppDbContext db) : Endpoint<UpdateT
             .Include(x => x.EventCategory)
             .ThenInclude(x => x.Milestone)
             .ThenInclude(x => x.Event)
+            .Include(x => x.Assignee)
             .FirstOrDefaultAsync(x => x.Id == taskId, ct);
 
         if (task is null)
@@ -249,15 +252,38 @@ public sealed class UpdateTaskStatusEndpoint(AppDbContext db) : Endpoint<UpdateT
         if (!TaskValidation.CanTransition(task!.Status, req.Status))
             ThrowError($"Invalid status transition: {task.Status} -> {req.Status}.", StatusCodes.Status400BadRequest);
 
+        var userIdText = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var changerId = Guid.TryParse(userIdText, out var uid) ? uid : (Guid?)null;
+        if (changerId is null)
+            ThrowError("Invalid token subject.", StatusCodes.Status401Unauthorized);
+
         task!.Status = req.Status;
         await db.SaveChangesAsync(ct);
+
+        // Notify assignee about task status change (if assignee exists and is not the changer)
+        if (task.AssigneeId is not null && task.Assignee?.UserId is not null && task.Assignee.UserId != changerId.Value)
+        {
+            try
+            {
+                await notificationService.NotifyTaskStatusChanged(
+                    task.Assignee.UserId, 
+                    changerId.Value, 
+                    taskId, 
+                    req.Status.ToString());
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't throw - notification failure should not block business logic
+                Console.WriteLine($"Failed to send task status change notification: {ex.Message}");
+            }
+        }
 
         await Send.OkAsync(ContractMapping.ToTaskDto(task), ct);
     }
 }
 
 // ---- PUT /api/tasks/{taskId}/assign — gán thành viên cho nhiệm vụ (yêu cầu Manager+) ----
-public sealed class UpdateTaskAssignEndpoint(AppDbContext db) : Endpoint<AssignTaskRequest, TaskDto>
+public sealed class UpdateTaskAssignEndpoint(AppDbContext db, INotificationService notificationService) : Endpoint<AssignTaskRequest, TaskDto>
 {
     public override void Configure()
     {
@@ -282,6 +308,12 @@ public sealed class UpdateTaskAssignEndpoint(AppDbContext db) : Endpoint<AssignT
         if (callerContext is null || !OrganizationAuthorization.CanPlan(callerContext.Value.Role))
             ThrowError("Forbidden.", StatusCodes.Status403Forbidden);
 
+        var userIdText = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var assignerId = Guid.TryParse(userIdText, out var uid) ? uid : (Guid?)null;
+        if (assignerId is null)
+            ThrowError("Invalid token subject.", StatusCodes.Status401Unauthorized);
+
+        Guid? assigneeUserId = null;
         if (req.AssigneeMemberId is not null)
         {
             var assignee = await db.Members
@@ -292,6 +324,7 @@ public sealed class UpdateTaskAssignEndpoint(AppDbContext db) : Endpoint<AssignT
                 ThrowError("Assignee is invalid for this task.", StatusCodes.Status400BadRequest);
 
             task!.DeptId = assignee.DepartmentId;
+            assigneeUserId = assignee.UserId;
         }
         else
         {
@@ -300,6 +333,20 @@ public sealed class UpdateTaskAssignEndpoint(AppDbContext db) : Endpoint<AssignT
 
         task!.AssigneeId = req.AssigneeMemberId;
         await db.SaveChangesAsync(ct);
+
+        // Notify assignee about task assignment
+        if (assigneeUserId is not null)
+        {
+            try
+            {
+                await notificationService.NotifyTaskAssigned(assigneeUserId.Value, assignerId.Value, taskId);
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't throw - notification failure should not block business logic
+                Console.WriteLine($"Failed to send task assignment notification: {ex.Message}");
+            }
+        }
 
         await Send.OkAsync(ContractMapping.ToTaskDto(task), ct);
     }

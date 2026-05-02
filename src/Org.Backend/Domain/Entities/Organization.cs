@@ -31,4 +31,5 @@ public class Organization : BaseEntity
     public ICollection<Resource> Resources { get; set; } = [];
     public ICollection<Request> Requests { get; set; } = [];
     public ICollection<ActivityHistory> ActivityHistories { get; set; } = [];
+    public ICollection<OrganizationPost> Posts { get; set; } = [];
 }

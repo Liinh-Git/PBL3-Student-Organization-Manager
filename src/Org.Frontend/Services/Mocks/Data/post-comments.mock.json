@@ -1,0 +1,16 @@
+[
+  {
+    "id": "31000000-0000-0000-0000-000000000001",
+    "postId": "30000000-0000-0000-0000-000000000001",
+    "authorUserId": "c73cd5f4-50e8-4e07-94f5-2673592515b4",
+    "content": "Mình đã đăng ký rồi, mong chờ chương trình.",
+    "createdAt": "2026-05-01T08:10:00Z"
+  },
+  {
+    "id": "31000000-0000-0000-0000-000000000002",
+    "postId": "30000000-0000-0000-0000-000000000002",
+    "authorUserId": "bf3c92e8-3ec0-422e-a4bb-8ccaa33eb1bc",
+    "content": "Mình quan tâm, có thể inbox thêm chi tiết được không?",
+    "createdAt": "2026-04-30T15:20:00Z"
+  }
+]

@@ -32,6 +32,21 @@
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense"
                           Class="mb-4" />
+
+            <MudText Typo="Typo.subtitle2" Class="fw-bold mb-1" Style="color: #334155;">Category Manager (optional)</MudText>
+            <MudSelect T="Guid?"
+                       @bind-Value="model.LeadMemberId"
+                       Placeholder="-- Chon nguoi phu trach --"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Class="mb-4"
+                       AnchorOrigin="Origin.BottomCenter">
+                <MudSelectItem T="Guid?" Value="@((Guid?)null)">Chua gan</MudSelectItem>
+                @foreach (var member in Members)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)member.Id)">@member.Name</MudSelectItem>
+                }
+            </MudSelect>
         </div>
     </DialogContent>
 
@@ -72,12 +87,18 @@
     [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter] public List<MilestoneOption> Milestones { get; set; } = [];
+    [Parameter] public List<MemberOption> Members { get; set; } = [];
+    [Parameter] public Guid? DefaultMilestoneId { get; set; }
 
     private readonly CreateEventCategoryViewModel model = new();
 
     protected override void OnParametersSet()
     {
-        if (model.MilestoneId == Guid.Empty && Milestones.Count > 0)
+        if (model.MilestoneId == Guid.Empty && DefaultMilestoneId.HasValue && Milestones.Any(x => x.Id == DefaultMilestoneId.Value))
+        {
+            model.MilestoneId = DefaultMilestoneId.Value;
+        }
+        else if (model.MilestoneId == Guid.Empty && Milestones.Count > 0)
         {
             model.MilestoneId = Milestones[0].Id;
         }
@@ -106,4 +127,5 @@
     }
 
     public sealed record MilestoneOption(Guid Id, string Name);
+    public sealed record MemberOption(Guid Id, string Name);
 }

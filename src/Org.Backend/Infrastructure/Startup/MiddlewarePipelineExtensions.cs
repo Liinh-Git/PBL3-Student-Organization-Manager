@@ -1,6 +1,8 @@
 // ---- Gom middleware pipeline API để Program.cs ngắn gọn và dễ đọc ----
 using FastEndpoints;
+using Org.Backend.Hubs;
 using Scalar.AspNetCore;
+using FastEndpoints.Swagger;
 
 namespace Org.Backend.Infrastructure.Startup;
 
@@ -14,6 +16,7 @@ public static class MiddlewarePipelineExtensions
         {
             app.MapOpenApi();
             app.MapScalarApiReference();
+            app.UseSwaggerGen();
         }
 
         // ---- Thứ tự middleware quan trọng để auth và CORS hoạt động đúng ----
@@ -22,6 +25,9 @@ public static class MiddlewarePipelineExtensions
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseFastEndpoints();
+
+        // ---- Map SignalR hub endpoint ----
+        app.MapHub<NotificationHub>("/hubs/notifications");
 
         return app;
     }

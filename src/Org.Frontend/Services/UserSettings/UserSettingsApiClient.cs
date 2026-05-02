@@ -54,7 +54,8 @@ public sealed class UserSettingsApiClient(HttpClient httpClient) : IUserSettings
             NormalizeOptional(profile.Address),
             NormalizeOptional(profile.AvatarUrl),
             NormalizeOptional(profile.Bio),
-            null);
+            null,
+            NormalizeProfileVisibility(profile.ProfileVisibility));
 
         using var response = await _httpClient.PutAsJsonAsync("api/users/me", request, ct);
         if (!response.IsSuccessStatusCode)
@@ -103,7 +104,8 @@ public sealed class UserSettingsApiClient(HttpClient httpClient) : IUserSettings
             Gender = dto.Gender,
             Address = dto.Address,
             AvatarUrl = string.IsNullOrWhiteSpace(dto.AvatarUrl) ? DefaultAvatarUrl : dto.AvatarUrl,
-            Bio = dto.Bio
+            Bio = dto.Bio,
+            ProfileVisibility = NormalizeProfileVisibility(dto.ProfileVisibility)
         };
     }
 
@@ -117,6 +119,16 @@ public sealed class UserSettingsApiClient(HttpClient httpClient) : IUserSettings
     {
         var normalized = NormalizeOptional(value);
         return normalized is not null && normalized.Length >= 2 ? normalized : null;
+    }
+
+    private static string NormalizeProfileVisibility(string? value)
+    {
+        return value?.Trim().ToUpperInvariant() switch
+        {
+            "PRIVATE" => "Private",
+            "ORGANIZATIONONLY" => "OrganizationOnly",
+            _ => "Public"
+        };
     }
 
     private static async Task<string> ReadErrorMessageAsync(HttpResponseMessage response, CancellationToken ct)

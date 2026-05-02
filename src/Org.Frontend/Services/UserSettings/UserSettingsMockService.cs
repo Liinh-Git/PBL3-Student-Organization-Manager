@@ -52,6 +52,7 @@ public sealed class UserSettingsMockService(
             target.Address = NormalizeOptional(profile.Address);
             target.AvatarUrl = NormalizeOptional(profile.AvatarUrl) ?? target.AvatarUrl;
             target.Bio = NormalizeOptional(profile.Bio);
+            target.ProfileVisibility = NormalizeProfileVisibility(profile.ProfileVisibility);
             target.UpdatedAt = DateTime.UtcNow;
             return 0;
         }, ct);
@@ -217,7 +218,8 @@ public sealed class UserSettingsMockService(
                 Gender = user.Gender,
                 Address = user.Address,
                 AvatarUrl = user.AvatarUrl,
-                Bio = user.Bio
+                Bio = user.Bio,
+                ProfileVisibility = NormalizeProfileVisibility(user.ProfileVisibility)
             },
             Notifications = new NotificationPreferencesViewModel
             {
@@ -253,5 +255,15 @@ public sealed class UserSettingsMockService(
     {
         var normalized = NormalizeOptional(value);
         return normalized is not null && normalized.Length >= 2 ? normalized : null;
+    }
+
+    private static string NormalizeProfileVisibility(string? value)
+    {
+        return value?.Trim().ToUpperInvariant() switch
+        {
+            "PRIVATE" => "Private",
+            "ORGANIZATIONONLY" => "OrganizationOnly",
+            _ => "Public"
+        };
     }
 }

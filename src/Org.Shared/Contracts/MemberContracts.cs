@@ -14,6 +14,7 @@ public sealed class MemberDto
     public Guid? DepartmentId { get; set; }
     // Lưu ý: dùng RoleId (Guid) thay vì enum MemberRole để tương thích với mock store
     public Guid? RoleId { get; set; }
+    public string? RoleName { get; set; }
     public DateTime JoinDate { get; set; }
 }
 
