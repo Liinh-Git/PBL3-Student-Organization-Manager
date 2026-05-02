@@ -62,7 +62,8 @@ public sealed class GetOrganizationPermissionsMeEndpoint(AppDbContext db)
         var caller = await OrganizationAuthorization.ResolveCallerContextAsync(db, User, orgId, ct);
         if (caller is null)
         {
-            var guest = new OrganizationPermissionDto(false, false, false, false, false, false, false, false, false, false, null, []);
+            var isAuthenticated = User.Identity?.IsAuthenticated == true;
+            var guest = new OrganizationPermissionDto(isAuthenticated, false, false, false, false, false, false, false, false, false, null, []);
             await Send.OkAsync(new GetOrganizationPermissionsMeResponse(guest), ct);
             return;
         }

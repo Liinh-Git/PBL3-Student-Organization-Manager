@@ -85,7 +85,7 @@ internal static class OrganizationPermissionCatalog
         if (!isAuthenticated || !isMember)
         {
             return new OrganizationPermissionDto(
-                false,
+                isAuthenticated,
                 false,
                 false,
                 false,
