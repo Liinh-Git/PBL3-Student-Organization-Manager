@@ -79,6 +79,10 @@ public class AppDbContext : DbContext
              .WithMany(p => p.RolePermissions)
              .HasForeignKey(rp => rp.PermissionId)
              .OnDelete(DeleteBehavior.Cascade);
+
+            // Keep required relationship behavior consistent with soft-delete filters
+            // on Role/Permission to avoid required-navigation/filter mismatch warnings.
+            e.HasQueryFilter(rp => !rp.Role.IsDeleted && !rp.Permission.IsDeleted);
         });
 
         // ── User ────────────────────────────────────────────────────────────────
