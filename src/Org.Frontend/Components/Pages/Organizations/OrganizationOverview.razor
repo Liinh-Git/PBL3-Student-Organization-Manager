@@ -199,9 +199,6 @@
                                         <strong>@leader.Name</strong>
                                         <span>@leader.Role</span>
                                     </div>
-                                    <button type="button" class="icon-btn" @onclick="() => MessageUser(leader.UserId)">
-                                        <MudIcon Icon="@Icons.Material.Filled.Chat" />
-                                    </button>
                                 </div>
                             }
                         }
@@ -387,7 +384,7 @@
             return;
         }
 
-        Navigation.NavigateTo("/home");
+        Navigation.NavigateTo("/user/organizations");
     }
 
     private void EnterWorkspace()
@@ -407,9 +404,6 @@
 
         Navigation.NavigateTo($"/events/{eventId:D}");
     }
-
-    private void MessageUser(Guid userId)
-        => Navigation.NavigateTo($"/user/messages/user/{userId:D}");
 
     private async Task OpenJoinDialogAsync()
     {

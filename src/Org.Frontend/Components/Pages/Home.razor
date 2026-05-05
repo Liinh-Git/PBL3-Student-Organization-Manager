@@ -1,177 +1,19 @@
 @page "/home"
-@using Org.Frontend.Services.Overview
-@using Org.Frontend.Components.Pages.HomeComponents
-@inject IOverviewService OverviewService
 @inject NavigationManager Navigation
 
 <PageTitle>Overview</PageTitle>
 
 <div class="home-shell app-page">
-    @if (_isLoading)
-    {
-        <section class="app-loading">
-            <h2>Đang tải tổng quan...</h2>
-            <p>Hệ thống đang tổng hợp hoạt động cá nhân của bạn.</p>
-        </section>
-    }
-    else if (!string.IsNullOrWhiteSpace(_errorMessage))
-    {
-        <section class="app-error">
-            <h2>Không tải được dữ liệu tổng quan</h2>
-            <p>@_errorMessage</p>
-            <button type="button" class="app-button app-button--primary" @onclick="ReloadAsync">Thử lại</button>
-        </section>
-    }
-    else if (_overview is not null)
-    {
-        <header class="overview-header app-page-header">
-            <div>
-                <p class="app-kicker">Workspace cá nhân</p>
-                <h1 class="app-page-title">Tổng quan</h1>
-                <p class="app-page-subtitle">Xin chào @_overview.DisplayName, đây là những hoạt động quan trọng của bạn.</p>
-            </div>
-        </header>
-
-        <section class="overview-section app-section">
-            <div class="app-section-header">
-                <div>
-                    <h2 class="app-section-title">Tổ chức đang tham gia</h2>
-                    <p class="app-section-subtitle">Các cộng đồng và tổ chức bạn đang là thành viên.</p>
-                </div>
-                <span class="app-badge app-badge--info">@_overview.JoinedOrganizations.Count</span>
-            </div>
-            @if (_overview.JoinedOrganizations.Count == 0)
-            {
-                <div class="app-empty">Bạn chưa tham gia tổ chức nào.</div>
-            }
-            else
-            {
-                <div class="overview-grid organizations">
-                    @foreach (var item in _overview.JoinedOrganizations)
-                    {
-                        <OverviewOrganizationCard Item="item" OnOpen="OpenOrganization" />
-                    }
-                </div>
-            }
-        </section>
-
-        <section class="overview-section app-section">
-            <div class="app-section-header">
-                <div>
-                    <h2 class="app-section-title">Sự kiện bạn đang tổ chức</h2>
-                    <p class="app-section-subtitle">Những sự kiện bạn tham gia với vai trò ban tổ chức.</p>
-                </div>
-                <span class="app-badge app-badge--warning">@_overview.OrganizingEvents.Count</span>
-            </div>
-            @if (_overview.OrganizingEvents.Count == 0)
-            {
-                <div class="app-empty">Bạn không có sự kiện nào trong ban tổ chức.</div>
-            }
-            else
-            {
-                <div class="overview-grid events">
-                    @foreach (var item in _overview.OrganizingEvents)
-                    {
-                        <OverviewEventCard Item="item" OnOpen="OpenEvent" />
-                    }
-                </div>
-            }
-        </section>
-
-        <section class="overview-section app-section">
-            <div class="app-section-header">
-                <div>
-                    <h2 class="app-section-title">Sự kiện bạn tham gia</h2>
-                    <p class="app-section-subtitle">Các sự kiện bạn đăng ký với vai trò người tham dự.</p>
-                </div>
-                <span class="app-badge app-badge--success">@_overview.AttendingEvents.Count</span>
-            </div>
-            @if (_overview.AttendingEvents.Count == 0)
-            {
-                <div class="app-empty">Bạn chưa đăng ký sự kiện nào với vai trò người tham dự.</div>
-            }
-            else
-            {
-                <div class="overview-grid events">
-                    @foreach (var item in _overview.AttendingEvents)
-                    {
-                        <OverviewEventCard Item="item" OnOpen="OpenPublicEvent" />
-                    }
-                </div>
-            }
-        </section>
-
-        <section class="overview-section app-section">
-            <div class="app-section-header">
-                <div>
-                    <h2 class="app-section-title">Task được giao</h2>
-                    <p class="app-section-subtitle">Các đầu việc đang gắn với vai trò của bạn trong tổ chức hoặc sự kiện.</p>
-                </div>
-                <span class="app-badge">@_overview.AssignedTasks.Count</span>
-            </div>
-            @if (_overview.AssignedTasks.Count == 0)
-            {
-                <div class="app-empty">Bạn chưa có task nào được giao.</div>
-            }
-            else
-            {
-                <div class="overview-grid tasks">
-                    @foreach (var item in _overview.AssignedTasks)
-                    {
-                        <OverviewTaskCard Item="item" />
-                    }
-                </div>
-            }
-        </section>
-    }
+    <section class="app-error">
+        <h2>Tong quan live API chua san sang</h2>
+        <p>Trang nay tam thoi duoc an khoi demo live de tranh loi runtime.</p>
+        <button type="button" class="app-button app-button--primary" @onclick="GoToOrganizations">
+            Mo to chuc cua toi
+        </button>
+    </section>
 </div>
 
 @code {
-    private OverviewPageViewModel? _overview;
-    private bool _isLoading = true;
-    private string? _errorMessage;
-
-    protected override async Task OnInitializedAsync()
-        => await ReloadAsync();
-
-    private async Task ReloadAsync()
-    {
-        _isLoading = true;
-        _errorMessage = null;
-
-        try
-        {
-            _overview = await OverviewService.GetOverviewAsync();
-        }
-        catch (Exception ex)
-        {
-            _overview = null;
-            _errorMessage = ex.Message;
-        }
-        finally
-        {
-            _isLoading = false;
-        }
-    }
-
-    private void OpenOrganization(Guid organizationId)
-        => Navigation.NavigateTo($"/org-overview?orgId={organizationId:D}&returnUrl=%2Fhome");
-
-    private void OpenEvent(Guid eventId)
-    {
-        var orgId = _overview?.OrganizingEvents
-            .FirstOrDefault(x => x.EventId == eventId)?
-            .OrganizationId;
-
-        if (orgId.HasValue)
-        {
-            Navigation.NavigateTo($"/org/events/{eventId:D}?orgId={orgId.Value:D}&returnUrl=%2Fhome");
-            return;
-        }
-
-        Navigation.NavigateTo($"/org/events/{eventId:D}?returnUrl=%2Fhome");
-    }
-
-    private void OpenPublicEvent(Guid eventId)
-        => Navigation.NavigateTo($"/events/{eventId:D}?returnUrl=%2Fhome");
+    private void GoToOrganizations()
+        => Navigation.NavigateTo("/user/organizations");
 }

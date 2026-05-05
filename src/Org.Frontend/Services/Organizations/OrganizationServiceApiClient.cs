@@ -1,6 +1,9 @@
 using System.Net;
+using Org.Shared;
+using Org.Shared.Features.Departments;
 using System.Net.Http.Json;
 using Org.Shared.Features.Events;
+using Org.Shared.Features.Members;
 using Org.Shared.Features.Organizations;
 using Org.Shared.Features.Users;
 
@@ -21,10 +24,22 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
 
         var eventCount = 0;
         var upcomingEventCount = 0;
+        var activeTaskCount = 0;
+        var milestoneCount = 0;
+        var departments = new List<OrganizationDepartmentSummaryViewModel>();
+        var leadership = new List<OrganizationAdminViewModel>();
+        var highlights = new List<OrganizationEventHighlightViewModel>();
+
         if (permission.IsMember)
         {
             var eventsPayload = await _httpClient.GetFromJsonAsync<GetOrganizationEventsResponse>(
                 $"api/organizations/{organizationId:D}/events",
+                cancellationToken: ct);
+            var departmentsPayload = await _httpClient.GetFromJsonAsync<GetDepartmentsResponse>(
+                $"api/organizations/{organizationId:D}/departments",
+                cancellationToken: ct);
+            var membersPayload = await _httpClient.GetFromJsonAsync<GetMembersResponse>(
+                $"api/organizations/{organizationId:D}/members",
                 cancellationToken: ct);
 
             if (eventsPayload is not null)
@@ -32,6 +47,53 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
                 eventCount = eventsPayload.Items.Count;
                 var today = DateOnly.FromDateTime(DateTime.Today);
                 upcomingEventCount = eventsPayload.Items.Count(x => x.StartDate >= today);
+                activeTaskCount = eventsPayload.Items.Sum(x => Math.Max(0, x.TaskCount - x.CompletedTaskCount));
+                milestoneCount = eventsPayload.Items.Sum(x => x.MilestoneCount);
+
+                highlights = eventsPayload.Items
+                    .Where(x => x.StartDate >= today)
+                    .OrderBy(x => x.StartDate)
+                    .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .Take(6)
+                    .Select(x => new OrganizationEventHighlightViewModel
+                    {
+                        EventId = x.Id,
+                        Name = x.Name,
+                        StartDate = x.StartDate,
+                        Location = null,
+                        ImageUrl = null
+                    })
+                    .ToList();
+            }
+
+            if (departmentsPayload is not null)
+            {
+                departments = departmentsPayload.Items
+                    .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .Select(x => new OrganizationDepartmentSummaryViewModel
+                    {
+                        DepartmentId = x.Id,
+                        Name = x.Name,
+                        MemberCount = x.MemberCount
+                    })
+                    .ToList();
+            }
+
+            if (membersPayload is not null)
+            {
+                leadership = membersPayload.Items
+                    .Where(x => x.IsActive && IsLeadershipRole(x.Role))
+                    .OrderBy(x => GetRoleRank(x.Role))
+                    .ThenBy(x => x.FullName, StringComparer.OrdinalIgnoreCase)
+                    .Take(6)
+                    .Select(x => new OrganizationAdminViewModel
+                    {
+                        UserId = Guid.Empty,
+                        Name = x.FullName,
+                        Role = x.Role.ToString(),
+                        Avatar = null
+                    })
+                    .ToList();
             }
         }
 
@@ -48,14 +110,14 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
             MemberCount = dto.TotalMembers,
             EventCount = eventCount,
             UpcomingEventCount = upcomingEventCount,
-            ActiveTaskCount = 0,
-            MilestoneCount = 0,
+            ActiveTaskCount = activeTaskCount,
+            MilestoneCount = milestoneCount,
             LastActivityAtUtc = dto.UpdatedAtUtc?.UtcDateTime ?? dto.CreatedAtUtc.UtcDateTime,
             ViewerPermission = permission,
-            Departments = [],
+            Departments = departments,
             Timeline = [],
-            HighlightEvents = [],
-            Leadership = []
+            HighlightEvents = highlights,
+            Leadership = leadership
         };
     }
 
@@ -74,7 +136,7 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
             ?? throw new InvalidOperationException("Backend returned empty organization payload.");
 
         var payload = new UpdateOrganizationRequest(
-            request.Name.Trim(),
+            string.IsNullOrWhiteSpace(request.Name) ? current.Data.Name : request.Name.Trim(),
             request.Description,
             request.AvatarUrl,
             request.CoverUrl,
@@ -176,4 +238,18 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
 
     private static bool HasOverviewWritePermission(string? roleName)
         => roleName?.Trim().ToUpperInvariant() is "PRESIDENT" or "VICEPRESIDENT" or "MANAGER" or "OWNER" or "ADMIN";
+
+    private static bool IsLeadershipRole(MemberRole role)
+        => role is MemberRole.President or MemberRole.VicePresident or MemberRole.Manager;
+
+    private static int GetRoleRank(MemberRole role)
+    {
+        return role switch
+        {
+            MemberRole.President => 0,
+            MemberRole.VicePresident => 1,
+            MemberRole.Manager => 2,
+            _ => 9
+        };
+    }
 }

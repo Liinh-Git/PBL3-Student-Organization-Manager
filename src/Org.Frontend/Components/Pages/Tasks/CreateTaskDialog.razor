@@ -105,7 +105,14 @@
 
     private void OnAssigneesChanged(IEnumerable<Guid> values)
     {
-        SelectedAssignees = values.ToHashSet();
+        var picked = values.Distinct().ToList();
+        if (picked.Count > 1)
+        {
+            picked = [picked[0]];
+            Snackbar.Add("Live API chi ho tro 1 assignee cho moi task.", Severity.Info);
+        }
+
+        SelectedAssignees = picked.ToHashSet();
         model.AssigneeMemberIds = SelectedAssignees.ToList();
     }
     

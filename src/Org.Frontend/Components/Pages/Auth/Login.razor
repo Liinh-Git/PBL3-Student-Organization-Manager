@@ -74,7 +74,7 @@
     private bool _isSubmitting;
     // Thông báo lỗi hiển thị trên giao diện nếu đăng nhập thất bại
     private string? _errorMessage;
-    private string _targetAfterLogin = "/home";
+    private string _targetAfterLogin = "/user/organizations";
 
     // ---- Nếu đã login thì về home, tránh mở lại trang login ----
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -134,18 +134,18 @@
     {
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
         if (!QueryHelpers.ParseQuery(uri.Query).TryGetValue("returnUrl", out var returnUrlValues))
-            return "/home";
+            return "/user/organizations";
 
         var returnUrl = returnUrlValues.ToString();
         if (string.IsNullOrWhiteSpace(returnUrl))
-            return "/home";
+            return "/user/organizations";
 
         var decodedReturnUrl = Uri.UnescapeDataString(returnUrl);
         if (!decodedReturnUrl.StartsWith('/') || decodedReturnUrl.StartsWith("//") || decodedReturnUrl.Contains('\\'))
-            return "/home";
+            return "/user/organizations";
 
         if (!Uri.TryCreate(decodedReturnUrl, UriKind.Relative, out _))
-            return "/home";
+            return "/user/organizations";
 
         return decodedReturnUrl;
     }

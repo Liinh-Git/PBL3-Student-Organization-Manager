@@ -1,102 +1,18 @@
 @page "/user/friends"
-@rendermode InteractiveServer
-@using Org.Frontend.Services.Friends
-@inject IFriendService FriendService
+@inject NavigationManager Navigation
 
-<PageTitle>Bạn bè - Kora</PageTitle>
+<PageTitle>Ban be</PageTitle>
 
 <div class="pa-6">
-    <h2 class="mb-4">Danh sách bạn bè</h2>
-
-    <MudPaper Class="pa-4 mb-4">
-        <MudText Typo="Typo.h6">Lời mời đến</MudText>
-        @if (_incoming.Count == 0)
-        {
-            <MudText Color="Color.Secondary">Không có lời mời nào đang chờ.</MudText>
-        }
-        else
-        {
-            @foreach (var request in _incoming)
-            {
-                <div class="d-flex align-center justify-space-between mt-2">
-                    <span>@request.SenderName</span>
-                    <div class="d-flex gap-2">
-                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" @onclick="() => AcceptAsync(request.RequestId)">Chấp nhận</MudButton>
-                        <MudButton Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small" @onclick="() => RejectAsync(request.RequestId)">Từ chối</MudButton>
-                    </div>
-                </div>
-            }
-        }
-    </MudPaper>
-
-    <MudPaper Class="pa-4 mb-4">
-        <MudText Typo="Typo.h6">Bạn bè hiện có</MudText>
-        @if (_friends.Count == 0)
-        {
-            <MudText Color="Color.Secondary">Bạn chưa có bạn bè nào.</MudText>
-        }
-        else
-        {
-            @foreach (var friend in _friends)
-            {
-                <div class="d-flex align-center justify-space-between mt-2">
-                    <span>@friend.FullName</span>
-                    <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" @onclick="() => RemoveAsync(friend.UserId)">Hủy kết bạn</MudButton>
-                </div>
-            }
-        }
-    </MudPaper>
-
-    <MudPaper Class="pa-4">
-        <MudText Typo="Typo.h6">Gợi ý kết nối</MudText>
-        @foreach (var item in _discover)
-        {
-            <div class="d-flex align-center justify-space-between mt-2">
-                <span>@item.FullName</span>
-                <MudButton Variant="Variant.Outlined" Size="Size.Small" @onclick="() => SendAsync(item.UserId)">Kết bạn</MudButton>
-            </div>
-        }
-    </MudPaper>
+    <MudAlert Severity="Severity.Info">
+        Friends/Social chua ho tro live API trong demo nay.
+    </MudAlert>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="BackToOrganizations">
+        Ve to chuc cua toi
+    </MudButton>
 </div>
 
 @code {
-    private List<FriendRequestItem> _incoming = [];
-    private List<FriendProfileItem> _friends = [];
-    private List<FriendProfileItem> _discover = [];
-
-    protected override async Task OnInitializedAsync()
-    {
-        await RefreshAsync();
-    }
-
-    private async Task RefreshAsync()
-    {
-        _incoming = (await FriendService.GetIncomingRequestsAsync()).ToList();
-        _friends = (await FriendService.GetFriendsAsync()).ToList();
-        _discover = (await FriendService.GetDiscoverUsersAsync(8)).ToList();
-    }
-
-    private async Task AcceptAsync(Guid requestId)
-    {
-        await FriendService.AcceptRequestAsync(requestId);
-        await RefreshAsync();
-    }
-
-    private async Task RejectAsync(Guid requestId)
-    {
-        await FriendService.RejectRequestAsync(requestId);
-        await RefreshAsync();
-    }
-
-    private async Task RemoveAsync(Guid friendUserId)
-    {
-        await FriendService.RemoveFriendAsync(friendUserId);
-        await RefreshAsync();
-    }
-
-    private async Task SendAsync(Guid receiverId)
-    {
-        await FriendService.SendRequestAsync(receiverId);
-        await RefreshAsync();
-    }
+    private void BackToOrganizations()
+        => Navigation.NavigateTo("/user/organizations");
 }

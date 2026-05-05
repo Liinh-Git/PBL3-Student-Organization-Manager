@@ -66,7 +66,7 @@
     <div class="dept-grid">
         @foreach (var card in pagedCards)
         {
-            var canManageTaskInCard = CanManageDepartmentTasks(card);
+            var canManageTaskInCard = DepartmentTaskCrudEnabled && CanManageDepartmentTasks(card);
             var todoTasks = card.Tasks.Where(IsTodoTask).ToList();
             var overdueTasks = card.Tasks.Where(IsOverdueTask).ToList();
             var doneTasks = card.Tasks.Where(IsDoneTask).ToList();
@@ -322,6 +322,7 @@
 
 @code {
     private const int DepartmentsPerPage = 4;
+    private static bool DepartmentTaskCrudEnabled => false;
 
     private List<DepartmentDto> Departments { get; set; } = [];
     private List<MemberDto> Members { get; set; } = [];
@@ -334,6 +335,7 @@
     private bool ShowForm { get; set; }
     private bool _canManageDepartments;
     private Guid? _currentUserId;
+    private string? _currentUserEmail;
     private Guid? _currentMemberId;
     private string _departmentSearch = string.Empty;
     private int _departmentPage = 1;
@@ -396,13 +398,12 @@
         var organizationId = CurrentOrganizationId.Value;
 
         _currentUserId = await ResolveCurrentUserIdAsync();
+        _currentUserEmail = await ResolveCurrentUserEmailAsync();
         _canManageDepartments = await MemberService.CanManageOrganizationMembersAsync(organizationId);
 
         Members = await MemberService.GetMembers(organizationId);
         Departments = await DepartmentService.GetDepartments(organizationId);
-        _currentMemberId = _currentUserId.HasValue
-            ? Members.FirstOrDefault(x => x.UserId == _currentUserId.Value)?.Id
-            : null;
+        _currentMemberId = ResolveCurrentMemberId();
 
         await LoadDepartmentMembersAsync();
         await BuildDepartmentCardsAsync();
@@ -663,13 +664,6 @@
 
     private async Task BuildDepartmentCardsAsync()
     {
-        var tasksByDepartment = new Dictionary<Guid, List<DepartmentTaskDto>>();
-        foreach (var department in Departments)
-        {
-            var tasks = await DepartmentService.GetDepartmentTasksAsync(department.Id);
-            tasksByDepartment[department.Id] = tasks;
-        }
-
         DepartmentCards = Departments
             .OrderBy(x => x.DeptName, StringComparer.OrdinalIgnoreCase)
             .Select(department =>
@@ -677,9 +671,6 @@
                 var departmentMembers = _departmentMembers.TryGetValue(department.Id, out var rows)
                     ? rows.OrderBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase).ToList()
                     : [];
-
-                var departmentTasks = tasksByDepartment.TryGetValue(department.Id, out var rowsTasks)
-                    ? rowsTasks : [];
 
                 return new DepartmentWorkspaceCard
                 {
@@ -690,7 +681,7 @@
                     ManagerName = GetManagerDisplayName(department.ManagerId),
                     MemberCount = departmentMembers.Count,
                     MemberPreview = departmentMembers.Take(6).ToList(),
-                    Tasks = departmentTasks.Select(MapTaskCard).ToList()
+                    Tasks = []
                 };
             })
             .ToList();
@@ -769,6 +760,12 @@
 
     private void OpenCreateTask(DepartmentWorkspaceCard card)
     {
+        if (!DepartmentTaskCrudEnabled)
+        {
+            Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
+            return;
+        }
+
         _selectedTaskDepartment = card;
         _isTaskDialogOpen = true;
         _isCreatingTask = true;
@@ -784,6 +781,12 @@
 
     private void OpenTaskDetail(DepartmentWorkspaceCard card, DepartmentTaskCard task)
     {
+        if (!DepartmentTaskCrudEnabled)
+        {
+            Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
+            return;
+        }
+
         _selectedTaskDepartment = card;
         _isTaskDialogOpen = true;
         _isCreatingTask = false;
@@ -806,6 +809,12 @@
 
     private async Task SaveTaskDraft()
     {
+        if (!DepartmentTaskCrudEnabled)
+        {
+            Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
+            return;
+        }
+
         if (_taskDraft is null || _selectedTaskDepartment is null)
             return;
 
@@ -857,6 +866,12 @@
 
     private async Task DeleteSelectedTask()
     {
+        if (!DepartmentTaskCrudEnabled)
+        {
+            Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
+            return;
+        }
+
         if (_taskDraft?.TaskId is null || !_canEditSelectedTask)
             return;
 
@@ -883,6 +898,12 @@
 
     private async Task CompleteSelectedTask()
     {
+        if (!DepartmentTaskCrudEnabled)
+        {
+            Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
+            return;
+        }
+
         if (_taskDraft?.TaskId is null || !_canCompleteSelectedTask)
             return;
 
@@ -905,6 +926,12 @@
 
     private async Task MarkTaskDone(DepartmentWorkspaceCard card, DepartmentTaskCard task)
     {
+        if (!DepartmentTaskCrudEnabled)
+        {
+            Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
+            return;
+        }
+
         if (!CanCompleteTask(card, task))
         {
             Snackbar.Add("Ban khong co quyen danh dau task nay.", Severity.Warning);
@@ -1023,6 +1050,35 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var userIdText = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return Guid.TryParse(userIdText, out var userId) ? userId : null;
+    }
+
+    private async Task<string?> ResolveCurrentUserEmailAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var email = authState.User.FindFirst(ClaimTypes.Email)?.Value;
+        return string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+    }
+
+    private Guid? ResolveCurrentMemberId()
+    {
+        if (_currentUserId.HasValue)
+        {
+            var byUserId = Members.FirstOrDefault(x => x.UserId == _currentUserId.Value)?.Id;
+            if (byUserId.HasValue)
+            {
+                return byUserId;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(_currentUserEmail))
+        {
+            return Members.FirstOrDefault(x =>
+                    !string.IsNullOrWhiteSpace(x.Email)
+                    && string.Equals(x.Email, _currentUserEmail, StringComparison.OrdinalIgnoreCase))
+                ?.Id;
+        }
+
+        return null;
     }
 
     private async Task HandleExpiredSessionAsync(string? reason = null)

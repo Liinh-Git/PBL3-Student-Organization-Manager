@@ -1,0 +1,569 @@
+﻿{
+    "POST /api/auth/login":  {
+                                 "accessToken":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMGFiZDFmOC0xMjVlLTRlMzItOTMxYS04YjcwOGIzNjliNWUiLCJlbWFpbCI6ImV4YW1wbGUxQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyIjoiZjBhYmQxZjgtMTI1ZS00ZTMyLTkzMWEtOGI3MDhiMzY5YjVlIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoiZXhhbXBsZTFAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6IlVzZXIgMSIsInN0YXR1cyI6IkFjdGl2ZSIsIm5iZiI6MTc3ODAwMjgzMSwiZXhwIjoxNzc4MDA2NDMxLCJpc3MiOiJPcmcuQmFja2VuZCIsImF1ZCI6Ik9yZy5Gcm9udGVuZCJ9.hOPetm-sfJZM7iLCPNjh4NYUAh6ZMqIJvl7TD2jASYM",
+                                 "expiresAtUtc":  "2026-05-05T18:40:31.2031631Z",
+                                 "userId":  "f0abd1f8-125e-4e32-931a-8b708b369b5e",
+                                 "fullName":  "User 1",
+                                 "email":  "example1@gmail.com"
+                             },
+    "GET /api/auth/me":  {
+                             "userId":  "f0abd1f8-125e-4e32-931a-8b708b369b5e",
+                             "fullName":  "User 1",
+                             "email":  "example1@gmail.com",
+                             "status":  "Active"
+                         },
+    "GET /api/organizations/default":  {
+                                           "data":  {
+                                                        "id":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                        "name":  "Organization 1",
+                                                        "description":  "Description for organization 1"
+                                                    }
+                                       },
+    "GET /api/organizations":  {
+                                   "items":  [
+                                                 {
+                                                     "id":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                     "name":  "Organization 1",
+                                                     "description":  "Description for organization 1"
+                                                 },
+                                                 {
+                                                     "id":  "6a601084-49e6-4078-8af9-d5878b372c01",
+                                                     "name":  "Organization 2",
+                                                     "description":  "Description for organization 2"
+                                                 },
+                                                 {
+                                                     "id":  "bb280c93-8110-4f31-a16f-79c86f61b70d",
+                                                     "name":  "Organization 3",
+                                                     "description":  "Description for organization 3"
+                                                 },
+                                                 {
+                                                     "id":  "5d2f9db1-4de0-4619-a3f8-ac3adb0644ae",
+                                                     "name":  "Organization 4",
+                                                     "description":  "Description for organization 4"
+                                                 },
+                                                 {
+                                                     "id":  "2fb6c535-e6e4-4c2f-9a89-e879b775188d",
+                                                     "name":  "Organization 5",
+                                                     "description":  "Description for organization 5"
+                                                 },
+                                                 {
+                                                     "id":  "865f669c-3273-431e-8cc9-2ab35e0e27d4",
+                                                     "name":  "Organization 6",
+                                                     "description":  "Description for organization 6"
+                                                 }
+                                             ],
+                                   "totalCount":  6,
+                                   "page":  1,
+                                   "pageSize":  20,
+                                   "search":  null,
+                                   "isActive":  null
+                               },
+    "GET /api/organizations/{id}":  {
+                                        "data":  {
+                                                     "id":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                     "name":  "Organization 1",
+                                                     "description":  "Description for organization 1",
+                                                     "avatarUrl":  "/images/mockimages/org-1.jpg",
+                                                     "coverUrl":  "/images/mockimages/org-cover-1.jpg",
+                                                     "foundingDate":  "2025-05-05",
+                                                     "location":  "Campus 1",
+                                                     "totalMembers":  10,
+                                                     "isActive":  true,
+                                                     "createdAtUtc":  "2026-05-05T15:46:26.922598+00:00",
+                                                     "updatedAtUtc":  null
+                                                 }
+                                    },
+    "GET /api/organizations/{id}/public-overview":  {
+                                                        "data":  {
+                                                                     "id":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                     "name":  "Organization 1",
+                                                                     "description":  "Description for organization 1",
+                                                                     "avatarUrl":  "/images/mockimages/org-1.jpg",
+                                                                     "coverUrl":  "/images/mockimages/org-cover-1.jpg",
+                                                                     "location":  "Campus 1",
+                                                                     "foundingDate":  "2025-05-05",
+                                                                     "totalMembers":  10,
+                                                                     "isActive":  true,
+                                                                     "createdAtUtc":  "2026-05-05T15:46:26.922598+00:00",
+                                                                     "updatedAtUtc":  null
+                                                                 }
+                                                    },
+    "GET /api/organizations/{id}/permissions/me":  {
+                                                       "data":  {
+                                                                    "isAuthenticated":  true,
+                                                                    "isMember":  true,
+                                                                    "canAccessWorkspace":  true,
+                                                                    "canEditOverview":  true,
+                                                                    "canManageMembers":  true,
+                                                                    "canCreateEvents":  true,
+                                                                    "canViewRequests":  true,
+                                                                    "canReviewRequests":  true,
+                                                                    "canManageRoles":  true,
+                                                                    "canManageDepartments":  true,
+                                                                    "memberRole":  "President",
+                                                                    "permissionCodes":  [
+                                                                                            "module.permission.1",
+                                                                                            "module.permission.2",
+                                                                                            "module.permission.3"
+                                                                                        ]
+                                                                }
+                                                   },
+    "GET /api/organizations/{id}/roles":  {
+                                              "items":  [
+                                                            {
+                                                                "id":  "3b6f2a81-eda8-4ef9-b5f3-a6eb9a17523c",
+                                                                "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                "name":  "Manager",
+                                                                "description":  "Manager role",
+                                                                "isProtected":  false,
+                                                                "assignedMemberCount":  1,
+                                                                "permissionCodes":  [
+                                                                                        "module.permission.4",
+                                                                                        "module.permission.5"
+                                                                                    ]
+                                                            },
+                                                            {
+                                                                "id":  "15de49f8-9002-43f8-8d3d-b5ee9b44adfb",
+                                                                "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                "name":  "Member",
+                                                                "description":  "Member role",
+                                                                "isProtected":  true,
+                                                                "assignedMemberCount":  5,
+                                                                "permissionCodes":  [
+                                                                                        "module.permission.1",
+                                                                                        "module.permission.2",
+                                                                                        "module.permission.3"
+                                                                                    ]
+                                                            },
+                                                            {
+                                                                "id":  "b5bf1851-aaaf-47e9-9e32-83a778fe5e97",
+                                                                "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                "name":  "President",
+                                                                "description":  "President role",
+                                                                "isProtected":  true,
+                                                                "assignedMemberCount":  1,
+                                                                "permissionCodes":  [
+                                                                                        "module.permission.1",
+                                                                                        "module.permission.2",
+                                                                                        "module.permission.3"
+                                                                                    ]
+                                                            }
+                                                        ]
+                                          },
+    "GET /api/organizations/{orgId}/members":  {
+                                                   "items":  [
+                                                                 {
+                                                                     "id":  "cf1b7147-09a4-4d53-9bfe-2f610dfe6d06",
+                                                                     "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                     "departmentId":  "26ae7a3d-acb5-415f-8881-94abffd7c038",
+                                                                     "studentCode":  "MEM-CF1B7147",
+                                                                     "fullName":  "User 1",
+                                                                     "email":  "example1@gmail.com",
+                                                                     "role":  3,
+                                                                     "isActive":  true,
+                                                                     "joinedAtUtc":  "2026-05-05T15:46:28.143464+00:00"
+                                                                 },
+                                                                 {
+                                                                     "id":  "ba689ebb-8614-48ce-8197-3e9a674ad0e5",
+                                                                     "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                     "departmentId":  "b6507df3-b970-4cfa-8797-b2a6dd221928",
+                                                                     "studentCode":  "MEM-BA689EBB",
+                                                                     "fullName":  "User 13",
+                                                                     "email":  "example13@gmail.com",
+                                                                     "role":  0,
+                                                                     "isActive":  true,
+                                                                     "joinedAtUtc":  "2026-05-05T15:46:28.256704+00:00"
+                                                                 },
+                                                                 {
+                                                                     "id":  "6f8ecf1a-a9bb-4305-8278-ae224b89154b",
+                                                                     "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                     "departmentId":  "9b686a14-40e9-4b97-8328-3da95f1295e4",
+                                                                     "studentCode":  "MEM-6F8ECF1A",
+                                                                     "fullName":  "User 19",
+                                                                     "email":  "example19@gmail.com",
+                                                                     "role":  0,
+                                                                     "isActive":  true,
+                                                                     "joinedAtUtc":  "2026-05-05T15:46:28.257466+00:00"
+                                                                 },
+                                                                 {
+                                                                     "id":  "6ab081be-2f7e-421a-9f11-10d6d9bd9a1a",
+                                                                     "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                     "departmentId":  "b6507df3-b970-4cfa-8797-b2a6dd221928",
+                                                                     "studentCode":  "MEM-6AB081BE",
+                                                                     "fullName":  "User 25",
+                                                                     "email":  "example25@gmail.com",
+                                                                     "role":  0,
+                                                                     "isActive":  true,
+                                                                     "joinedAtUtc":  "2026-05-05T15:46:28.258174+00:00"
+                                                                 },
+                                                                 {
+                                                                     "id":  "008099eb-754c-4200-a40b-f8494a0a7564",
+                                                                     "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                     "departmentId":  "9b686a14-40e9-4b97-8328-3da95f1295e4",
+                                                                     "studentCode":  "MEM-008099EB",
+                                                                     "fullName":  "User 31",
+                                                                     "email":  "example31@gmail.com",
+                                                                     "role":  0,
+                                                                     "isActive":  true,
+                                                                     "joinedAtUtc":  "2026-05-05T15:46:28.258771+00:00"
+                                                                 },
+                                                                 {
+                                                                     "id":  "d3c923c0-b3d9-4c10-b235-ce6617e513f3",
+                                                                     "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                     "departmentId":  "b6507df3-b970-4cfa-8797-b2a6dd221928",
+                                                                     "studentCode":  "MEM-D3C923C0",
+                                                                     "fullName":  "User 37",
+                                                                     "email":  "example37@gmail.com",
+                                                                     "role":  0,
+                                                                     "isActive":  true,
+                                                                     "joinedAtUtc":  "2026-05-05T15:46:28.259422+00:00"
+                                                                 },
+                                                                 {
+                                                                     "id":  "51425903-8dc0-4634-b6b6-ec5550756ea3",
+                                                                     "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                     "departmentId":  "686e22f4-9fa8-4de0-8bf8-952c5a6ae151",
+                                                                     "studentCode":  "MEM-51425903",
+                                                                     "fullName":  "User 7",
+                                                                     "email":  "example7@gmail.com",
+                                                                     "role":  1,
+                                                                     "isActive":  true,
+                                                                     "joinedAtUtc":  "2026-05-05T15:46:28.255142+00:00"
+                                                                 }
+                                                             ]
+                                               },
+    "GET /api/organizations/{orgId}/departments":  {
+                                                       "items":  [
+                                                                     {
+                                                                         "id":  "26ae7a3d-acb5-415f-8881-94abffd7c038",
+                                                                         "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                         "code":  "CHỦNHIỆM",
+                                                                         "name":  "Chủ nhiệm",
+                                                                         "description":  "Func",
+                                                                         "managerMemberId":  null,
+                                                                         "memberCount":  1,
+                                                                         "createdAtUtc":  "2026-05-05T15:46:27.712749+00:00",
+                                                                         "updatedAtUtc":  null
+                                                                     },
+                                                                     {
+                                                                         "id":  "b6507df3-b970-4cfa-8797-b2a6dd221928",
+                                                                         "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                         "code":  "HẬUCẦN",
+                                                                         "name":  "Hậu cần",
+                                                                         "description":  "Func",
+                                                                         "managerMemberId":  null,
+                                                                         "memberCount":  3,
+                                                                         "createdAtUtc":  "2026-05-05T15:46:27.71275+00:00",
+                                                                         "updatedAtUtc":  null
+                                                                     },
+                                                                     {
+                                                                         "id":  "686e22f4-9fa8-4de0-8bf8-952c5a6ae151",
+                                                                         "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                         "code":  "QUẢNLÍ",
+                                                                         "name":  "Quản lí",
+                                                                         "description":  "Func",
+                                                                         "managerMemberId":  null,
+                                                                         "memberCount":  1,
+                                                                         "createdAtUtc":  "2026-05-05T15:46:27.71275+00:00",
+                                                                         "updatedAtUtc":  null
+                                                                     },
+                                                                     {
+                                                                         "id":  "9b686a14-40e9-4b97-8328-3da95f1295e4",
+                                                                         "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                         "code":  "TRUYỀNTH",
+                                                                         "name":  "Truyền thông",
+                                                                         "description":  "Func",
+                                                                         "managerMemberId":  null,
+                                                                         "memberCount":  2,
+                                                                         "createdAtUtc":  "2026-05-05T15:46:27.71275+00:00",
+                                                                         "updatedAtUtc":  null
+                                                                     }
+                                                                 ],
+                                                       "totalCount":  4,
+                                                       "page":  1,
+                                                       "pageSize":  20,
+                                                       "search":  null,
+                                                       "isActive":  null
+                                                   },
+    "GET /api/organizations/{orgId}/events":  {
+                                                  "items":  [
+                                                                {
+                                                                    "id":  "44efc168-fa29-4912-95c3-31d270d64958",
+                                                                    "name":  "Event 7 of Org 1",
+                                                                    "status":  1,
+                                                                    "startDate":  "2026-05-06",
+                                                                    "endDate":  "2026-05-07",
+                                                                    "milestoneCount":  3,
+                                                                    "categoryCount":  3,
+                                                                    "taskCount":  3,
+                                                                    "completedTaskCount":  0
+                                                                },
+                                                                {
+                                                                    "id":  "5ef1a732-2b3d-4f0a-ac94-183abbe06425",
+                                                                    "name":  "Event 6 of Org 1",
+                                                                    "status":  1,
+                                                                    "startDate":  "2026-05-06",
+                                                                    "endDate":  "2026-05-07",
+                                                                    "milestoneCount":  3,
+                                                                    "categoryCount":  3,
+                                                                    "taskCount":  3,
+                                                                    "completedTaskCount":  0
+                                                                },
+                                                                {
+                                                                    "id":  "13cf7c28-5557-4e24-8c95-3442075b4031",
+                                                                    "name":  "Event 5 of Org 1",
+                                                                    "status":  1,
+                                                                    "startDate":  "2026-05-06",
+                                                                    "endDate":  "2026-05-07",
+                                                                    "milestoneCount":  3,
+                                                                    "categoryCount":  3,
+                                                                    "taskCount":  6,
+                                                                    "completedTaskCount":  0
+                                                                },
+                                                                {
+                                                                    "id":  "c2ffadf5-af7e-4eac-96b1-24956445a081",
+                                                                    "name":  "Event 4 of Org 1",
+                                                                    "status":  1,
+                                                                    "startDate":  "2026-05-06",
+                                                                    "endDate":  "2026-05-07",
+                                                                    "milestoneCount":  3,
+                                                                    "categoryCount":  3,
+                                                                    "taskCount":  6,
+                                                                    "completedTaskCount":  0
+                                                                },
+                                                                {
+                                                                    "id":  "aecfc561-4612-4ff3-bacb-37092321acb2",
+                                                                    "name":  "Event 3 of Org 1",
+                                                                    "status":  1,
+                                                                    "startDate":  "2026-05-06",
+                                                                    "endDate":  "2026-05-07",
+                                                                    "milestoneCount":  3,
+                                                                    "categoryCount":  3,
+                                                                    "taskCount":  6,
+                                                                    "completedTaskCount":  0
+                                                                },
+                                                                {
+                                                                    "id":  "f4e4905c-3f2c-44a8-a272-83cfb89a5a49",
+                                                                    "name":  "Event 2 of Org 1",
+                                                                    "status":  1,
+                                                                    "startDate":  "2026-05-06",
+                                                                    "endDate":  "2026-05-07",
+                                                                    "milestoneCount":  3,
+                                                                    "categoryCount":  3,
+                                                                    "taskCount":  6,
+                                                                    "completedTaskCount":  0
+                                                                },
+                                                                {
+                                                                    "id":  "db52ce3a-023a-4e91-a52a-a4ac8bc6c72d",
+                                                                    "name":  "Event 1 of Org 1",
+                                                                    "status":  1,
+                                                                    "startDate":  "2026-05-06",
+                                                                    "endDate":  "2026-05-07",
+                                                                    "milestoneCount":  3,
+                                                                    "categoryCount":  3,
+                                                                    "taskCount":  6,
+                                                                    "completedTaskCount":  0
+                                                                }
+                                                            ]
+                                              },
+    "GET /api/events/{eventId}":  {
+                                      "data":  {
+                                                   "id":  "44efc168-fa29-4912-95c3-31d270d64958",
+                                                   "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                   "name":  "Event 7 of Org 1",
+                                                   "description":  "Desc",
+                                                   "startDate":  "2026-05-06",
+                                                   "endDate":  "2026-05-07",
+                                                   "status":  1,
+                                                   "visibility":  "MembersOnly",
+                                                   "createdAtUtc":  "2026-05-05T15:46:27.712747+00:00",
+                                                   "updatedAtUtc":  null,
+                                                   "tags":  [
+
+                                                            ]
+                                               }
+                                  },
+    "GET /api/events/{eventId}/milestones":  {
+                                                 "items":  [
+                                                               {
+                                                                   "id":  "38f2c1ea-af72-448c-ac8c-541644b10153",
+                                                                   "eventId":  "44efc168-fa29-4912-95c3-31d270d64958",
+                                                                   "name":  "Chuẩn bị",
+                                                                   "description":  null,
+                                                                   "startDate":  "2026-05-05",
+                                                                   "endDate":  "2026-05-06",
+                                                                   "sortOrder":  1,
+                                                                   "status":  1
+                                                               },
+                                                               {
+                                                                   "id":  "33962684-e884-4615-9f73-d2d4a5627cd7",
+                                                                   "eventId":  "44efc168-fa29-4912-95c3-31d270d64958",
+                                                                   "name":  "Bắt đầu",
+                                                                   "description":  null,
+                                                                   "startDate":  "2026-05-05",
+                                                                   "endDate":  "2026-05-06",
+                                                                   "sortOrder":  2,
+                                                                   "status":  1
+                                                               },
+                                                               {
+                                                                   "id":  "d329ed7f-ffec-41ef-bb46-f760c5c25578",
+                                                                   "eventId":  "44efc168-fa29-4912-95c3-31d270d64958",
+                                                                   "name":  "Kết thúc",
+                                                                   "description":  null,
+                                                                   "startDate":  "2026-05-05",
+                                                                   "endDate":  "2026-05-06",
+                                                                   "sortOrder":  3,
+                                                                   "status":  1
+                                                               }
+                                                           ]
+                                             },
+    "GET /api/milestones/{milestoneId}/categories":  {
+                                                         "items":  [
+                                                                       {
+                                                                           "id":  "85fd5b46-89bf-4e6a-aa81-0117f054dc7a",
+                                                                           "milestoneId":  "38f2c1ea-af72-448c-ac8c-541644b10153",
+                                                                           "name":  "Logistics",
+                                                                           "description":  null,
+                                                                           "sortOrder":  1,
+                                                                           "taskCount":  1,
+                                                                           "completedTaskCount":  0,
+                                                                           "ownerDepartmentId":  null,
+                                                                           "leadMemberId":  null,
+                                                                           "leadName":  null
+                                                                       }
+                                                                   ]
+                                                     },
+    "GET /api/categories/{categoryId}/tasks":  {
+                                                   "items":  [
+                                                                 {
+                                                                     "id":  "ccbd2687-65c4-4f0e-904b-ebc6725ddac9",
+                                                                     "categoryId":  "85fd5b46-89bf-4e6a-aa81-0117f054dc7a",
+                                                                     "assigneeMemberId":  "d3c923c0-b3d9-4c10-b235-ce6617e513f3",
+                                                                     "title":  "Task 34",
+                                                                     "description":  null,
+                                                                     "status":  0,
+                                                                     "dueDate":  null,
+                                                                     "priority":  1,
+                                                                     "createdAtUtc":  "2026-05-05T15:46:29.414996+00:00",
+                                                                     "updatedAtUtc":  null
+                                                                 }
+                                                             ]
+                                               },
+    "GET /api/notifications":  {
+                                   "items":  [
+
+                                             ],
+                                   "totalCount":  0,
+                                   "unreadCount":  0,
+                                   "page":  1,
+                                   "pageSize":  20
+                               },
+    "GET /api/organizations/{id}/requests":  {
+                                                 "items":  [
+                                                               {
+                                                                   "id":  "d8acbb90-0e5b-4bb1-924e-37a10f371167",
+                                                                   "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                   "requesterUserId":  "c38dc6d1-bff5-4f0f-96c6-310930cb7a08",
+                                                                   "requesterName":  "User 5",
+                                                                   "requesterEmail":  "example5@gmail.com",
+                                                                   "requesterAvatarUrl":  "/images/mockimages/user-5.jpg",
+                                                                   "requestType":  "JOIN",
+                                                                   "status":  "PENDING",
+                                                                   "title":  null,
+                                                                   "message":  "Request 5 of Org 1",
+                                                                   "desiredDepartment":  null,
+                                                                   "desiredPosition":  null,
+                                                                   "experience":  null,
+                                                                   "strengths":  null,
+                                                                   "reason":  null,
+                                                                   "reviewResponse":  null,
+                                                                   "reviewedByUserId":  null,
+                                                                   "createdAtUtc":  "2026-05-05T15:46:27.491703+00:00",
+                                                                   "reviewedAtUtc":  null
+                                                               },
+                                                               {
+                                                                   "id":  "4e7b3856-5961-4f88-88ac-2d2f68edcef4",
+                                                                   "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                   "requesterUserId":  "961397ee-e13b-41a7-a603-aa949abb1bd3",
+                                                                   "requesterName":  "User 4",
+                                                                   "requesterEmail":  "example4@gmail.com",
+                                                                   "requesterAvatarUrl":  "/images/mockimages/user-4.jpg",
+                                                                   "requestType":  "JOIN",
+                                                                   "status":  "PENDING",
+                                                                   "title":  null,
+                                                                   "message":  "Request 4 of Org 1",
+                                                                   "desiredDepartment":  null,
+                                                                   "desiredPosition":  null,
+                                                                   "experience":  null,
+                                                                   "strengths":  null,
+                                                                   "reason":  null,
+                                                                   "reviewResponse":  null,
+                                                                   "reviewedByUserId":  null,
+                                                                   "createdAtUtc":  "2026-05-05T15:46:27.491643+00:00",
+                                                                   "reviewedAtUtc":  null
+                                                               },
+                                                               {
+                                                                   "id":  "ca415e66-bd76-4d6d-a12a-3333ae466ba3",
+                                                                   "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                   "requesterUserId":  "50091c4e-5891-4ca1-8759-9d188cbe2ec0",
+                                                                   "requesterName":  "User 3",
+                                                                   "requesterEmail":  "example3@gmail.com",
+                                                                   "requesterAvatarUrl":  "/images/mockimages/user-3.jpg",
+                                                                   "requestType":  "JOIN",
+                                                                   "status":  "PENDING",
+                                                                   "title":  null,
+                                                                   "message":  "Request 3 of Org 1",
+                                                                   "desiredDepartment":  null,
+                                                                   "desiredPosition":  null,
+                                                                   "experience":  null,
+                                                                   "strengths":  null,
+                                                                   "reason":  null,
+                                                                   "reviewResponse":  null,
+                                                                   "reviewedByUserId":  null,
+                                                                   "createdAtUtc":  "2026-05-05T15:46:27.491591+00:00",
+                                                                   "reviewedAtUtc":  null
+                                                               },
+                                                               {
+                                                                   "id":  "4b5b0045-0685-41c7-a362-e9fcd43193c1",
+                                                                   "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                   "requesterUserId":  "f28f8c54-de74-42e1-9264-4218869cc193",
+                                                                   "requesterName":  "User 2",
+                                                                   "requesterEmail":  "example2@gmail.com",
+                                                                   "requesterAvatarUrl":  "/images/mockimages/user-2.jpg",
+                                                                   "requestType":  "JOIN",
+                                                                   "status":  "PENDING",
+                                                                   "title":  null,
+                                                                   "message":  "Request 2 of Org 1",
+                                                                   "desiredDepartment":  null,
+                                                                   "desiredPosition":  null,
+                                                                   "experience":  null,
+                                                                   "strengths":  null,
+                                                                   "reason":  null,
+                                                                   "reviewResponse":  null,
+                                                                   "reviewedByUserId":  null,
+                                                                   "createdAtUtc":  "2026-05-05T15:46:27.491496+00:00",
+                                                                   "reviewedAtUtc":  null
+                                                               },
+                                                               {
+                                                                   "id":  "0fd41f6e-52f8-416a-bfe0-83aacf4f1701",
+                                                                   "organizationId":  "d35c9b14-e873-47e7-b4f7-e30c6054925a",
+                                                                   "requesterUserId":  "f0abd1f8-125e-4e32-931a-8b708b369b5e",
+                                                                   "requesterName":  "User 1",
+                                                                   "requesterEmail":  "example1@gmail.com",
+                                                                   "requesterAvatarUrl":  "/images/mockimages/user-1.jpg",
+                                                                   "requestType":  "JOIN",
+                                                                   "status":  "PENDING",
+                                                                   "title":  null,
+                                                                   "message":  "Request 1 of Org 1",
+                                                                   "desiredDepartment":  null,
+                                                                   "desiredPosition":  null,
+                                                                   "experience":  null,
+                                                                   "strengths":  null,
+                                                                   "reason":  null,
+                                                                   "reviewResponse":  null,
+                                                                   "reviewedByUserId":  null,
+                                                                   "createdAtUtc":  "2026-05-05T15:46:27.455243+00:00",
+                                                                   "reviewedAtUtc":  null
+                                                               }
+                                                           ]
+                                             }
+}

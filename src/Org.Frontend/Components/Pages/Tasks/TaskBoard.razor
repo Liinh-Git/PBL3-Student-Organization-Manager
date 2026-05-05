@@ -154,6 +154,11 @@
             _category = categoryTask.Result;
             _tasks = tasksTask.Result;
             _canManageTasks = canManageTask.Result;
+            foreach (var task in _tasks)
+            {
+                task.Status = NormalizeTaskStatus(task.Status);
+                task.CanMarkCompleted = _canManageTasks;
+            }
 
             var eventDetail = eventTask.Result;
             if (eventDetail is not null)
@@ -194,7 +199,7 @@
     }
 
     private bool CanCompleteTask(TaskViewModel task)
-        => task.Status != "DONE" && task.CanMarkCompleted;
+        => !string.Equals(NormalizeTaskStatus(task.Status), "DONE", StringComparison.OrdinalIgnoreCase) && task.CanMarkCompleted;
 
     private async Task MarkDoneAsync(TaskViewModel task)
     {
@@ -213,7 +218,15 @@
         if (dropItem.Item is null || string.IsNullOrWhiteSpace(dropItem.DropzoneIdentifier))
             return;
 
-        var nextStatus = dropItem.DropzoneIdentifier;
+        var nextStatus = NormalizeTaskStatus(dropItem.DropzoneIdentifier);
+        var currentStatus = NormalizeTaskStatus(dropItem.Item.Status);
+
+        if (!IsLegalTransition(currentStatus, nextStatus))
+        {
+            Snackbar.Add("Trang thai task khong hop le theo luong TODO -> IN_PROGRESS -> DONE.", Severity.Warning);
+            await ReloadTasksAsync();
+            return;
+        }
 
         if (string.Equals(nextStatus, "DONE", StringComparison.OrdinalIgnoreCase) && !CanCompleteTask(dropItem.Item))
         {
@@ -237,6 +250,12 @@
     private async Task ReloadTasksAsync()
     {
         _tasks = await TaskService.GetTasksAsync(CategoryId);
+        foreach (var task in _tasks)
+        {
+            task.Status = NormalizeTaskStatus(task.Status);
+            task.CanMarkCompleted = _canManageTasks;
+        }
+
         StateHasChanged();
     }
 
@@ -321,5 +340,30 @@
             return false;
 
         return true;
+    }
+
+    private static string NormalizeTaskStatus(string? status)
+    {
+        return status?.Trim().ToUpperInvariant() switch
+        {
+            "IN_PROGRESS" => "IN_PROGRESS",
+            "DONE" => "DONE",
+            _ => "TODO"
+        };
+    }
+
+    private static bool IsLegalTransition(string currentStatus, string nextStatus)
+    {
+        if (string.Equals(currentStatus, nextStatus, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return (currentStatus, nextStatus) switch
+        {
+            ("TODO", "IN_PROGRESS") => true,
+            ("IN_PROGRESS", "DONE") => true,
+            _ => false
+        };
     }
 }

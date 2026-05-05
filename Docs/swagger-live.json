@@ -1,0 +1,6252 @@
+﻿{
+  "x-generator": "NSwag v14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))",
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Org.Backend API",
+    "description": "API cho dự án quản lý tổ chức",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5058"
+    }
+  ],
+  "paths": {
+    "/api/users/me": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersGetCurrentUserProfileEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersGetCurrentUserProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersUpdateCurrentUserProfileEndpoint",
+        "requestBody": {
+          "x-name": "UpdateCurrentUserProfileRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesUsersUpdateCurrentUserProfileRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersUserProfileDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/organizations": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersGetMyOrganizationsEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersGetMyOrganizationsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/discover/organizations": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersGetSuggestedOrganizationsEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersGetSuggestedOrganizationsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersGetUserByIdEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersGetUserByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/change-password": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersChangePasswordEndpoint",
+        "requestBody": {
+          "x-name": "ChangePasswordRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesUsersChangePasswordRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/batch": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersGetUserProfilesBatchEndpoint",
+        "requestBody": {
+          "x-name": "List`1",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "guid"
+                }
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersGetUserProfilesBatchResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/friend-request": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersSendFriendRequestEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersFriendRequestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/friend-requests": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersGetFriendRequestsEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersGetFriendRequestsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/friend-requests/{id}/accept": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersAcceptFriendRequestEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersFriendRequestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/friend-requests/{id}": {
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersRejectFriendRequestEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/friends": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersGetFriendsEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersGetFriendsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/friends/{id}": {
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesUsersUnfriendEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/categories/{categoryId}/tasks": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesTasksCreateTaskEndpoint",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "CreateTaskRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesTasksCreateTaskRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesTasksTaskDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesTasksGetTasksEndpoint",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesTasksGetTasksResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesTasksGetTaskByIdEndpoint",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesTasksGetTaskByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesTasksUpdateTaskEndpoint",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateTaskRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesTasksUpdateTaskRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesTasksTaskDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesTasksDeleteTaskEndpoint",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}/status": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesTasksUpdateTaskStatusEndpoint",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateTaskStatusRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesTasksUpdateTaskStatusRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesTasksTaskDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}/assign": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesTasksUpdateTaskAssignEndpoint",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "AssignTaskRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesTasksAssignTaskRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesTasksTaskDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}/restore": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesTasksRestoreTaskEndpoint",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesTasksTaskDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/requests": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesRequestsGetOrganizationRequestsEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesRequestsGetOrganizationRequestsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesRequestsCreateOrganizationRequestEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "CreateOrganizationRequestSubmissionRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesRequestsCreateOrganizationRequestSubmissionRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesRequestsOrganizationRequestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/requests/{requestId}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesRequestsGetOrganizationRequestByIdEndpoint",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesRequestsGetOrganizationRequestByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/requests/{requestId}/review": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesRequestsReviewOrganizationRequestEndpoint",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "ReviewOrganizationRequestSubmissionRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesRequestsReviewOrganizationRequestSubmissionRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesRequestsOrganizationRequestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/posts": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesPostsCreatePostEndpoint",
+        "requestBody": {
+          "x-name": "CreatePostRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesPostsCreatePostRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesPostsOrganizationPostDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{orgId}/posts": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesPostsGetOrganizationPostsEndpoint",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesPostsGetPostsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/posts/discover": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesPostsGetDiscoverPostsEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesPostsGetDiscoverPostsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/posts/{id}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesPostsGetPostByIdEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesPostsGetPostByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesPostsDeletePostEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsGetOrganizationsEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsGetOrganizationsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsCreateOrganizationEndpoint",
+        "requestBody": {
+          "x-name": "CreateOrganizationRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsCreateOrganizationRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/default": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsGetDefaultOrganizationEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsGetDefaultOrganizationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsGetOrganizationByIdEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsGetOrganizationByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsUpdateOrganizationEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateOrganizationRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsUpdateOrganizationRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsDeleteOrganizationEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/restore": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsRestoreOrganizationEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/public-overview": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsGetPublicOrganizationOverviewEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsGetPublicOrganizationOverviewResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/permissions/me": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsGetOrganizationPermissionsMeEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsGetOrganizationPermissionsMeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/permissions": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsGetOrganizationPermissionsCatalogEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsGetOrganizationPermissionsCatalogResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/roles": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsGetOrganizationRolesEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsGetOrganizationRolesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsCreateOrganizationRoleEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpsertOrganizationRoleRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsUpsertOrganizationRoleRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationRoleDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/roles/{roleId}": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsUpdateOrganizationRoleEndpoint",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpsertOrganizationRoleRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsUpsertOrganizationRoleRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationRoleDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsDeleteOrganizationRoleEndpoint",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/members/{memberId}/role": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesOrganizationsAssignRoleToOrganizationMemberEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "AssignOrganizationRoleRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsAssignOrganizationRoleRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMembersMemberDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesNotificationsGetNotificationsEndpoint",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1,
+              "nullable": false
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20,
+              "nullable": false
+            }
+          },
+          {
+            "name": "IsRead",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            }
+          },
+          {
+            "name": "Type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsGetNotificationsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/notifications/unread-count": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesNotificationsGetUnreadCountEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsGetUnreadCountResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesNotificationsGetNotificationByIdEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsGetNotificationByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesNotificationsDeleteNotificationEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}/read": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesNotificationsMarkAsReadEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsMarkAsReadResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/notifications/read-all": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesNotificationsMarkAllAsReadEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsMarkAllAsReadResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/notifications/clear-all": {
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesNotificationsClearAllNotificationsEndpoint",
+        "requestBody": {
+          "x-name": "ClearNotificationsRequest",
+          "description": "",
+          "content": {
+            "*/*": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsClearNotificationsRequest"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsClearNotificationsRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsClearNotificationsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/milestones": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMilestonesCreateMilestoneEndpoint",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "CreateMilestoneRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesMilestonesCreateMilestoneRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMilestonesMilestoneDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMilestonesGetMilestonesEndpoint",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMilestonesGetMilestonesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/milestones/{id}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMilestonesGetMilestoneByIdEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMilestonesGetMilestoneByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMilestonesUpdateMilestoneEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateMilestoneRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesMilestonesUpdateMilestoneRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMilestonesMilestoneDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMilestonesDeleteMilestoneEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/milestones/{id}/restore": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMilestonesRestoreMilestoneEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMilestonesMilestoneDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{orgId}/members": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMembersGetMembersEndpoint",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMembersGetMembersResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMembersCreateMemberEndpoint",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "CreateMemberRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesMembersCreateMemberRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMembersMemberDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/members/{id}/role": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMembersUpdateMemberRoleEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateMemberRoleRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesMembersUpdateMemberRoleRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMembersMemberDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/members/{id}/department": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMembersUpdateMemberDepartmentEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateMemberDepartmentRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesMembersUpdateMemberDepartmentRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMembersMemberDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/members/{id}": {
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMembersDeleteMemberEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{orgId}/leave": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesMembersLeaveOrganizationEndpoint",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{orgId}/events": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsGetOrganizationEventsEndpoint",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsGetOrganizationEventsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/events": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsGetMyRegisteredEventsEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersGetMyRegisteredEventsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/me/discover/events": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsGetSuggestedEventsEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesUsersGetSuggestedEventsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsCreateEventEndpoint",
+        "requestBody": {
+          "x-name": "CreateEventRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesEventsCreateEventRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/events/{id}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsGetEventByIdEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsGetEventByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsUpdateEventEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateEventRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesEventsUpdateEventRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsDeleteEventEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/events/{id}/restore": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsRestoreEventEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/events/{id}/visibility": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsUpdateEventVisibilityEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateEventVisibilityRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesEventsUpdateEventVisibilityRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/events/public": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsGetPublicEventsEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsGetPublicEventsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/events/{id}/public": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsGetPublicEventByIdEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsGetEventByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/ratings": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsCreateEventRatingEndpoint",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "CreateEventRatingRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesEventsCreateEventRatingRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventRatingDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsGetEventRatingsEndpoint",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsGetEventRatingsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/ratings/stats": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsGetEventRatingStatsEndpoint",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventsGetEventRatingStatsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/ratings/{id}": {
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventsDeleteEventRatingEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/milestones/{milestoneId}/categories": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventCategoriesCreateEventCategoryEndpoint",
+        "parameters": [
+          {
+            "name": "milestoneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "CreateEventCategoryRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesEventCategoriesCreateEventCategoryRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventCategoriesEventCategoryDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventCategoriesGetEventCategoriesEndpoint",
+        "parameters": [
+          {
+            "name": "milestoneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventCategoriesGetEventCategoriesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/categories/{id}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventCategoriesGetEventCategoryByIdEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventCategoriesGetEventCategoryByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventCategoriesUpdateEventCategoryEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateEventCategoryRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesEventCategoriesUpdateEventCategoryRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventCategoriesEventCategoryDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventCategoriesDeleteEventCategoryEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/categories/{id}/restore": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesEventCategoriesRestoreEventCategoryEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesEventCategoriesEventCategoryDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/organizations/{orgId}/departments": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsGetDepartmentsEndpoint",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsGetDepartmentsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/departments/{id}": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsGetDepartmentByIdEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsGetDepartmentByIdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsUpdateDepartmentEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateDepartmentRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsUpdateDepartmentRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsDepartmentDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsDeleteDepartmentEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/departments": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsCreateDepartmentEndpoint",
+        "requestBody": {
+          "x-name": "CreateDepartmentRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsCreateDepartmentRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsDepartmentDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/departments/{id}/restore": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsRestoreDepartmentEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsDepartmentDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/departments/{id}/manager": {
+      "put": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsUpdateDepartmentManagerEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "x-name": "UpdateDepartmentManagerRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsUpdateDepartmentManagerRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsDepartmentDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/departments/{id}/members": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsGetDepartmentMembersEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsGetDepartmentMembersResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/departments/{id}/members/{memberId}": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsAssignDepartmentMemberEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesMembersMemberDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsRemoveDepartmentMemberEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/departments/{id}/tasks/overview": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesDepartmentsGetDepartmentTasksOverviewEndpoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsGetDepartmentTasksOverviewResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesAuthLoginEndpoint",
+        "requestBody": {
+          "x-name": "LoginRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesAuthLoginRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesAuthLoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesAuthMeEndpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesAuthMeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesAuthRegisterEndpoint",
+        "requestBody": {
+          "x-name": "RegisterRequest",
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgSharedFeaturesAuthRegisterRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgSharedFeaturesAuthRegisterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/apply-migration": {
+      "post": {
+        "tags": [
+          "Api"
+        ],
+        "operationId": "OrgBackendFeaturesAdminApplyMigrationEndpoint",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrgSharedFeaturesUsersGetCurrentUserProfileResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesUsersUserProfileDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersUserProfileDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "PhoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "DateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "Gender": {
+            "type": "string",
+            "nullable": true
+          },
+          "Address": {
+            "type": "string",
+            "nullable": true
+          },
+          "AvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "Bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "SocialLinksJson": {
+            "type": "string",
+            "nullable": true
+          },
+          "Status": {
+            "type": "string"
+          },
+          "ProfileVisibility": {
+            "type": "string"
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastLoginAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersGetMyOrganizationsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesUsersMyOrganizationDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersMyOrganizationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationName": {
+            "type": "string"
+          },
+          "OrganizationDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "OrganizationAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "JoinedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "MemberRole": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersGetSuggestedOrganizationsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesUsersSuggestedOrganizationDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersSuggestedOrganizationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationName": {
+            "type": "string"
+          },
+          "OrganizationDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "OrganizationImageUrl": {
+            "type": "string"
+          },
+          "TotalMembers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Location": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersGetUserByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesUsersUserProfileDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersUpdateCurrentUserProfileRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "FullName": {
+            "type": "string"
+          },
+          "PhoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "DateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "Gender": {
+            "type": "string",
+            "nullable": true
+          },
+          "Address": {
+            "type": "string",
+            "nullable": true
+          },
+          "AvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "Bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "SocialLinksJson": {
+            "type": "string",
+            "nullable": true
+          },
+          "ProfileVisibility": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersChangePasswordRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "CurrentPassword": {
+            "type": "string"
+          },
+          "NewPassword": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersGetUserProfilesBatchResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesUsersUserProfileDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersFriendRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "SenderId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "SenderName": {
+            "type": "string"
+          },
+          "SenderAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReceiverId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "ReceiverName": {
+            "type": "string"
+          },
+          "ReceiverAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "Status": {
+            "type": "string"
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "RespondedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersGetFriendRequestsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesUsersFriendRequestDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersGetFriendsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesUsersFriendDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersFriendDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "AvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "Bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "FriendsSinceUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrgSharedFeaturesTasksTaskDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "CategoryId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "AssigneeMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "Status": {
+            "$ref": "#/components/schemas/OrgSharedTaskStatus"
+          },
+          "DueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "Priority": {
+            "$ref": "#/components/schemas/OrgSharedTaskPriority"
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedTaskStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Todo",
+          "InProgress",
+          "Done"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "OrgSharedTaskPriority": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Low",
+          "Medium",
+          "High"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "OrgSharedFeaturesTasksCreateTaskRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Title": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "AssigneeMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "DueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "Priority": {
+            "$ref": "#/components/schemas/OrgSharedTaskPriority"
+          }
+        }
+      },
+      "OrgSharedFeaturesTasksGetTasksResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesTasksTaskDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesTasksGetTaskByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesTasksTaskDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesTasksUpdateTaskRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Title": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "AssigneeMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "DueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "Priority": {
+            "$ref": "#/components/schemas/OrgSharedTaskPriority"
+          }
+        }
+      },
+      "OrgSharedFeaturesTasksUpdateTaskStatusRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Status": {
+            "$ref": "#/components/schemas/OrgSharedTaskStatus"
+          }
+        }
+      },
+      "OrgSharedFeaturesTasksAssignTaskRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "AssigneeMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesRequestsGetOrganizationRequestsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesRequestsOrganizationRequestDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesRequestsOrganizationRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "RequesterUserId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "RequesterName": {
+            "type": "string"
+          },
+          "RequesterEmail": {
+            "type": "string"
+          },
+          "RequesterAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "RequestType": {
+            "type": "string"
+          },
+          "Status": {
+            "type": "string"
+          },
+          "Title": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "DesiredDepartment": {
+            "type": "string",
+            "nullable": true
+          },
+          "DesiredPosition": {
+            "type": "string",
+            "nullable": true
+          },
+          "Experience": {
+            "type": "string",
+            "nullable": true
+          },
+          "Strengths": {
+            "type": "string",
+            "nullable": true
+          },
+          "Reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReviewResponse": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReviewedByUserId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ReviewedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesRequestsGetOrganizationRequestByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesRequestsOrganizationRequestDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesRequestsCreateOrganizationRequestSubmissionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "RequestType": {
+            "type": "string"
+          },
+          "Title": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "DesiredDepartment": {
+            "type": "string",
+            "nullable": true
+          },
+          "DesiredPosition": {
+            "type": "string",
+            "nullable": true
+          },
+          "Experience": {
+            "type": "string",
+            "nullable": true
+          },
+          "Strengths": {
+            "type": "string",
+            "nullable": true
+          },
+          "Reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesRequestsReviewOrganizationRequestSubmissionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Decision": {
+            "type": "string"
+          },
+          "ResponseMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesPostsOrganizationPostDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationName": {
+            "type": "string"
+          },
+          "OrganizationAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Content": {
+            "type": "string"
+          },
+          "ImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "PostType": {
+            "type": "string"
+          },
+          "Visibility": {
+            "type": "string"
+          },
+          "TargetDepartmentId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "TargetDepartmentName": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreatedBy": {
+            "type": "string",
+            "format": "guid"
+          },
+          "CreatorName": {
+            "type": "string"
+          },
+          "CreatorAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "RelatedEventId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "RelatedEventName": {
+            "type": "string",
+            "nullable": true
+          },
+          "ViewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "LikeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesPostsCreatePostRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Content": {
+            "type": "string"
+          },
+          "ImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "PostType": {
+            "type": "string"
+          },
+          "Visibility": {
+            "type": "string"
+          },
+          "TargetDepartmentId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "RelatedEventId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesPostsGetPostsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesPostsOrganizationPostDto"
+            }
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedFeaturesPostsGetDiscoverPostsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesPostsDiscoverPostDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesPostsDiscoverPostDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationName": {
+            "type": "string"
+          },
+          "OrganizationAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Content": {
+            "type": "string"
+          },
+          "ImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "PostType": {
+            "type": "string"
+          },
+          "CreatedBy": {
+            "type": "string",
+            "format": "guid"
+          },
+          "CreatorName": {
+            "type": "string"
+          },
+          "CreatorAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "RelatedEventId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "RelatedEventName": {
+            "type": "string",
+            "nullable": true
+          },
+          "ViewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "LikeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrgSharedFeaturesPostsGetPostByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesPostsOrganizationPostDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsGetOrganizationsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationSummaryDto"
+            }
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Search": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsActive": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsOrganizationSummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsGetDefaultOrganizationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationSummaryDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsGetOrganizationByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsOrganizationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "AvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "CoverUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "FoundingDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "Location": {
+            "type": "string",
+            "nullable": true
+          },
+          "TotalMembers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsCreateOrganizationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "AvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "CoverUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "FoundingDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "Location": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsUpdateOrganizationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "AvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "CoverUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "FoundingDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "Location": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsGetPublicOrganizationOverviewResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsPublicOrganizationOverviewDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsPublicOrganizationOverviewDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "AvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "CoverUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "Location": {
+            "type": "string",
+            "nullable": true
+          },
+          "FoundingDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "TotalMembers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsGetOrganizationPermissionsMeResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationPermissionDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsOrganizationPermissionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "IsAuthenticated": {
+            "type": "boolean"
+          },
+          "IsMember": {
+            "type": "boolean"
+          },
+          "CanAccessWorkspace": {
+            "type": "boolean"
+          },
+          "CanEditOverview": {
+            "type": "boolean"
+          },
+          "CanManageMembers": {
+            "type": "boolean"
+          },
+          "CanCreateEvents": {
+            "type": "boolean"
+          },
+          "CanViewRequests": {
+            "type": "boolean"
+          },
+          "CanReviewRequests": {
+            "type": "boolean"
+          },
+          "CanManageRoles": {
+            "type": "boolean"
+          },
+          "CanManageDepartments": {
+            "type": "boolean"
+          },
+          "MemberRole": {
+            "type": "string",
+            "nullable": true
+          },
+          "PermissionCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsGetOrganizationPermissionsCatalogResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsPermissionCatalogItemDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsPermissionCatalogItemDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Code": {
+            "type": "string"
+          },
+          "Label": {
+            "type": "string"
+          },
+          "Group": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsGetOrganizationRolesResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesOrganizationsOrganizationRoleDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsOrganizationRoleDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsProtected": {
+            "type": "boolean"
+          },
+          "AssignedMemberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PermissionCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesOrganizationsUpsertOrganizationRoleRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "PermissionCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesMembersMemberDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "DepartmentId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "StudentCode": {
+            "type": "string"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Role": {
+            "$ref": "#/components/schemas/OrgSharedMemberRole"
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "JoinedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrgSharedMemberRole": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Member",
+          "Manager",
+          "VicePresident",
+          "President"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "OrgSharedFeaturesOrganizationsAssignOrganizationRoleRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "RoleId": {
+            "type": "string",
+            "format": "guid"
+          }
+        }
+      },
+      "OrgSharedFeaturesNotificationsGetNotificationsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsNotificationDto"
+            }
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "UnreadCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedFeaturesNotificationsNotificationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Message": {
+            "type": "string"
+          },
+          "Type": {
+            "type": "string"
+          },
+          "IsRead": {
+            "type": "boolean"
+          },
+          "ReadAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ActionUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "IconUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "Actor": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsNotificationActorDto"
+              }
+            ]
+          },
+          "CreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrgSharedFeaturesNotificationsNotificationActorDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "AvatarUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesNotificationsGetNotificationsRequest": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "OrgSharedFeaturesNotificationsGetUnreadCountResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedFeaturesNotificationsGetNotificationByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsNotificationDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesNotificationsMarkAsReadResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesNotificationsNotificationDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesNotificationsMarkAllAsReadResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "UpdatedCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedFeaturesNotificationsClearNotificationsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "DeletedCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedFeaturesNotificationsClearNotificationsRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "OnlyRead": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrgSharedFeaturesMilestonesMilestoneDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "EventId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "SortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/OrgSharedMilestoneStatus"
+          }
+        }
+      },
+      "OrgSharedMilestoneStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "NotStarted",
+          "InProgress",
+          "Completed"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "OrgSharedFeaturesMilestonesCreateMilestoneRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "SortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedFeaturesMilestonesGetMilestonesResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesMilestonesMilestoneDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesMilestonesGetMilestoneByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesMilestonesMilestoneDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesMilestonesUpdateMilestoneRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "SortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/OrgSharedMilestoneStatus"
+          }
+        }
+      },
+      "OrgSharedFeaturesMembersGetMembersResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesMembersMemberDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesMembersCreateMemberRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "FullName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "DepartmentId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesMembersUpdateMemberRoleRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Role": {
+            "$ref": "#/components/schemas/OrgSharedMemberRole"
+          }
+        }
+      },
+      "OrgSharedFeaturesMembersUpdateMemberDepartmentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "DepartmentId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsGetOrganizationEventsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventTreeNodeDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsEventTreeNodeDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/OrgSharedEventStatus"
+          },
+          "StartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "MilestoneCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CategoryCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TaskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CompletedTaskCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedEventStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Draft",
+          "Planning",
+          "Ongoing",
+          "Completed"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "OrgSharedFeaturesUsersGetMyRegisteredEventsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesUsersMyRegisteredEventDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersMyRegisteredEventDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "EventId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationName": {
+            "type": "string"
+          },
+          "EventName": {
+            "type": "string"
+          },
+          "EventDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EventStatus": {
+            "$ref": "#/components/schemas/OrgSharedEventStatus"
+          },
+          "RegistrationStatus": {
+            "type": "string"
+          },
+          "RegisteredAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Location": {
+            "type": "string",
+            "nullable": true
+          },
+          "EventImageUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersGetSuggestedEventsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesUsersSuggestedEventDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesUsersSuggestedEventDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "EventId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationName": {
+            "type": "string"
+          },
+          "EventName": {
+            "type": "string"
+          },
+          "EventDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EventStatus": {
+            "$ref": "#/components/schemas/OrgSharedEventStatus"
+          },
+          "Location": {
+            "type": "string",
+            "nullable": true
+          },
+          "EventImageUrl": {
+            "type": "string"
+          },
+          "RegisteredCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsEventDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/OrgSharedEventStatus"
+          },
+          "Visibility": {
+            "type": "string"
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "Tags": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsCreateEventRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "Tags": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsGetEventByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsUpdateEventRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "EndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/OrgSharedEventStatus"
+          },
+          "Tags": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "Visibility": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsUpdateEventVisibilityRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Visibility": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsGetPublicEventsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventTreeNodeDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsEventRatingDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "EventId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "UserId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "UserName": {
+            "type": "string"
+          },
+          "UserAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "Rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Aspect": {
+            "type": "string"
+          },
+          "Comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsCreateEventRatingRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Aspect": {
+            "type": "string"
+          },
+          "Comment": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsGetEventRatingsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventRatingDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsGetEventRatingStatsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesEventsEventRatingStatsDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesEventsEventRatingStatsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "EventId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "AverageOverall": {
+            "type": "number",
+            "format": "float"
+          },
+          "AverageOrganization": {
+            "type": "number",
+            "format": "float"
+          },
+          "AverageContent": {
+            "type": "number",
+            "format": "float"
+          },
+          "AverageVenue": {
+            "type": "number",
+            "format": "float"
+          },
+          "AverageFood": {
+            "type": "number",
+            "format": "float"
+          },
+          "TotalRatings": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "RatingDistribution": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesEventCategoriesEventCategoryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "MilestoneId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "SortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TaskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CompletedTaskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "OwnerDepartmentId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "LeadMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "LeadName": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesEventCategoriesCreateEventCategoryRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "SortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedFeaturesEventCategoriesGetEventCategoriesResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesEventCategoriesEventCategoryDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesEventCategoriesGetEventCategoryByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesEventCategoriesEventCategoryDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesEventCategoriesUpdateEventCategoryRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "SortOrder": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "OrgSharedFeaturesDepartmentsGetDepartmentsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsDepartmentDto"
+            }
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Search": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsActive": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesDepartmentsDepartmentDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Code": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "ManagerMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "MemberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UpdatedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesDepartmentsGetDepartmentByIdResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Data": {
+            "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsDepartmentDto"
+          }
+        }
+      },
+      "OrgSharedFeaturesDepartmentsCreateDepartmentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "OrganizationId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Code": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "ManagerMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesDepartmentsUpdateDepartmentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Code": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "ManagerMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesDepartmentsUpdateDepartmentManagerRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ManagerMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesDepartmentsGetDepartmentMembersResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesMembersMemberDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesDepartmentsGetDepartmentTasksOverviewResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "DepartmentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "TotalTasks": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "OpenTaskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CompletedTaskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgSharedFeaturesDepartmentsDepartmentTaskOverviewItemDto"
+            }
+          }
+        }
+      },
+      "OrgSharedFeaturesDepartmentsDepartmentTaskOverviewItemDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "TaskId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "Title": {
+            "type": "string"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/OrgSharedTaskStatus"
+          },
+          "Priority": {
+            "$ref": "#/components/schemas/OrgSharedTaskPriority"
+          },
+          "DueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "AssigneeMemberId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "AssigneeName": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OrgSharedFeaturesAuthLoginResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "AccessToken": {
+            "type": "string"
+          },
+          "ExpiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "UserId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgSharedFeaturesAuthLoginRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "Email": {
+            "type": "string"
+          },
+          "Password": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgSharedFeaturesAuthMeResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Status": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgSharedFeaturesAuthRegisterResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "FullName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          }
+        }
+      },
+      "OrgSharedFeaturesAuthRegisterRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "FullName": {
+            "type": "string"
+          },
+          "Email": {
+            "type": "string"
+          },
+          "Password": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "JWTBearerAuth": {
+        "type": "http",
+        "description": "Enter a JWT token to authorize the requests...",
+        "scheme": "Bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

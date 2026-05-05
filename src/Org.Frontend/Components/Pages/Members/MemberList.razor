@@ -285,6 +285,7 @@
                                     <div class="member-actions-group">
                                         <button class="member-row-action action-view"
                                                 type="button"
+                                                disabled="@(!CanOpenMemberProfile(member))"
                                                 @onclick="() => OpenMemberProfile(member)"
                                                 aria-label="Xem chi tiet">
                                             <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
@@ -347,6 +348,7 @@
     private bool _canManageMembers;
     private bool _canManageRoles;
     private Guid? _currentUserId;
+    private string? _currentUserEmail;
 
     private List<OrganizationRoleViewModel> _roles = [];
     private List<AssignRoleDialog.RoleOption> RoleOptions { get; set; } = [];
@@ -392,6 +394,7 @@
     {
         CurrentOrganizationId ??= await OrganizationContext.GetOrganizationIdAsync();
         _currentUserId = await ResolveCurrentUserIdAsync();
+        _currentUserEmail = await ResolveCurrentUserEmailAsync();
         _canManageMembers = await MemberService.CanManageOrganizationMembersAsync(CurrentOrganizationId.Value);
         _canManageRoles = await OrganizationRoleService.CanManageRolesAsync(CurrentOrganizationId.Value);
         Departments = await DepartmentService.GetDepartments(CurrentOrganizationId.Value);
@@ -852,7 +855,7 @@
             return false;
         }
 
-        if (_currentUserId.HasValue && member.UserId == _currentUserId.Value)
+        if (IsCurrentUserMember(member))
         {
             return false;
         }
@@ -881,12 +884,22 @@
 
     private MemberDto? ResolveCurrentActorMember()
     {
-        if (!_currentUserId.HasValue)
+        if (_currentUserId.HasValue)
         {
-            return null;
+            var byUserId = Members.FirstOrDefault(x => x.UserId == _currentUserId.Value);
+            if (byUserId is not null)
+            {
+                return byUserId;
+            }
         }
 
-        return Members.FirstOrDefault(x => x.UserId == _currentUserId.Value);
+        if (!string.IsNullOrWhiteSpace(_currentUserEmail))
+        {
+            return Members.FirstOrDefault(x =>
+                string.Equals(x.Email, _currentUserEmail, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return null;
     }
 
     private static int ResolveMemberRoleRank(string? roleName)
@@ -942,7 +955,15 @@
     }
 
     private void OpenMemberProfile(MemberDto member)
-        => Navigation.NavigateTo($"/user/profile/{member.UserId:D}");
+    {
+        if (!CanOpenMemberProfile(member))
+        {
+            Snackbar.Add("Thong tin user profile chua san sang tu live member API.", Severity.Info);
+            return;
+        }
+
+        Navigation.NavigateTo($"/user/profile/{member.UserId:D}");
+    }
 
     private async Task<Guid?> ResolveCurrentUserIdAsync()
     {
@@ -950,6 +971,28 @@
         var userIdText = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return Guid.TryParse(userIdText, out var userId) ? userId : null;
     }
+
+    private async Task<string?> ResolveCurrentUserEmailAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var email = authState.User.FindFirst(ClaimTypes.Email)?.Value;
+        return string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+    }
+
+    private bool IsCurrentUserMember(MemberDto member)
+    {
+        if (_currentUserId.HasValue && member.UserId == _currentUserId.Value)
+        {
+            return true;
+        }
+
+        return !string.IsNullOrWhiteSpace(_currentUserEmail)
+            && !string.IsNullOrWhiteSpace(member.Email)
+            && string.Equals(member.Email, _currentUserEmail, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool CanOpenMemberProfile(MemberDto member)
+        => member.UserId != Guid.Empty;
 
     private string GetDepartmentName(Guid? departmentId)
     {

@@ -37,15 +37,8 @@ else
                 <h1 class="hero-title">@_event.Name</h1>
                 <p class="hero-summary">@(_event.Description ?? "Su kien dang cap nhat noi dung.")</p>
                 <div class="hero-actions">
-                    <button class="btn-main @(_isRegistered ? "registered" : "")" @onclick="ToggleRegistrationAsync" disabled="@_processingRegistration">
-                        @if (_isRegistered)
-                        {
-                            <i class="fas fa-user-check"></i> <span>Da dang ky</span>
-                        }
-                        else
-                        {
-                            <i class="fas fa-bolt"></i> <span>Dang ky tham gia</span>
-                        }
+                    <button class="btn-main" type="button" disabled>
+                        <i class="fas fa-ban"></i> <span>Dang ky tham gia (Coming soon)</span>
                     </button>
                 </div>
             </div>
@@ -82,8 +75,6 @@ else
 
     private EventViewModel? _event;
     private bool _isLoading = true;
-    private bool _isRegistered;
-    private bool _processingRegistration;
     private int _registeredCount;
     private string? _errorMessage;
     private string? _safeReturnUrl;
@@ -106,8 +97,6 @@ else
             {
                 _registeredCount = _event.RegisteredCount;
             }
-
-            await ResolveRegistrationStateAsync();
         }
         catch (Exception ex)
         {
@@ -117,51 +106,6 @@ else
         finally
         {
             _isLoading = false;
-        }
-    }
-
-    private async Task ResolveRegistrationStateAsync()
-    {
-        try
-        {
-            var myEvents = await EventService.GetMyEventsAsync();
-            _isRegistered = myEvents.AttendeeEvents.Any(x => x.EventId == EventId)
-                || myEvents.OrganizerEvents.Any(x => x.EventId == EventId);
-        }
-        catch
-        {
-            _isRegistered = false;
-        }
-    }
-
-    private async Task ToggleRegistrationAsync()
-    {
-        if (_event is null)
-            return;
-
-        _processingRegistration = true;
-        try
-        {
-            if (_isRegistered)
-            {
-                await EventService.UnregisterEventAsync(EventId);
-                _isRegistered = false;
-                _registeredCount = Math.Max(0, _registeredCount - 1);
-            }
-            else
-            {
-                await EventService.RegisterEventAsync(EventId);
-                _isRegistered = true;
-                _registeredCount++;
-            }
-        }
-        catch (Exception ex)
-        {
-            _errorMessage = ex.Message;
-        }
-        finally
-        {
-            _processingRegistration = false;
         }
     }
 

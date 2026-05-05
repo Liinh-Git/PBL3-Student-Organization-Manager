@@ -211,7 +211,10 @@
             {
                 "Past" => string.Equals(evt.StatusLabel, "COMPLETED", StringComparison.OrdinalIgnoreCase),
                 "Ongoing" => string.Equals(evt.StatusLabel, "ONGOING", StringComparison.OrdinalIgnoreCase),
-                "Upcoming" => string.Equals(evt.StatusLabel, "UPCOMING", StringComparison.OrdinalIgnoreCase),
+                "Upcoming" =>
+                    string.Equals(evt.StatusLabel, "UPCOMING", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(evt.StatusLabel, "PLANNING", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(evt.StatusLabel, "DRAFT", StringComparison.OrdinalIgnoreCase),
                 _ => true
             })
             .OrderBy(x => x.StartDate)

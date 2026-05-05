@@ -315,6 +315,8 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
     private static string ToStatusLabel(EventStatus status)
         => status switch
         {
+            EventStatus.Draft => "DRAFT",
+            EventStatus.Planning => "PLANNING",
             EventStatus.Ongoing => "ONGOING",
             EventStatus.Completed => "COMPLETED",
             _ => "UPCOMING"
