@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Org.Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class AddNotificationSystem : Migration
+    public partial class SyncPendingModelChanges_20260505 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
