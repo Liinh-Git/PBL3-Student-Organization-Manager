@@ -123,19 +123,29 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await AuthStateProvider.InitializeAsync();
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         _user = authState.User;
 
         Navigation.LocationChanged += HandleLocationChanged;
-        await UpdateWorkspaceFromUriAsync(Navigation.Uri);
+        if (_user.Identity?.IsAuthenticated == true)
+        {
+            await UpdateWorkspaceFromUriAsync(Navigation.Uri);
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
 
-        await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
-        await UpdateWorkspaceFromUriAsync(Navigation.Uri);
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _user = authState.User;
+
+        if (_user.Identity?.IsAuthenticated == true)
+        {
+            await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
+            await UpdateWorkspaceFromUriAsync(Navigation.Uri);
+        }
         await InvokeAsync(StateHasChanged);
     }
 
@@ -152,8 +162,14 @@
     {
         _ = InvokeAsync(async () =>
         {
-            await OrganizationRouteAccessGate.SyncFromUriAsync(e.Location);
-            await UpdateWorkspaceFromUriAsync(e.Location);
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            _user = authState.User;
+
+            if (_user.Identity?.IsAuthenticated == true)
+            {
+                await OrganizationRouteAccessGate.SyncFromUriAsync(e.Location);
+                await UpdateWorkspaceFromUriAsync(e.Location);
+            }
             StateHasChanged();
         });
     }

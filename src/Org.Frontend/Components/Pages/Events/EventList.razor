@@ -2,9 +2,11 @@
 @rendermode InteractiveServer
 @using Org.Frontend.Services.Events
 @using Org.Frontend.Services.Organizations
+@using Org.Frontend.Services.Auth
 @using Org.Frontend.ViewModels
 @inject IEventService EventService
 @inject IOrganizationContext OrganizationContext
+@inject FrontendAuthStateProvider FrontendAuthStateProvider
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
@@ -151,6 +153,7 @@
     private bool _canCreateEvent;
     private bool _isLoading = true;
     private string? _errorMessage;
+    private bool _hasBootstrapped;
 
     private string SearchTerm
     {
@@ -165,10 +168,20 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || _hasBootstrapped)
+            return;
+
+        _hasBootstrapped = true;
+        await FrontendAuthStateProvider.InitializeAsync();
+        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+            return;
+
         currentOrgId = await OrganizationContext.GetOrganizationIdAsync();
         await LoadEvents();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadEvents()

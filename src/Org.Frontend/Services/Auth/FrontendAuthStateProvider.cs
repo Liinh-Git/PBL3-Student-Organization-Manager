@@ -4,6 +4,7 @@ using Microsoft.JSInterop;
 using Org.Frontend.Services.Organizations;
 using Org.Shared.Features.Auth;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace Org.Frontend.Services.Auth;
 
@@ -15,6 +16,7 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
     private readonly ITokenStorage _tokenStorage;
     private readonly IAccessTokenStore _accessTokenStore;
     private readonly IOrganizationContext _organizationContext;
+    private readonly ILogger<FrontendAuthStateProvider> _logger;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
     private AuthenticationState _currentState = AnonymousState;
@@ -25,17 +27,33 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
         IAuthService authService,
         ITokenStorage tokenStorage,
         IAccessTokenStore accessTokenStore,
-        IOrganizationContext organizationContext)
+        IOrganizationContext organizationContext,
+        ILogger<FrontendAuthStateProvider> logger)
     {
         _authService = authService;
         _tokenStorage = tokenStorage;
         _accessTokenStore = accessTokenStore;
         _organizationContext = organizationContext;
+        _logger = logger;
     }
 
     // ---- Trả về auth state hiện tại cho UI ----
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
     {
+        // Keep UI auth state consistent with token state. If token was cleared/expired
+        // by API layer, do not keep showing a stale authenticated identity.
+        if (_currentState.User.Identity?.IsAuthenticated == true)
+        {
+            var missingToken = string.IsNullOrWhiteSpace(_accessTokenStore.AccessToken);
+            var expiredToken = _accessTokenStore.ExpiresAtUtc is DateTime expiresAtUtc && expiresAtUtc <= DateTime.UtcNow;
+
+            if (missingToken || expiredToken)
+            {
+                ClearInMemoryToken();
+                SetAnonymousState();
+            }
+        }
+
         return Task.FromResult(_currentState);
     }
 
@@ -55,6 +73,11 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
             // Bước 1: đọc token và thời hạn từ storage
             var token = await _tokenStorage.GetTokenAsync(ct);
             var expiresAtUtc = await _tokenStorage.GetTokenExpiryAsync(ct);
+
+            _logger.LogInformation(
+                "Auth initialization: tokenPresent={TokenPresent}; expiresAtUtc={ExpiresAtUtc}",
+                !string.IsNullOrWhiteSpace(token),
+                expiresAtUtc?.ToString("O"));
 
             // Bước 2: token thiếu/hết hạn thì clear và set anonymous
             if (string.IsNullOrWhiteSpace(token) || expiresAtUtc is null || expiresAtUtc <= DateTime.UtcNow)
@@ -98,6 +121,9 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
         // Bước 1: lưu token + hạn sử dụng để giữ phiên đăng nhập
         await _tokenStorage.SaveTokenAsync(loginResponse.AccessToken, loginResponse.ExpiresAtUtc, ct);
         SetInMemoryToken(loginResponse.AccessToken, loginResponse.ExpiresAtUtc);
+        _logger.LogInformation(
+            "SignIn stored token state in memory+storage; expiresAtUtc={ExpiresAtUtc}",
+            loginResponse.ExpiresAtUtc.ToString("O"));
 
         MeResponse profile;
         try
@@ -105,9 +131,10 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
             // Bước 2: ưu tiên gọi /me để lấy profile mới nhất từ backend
             profile = await _authService.GetMeAsync(loginResponse.AccessToken, ct);
         }
-        catch (AuthApiException)
+        catch (AuthApiException ex) when (ex.StatusCode != 401)
         {
             // Bước 2b: fallback dùng dữ liệu có sẵn trong login response
+            // only for non-auth failures. For 401 we must not keep stale authenticated UI.
             profile = new MeResponse
             {
                 UserId = loginResponse.UserId,
@@ -115,6 +142,14 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
                 Email = loginResponse.Email,
                 Status = "Active"
             };
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await TryClearTokenAsync(ct);
+            ClearInMemoryToken();
+            SetAnonymousState();
+            _initialized = true;
+            throw;
         }
 
         SetAuthenticatedState(BuildClaimsPrincipal(profile));

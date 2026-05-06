@@ -4,16 +4,18 @@
 
 @code {
     // ---- Các route public không cần đăng nhập ----
-    private static readonly string[] PublicRoutePrefixes = ["login", "register", "not-found", "error", "events"];
+    private static readonly string[] PublicRoutePrefixes = ["login", "register", "not-found", "error"];
+    private bool _authInitialized;
 
-    // ---- Chạy một lần để kiểm tra đăng nhập và điều hướng khi cần ----
+    // ---- Luôn kiểm tra trạng thái auth sau mỗi render để không giữ UI đăng nhập "ảo" ----
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
-            return;
-
-        // Bước 1: đảm bảo auth state đã được khởi tạo từ token
-        await AuthStateProvider.InitializeAsync();
+        // Bước 1: đảm bảo auth state đã được khởi tạo từ token (chỉ cần làm 1 lần)
+        if (!_authInitialized)
+        {
+            await AuthStateProvider.InitializeAsync();
+            _authInitialized = true;
+        }
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)
@@ -25,6 +27,12 @@
 
         // Route gốc "/" được phép truy cập công khai để hiển thị giao diện chính.
         if (string.IsNullOrWhiteSpace(currentPath))
+            return;
+
+        // Keep public event detail route accessible (/events, /events/{id})
+        // without accidentally whitelisting protected org workspace routes (/org/events).
+        if (string.Equals(currentPath, "events", StringComparison.OrdinalIgnoreCase)
+            || currentPath.StartsWith("events/", StringComparison.OrdinalIgnoreCase))
             return;
 
         if (PublicRoutePrefixes.Any(prefix =>

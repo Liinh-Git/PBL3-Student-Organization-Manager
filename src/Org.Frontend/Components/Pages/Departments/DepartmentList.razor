@@ -366,6 +366,7 @@
     protected override async Task OnInitializedAsync()
     {
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        await FrontendAuthStateProvider.InitializeAsync();
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated == true)

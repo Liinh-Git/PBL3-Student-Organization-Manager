@@ -19,7 +19,9 @@ using Org.Frontend.Services.SignalR;
 using Org.Frontend.Services.Tasks;
 using Org.Frontend.Services.UserSettings;
 using Org.Frontend.Services.Friends;
+using Org.Frontend.Infrastructure.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using MudBlazor.Services;
 using System.Net.Http.Headers;
 
@@ -57,6 +59,8 @@ public static class FrontendStartupExtensions
         services.AddScoped<FrontendAuthStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<FrontendAuthStateProvider>());
         services.AddAuthorizationCore();
+        services.AddSingleton<CircuitServicesAccessor>();
+        services.AddScoped<CircuitHandler, CircuitServicesAccessorHandler>();
         services.AddTransient<AuthHeaderDelegatingHandler>();
 
         // ---- Đăng ký HttpClient có Bearer token header cho các domain client ----

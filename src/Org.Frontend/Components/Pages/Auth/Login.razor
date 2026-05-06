@@ -107,7 +107,16 @@
             });
 
             // Lưu token + cập nhật auth state rồi chuyển tới trang đích
-            await AuthStateProvider.SignInAsync(response);
+            try
+            {
+                await AuthStateProvider.SignInAsync(response);
+            }
+            catch (AuthApiException ex) when (ex.StatusCode == 401)
+            {
+                _errorMessage = "Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.";
+                return;
+            }
+
             Navigation.NavigateTo(_targetAfterLogin, forceLoad: false);
         }
         catch (HttpRequestException)

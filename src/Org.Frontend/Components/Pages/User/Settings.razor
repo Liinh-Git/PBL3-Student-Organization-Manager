@@ -4,6 +4,8 @@
 @inject IUserSettingsService UserSettingsService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject FrontendAuthStateProvider FrontendAuthStateProvider
+@using Org.Frontend.Services.Auth
 
 <PageTitle>Cài đặt người dùng</PageTitle>
 
@@ -295,6 +297,7 @@
     private bool _isDeletingAccount;
     private bool _deleteConfirmationArmed;
     private bool _notificationUnsupportedShown;
+    private bool _hasBootstrapped;
     
     private string _activeSection = SectionProfile;
     private string? _errorMessage;
@@ -304,9 +307,19 @@
         ? "Nhấn lại một lần nữa để xác nhận thao tác."
         : "Bạn có thể tạm ngưng tài khoản bất cứ lúc nào.";
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || _hasBootstrapped)
+            return;
+
+        _hasBootstrapped = true;
+        await FrontendAuthStateProvider.InitializeAsync();
+        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+            return;
+
         await ReloadAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ReloadAsync()
@@ -321,6 +334,13 @@
             _passwordForm = new PasswordChangeFormViewModel();
             _deleteConfirmationArmed = false;
             _notificationUnsupportedShown = false;
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            _settings = null;
+            _errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+            await FrontendAuthStateProvider.SignOutAsync();
+            Navigation.NavigateTo("/login", forceLoad: true);
         }
         catch
         {

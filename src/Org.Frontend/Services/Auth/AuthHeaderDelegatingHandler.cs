@@ -4,48 +4,70 @@
 using Microsoft.JSInterop;
 using System.Net;
 using System.Net.Http.Headers;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Org.Frontend.Infrastructure.Auth;
 
 namespace Org.Frontend.Services.Auth;
 
 public class AuthHeaderDelegatingHandler : DelegatingHandler
 {
-    private readonly ITokenStorage _tokenStorage;
-    private readonly IAccessTokenStore _accessTokenStore;
+    private readonly ITokenStorage _fallbackTokenStorage;
+    private readonly IAccessTokenStore _fallbackAccessTokenStore;
+    private readonly CircuitServicesAccessor _circuitServicesAccessor;
+    private readonly ILogger<AuthHeaderDelegatingHandler> _logger;
 
     // ---- Inject token storage (localStorage) và in-memory token store ----
-    public AuthHeaderDelegatingHandler(ITokenStorage tokenStorage, IAccessTokenStore accessTokenStore)
+    public AuthHeaderDelegatingHandler(
+        ITokenStorage tokenStorage,
+        IAccessTokenStore accessTokenStore,
+        CircuitServicesAccessor circuitServicesAccessor,
+        ILogger<AuthHeaderDelegatingHandler> logger)
     {
-        _tokenStorage = tokenStorage;
-        _accessTokenStore = accessTokenStore;
+        _fallbackTokenStorage = tokenStorage;
+        _fallbackAccessTokenStore = accessTokenStore;
+        _circuitServicesAccessor = circuitServicesAccessor;
+        _logger = logger;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var tokenAttached = false;
-        var token = _accessTokenStore.AccessToken;
-        var expiresAtUtc = _accessTokenStore.ExpiresAtUtc;
+        var tokenStorage = _fallbackTokenStorage;
+        var accessTokenStore = _fallbackAccessTokenStore;
+        var tokenSource = "handler-scope";
+
+        if (TryResolveCircuitTokenServices(out var circuitTokenStorage, out var circuitTokenStore))
+        {
+            tokenStorage = circuitTokenStorage;
+            accessTokenStore = circuitTokenStore;
+            tokenSource = "circuit-scope";
+        }
+
+        var token = accessTokenStore.AccessToken;
+        var expiresAtUtc = accessTokenStore.ExpiresAtUtc;
+        var authHeaderAttached = false;
 
         try
         {
             if (string.IsNullOrWhiteSpace(token))
             {
-                expiresAtUtc = await _tokenStorage.GetTokenExpiryAsync(cancellationToken);
-                token = await _tokenStorage.GetTokenAsync(cancellationToken);
+                expiresAtUtc = await tokenStorage.GetTokenExpiryAsync(cancellationToken);
+                token = await tokenStorage.GetTokenAsync(cancellationToken);
 
-                _accessTokenStore.ExpiresAtUtc = expiresAtUtc;
-                _accessTokenStore.AccessToken = token;
+                accessTokenStore.ExpiresAtUtc = expiresAtUtc;
+                accessTokenStore.AccessToken = token;
             }
 
             if (expiresAtUtc is not null && expiresAtUtc <= DateTime.UtcNow)
             {
-                await ClearPersistedTokenAsync(cancellationToken);
+                await ClearPersistedTokenAsync(tokenStorage, accessTokenStore, cancellationToken);
                 throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
             }
 
             if (!string.IsNullOrWhiteSpace(token))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                tokenAttached = true;
+                authHeaderAttached = true;
             }
         }
         catch (InvalidOperationException)
@@ -57,10 +79,24 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
             // Ignore JSInterop exceptions when the SignalR circuit has disconnected.
         }
 
+        _logger.LogInformation(
+            "AuthHeaderDelegatingHandler request {Method} {Path}; tokenSource={TokenSource}; hasToken={HasToken}; expiresAtUtc={ExpiresAtUtc}; authHeaderAttached={AuthHeaderAttached}",
+            request.Method.Method,
+            request.RequestUri?.PathAndQuery ?? request.RequestUri?.ToString() ?? "(unknown)",
+            tokenSource,
+            !string.IsNullOrWhiteSpace(token),
+            expiresAtUtc?.ToString("O"),
+            authHeaderAttached);
+
         var response = await base.SendAsync(request, cancellationToken);
-        if (tokenAttached && response.StatusCode == HttpStatusCode.Unauthorized)
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            await ClearPersistedTokenAsync(cancellationToken);
+            _logger.LogWarning(
+                "AuthHeaderDelegatingHandler received 401 for {Method} {Path}; clearing token state.",
+                request.Method.Method,
+                request.RequestUri?.PathAndQuery ?? request.RequestUri?.ToString() ?? "(unknown)");
+
+            await ClearPersistedTokenAsync(tokenStorage, accessTokenStore, cancellationToken);
 
             response.Dispose();
             throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
@@ -69,14 +105,36 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
         return response;
     }
 
-    private async Task ClearPersistedTokenAsync(CancellationToken cancellationToken)
+    private bool TryResolveCircuitTokenServices(out ITokenStorage tokenStorage, out IAccessTokenStore accessTokenStore)
     {
-        _accessTokenStore.AccessToken = null;
-        _accessTokenStore.ExpiresAtUtc = null;
+        tokenStorage = _fallbackTokenStorage;
+        accessTokenStore = _fallbackAccessTokenStore;
+
+        var services = _circuitServicesAccessor.Services;
+        if (services is null)
+            return false;
+
+        var resolvedTokenStorage = services.GetService<ITokenStorage>();
+        var resolvedAccessTokenStore = services.GetService<IAccessTokenStore>();
+        if (resolvedTokenStorage is null || resolvedAccessTokenStore is null)
+            return false;
+
+        tokenStorage = resolvedTokenStorage;
+        accessTokenStore = resolvedAccessTokenStore;
+        return true;
+    }
+
+    private static async Task ClearPersistedTokenAsync(
+        ITokenStorage tokenStorage,
+        IAccessTokenStore accessTokenStore,
+        CancellationToken cancellationToken)
+    {
+        accessTokenStore.AccessToken = null;
+        accessTokenStore.ExpiresAtUtc = null;
 
         try
         {
-            await _tokenStorage.ClearAsync(cancellationToken);
+            await tokenStorage.ClearAsync(cancellationToken);
         }
         catch (InvalidOperationException)
         {

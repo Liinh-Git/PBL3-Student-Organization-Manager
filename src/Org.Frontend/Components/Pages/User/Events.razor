@@ -1,8 +1,10 @@
 @page "/user/events"
 @rendermode InteractiveServer
 @using Org.Frontend.Services.Events
+@using Org.Frontend.Services.Auth
 @using Org.Frontend.ViewModels
 @inject IEventService EventService
+@inject FrontendAuthStateProvider FrontendAuthStateProvider
 @inject NavigationManager NavigationManager
 
 <PageTitle>Sự kiện của tôi - Kora</PageTitle>
@@ -130,6 +132,7 @@
     private MyEventsViewModel _myEvents = new();
     private bool _isLoading = true;
     private string? _errorMessage;
+    private bool _hasBootstrapped;
     private EventStatusFilter _activeStatus = EventStatusFilter.All;
 
     private enum EventStatusFilter
@@ -140,9 +143,19 @@
         Ended
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || _hasBootstrapped)
+            return;
+
+        _hasBootstrapped = true;
+        await FrontendAuthStateProvider.InitializeAsync();
+        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+            return;
+
         await LoadAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadAsync()
