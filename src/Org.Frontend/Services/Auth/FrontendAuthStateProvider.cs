@@ -71,8 +71,23 @@ public sealed class FrontendAuthStateProvider : AuthenticationStateProvider
                 return;
 
             // Bước 1: đọc token và thời hạn từ storage
-            var token = await _tokenStorage.GetTokenAsync(ct);
-            var expiresAtUtc = await _tokenStorage.GetTokenExpiryAsync(ct);
+            string? token;
+            DateTime? expiresAtUtc;
+            try
+            {
+                token = await _tokenStorage.GetTokenAsync(ct);
+                expiresAtUtc = await _tokenStorage.GetTokenExpiryAsync(ct);
+            }
+            catch (InvalidOperationException)
+            {
+                _logger.LogDebug("Auth initialization skipped: JS interop not available yet.");
+                return;
+            }
+            catch (JSDisconnectedException)
+            {
+                _logger.LogDebug("Auth initialization skipped: JS interop disconnected.");
+                return;
+            }
 
             _logger.LogInformation(
                 "Auth initialization: tokenPresent={TokenPresent}; expiresAtUtc={ExpiresAtUtc}",

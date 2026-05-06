@@ -1,7 +1,7 @@
-using System.Net;
+using System.Net.Http.Json;
+using Org.Frontend.Services.Auth;
 using Org.Shared;
 using Org.Shared.Features.Departments;
-using System.Net.Http.Json;
 using Org.Shared.Features.Events;
 using Org.Shared.Features.Members;
 using Org.Shared.Features.Organizations;
@@ -9,17 +9,16 @@ using Org.Shared.Features.Users;
 
 namespace Org.Frontend.Services.Organizations;
 
-public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrganizationService
+public sealed class OrganizationServiceApiClient(IAuthenticatedBackendClient backendClient) : IOrganizationService
 {
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
 
     public async Task<OrganizationOverviewViewModel> GetOrganizationOverviewAsync(Guid organizationId, CancellationToken ct = default)
     {
         var permission = await GetOrganizationViewerPermissionAsync(organizationId, ct);
-        var publicPayload = await _httpClient.GetFromJsonAsync<GetPublicOrganizationOverviewResponse>(
+        var publicPayload = await _backendClient.GetFromJsonAsync<GetPublicOrganizationOverviewResponse>(
             $"api/organizations/{organizationId:D}/public-overview",
-            cancellationToken: ct)
-            ?? throw new InvalidOperationException("Backend returned empty public organization payload.");
+            ct) ?? throw new InvalidOperationException("Backend returned empty public organization payload.");
         var dto = publicPayload.Data;
 
         var eventCount = 0;
@@ -32,15 +31,15 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
 
         if (permission.IsMember)
         {
-            var eventsPayload = await _httpClient.GetFromJsonAsync<GetOrganizationEventsResponse>(
+            var eventsPayload = await _backendClient.GetFromJsonAsync<GetOrganizationEventsResponse>(
                 $"api/organizations/{organizationId:D}/events",
-                cancellationToken: ct);
-            var departmentsPayload = await _httpClient.GetFromJsonAsync<GetDepartmentsResponse>(
+                ct);
+            var departmentsPayload = await _backendClient.GetFromJsonAsync<GetDepartmentsResponse>(
                 $"api/organizations/{organizationId:D}/departments",
-                cancellationToken: ct);
-            var membersPayload = await _httpClient.GetFromJsonAsync<GetMembersResponse>(
+                ct);
+            var membersPayload = await _backendClient.GetFromJsonAsync<GetMembersResponse>(
                 $"api/organizations/{organizationId:D}/members",
-                cancellationToken: ct);
+                ct);
 
             if (eventsPayload is not null)
             {
@@ -130,10 +129,9 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
         if (!permission.CanEditOverview)
             throw new UnauthorizedAccessException("You do not have permission to edit this organization overview.");
 
-        var current = await _httpClient.GetFromJsonAsync<GetOrganizationByIdResponse>(
+        var current = await _backendClient.GetFromJsonAsync<GetOrganizationByIdResponse>(
             $"api/organizations/{organizationId:D}",
-            cancellationToken: ct)
-            ?? throw new InvalidOperationException("Backend returned empty organization payload.");
+            ct) ?? throw new InvalidOperationException("Backend returned empty organization payload.");
 
         var payload = new UpdateOrganizationRequest(
             string.IsNullOrWhiteSpace(request.Name) ? current.Data.Name : request.Name.Trim(),
@@ -144,17 +142,20 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
             request.Location,
             current.Data.IsActive);
 
-        using var response = await _httpClient.PutAsJsonAsync($"api/organizations/{organizationId:D}", payload, ct);
-        response.EnsureSuccessStatusCode();
+        using var putRequest = new HttpRequestMessage(HttpMethod.Put, $"api/organizations/{organizationId:D}")
+        {
+            Content = JsonContent.Create(payload)
+        };
+        using var _ = await _backendClient.SendAsync(putRequest, ct);
 
         return await GetOrganizationOverviewAsync(organizationId, ct);
     }
 
     public async Task<MyOrganizationsViewModel> GetMyOrganizationsAsync(CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
             "api/users/me/organizations",
-            cancellationToken: ct) ?? new GetMyOrganizationsResponse([]);
+            ct) ?? new GetMyOrganizationsResponse([]);
 
         var cards = payload.Items
             .Select(x => new MyOrganizationCardViewModel
@@ -186,10 +187,9 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
 
     public async Task<OrganizationViewerPermissionViewModel> GetOrganizationViewerPermissionAsync(Guid organizationId, CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetOrganizationPermissionsMeResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetOrganizationPermissionsMeResponse>(
             $"api/organizations/{organizationId:D}/permissions/me",
-            cancellationToken: ct)
-            ?? new GetOrganizationPermissionsMeResponse(new OrganizationPermissionDto(
+            ct) ?? new GetOrganizationPermissionsMeResponse(new OrganizationPermissionDto(
                 false, false, false, false, false, false, false, false, false, false, null, []));
 
         var data = payload.Data;
@@ -216,11 +216,10 @@ public sealed class OrganizationServiceApiClient(HttpClient httpClient) : IOrgan
             DateOnly.FromDateTime(DateTime.Today),
             model.Location);
 
-        using var response = await _httpClient.PostAsJsonAsync("api/organizations", payload, ct);
-        response.EnsureSuccessStatusCode();
-
-        var created = await response.Content.ReadFromJsonAsync<OrganizationDto>(cancellationToken: ct)
-            ?? throw new InvalidOperationException("Backend returned empty organization payload.");
+        var created = await _backendClient.PostAsJsonAsync<CreateOrganizationRequest, OrganizationDto>(
+            "api/organizations",
+            payload,
+            ct) ?? throw new InvalidOperationException("Backend returned empty organization payload.");
 
         return new OrganizationDetailViewModel
         {

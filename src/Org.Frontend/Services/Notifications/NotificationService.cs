@@ -1,15 +1,15 @@
-// ---- Service implementation cho quản lý thông báo ----
 using System.Net.Http.Json;
+using Org.Frontend.Services.Auth;
 using Org.Frontend.Services.SignalR;
 using Org.Shared.Features.Notifications;
 
 namespace Org.Frontend.Services.Notifications;
 
 public sealed class NotificationService(
-    HttpClient httpClient,
+    IAuthenticatedBackendClient backendClient,
     ISignalRService signalRService) : INotificationService
 {
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
     private readonly ISignalRService _signalRService = signalRService;
     private bool _realtimeStarted;
 
@@ -45,14 +45,14 @@ public sealed class NotificationService(
         var url = $"api/notifications?page={page}&pageSize={pageSize}" +
             (isRead.HasValue ? $"&isRead={isRead.Value}" : "") +
             (!string.IsNullOrWhiteSpace(type) ? $"&type={type}" : "");
-        
-        var response = await _httpClient.GetFromJsonAsync<GetNotificationsResponse>(url, ct);
+
+        var response = await _backendClient.GetFromJsonAsync<GetNotificationsResponse>(url, ct);
         return response ?? new GetNotificationsResponse([], 0, 0, page, pageSize);
     }
 
     public async Task<int> GetUnreadCountAsync(CancellationToken ct = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<GetUnreadCountResponse>(
+        var response = await _backendClient.GetFromJsonAsync<GetUnreadCountResponse>(
             "api/notifications/unread-count",
             ct);
 
@@ -61,7 +61,7 @@ public sealed class NotificationService(
 
     public async Task<NotificationDto> GetNotificationByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var response = await _httpClient.GetFromJsonAsync<GetNotificationByIdResponse>(
+        var response = await _backendClient.GetFromJsonAsync<GetNotificationByIdResponse>(
             $"api/notifications/{id}",
             ct);
 
@@ -70,50 +70,43 @@ public sealed class NotificationService(
 
     public async Task<NotificationDto> MarkAsReadAsync(Guid id, CancellationToken ct = default)
     {
-        var response = await _httpClient.PutAsJsonAsync(
+        var result = await _backendClient.PutAsJsonAsync<object, MarkAsReadResponse>(
             $"api/notifications/{id}/read",
             new { },
             ct);
-        response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<MarkAsReadResponse>(ct);
         return result?.Data ?? throw new InvalidOperationException("Failed to mark notification as read");
     }
 
     public async Task<int> MarkAllAsReadAsync(CancellationToken ct = default)
     {
-        var response = await _httpClient.PutAsJsonAsync(
+        var result = await _backendClient.PutAsJsonAsync<object, MarkAllAsReadResponse>(
             "api/notifications/read-all",
             new { },
             ct);
-        response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<MarkAllAsReadResponse>(ct);
         return result?.UpdatedCount ?? 0;
     }
 
     public async Task<int> DeleteNotificationAsync(Guid id, CancellationToken ct = default)
     {
-        var response = await _httpClient.DeleteAsync($"api/notifications/{id}", ct);
-        response.EnsureSuccessStatusCode();
+        await _backendClient.DeleteAsync($"api/notifications/{id}", ct);
         return 1;
     }
 
     public async Task<int> ClearAllNotificationsAsync(bool onlyRead = false, CancellationToken ct = default)
     {
         var request = new ClearNotificationsRequest(onlyRead);
-        var requestMessage = new HttpRequestMessage(HttpMethod.Delete, "api/notifications/clear-all")
+        using var requestMessage = new HttpRequestMessage(HttpMethod.Delete, "api/notifications/clear-all")
         {
             Content = JsonContent.Create(request)
         };
-        
-        var response = await _httpClient.SendAsync(requestMessage, ct);
-        response.EnsureSuccessStatusCode();
+
+        using var response = await _backendClient.SendAsync(requestMessage, ct);
         var result = await response.Content.ReadFromJsonAsync<ClearNotificationsResponse>(ct);
         return result?.DeletedCount ?? 0;
     }
 
-    // Method to handle SignalR notification received
     public void HandleNotificationReceived(NotificationMessage notification)
     {
         OnNotificationReceived?.Invoke(notification);

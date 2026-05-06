@@ -1,7 +1,7 @@
 // ---- API client cho dashboard user: tổng hợp tổ chức tham gia và sự kiện đã ghi danh ----
-using System.Net.Http.Json;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
+using Org.Frontend.Services.Auth;
 using Org.Frontend.ViewModels;
 using Org.Shared;
 using Org.Shared.Features.Users;
@@ -9,13 +9,13 @@ using Org.Shared.Features.Users;
 namespace Org.Frontend.Services.Dashboard;
 
 public sealed class UserDashboardApiClient(
-    HttpClient httpClient,
+    IAuthenticatedBackendClient backendClient,
     AuthenticationStateProvider authStateProvider) : IUserDashboardService
 {
     private const string DefaultOrganizationImageUrl = "/images/mockimages/Org1/Avt.jpg";
     private const string DefaultEventImageUrl = "/images/mockimages/Org1/Card1.jpg";
 
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
     private readonly AuthenticationStateProvider _authStateProvider = authStateProvider;
 
     public async Task<UserDashboardViewModel> GetDashboardAsync(CancellationToken ct = default)
@@ -23,21 +23,21 @@ public sealed class UserDashboardApiClient(
         var authState = await _authStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        var organizationsPayload = await _httpClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
+        var organizationsPayload = await _backendClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
             "api/users/me/organizations",
-            cancellationToken: ct) ?? new GetMyOrganizationsResponse([]);
+            ct) ?? new GetMyOrganizationsResponse([]);
 
-        var eventsPayload = await _httpClient.GetFromJsonAsync<GetMyRegisteredEventsResponse>(
+        var eventsPayload = await _backendClient.GetFromJsonAsync<GetMyRegisteredEventsResponse>(
             "api/users/me/events",
-            cancellationToken: ct) ?? new GetMyRegisteredEventsResponse([]);
+            ct) ?? new GetMyRegisteredEventsResponse([]);
 
-        var suggestedOrganizationsPayload = await _httpClient.GetFromJsonAsync<GetSuggestedOrganizationsResponse>(
+        var suggestedOrganizationsPayload = await _backendClient.GetFromJsonAsync<GetSuggestedOrganizationsResponse>(
             "api/users/me/discover/organizations",
-            cancellationToken: ct) ?? new GetSuggestedOrganizationsResponse([]);
+            ct) ?? new GetSuggestedOrganizationsResponse([]);
 
-        var suggestedEventsPayload = await _httpClient.GetFromJsonAsync<GetSuggestedEventsResponse>(
+        var suggestedEventsPayload = await _backendClient.GetFromJsonAsync<GetSuggestedEventsResponse>(
             "api/users/me/discover/events",
-            cancellationToken: ct) ?? new GetSuggestedEventsResponse([]);
+            ct) ?? new GetSuggestedEventsResponse([]);
 
         var myOrganizations = organizationsPayload.Items
             .OrderByDescending(x => x.JoinedAtUtc)

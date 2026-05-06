@@ -12,7 +12,7 @@
 <PageTitle>Tổ chức của tôi</PageTitle>
 
 <div class="my-orgs-page app-page">
-    @if (_isLoading)
+    @if (_isLoading || _isAuthInitializing)
     {
         <section class="app-loading orgs-state">
             <MudProgressCircular Color="MudBlazor.Color.Primary" Indeterminate="true" />
@@ -24,7 +24,7 @@
         <section class="app-error orgs-state">
             <h2>Không tải được dữ liệu</h2>
             <p>@_errorMessage</p>
-            <button type="button" class="app-button app-button--ghost" @onclick="LoadAsync">Thử lại</button>
+            <button type="button" class="app-button app-button--ghost" @onclick="RetryLoadAsync">Thử lại</button>
         </section>
     }
     else if (_myOrganizations is not null)
@@ -177,9 +177,11 @@
     private const int CardsPerPage = 3;
 
     private MyOrganizationsViewModel? _myOrganizations;
-    private bool _isLoading;
+    private bool _isLoading = true;
+    private bool _isAuthInitializing = true;
     private string? _errorMessage;
     private bool _hasBootstrapped;
+    private bool _authRetryAttempted;
     private int _leadingPageIndex;
     private int _participatingPageIndex;
 
@@ -189,24 +191,65 @@
             return;
 
         _hasBootstrapped = true;
-        await FrontendAuthStateProvider.InitializeAsync();
-        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
-        if (authState.User.Identity?.IsAuthenticated != true)
-            return;
-
-        await LoadAsync();
+        await LoadWithAuthGuardAsync();
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task LoadAsync()
+    private async Task RetryLoadAsync()
+    {
+        _authRetryAttempted = false;
+        await LoadWithAuthGuardAsync();
+    }
+
+    private async Task LoadWithAuthGuardAsync()
+    {
+        _isLoading = true;
+        _isAuthInitializing = true;
+        _errorMessage = null;
+
+        if (!await EnsureAuthenticatedAsync())
+        {
+            _isLoading = false;
+            _isAuthInitializing = false;
+            return;
+        }
+
+        _isAuthInitializing = false;
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
     {
         _isLoading = true;
         _errorMessage = null;
+
         try
         {
             _myOrganizations = await OrganizationService.GetMyOrganizationsAsync();
             _leadingPageIndex = 0;
             _participatingPageIndex = 0;
+            _authRetryAttempted = false;
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            if (!_authRetryAttempted)
+            {
+                _authRetryAttempted = true;
+                _errorMessage = null;
+                _isAuthInitializing = true;
+
+                await Task.Delay(300);
+                await LoadWithAuthGuardAsync();
+                return;
+            }
+
+            _myOrganizations = null;
+            _errorMessage = "Không thể khởi tạo phiên đăng nhập. Vui lòng tải lại trang.";
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await FrontendAuthStateProvider.SignOutAsync();
+            NavigationManager.NavigateTo("/login", forceLoad: true);
         }
         catch (Exception ex)
         {
@@ -216,7 +259,27 @@
         finally
         {
             _isLoading = false;
+            _isAuthInitializing = false;
         }
+    }
+
+    private async Task<bool> EnsureAuthenticatedAsync()
+    {
+        try
+        {
+            await FrontendAuthStateProvider.InitializeAsync();
+        }
+        catch
+        {
+            return false;
+        }
+
+        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+            return true;
+
+        NavigationManager.NavigateTo("/login", forceLoad: true);
+        return false;
     }
 
     private IReadOnlyList<MyOrganizationCardViewModel> LeadingOrganizations
@@ -273,6 +336,7 @@
     {
         if (count <= 0)
             return 1;
+
         return (int)Math.Ceiling(count / (double)CardsPerPage);
     }
 
@@ -287,6 +351,12 @@
 
     private async Task OnCreateOrganizationClick()
     {
+        if (!await EnsureAuthenticatedAsync())
+        {
+            Snackbar.Add("Đang khởi tạo phiên đăng nhập. Vui lòng thử lại sau vài giây.", Severity.Info);
+            return;
+        }
+
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = await DialogService.ShowAsync<CreateOrganizationDialog>("Tạo tổ chức", options);
         var result = await dialog.Result;
@@ -298,7 +368,18 @@
         {
             var newOrg = await OrganizationService.CreateOrganizationAsync(model);
             Snackbar.Add($"Đã tạo tổ chức {newOrg.Name} thành công.", Severity.Success);
-            await LoadAsync();
+
+            _authRetryAttempted = false;
+            await LoadWithAuthGuardAsync();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Đang khởi tạo phiên đăng nhập. Vui lòng thử lại sau vài giây.", Severity.Info);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await FrontendAuthStateProvider.SignOutAsync();
+            NavigationManager.NavigateTo("/login", forceLoad: true);
         }
         catch (Exception ex)
         {
@@ -318,3 +399,6 @@
         return text.Length <= 140 ? text : $"{text[..140]}...";
     }
 }
+
+
+

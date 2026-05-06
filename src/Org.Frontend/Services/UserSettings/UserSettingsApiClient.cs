@@ -1,19 +1,20 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Org.Frontend.Services.Auth;
 using Org.Frontend.ViewModels;
 using Org.Shared.Features.Users;
 
 namespace Org.Frontend.Services.UserSettings;
 
-public sealed class UserSettingsApiClient(HttpClient httpClient) : IUserSettingsService
+public sealed class UserSettingsApiClient(IAuthenticatedBackendClient backendClient) : IUserSettingsService
 {
     private const string DefaultAvatarUrl = "/images/mockimages/AvtUser/Avt1.jpg";
 
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
 
     public async Task<UserSettingsPageViewModel> GetSettingsAsync(CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetCurrentUserProfileResponse>("api/users/me", ct);
+        var payload = await _backendClient.GetFromJsonAsync<GetCurrentUserProfileResponse>("api/users/me", ct);
         var profile = payload?.Data ?? throw new InvalidOperationException("Empty profile payload from API.");
 
         return new UserSettingsPageViewModel
@@ -57,14 +58,19 @@ public sealed class UserSettingsApiClient(HttpClient httpClient) : IUserSettings
             null,
             NormalizeProfileVisibility(profile.ProfileVisibility));
 
-        using var response = await _httpClient.PutAsJsonAsync("api/users/me", request, ct);
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            var message = await ReadErrorMessageAsync(response, ct);
-            return UserSettingsOperationResult.Failure(message);
+            using var putRequest = new HttpRequestMessage(HttpMethod.Put, "api/users/me")
+            {
+                Content = JsonContent.Create(request)
+            };
+            using var _ = await _backendClient.SendAsync(putRequest, ct);
+            return UserSettingsOperationResult.Success("Da luu thong tin ca nhan thanh cong.");
         }
-
-        return UserSettingsOperationResult.Success("Da luu thong tin ca nhan thanh cong.");
+        catch (AuthApiException ex)
+        {
+            return UserSettingsOperationResult.Failure(ex.Message);
+        }
     }
 
     public Task<UserSettingsOperationResult> ChangePasswordAsync(PasswordChangeFormViewModel request, CancellationToken ct = default)

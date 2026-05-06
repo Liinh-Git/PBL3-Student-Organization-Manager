@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Org.Frontend.Services.Auth;
 using Org.Frontend.Services.Organizations;
 using Org.Frontend.ViewModels;
 using Org.Shared;
@@ -10,14 +11,14 @@ using Org.Shared.Features.Users;
 
 namespace Org.Frontend.Services.Events;
 
-public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext organizationContext) : IEventService
+public sealed class EventApiClient(IAuthenticatedBackendClient backendClient, IOrganizationContext organizationContext) : IEventService
 {
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
     private readonly IOrganizationContext _organizationContext = organizationContext;
 
     public async Task<List<EventViewModel>> GetEventsAsync(Guid orgId)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetOrganizationEventsResponse>($"api/organizations/{orgId}/events")
+        var payload = await _backendClient.GetFromJsonAsync<GetOrganizationEventsResponse>($"api/organizations/{orgId}/events")
             ?? new GetOrganizationEventsResponse([]);
 
         var canManage = await CanCreateEventAsync(orgId);
@@ -28,10 +29,10 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
 
     public async Task<MyEventsViewModel> GetMyEventsAsync()
     {
-        var organizationsPayload = await _httpClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
+        var organizationsPayload = await _backendClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
             "api/users/me/organizations") ?? new GetMyOrganizationsResponse([]);
 
-        var registeredPayload = await _httpClient.GetFromJsonAsync<GetMyRegisteredEventsResponse>(
+        var registeredPayload = await _backendClient.GetFromJsonAsync<GetMyRegisteredEventsResponse>(
             "api/users/me/events") ?? new GetMyRegisteredEventsResponse([]);
 
         var organizerEvents = new List<MyEventItemViewModel>();
@@ -46,7 +47,7 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
 
         foreach (var org in organizationsPayload.Items.Where(x => organizerRoles.Contains(x.MemberRole?.Trim() ?? string.Empty)))
         {
-            var eventsPayload = await _httpClient.GetFromJsonAsync<GetOrganizationEventsResponse>(
+            var eventsPayload = await _backendClient.GetFromJsonAsync<GetOrganizationEventsResponse>(
                 $"api/organizations/{org.OrganizationId}/events") ?? new GetOrganizationEventsResponse([]);
 
             organizerEvents.AddRange(eventsPayload.Items.Select(x => new MyEventItemViewModel
@@ -102,20 +103,24 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
 
     public async Task<EventViewModel?> GetPublicEventDetailAsync(Guid eventId)
     {
-        using var response = await _httpClient.GetAsync($"api/events/{eventId:D}/public");
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"api/events/{eventId:D}/public");
+            using var response = await _backendClient.SendAsync(request);
+            var payload = await response.Content.ReadFromJsonAsync<GetEventByIdResponse>()
+                ?? throw new InvalidOperationException("API returned no public event detail payload.");
+
+            return await BuildDetailFromEventDtoAsync(payload.Data);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
+        {
             return null;
-
-        response.EnsureSuccessStatusCode();
-        var payload = await response.Content.ReadFromJsonAsync<GetEventByIdResponse>()
-            ?? throw new InvalidOperationException("API returned no public event detail payload.");
-
-        return await BuildDetailFromEventDtoAsync(payload.Data);
+        }
     }
 
     public async Task<bool> CanCreateEventAsync(Guid orgId)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetMyOrganizationsResponse>(
             "api/users/me/organizations") ?? new GetMyOrganizationsResponse([]);
 
         var member = payload.Items.FirstOrDefault(x => x.OrganizationId == orgId);
@@ -135,14 +140,19 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
 
     public async Task<bool> CanManageEventAsync(Guid eventId)
     {
-        using var response = await _httpClient.GetAsync($"api/events/{eventId}");
-        if (!response.IsSuccessStatusCode)
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"api/events/{eventId}");
+            using var response = await _backendClient.SendAsync(request);
+            var payload = await response.Content.ReadFromJsonAsync<GetEventByIdResponse>()
+                ?? throw new InvalidOperationException("API returned no event detail payload.");
+
+            return await CanCreateEventAsync(payload.Data.OrganizationId);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode is (int)HttpStatusCode.NotFound or (int)HttpStatusCode.Forbidden)
+        {
             return false;
-
-        var payload = await response.Content.ReadFromJsonAsync<GetEventByIdResponse>()
-            ?? throw new InvalidOperationException("API returned no event detail payload.");
-
-        return await CanCreateEventAsync(payload.Data.OrganizationId);
+        }
     }
 
     public async Task<EventViewModel> CreateEventAsync(CreateEventViewModel request)
@@ -162,10 +172,7 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
             endDate,
             NormalizeTags(request.Tags));
 
-        using var response = await _httpClient.PostAsJsonAsync("api/events", payload);
-        response.EnsureSuccessStatusCode();
-
-        var created = await response.Content.ReadFromJsonAsync<EventDto>()
+        var created = await _backendClient.PostAsJsonAsync<CreateEventRequest, EventDto>("api/events", payload)
             ?? throw new InvalidOperationException("API returned no event payload.");
 
         return await BuildDetailFromEventDtoAsync(created);
@@ -173,21 +180,24 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
 
     public async Task<EventViewModel?> GetEventDetailAsync(Guid eventId)
     {
-        using var response = await _httpClient.GetAsync($"api/events/{eventId}");
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"api/events/{eventId}");
+            using var response = await _backendClient.SendAsync(request);
+            var payload = await response.Content.ReadFromJsonAsync<GetEventByIdResponse>()
+                ?? throw new InvalidOperationException("API returned no event detail payload.");
+
+            return await BuildDetailFromEventDtoAsync(payload.Data);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
+        {
             return null;
-
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadFromJsonAsync<GetEventByIdResponse>()
-            ?? throw new InvalidOperationException("API returned no event detail payload.");
-
-        return await BuildDetailFromEventDtoAsync(payload.Data);
+        }
     }
 
     public async Task<EventViewModel> UpdateEventAsync(Guid eventId, UpdateEventViewModel req)
     {
-        var current = await _httpClient.GetFromJsonAsync<GetEventByIdResponse>($"api/events/{eventId}")
+        var current = await _backendClient.GetFromJsonAsync<GetEventByIdResponse>($"api/events/{eventId}")
             ?? throw new InvalidOperationException("API returned no event detail payload.");
 
         var startDate = req.StartDate.HasValue
@@ -209,10 +219,7 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
             current.Data.Status,
             current.Data.Tags);
 
-        using var response = await _httpClient.PutAsJsonAsync($"api/events/{eventId}", payload);
-        response.EnsureSuccessStatusCode();
-
-        var updated = await response.Content.ReadFromJsonAsync<EventDto>()
+        var updated = await _backendClient.PutAsJsonAsync<UpdateEventRequest, EventDto>($"api/events/{eventId}", payload)
             ?? throw new InvalidOperationException("API returned no event payload.");
 
         return await BuildDetailFromEventDtoAsync(updated);
@@ -220,8 +227,7 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
 
     public async Task DeleteEventAsync(Guid eventId)
     {
-        using var response = await _httpClient.DeleteAsync($"api/events/{eventId}");
-        response.EnsureSuccessStatusCode();
+        await _backendClient.DeleteAsync($"api/events/{eventId}");
     }
 
     public Task RegisterEventAsync(Guid eventId)
@@ -232,7 +238,7 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
 
     private async Task<EventViewModel> BuildDetailFromEventDtoAsync(EventDto dto)
     {
-        var milestonesPayload = await _httpClient.GetFromJsonAsync<GetMilestonesResponse>($"api/events/{dto.Id}/milestones")
+        var milestonesPayload = await _backendClient.GetFromJsonAsync<GetMilestonesResponse>($"api/events/{dto.Id}/milestones")
             ?? new GetMilestonesResponse([]);
 
         var totalTasks = 0;
@@ -240,7 +246,7 @@ public sealed class EventApiClient(HttpClient httpClient, IOrganizationContext o
 
         foreach (var milestone in milestonesPayload.Items)
         {
-            var categoriesPayload = await _httpClient.GetFromJsonAsync<GetEventCategoriesResponse>($"api/milestones/{milestone.Id}/categories")
+            var categoriesPayload = await _backendClient.GetFromJsonAsync<GetEventCategoriesResponse>($"api/milestones/{milestone.Id}/categories")
                 ?? new GetEventCategoriesResponse([]);
 
             totalTasks += categoriesPayload.Items.Sum(x => x.TaskCount);

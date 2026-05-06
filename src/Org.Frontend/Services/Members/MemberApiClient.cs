@@ -1,8 +1,4 @@
-// ---- API client thực cho service thành viên — CRUD qua BE endpoint /api/members ----
-// MapLegacyDto: ánh xạ FeatureMemberDto sang MemberDto cũ; giữ Guid role củ thông qua MapFeatureRole.
-// MapLegacyRoleId / MapFeatureRole: bridge giữa MemberRole enum và Guid role củ (Contracts).
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Org.Frontend.Services.Auth;
 using Org.Shared;
@@ -17,28 +13,17 @@ using FeatureGetMyOrganizationsResponse = Org.Shared.Features.Users.GetMyOrganiz
 namespace Org.Frontend.Services.Members;
 
 public sealed class MemberApiClient(
-    HttpClient httpClient,
-    ITokenStorage tokenStorage,
-    IAccessTokenStore accessTokenStore) : IMemberService
+    IAuthenticatedBackendClient backendClient) : IMemberService
 {
     private static readonly Guid LeaderRoleId = Guid.Parse("7e9e6f36-0508-4da8-adf1-c15b0cbe2f3a");
     private static readonly Guid CoreMemberRoleId = Guid.Parse("f80bb5dc-ab54-48fa-9453-869a12a81dc8");
     private static readonly Guid CollaboratorRoleId = Guid.Parse("1a96a5f4-6dfc-42db-936d-f86ee4e35ef5");
 
-    private readonly HttpClient _httpClient = httpClient;
-    private readonly ITokenStorage _tokenStorage = tokenStorage;
-    private readonly IAccessTokenStore _accessTokenStore = accessTokenStore;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
 
     public async Task<List<MemberDto>> GetMembers(Guid orgId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, $"api/organizations/{orgId}/members", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadFromJsonAsync<FeatureGetMembersResponse>(cancellationToken: CancellationToken.None)
+        var payload = await _backendClient.GetFromJsonAsync<FeatureGetMembersResponse>($"api/organizations/{orgId}/members")
             ?? new FeatureGetMembersResponse([]);
 
         return payload.Items.Select(MapLegacyDto).ToList();
@@ -46,16 +31,9 @@ public sealed class MemberApiClient(
 
     public async Task<MemberDto> CreateMember(Guid orgId, FeatureCreateMemberRequest req)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Post, $"api/organizations/{orgId}/members", CancellationToken.None);
-        request.Content = JsonContent.Create(req);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
-
-        var created = await response.Content.ReadFromJsonAsync<FeatureMemberDto>(cancellationToken: CancellationToken.None)
-            ?? throw new InvalidOperationException("API returned no member payload.");
+        var created = await _backendClient.PostAsJsonAsync<FeatureCreateMemberRequest, FeatureMemberDto>(
+            $"api/organizations/{orgId}/members",
+            req) ?? throw new InvalidOperationException("API returned no member payload.");
 
         return MapLegacyDto(created);
     }
@@ -63,47 +41,33 @@ public sealed class MemberApiClient(
     public async Task AssignRole(Guid memberId, Guid roleId)
     {
         var payload = new FeatureUpdateMemberRoleRequest(MapLegacyRoleId(roleId));
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"api/members/{memberId}/role", CancellationToken.None);
-        request.Content = JsonContent.Create(payload);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"api/members/{memberId}/role")
+        {
+            Content = JsonContent.Create(payload)
+        };
 
-        response.EnsureSuccessStatusCode();
+        using var _ = await _backendClient.SendAsync(request, CancellationToken.None);
     }
 
     public async Task AssignDepartment(Guid memberId, Guid departmentId)
     {
         var payload = new FeatureUpdateMemberDepartmentRequest(departmentId);
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"api/members/{memberId}/department", CancellationToken.None);
-        request.Content = JsonContent.Create(payload);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"api/members/{memberId}/department")
+        {
+            Content = JsonContent.Create(payload)
+        };
 
-        response.EnsureSuccessStatusCode();
+        using var _ = await _backendClient.SendAsync(request, CancellationToken.None);
     }
 
     public async Task DeleteMember(Guid memberId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Delete, $"api/members/{memberId}", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
+        await _backendClient.DeleteAsync($"api/members/{memberId}", CancellationToken.None);
     }
 
     public async Task<bool> CanManageOrganizationMembersAsync(Guid orgId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, "api/users/me/organizations", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadFromJsonAsync<FeatureGetMyOrganizationsResponse>(cancellationToken: CancellationToken.None)
+        var payload = await _backendClient.GetFromJsonAsync<FeatureGetMyOrganizationsResponse>("api/users/me/organizations")
             ?? new FeatureGetMyOrganizationsResponse([]);
 
         var membership = payload.Items.FirstOrDefault(x => x.OrganizationId == orgId);
@@ -121,46 +85,14 @@ public sealed class MemberApiClient(
 
     public async Task LeaveOrganizationAsync(Guid orgId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Post, $"api/organizations/{orgId}/leave", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            throw new NotSupportedException("Leave organization endpoint is not available in current backend.");
-        }
-
-        response.EnsureSuccessStatusCode();
-    }
-
-    private async Task<HttpRequestMessage> CreateAuthorizedRequestAsync(HttpMethod method, string uri, CancellationToken ct)
-    {
-        var request = new HttpRequestMessage(method, uri);
-
-        var token = await GetAccessTokenAsync(ct);
-        if (!string.IsNullOrWhiteSpace(token))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        return request;
-    }
-
-    private async Task<string?> GetAccessTokenAsync(CancellationToken ct)
-    {
-        if (!string.IsNullOrWhiteSpace(_accessTokenStore.AccessToken))
-            return _accessTokenStore.AccessToken;
-
         try
         {
-            var token = await _tokenStorage.GetTokenAsync(ct);
-            if (!string.IsNullOrWhiteSpace(token))
-                _accessTokenStore.AccessToken = token;
-
-            return token;
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"api/organizations/{orgId}/leave");
+            using var _ = await _backendClient.SendAsync(request, CancellationToken.None);
         }
-        catch (InvalidOperationException)
+        catch (AuthApiException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
         {
-            return null;
+            throw new NotSupportedException("Leave organization endpoint is not available in current backend.");
         }
     }
 

@@ -1,7 +1,9 @@
 @* ---- Badge thông báo: icon + popover danh sách thông báo có thể cuộn ---- *@
+@using Org.Frontend.Services.Auth
 @using Org.Frontend.Services.Notifications
 @using Org.Shared.Features.Notifications
 @inject INotificationService NotificationService
+@inject FrontendAuthStateProvider FrontendAuthStateProvider
 @inject NavigationManager NavigationManager
 
 @* ---- Nút chuông với badge số chưa đọc ---- *@
@@ -106,12 +108,14 @@
     private const int PageSize = 10;
     private List<NotificationDto> _notifications = [];
     private ElementReference _anchorRef;
+    private bool _hasBootstrapped;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        NotificationService.OnNotificationReceived += HandleRealtimeNotification;
-        await NotificationService.StartRealtimeAsync();
-        await RefreshUnreadCountAsync();
+        if (_hasBootstrapped)
+            return;
+
+        await InitializeNotificationsAsync();
     }
 
     public void Dispose()
@@ -122,6 +126,13 @@
     // ---- Toggle popover ----
     private async Task TogglePopover()
     {
+        if (!_hasBootstrapped)
+        {
+            await InitializeNotificationsAsync();
+            if (!_hasBootstrapped)
+                return;
+        }
+
         if (_isOpen)
         {
             ClosePopover();
@@ -133,6 +144,23 @@
             _notifications = [];
             await LoadNotificationsAsync();
         }
+    }
+
+    private async Task InitializeNotificationsAsync()
+    {
+        if (_hasBootstrapped)
+            return;
+
+        await FrontendAuthStateProvider.InitializeAsync();
+        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+            return;
+
+        _hasBootstrapped = true;
+        NotificationService.OnNotificationReceived += HandleRealtimeNotification;
+        await NotificationService.StartRealtimeAsync();
+        await RefreshUnreadCountAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private void ClosePopover()

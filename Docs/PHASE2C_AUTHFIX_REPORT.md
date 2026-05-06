@@ -1,94 +1,159 @@
 # PHASE2C_AUTHFIX Report
 
 Date: 2026-05-06
-Scope: Blazor Server auth token bridging / server-side HttpClient Authorization attachment.
+Task: PHASE2C-AUTHFINAL
 
-## 1) Was CircuitServicesAccessorHandler registered?
-- Before fix: **PARTIAL / incorrect bridging lifetime**
-  - `CircuitServicesAccessor` was scoped, so handler/circuit contexts could resolve different accessor instances.
-- After fix: **YES**
-  - `services.AddSingleton<CircuitServicesAccessor>();`
-  - `services.AddScoped<CircuitHandler, CircuitServicesAccessorHandler>();`
-- File: `src/Org.Frontend/Infrastructure/Startup/FrontendStartupExtensions.cs`
+## 1) Why DelegatingHandler + Circuit Bridge Was Unreliable
 
-## 2) Was protected page API loading happening before auth initialization?
-- Before fix: **YES**
-  - Core pages (`/user/organizations`, `/user/events`, `/org/events`, `/user/settings`) loaded data in `OnInitializedAsync`, which can execute before token state is initialized from browser storage in interactive flow.
-- After fix: **NO (for the patched core pages)**
-  - Core page loads moved to `OnAfterRenderAsync(firstRender)` and gated by:
-    1. `FrontendAuthStateProvider.InitializeAsync()` completion
-    2. authenticated identity check before calling API
+Root issue in Blazor Server runtime:
+- Core API calls were depending on `AuthHeaderDelegatingHandler` resolving token state via `CircuitServicesAccessor`.
+- In real flow, some requests ran with circuit-scoped token state (worked), but others ran with fallback handler scope (missing token), causing inconsistent `Authorization` attachment.
+- Observed pattern: same session had both success calls (`hasToken=true`, `authHeaderAttached=true`) and failed calls (`hasToken=false`, `authHeaderAttached=false`, 401).
 
-## 3) Final token source behavior in AuthHeaderDelegatingHandler
-- Added source-aware resolution:
-  - Prefer circuit-scoped services via `CircuitServicesAccessor` (`tokenSource=circuit-scope`)
-  - Fallback to handler scope (`tokenSource=handler-scope`)
-- Added non-sensitive diagnostics:
-  - request method/path
-  - tokenSource
-  - hasToken
-  - expiresAtUtc
-  - authHeaderAttached
-- File: `src/Org.Frontend/Services/Auth/AuthHeaderDelegatingHandler.cs`
+Conclusion:
+- DelegatingHandler + circuit bridge was not stable enough as the primary auth path for core protected API calls.
 
-## 4) Confirmed server log evidence
-### Prior confirmed failing evidence
-- `AuthHeaderDelegatingHandler request GET /api/users/me/events; tokenSource=handler-scope; hasToken=False; authHeaderAttached=False`
-- backend returned 401.
+## 2) New Design: Scoped AuthenticatedBackendClient
 
-### Post-fix no-login smoke (server-side)
-- Direct non-interactive route probes (`Invoke-WebRequest`) did not emit early backend API calls from patched core pages.
-- This supports the timing fix (pages no longer eagerly call live API before auth initialization).
+Implemented:
+- `src/Org.Frontend/Services/Auth/IAuthenticatedBackendClient.cs`
+- `src/Org.Frontend/Services/Auth/AuthenticatedBackendClient.cs`
 
-### Real-browser-login evidence
-- **NEEDS_VERIFICATION in your local browser run** (this environment cannot perform full interactive browser login flow).
-- Expected post-login log pattern for core calls:
-  - `tokenSource=circuit-scope` (or equivalent valid source)
-  - `hasToken=True`
-  - `authHeaderAttached=True`
+Design summary:
+- Scoped helper used by core ApiClients.
+- Uses named HttpClient `BackendApi`.
+- Reads token directly from circuit-scoped `IAccessTokenStore` (no browser localStorage and no JS interop).
+- Before every protected request:
+  - if token missing/expired => throws `AuthApiException("AUTH_NOT_READY", 0)` and does not send request.
+  - if token valid => attaches `Authorization: Bearer <token>` and sends.
+- Response handling:
+  - 401 => sign out via `FrontendAuthStateProvider`, navigate `/login`, throw `AuthApiException(..., 401)`.
+  - 403 => keep token, throw permission `AuthApiException(..., 403)`.
+  - other non-success => throw `AuthApiException` with safe parsed message + status.
+- Logging added for method/path/token-state/attachment/status (token value never logged).
 
-## 5) Root cause
-Two combined issues:
-1. **DI/lifetime bridging issue** for `CircuitServicesAccessor` reduced reliability of resolving circuit token services from the auth handler.
-2. **Auth initialization timing**: several protected pages issued API calls before auth/token initialization completed, producing server-side calls without Authorization header.
+## 3) DI Changes
 
-## 6) Files changed
-1. `src/Org.Frontend/Infrastructure/Startup/FrontendStartupExtensions.cs`
-2. `src/Org.Frontend/Infrastructure/Auth/CircuitServicesAccessor.cs`
-3. `src/Org.Frontend/Services/Auth/AuthHeaderDelegatingHandler.cs`
-4. `src/Org.Frontend/Services/Auth/FrontendAuthStateProvider.cs`
-5. `src/Org.Frontend/Components/Auth/RedirectToLogin.razor`
-6. `src/Org.Frontend/Components/Layout/MainLayout.razor`
-7. `src/Org.Frontend/Components/Pages/User/Organizations.razor`
-8. `src/Org.Frontend/Components/Pages/User/Events.razor`
-9. `src/Org.Frontend/Components/Pages/Events/EventList.razor`
-10. `src/Org.Frontend/Components/Pages/Members/MemberList.razor`
-11. `src/Org.Frontend/Components/Pages/Departments/DepartmentList.razor`
-12. `src/Org.Frontend/Components/Pages/User/Settings.razor`
-13. `src/Org.Frontend/Components/Pages/Auth/Login.razor`
+File:
+- `src/Org.Frontend/Infrastructure/Startup/FrontendStartupExtensions.cs`
 
-## 7) Build result
-- Command: `dotnet build StudentOrgManager.slnx --no-restore`
-- Result: **PASS** (`0` errors)
+Changes:
+- Added named client:
+  - `services.AddHttpClient("BackendApi", ...)`
+- Added scoped helper:
+  - `services.AddScoped<IAuthenticatedBackendClient, AuthenticatedBackendClient>()`
+- Core migrated clients switched from typed `AddHttpClient(...).AddHttpMessageHandler<AuthHeaderDelegatingHandler>()` to scoped registrations.
+- Non-core/non-migrated clients may still temporarily use delegating handler path.
 
-## 8) Verification result for required routes
-Because interactive browser actions are required, current status is:
+## 4) ApiClient Migration Status
 
-| Route | Status | Notes |
-|---|---|---|
-| `/user/organizations` | NEEDS_VERIFICATION | Timing guard applied; requires local browser login log confirmation. |
-| `/org/events` | NEEDS_VERIFICATION | Timing guard applied; requires local browser login log confirmation. |
-| `/org/members` | NEEDS_VERIFICATION | Auth init call added in page init; requires local browser login log confirmation. |
-| `/org/departments` | NEEDS_VERIFICATION | Auth init call added in page init; requires local browser login log confirmation. |
-| `/user/settings` | NEEDS_VERIFICATION | Timing guard + 401 signout behavior; requires local browser login log confirmation. |
+### Migrated
+1. `UserDashboardApiClient`
+2. `OrganizationApiClient`
+3. `OrganizationServiceApiClient`
+4. `OrganizationRoleApiClient`
+5. `EventApiClient`
+6. `MemberApiClient`
+7. `DepartmentApiClient`
+8. `UserSettingsApiClient`
+9. `NotificationService`
+10. `MilestoneApiClient`
+11. `EventCategoryApiClient`
+12. `TaskApiClient`
+13. `RequestApiClient`
 
-## 9) Required local verification checklist (after this patch)
+### Not Migrated (within requested list)
+- None.
+
+## 5) Core Path Dependency on AuthHeaderDelegatingHandler
+
+Core path no longer depends on `AuthHeaderDelegatingHandler` for migrated clients: **YES**.
+
+Notes:
+- Handler remains registered for non-core clients that were not part of this final migration scope.
+- For migrated core clients, token attachment is now done by `AuthenticatedBackendClient`.
+
+## 6) ApiClient Matrix
+
+| ApiClient | Before auth method | After auth method | Migrated? | Notes |
+|---|---|---|---|---|
+| UserDashboardApiClient | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | `/api/users/me/*` now stable bearer path |
+| OrganizationApiClient | Manual token read (store+localStorage fallback) | IAuthenticatedBackendClient | YES | Removed manual token-building logic |
+| OrganizationServiceApiClient | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | Includes my orgs + create org |
+| OrganizationRoleApiClient | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | Role CRUD + assign role |
+| EventApiClient | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | My events/org events/detail/create/update/delete |
+| MemberApiClient | Manual token read (store+localStorage fallback) | IAuthenticatedBackendClient | YES | Member CRUD + permission checks |
+| DepartmentApiClient | Manual token read (store+localStorage fallback) | IAuthenticatedBackendClient | YES | Department CRUD + members |
+| UserSettingsApiClient | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | `/api/users/me` load/save profile |
+| NotificationService | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | Notification API path migrated; SignalR unchanged |
+| MilestoneApiClient | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | Milestone CRUD |
+| EventCategoryApiClient | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | Category CRUD |
+| TaskApiClient | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | Task list/create/status/update permission checks |
+| RequestApiClient | HttpClient + DelegatingHandler | IAuthenticatedBackendClient | YES | Request submit/review/list/detail |
+
+## 7) Build Result
+
+Command:
+- `dotnet build StudentOrgManager.slnx --no-restore`
+
+Result:
+- **PASS**
+- 0 errors
+- 10 existing MudBlazor analyzer warnings (unrelated to auth migration)
+
+## 8) Manual Verification Checklist (Required)
+
+1. Restart Backend and Frontend.
+2. Clear site data for `localhost:5236`.
+3. Login with `example1@gmail.com / example1`.
+4. Open directly (no Retry):
+   - `/user/organizations`
+   - `/user/events`
+   - `/org/events`
+   - `/org/members`
+   - `/org/departments`
+   - `/user/settings`
+5. Create organization from `/user/organizations`.
+
+Expected:
+- brief loading only
+- data auto-loads
+- no mandatory Retry/reload
+- no user-facing `AUTH_NOT_READY`
+- no immediate `Phi�n dang nh?p d� h?t h?n` after fresh login
+- 403 (if occurs) treated as permission issue, not session-expired flow
+
+## 9) Remaining Blockers / Risks
+
+- Runtime verification is still required to confirm no residual page-level edge case remains in actual login/navigation timing.
+- Some non-core services still keep delegating-handler path temporarily; they are outside this final core migration requirement.
+
+## 10) Boot/Render Blocker Fix (May 6, 2026)
+
+Root cause:
+- `MainLayout` gated rendering on `_authReady`, but `_authReady` could remain `false` forever when auth init failed or short-circuited (JS interop not ready). This blocked public routes like `/login`.
+
+Fix summary:
+- Public routes now bypass the auth-ready gate and render immediately.
+- Auth init uses `try/catch/finally`; `_authReady` is always set in `finally` and `StateHasChanged` is invoked.
+- Redirect to `/login` happens only for protected routes when auth is missing or init fails.
+- Added safe diagnostics (route, isPublicRoute, init start/success/fail, authReady set).
+
+Files changed:
+- `src/Org.Frontend/Components/Layout/MainLayout.razor`
+
+Build result:
+- `dotnet build StudentOrgManager.slnx --no-restore`
+- **FAILED** (Org.Backend locked by running process). Frontend still compiled; errors were file-lock related.
+
+Manual test checklist:
 1. Restart frontend.
-2. Clear `localhost:5236` site data.
-3. Login `example1@gmail.com / example1`.
-4. Open `/user/organizations`, `/org/events`, `/org/members`, `/org/departments`, `/user/settings`.
-5. Confirm frontend server logs show for backend API calls:
-   - `hasToken=True`
-   - `authHeaderAttached=True`
-   - token source should be circuit-resolved path when available.
-6. Confirm backend responses are 200 and no immediate 401/session-expired message.
+2. Clear site data for `localhost:5236`.
+3. Open `/login` (should render immediately, no infinite spinner).
+4. Login, then open:
+  - `/user/organizations`
+  - `/user/events`
+  - `/org/events`
+  - `/org/members`
+  - `/org/departments`
+5. Expect brief loading only; no permanent spinner.

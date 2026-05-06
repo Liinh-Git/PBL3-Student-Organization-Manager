@@ -10,7 +10,7 @@
 <PageTitle>Cài đặt người dùng</PageTitle>
 
 <div class="modern-settings-wrapper">
-    @if (_isLoading)
+    @if (_isLoading || _isAuthInitializing)
     {
         <section class="settings-state">
             <h1>Đang tải trang cài đặt</h1>
@@ -22,7 +22,7 @@
         <section class="settings-state error">
             <h1>Không tải được dữ liệu cài đặt</h1>
             <p>@_errorMessage</p>
-            <button type="button" class="modern-btn-outline" @onclick="ReloadAsync">Thử lại</button>
+            <button type="button" class="modern-btn-outline" @onclick="RetryLoadAsync">Thử lại</button>
         </section>
     }
     else if (_settings is not null)
@@ -290,6 +290,7 @@
     private UserSettingsPageViewModel? _settings;
     private PasswordChangeFormViewModel _passwordForm = new();
     private bool _isLoading = true;
+    private bool _isAuthInitializing = true;
     private bool _isSavingProfile;
     private bool _isSavingPassword;
     private bool _isSavingNotifications;
@@ -313,16 +314,32 @@
             return;
 
         _hasBootstrapped = true;
-        await FrontendAuthStateProvider.InitializeAsync();
-        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
-        if (authState.User.Identity?.IsAuthenticated != true)
-            return;
-
-        await ReloadAsync();
+        await LoadWithAuthGuardAsync();
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task ReloadAsync()
+    private async Task RetryLoadAsync()
+    {
+        await LoadWithAuthGuardAsync();
+    }
+
+    private async Task LoadWithAuthGuardAsync()
+    {
+        _isAuthInitializing = true;
+        _errorMessage = null;
+
+        if (!await EnsureAuthenticatedAsync())
+        {
+            _isLoading = false;
+            _isAuthInitializing = false;
+            return;
+        }
+
+        _isAuthInitializing = false;
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
     {
         _isLoading = true;
         _errorMessage = null;
@@ -335,10 +352,18 @@
             _deleteConfirmationArmed = false;
             _notificationUnsupportedShown = false;
         }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            _settings = null;
+            _errorMessage = null;
+            _isAuthInitializing = true;
+            await Task.Delay(200);
+            await LoadWithAuthGuardAsync();
+        }
         catch (AuthApiException ex) when (ex.StatusCode == 401)
         {
             _settings = null;
-            _errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+            _errorMessage = null;
             await FrontendAuthStateProvider.SignOutAsync();
             Navigation.NavigateTo("/login", forceLoad: true);
         }
@@ -353,6 +378,16 @@
         }
     }
 
+    private async Task<bool> EnsureAuthenticatedAsync()
+    {
+        await FrontendAuthStateProvider.InitializeAsync();
+        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+            return true;
+
+        Navigation.NavigateTo("/login", forceLoad: true);
+        return false;
+    }
     private void SelectSection(string section)
     {
         _activeSection = section;
@@ -572,3 +607,4 @@
         Snackbar.Add(result.Message, Severity.Error);
     }
 }
+

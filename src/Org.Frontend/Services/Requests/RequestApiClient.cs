@@ -1,44 +1,45 @@
 using System.Net.Http.Json;
+using Org.Frontend.Services.Auth;
 using Org.Frontend.ViewModels;
 using Org.Shared.Features.Organizations;
 using Org.Shared.Features.Requests;
 
 namespace Org.Frontend.Services.Requests;
 
-public sealed class RequestApiClient(HttpClient httpClient) : IRequestService
+public sealed class RequestApiClient(IAuthenticatedBackendClient backendClient) : IRequestService
 {
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
 
     public async Task<bool> CanViewOrganizationRequestsAsync(Guid orgId, CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetOrganizationPermissionsMeResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetOrganizationPermissionsMeResponse>(
             $"api/organizations/{orgId:D}/permissions/me",
-            cancellationToken: ct);
+            ct);
         return payload?.Data.CanViewRequests ?? false;
     }
 
     public async Task<bool> CanReviewOrganizationRequestsAsync(Guid orgId, CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetOrganizationPermissionsMeResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetOrganizationPermissionsMeResponse>(
             $"api/organizations/{orgId:D}/permissions/me",
-            cancellationToken: ct);
+            ct);
         return payload?.Data.CanReviewRequests ?? false;
     }
 
     public async Task<List<RequestViewModel>> GetPendingRequestsAsync(Guid orgId, CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetOrganizationRequestsResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetOrganizationRequestsResponse>(
             $"api/organizations/{orgId:D}/requests?status=PENDING",
-            cancellationToken: ct) ?? new GetOrganizationRequestsResponse([]);
+            ct) ?? new GetOrganizationRequestsResponse([]);
 
         return payload.Items.Select(MapToRequestViewModel).ToList();
     }
 
     public async Task<RequestDetailViewModel?> GetRequestDetailAsync(Guid requestId, CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetOrganizationRequestByIdResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetOrganizationRequestByIdResponse>(
             $"api/organizations/requests/{requestId:D}",
-            cancellationToken: ct);
+            ct);
 
         if (payload is null)
             return null;
@@ -64,8 +65,11 @@ public sealed class RequestApiClient(HttpClient httpClient) : IRequestService
             Strengths: form.Strengths,
             Reason: form.Reason);
 
-        using var response = await _httpClient.PostAsJsonAsync($"api/organizations/{form.OrgId:D}/requests", payload, ct);
-        response.EnsureSuccessStatusCode();
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"api/organizations/{form.OrgId:D}/requests")
+        {
+            Content = JsonContent.Create(payload)
+        };
+        using var _ = await _backendClient.SendAsync(request, ct);
     }
 
     public async Task SubmitOrganizationRequestAsync(CreateOrganizationRequestViewModel form, CancellationToken ct = default)
@@ -80,18 +84,21 @@ public sealed class RequestApiClient(HttpClient httpClient) : IRequestService
             Strengths: null,
             Reason: null);
 
-        using var response = await _httpClient.PostAsJsonAsync($"api/organizations/{form.OrgId:D}/requests", payload, ct);
-        response.EnsureSuccessStatusCode();
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"api/organizations/{form.OrgId:D}/requests")
+        {
+            Content = JsonContent.Create(payload)
+        };
+        using var _ = await _backendClient.SendAsync(request, ct);
     }
 
     private async Task ReviewRequestAsync(Guid requestId, string decision, CancellationToken ct)
     {
         var payload = new ReviewOrganizationRequestSubmissionRequest(decision, null);
-        using var response = await _httpClient.PostAsJsonAsync(
-            $"api/organizations/requests/{requestId:D}/review",
-            payload,
-            ct);
-        response.EnsureSuccessStatusCode();
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"api/organizations/requests/{requestId:D}/review")
+        {
+            Content = JsonContent.Create(payload)
+        };
+        using var _ = await _backendClient.SendAsync(request, ct);
     }
 
     private static RequestViewModel MapToRequestViewModel(OrganizationRequestDto item)

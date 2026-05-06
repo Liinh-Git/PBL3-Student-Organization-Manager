@@ -45,7 +45,7 @@
             </div>
         </div>
 
-        @if (_isLoading)
+        @if (_isLoading || _isAuthInitializing)
         {
             <div class="d-flex justify-center pa-10">
                 <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -55,7 +55,7 @@
         {
             <div class="d-flex flex-column gap-4 pa-8">
                 <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadEvents">Retry</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadEventsWithAuthGuardAsync">Retry</MudButton>
             </div>
         }
         else
@@ -152,6 +152,7 @@
     private Guid currentOrgId;
     private bool _canCreateEvent;
     private bool _isLoading = true;
+    private bool _isAuthInitializing = true;
     private string? _errorMessage;
     private bool _hasBootstrapped;
 
@@ -174,25 +175,52 @@
             return;
 
         _hasBootstrapped = true;
-        await FrontendAuthStateProvider.InitializeAsync();
-        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
-        if (authState.User.Identity?.IsAuthenticated != true)
-            return;
-
-        currentOrgId = await OrganizationContext.GetOrganizationIdAsync();
-        await LoadEvents();
+        await LoadEventsWithAuthGuardAsync();
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task LoadEvents()
+    private async Task LoadEventsWithAuthGuardAsync()
+    {
+        _isAuthInitializing = true;
+        _errorMessage = null;
+
+        if (!await EnsureAuthenticatedAsync())
+        {
+            _isLoading = false;
+            _isAuthInitializing = false;
+            return;
+        }
+
+        _isAuthInitializing = false;
+        await LoadEventsDataAsync();
+    }
+
+    private async Task LoadEventsDataAsync()
     {
         _isLoading = true;
         _errorMessage = null;
         try
         {
+            if (currentOrgId == Guid.Empty)
+            {
+                currentOrgId = await OrganizationContext.GetOrganizationIdAsync();
+            }
+
             _canCreateEvent = await EventService.CanCreateEventAsync(currentOrgId);
             events = await EventService.GetEventsAsync(currentOrgId);
             ApplyFilters();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            _errorMessage = null;
+            _isAuthInitializing = true;
+            await Task.Delay(200);
+            await LoadEventsWithAuthGuardAsync();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await FrontendAuthStateProvider.SignOutAsync();
+            NavigationManager.NavigateTo("/login", forceLoad: true);
         }
         catch (Exception ex)
         {
@@ -204,6 +232,16 @@
         }
     }
 
+    private async Task<bool> EnsureAuthenticatedAsync()
+    {
+        await FrontendAuthStateProvider.InitializeAsync();
+        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+            return true;
+
+        NavigationManager.NavigateTo("/login", forceLoad: true);
+        return false;
+    }
     private void OnStatusFilterChanged(string value)
     {
         statusFilter = string.IsNullOrWhiteSpace(value) ? "All" : value;
@@ -237,6 +275,9 @@
 
     private async Task OpenCreateDialog()
     {
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
         if (!_canCreateEvent)
         {
             Snackbar.Add("Ban khong co quyen tao su kien.", Severity.Warning);
@@ -252,13 +293,28 @@
         if (result is null || result.Canceled || result.Data is not CreateEventViewModel req)
             return;
 
-        await EventService.CreateEventAsync(req);
-        await LoadEvents();
-        Snackbar.Add("Tao su kien thanh cong.", Severity.Success);
+        try
+        {
+            await EventService.CreateEventAsync(req);
+            await LoadEventsWithAuthGuardAsync();
+            Snackbar.Add("Tao su kien thanh cong.", Severity.Success);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await FrontendAuthStateProvider.SignOutAsync();
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+        }
     }
 
     private async Task OpenUpdateDialog(EventViewModel evt)
     {
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
         if (!evt.CanManage)
         {
             Snackbar.Add("Ban khong co quyen cap nhat su kien nay.", Severity.Warning);
@@ -285,13 +341,28 @@
         if (result is null || result.Canceled || result.Data is not UpdateEventViewModel req)
             return;
 
-        await EventService.UpdateEventAsync(evt.Id, req);
-        await LoadEvents();
-        Snackbar.Add("Cap nhat su kien thanh cong.", Severity.Success);
+        try
+        {
+            await EventService.UpdateEventAsync(evt.Id, req);
+            await LoadEventsWithAuthGuardAsync();
+            Snackbar.Add("Cap nhat su kien thanh cong.", Severity.Success);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await FrontendAuthStateProvider.SignOutAsync();
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+        }
     }
 
     private async Task DeleteEventAsync(EventViewModel evt)
     {
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
         if (!evt.CanManage)
         {
             Snackbar.Add("Ban khong co quyen xoa su kien nay.", Severity.Warning);
@@ -302,9 +373,21 @@
         if (!confirmed)
             return;
 
-        await EventService.DeleteEventAsync(evt.Id);
-        await LoadEvents();
-        Snackbar.Add("Da xoa su kien.", Severity.Success);
+        try
+        {
+            await EventService.DeleteEventAsync(evt.Id);
+            await LoadEventsWithAuthGuardAsync();
+            Snackbar.Add("Da xoa su kien.", Severity.Success);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await FrontendAuthStateProvider.SignOutAsync();
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+        }
     }
 
     private static string ResolveImage(string? imageUrl)
@@ -316,3 +399,5 @@
     private void GoToWorkspace(Guid eventId)
         => NavigationManager.NavigateTo($"/org/events/{eventId:D}?orgId={currentOrgId:D}");
 }
+
+

@@ -1,22 +1,10 @@
-﻿@* ---- Router chính: bọc auth state, chặn route và điều hướng khi chưa đăng nhập ---- *@
-<CascadingAuthenticationState>
-    @* ---- Bước 1: khởi tạo auth state từ token khi app render lần đầu ---- *@
-    <AuthBootstrapper />
-    @* ---- Bước 1.1: ép điều hướng về /login nếu chưa đăng nhập và đang ở route bảo vệ ---- *@
-    <RedirectToLogin />
-    @* ---- Bước 1.2: chặn route nội bộ tổ chức nếu user chưa tham gia org đang xem ---- *@
-    <OrganizationRouteGuard />
+﻿@* Router tối giản: không chạy global auth/organization guard nữa.
+   Core pages tự kiểm auth trong OnAfterRenderAsync. *@
 
-    @* ---- Bước 2: map route và bọc route bằng AuthorizeRouteView ---- *@
+<CascadingAuthenticationState>
     <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
-                <NotAuthorized>
-                    @* ---- Nếu chưa auth thì tự chuyển về /login + returnUrl ---- *@
-                    <RedirectToLogin />
-                </NotAuthorized>
-            </AuthorizeRouteView>
-            @* ---- Bước 3: chuyển focus vào h1 để hỗ trợ trải nghiệm điều hướng ---- *@
+            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
             <FocusOnNavigate RouteData="routeData" Selector="h1" />
         </Found>
     </Router>

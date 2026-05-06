@@ -16,6 +16,19 @@
 <PageTitle>Departments</PageTitle>
 
 <div class="dept-page-container">
+    @if (_isLoading || _isAuthInitializing)
+    {
+        <div class="d-flex justify-center pa-8">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="d-flex flex-column gap-3 pa-4">
+            <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RetryLoadAsync">Retry</MudButton>
+        </div>
+    }
     @{
         var filteredCards = GetFilteredDepartmentCards();
         var totalPages = GetDepartmentTotalPages(filteredCards.Count);
@@ -354,6 +367,10 @@
     private string FormTitle { get; set; } = string.Empty;
     private string FormDescription { get; set; } = string.Empty;
     private string FormSaveText { get; set; } = string.Empty;
+    private bool _hasBootstrapped;
+    private bool _isLoading = true;
+    private bool _isAuthInitializing = true;
+    private string? _errorMessage;
 
     private IReadOnlyList<DepartmentForm.ManagerOption> ManagerOptions => Members
         .Select(x => new DepartmentForm.ManagerOption
@@ -363,16 +380,19 @@
         })
         .ToList();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
-        await FrontendAuthStateProvider.InitializeAsync();
+    }
 
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        if (authState.User.Identity?.IsAuthenticated == true)
-        {
-            await ReloadSafely();
-        }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _hasBootstrapped)
+            return;
+
+        _hasBootstrapped = true;
+        await ReloadWithAuthGuardAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
@@ -382,10 +402,42 @@
         {
             await InvokeAsync(async () =>
             {
-                await ReloadSafely();
+                await ReloadWithAuthGuardAsync();
                 StateHasChanged();
             });
         }
+    }
+
+    private async Task RetryLoadAsync()
+    {
+        await ReloadWithAuthGuardAsync();
+    }
+
+    private async Task ReloadWithAuthGuardAsync()
+    {
+        _isAuthInitializing = true;
+        _errorMessage = null;
+
+        if (!await EnsureAuthenticatedAsync())
+        {
+            _isLoading = false;
+            _isAuthInitializing = false;
+            return;
+        }
+
+        _isAuthInitializing = false;
+        await ReloadSafely();
+    }
+
+    private async Task<bool> EnsureAuthenticatedAsync()
+    {
+        await FrontendAuthStateProvider.InitializeAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+            return true;
+
+        Navigation.NavigateTo("/login", forceLoad: true);
+        return false;
     }
 
     public void Dispose()
@@ -412,9 +464,22 @@
 
     private async Task ReloadSafely()
     {
+        _isLoading = true;
         try
         {
             await Reload();
+            _errorMessage = null;
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            _errorMessage = null;
+            _isAuthInitializing = true;
+            await Task.Delay(200);
+            await ReloadWithAuthGuardAsync();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
         }
         catch (AuthApiException ex) when (ex.StatusCode == 401)
         {
@@ -427,8 +492,12 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Khong the tai du lieu departments: {ex.Message}", Severity.Error);
+            _errorMessage = $"Khong the tai du lieu departments: {ex.Message}";
             DepartmentCards = [];
+        }
+        finally
+        {
+            _isLoading = false;
         }
     }
 
@@ -536,6 +605,9 @@
 
     private async Task HandleFormSubmit()
     {
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
         if (EditingDepartmentId.HasValue)
         {
             await UpdateDepartment();
@@ -572,6 +644,10 @@
             Snackbar.Add("Phong ban da duoc tao.", Severity.Success);
             CloseForms();
             await Reload();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
         }
         catch (AuthApiException ex) when (ex.StatusCode == 401)
         {
@@ -617,6 +693,10 @@
             CloseForms();
             await Reload();
         }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
+        }
         catch (AuthApiException ex) when (ex.StatusCode == 401)
         {
             await HandleExpiredSessionAsync(ex.Message);
@@ -629,6 +709,9 @@
 
     private async Task DeleteDepartmentById(Guid departmentId)
     {
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
         var department = Departments.FirstOrDefault(x => x.Id == departmentId);
         if (department is null)
         {
@@ -810,6 +893,9 @@
 
     private async Task SaveTaskDraft()
     {
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
         if (!DepartmentTaskCrudEnabled)
         {
             Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
@@ -855,6 +941,10 @@
             CloseTaskDialog();
             await ReloadSafely();
         }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
+        }
         catch (NotSupportedException ex)
         {
             Snackbar.Add(ex.Message, Severity.Warning);
@@ -867,6 +957,9 @@
 
     private async Task DeleteSelectedTask()
     {
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
         if (!DepartmentTaskCrudEnabled)
         {
             Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
@@ -887,6 +980,10 @@
             CloseTaskDialog();
             await ReloadSafely();
         }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
+        }
         catch (NotSupportedException ex)
         {
             Snackbar.Add(ex.Message, Severity.Warning);
@@ -899,6 +996,9 @@
 
     private async Task CompleteSelectedTask()
     {
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
         if (!DepartmentTaskCrudEnabled)
         {
             Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
@@ -915,6 +1015,10 @@
             CloseTaskDialog();
             await ReloadSafely();
         }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
+        }
         catch (NotSupportedException ex)
         {
             Snackbar.Add(ex.Message, Severity.Warning);
@@ -927,6 +1031,9 @@
 
     private async Task MarkTaskDone(DepartmentWorkspaceCard card, DepartmentTaskCard task)
     {
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
         if (!DepartmentTaskCrudEnabled)
         {
             Snackbar.Add("Department task CRUD chua ho tro trong live API.", Severity.Info);
@@ -943,6 +1050,10 @@
         {
             await DepartmentService.CompleteDepartmentTaskAsync(task.Id);
             await ReloadSafely();
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            Snackbar.Add("Dang khoi tao phien dang nhap...", Severity.Info);
         }
         catch (Exception ex)
         {
@@ -1157,3 +1268,4 @@
         }
     }
 }
+

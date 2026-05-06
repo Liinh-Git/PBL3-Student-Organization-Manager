@@ -47,12 +47,6 @@ public static class FrontendStartupExtensions
 
         services.AddMudServices();
 
-        // ---- Đăng ký HttpClient có auth cho các API client (chỉ khi không dùng mock) ----
-        if (!useMockServices)
-        {
-            services.AddHttpClient<AuthApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl));
-        }
-
         // ---- Đăng ký các token/auth service (dùng cho cả mock lẫn real) ----
         services.AddScoped<ITokenStorage, LocalStorageTokenStorage>();
         services.AddScoped<IAccessTokenStore, AccessTokenStore>();
@@ -62,42 +56,30 @@ public static class FrontendStartupExtensions
         services.AddSingleton<CircuitServicesAccessor>();
         services.AddScoped<CircuitHandler, CircuitServicesAccessorHandler>();
         services.AddTransient<AuthHeaderDelegatingHandler>();
+        services.AddHttpClient("BackendApi", c => ConfigureApiClient(c, backendApiBaseUrl));
 
-        // ---- Đăng ký HttpClient có Bearer token header cho các domain client ----
+        // ---- Đăng ký HttpClient cho các API client (chỉ khi không dùng mock) ----
         if (!useMockServices)
         {
-            services.AddHttpClient<DepartmentApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
+            // AuthApiClient khong dung AuthHeaderDelegatingHandler vi no la noi lay token
+            services.AddHttpClient<AuthApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl));
 
-            services.AddHttpClient<MemberApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
+            services.AddScoped<IAuthenticatedBackendClient, AuthenticatedBackendClient>();
+            services.AddScoped<DepartmentApiClient>();
+            services.AddScoped<MemberApiClient>();
+            services.AddScoped<OrganizationApiClient>();
+            services.AddScoped<OrganizationServiceApiClient>();
+            services.AddScoped<EventApiClient>();
+            services.AddScoped<MilestoneApiClient>();
+            services.AddScoped<EventCategoryApiClient>();
+            services.AddScoped<TaskApiClient>();
+            services.AddScoped<UserDashboardApiClient>();
+            services.AddScoped<UserSettingsApiClient>();
+            services.AddScoped<NotificationService>();
+            services.AddScoped<RequestApiClient>();
+            services.AddScoped<OrganizationRoleApiClient>();
 
-            services.AddHttpClient<OrganizationApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
-            services.AddHttpClient<OrganizationServiceApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
-
-            services.AddHttpClient<EventApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
-
-            services.AddHttpClient<MilestoneApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
-
-            services.AddHttpClient<EventCategoryApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
-
-            services.AddHttpClient<TaskApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
-
-                services.AddHttpClient<UserDashboardApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
-
-            services.AddHttpClient<UserSettingsApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
-
-            services.AddHttpClient<NotificationService>(c => ConfigureApiClient(c, backendApiBaseUrl))
-                    .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
-
+            // Non-core clients can keep temporary handler path until migrated.
             services.AddHttpClient<MessageApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
                     .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
 
@@ -107,10 +89,10 @@ public static class FrontendStartupExtensions
             services.AddHttpClient<UserProfileApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
                     .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
 
-            services.AddHttpClient<RequestApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
+            services.AddHttpClient<OverviewApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
                     .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
 
-            services.AddHttpClient<OrganizationRoleApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
+            services.AddHttpClient<FriendApiClient>(c => ConfigureApiClient(c, backendApiBaseUrl))
                     .AddHttpMessageHandler<AuthHeaderDelegatingHandler>();
         }
 
@@ -137,8 +119,6 @@ public static class FrontendStartupExtensions
         services.AddScoped<PostMockService>();
         services.AddScoped<MessageMockService>();
         services.AddScoped<MessageStateBridge>();
-        services.AddScoped<OverviewApiClient>();
-        services.AddScoped<FriendApiClient>();
 
         // ---- Chọn implementation thực hoặc mock theo cấu hình FrontendData:UseMockServices ----
         services.AddScoped<IAuthService>(sp =>
@@ -242,3 +222,4 @@ public static class FrontendStartupExtensions
         return app;
     }
 }
+

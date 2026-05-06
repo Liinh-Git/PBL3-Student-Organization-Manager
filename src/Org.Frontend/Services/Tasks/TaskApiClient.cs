@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Org.Frontend.Services.Auth;
 using Org.Frontend.ViewModels;
 using Org.Shared;
 using Org.Shared.Features.EventCategories;
@@ -10,13 +11,13 @@ using SharedTaskStatus = Org.Shared.TaskStatus;
 
 namespace Org.Frontend.Services.Tasks;
 
-public sealed class TaskApiClient(HttpClient httpClient) : ITaskService
+public sealed class TaskApiClient(IAuthenticatedBackendClient backendClient) : ITaskService
 {
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
 
     public async Task<List<TaskViewModel>> GetTasksAsync(Guid categoryId)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetTasksResponse>($"api/categories/{categoryId}/tasks")
+        var payload = await _backendClient.GetFromJsonAsync<GetTasksResponse>($"api/categories/{categoryId}/tasks")
             ?? new GetTasksResponse([]);
 
         return payload.Items
@@ -27,8 +28,12 @@ public sealed class TaskApiClient(HttpClient httpClient) : ITaskService
     public async Task UpdateTaskStatusAsync(Guid taskId, UpdateTaskStatusViewModel req)
     {
         var payload = new UpdateTaskStatusRequest(ParseStatus(req.Status));
-        using var response = await _httpClient.PutAsJsonAsync($"api/tasks/{taskId}/status", payload);
-        response.EnsureSuccessStatusCode();
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"api/tasks/{taskId}/status")
+        {
+            Content = JsonContent.Create(payload)
+        };
+
+        using var _ = await _backendClient.SendAsync(request);
     }
 
     public async Task<TaskViewModel> CreateTaskAsync(Guid categoryId, CreateTaskViewModel req)
@@ -48,27 +53,25 @@ public sealed class TaskApiClient(HttpClient httpClient) : ITaskService
             req.DueDate is null ? null : DateOnly.FromDateTime(req.DueDate.Value),
             ParsePriority(req.Priority));
 
-        using var response = await _httpClient.PostAsJsonAsync($"api/categories/{categoryId}/tasks", payload);
-        response.EnsureSuccessStatusCode();
-
-        var created = await response.Content.ReadFromJsonAsync<TaskDto>()
-            ?? throw new InvalidOperationException("API returned no task payload.");
+        var created = await _backendClient.PostAsJsonAsync<CreateTaskRequest, TaskDto>(
+            $"api/categories/{categoryId}/tasks",
+            payload) ?? throw new InvalidOperationException("API returned no task payload.");
 
         return MapTask(created);
     }
 
     public async Task<bool> CanManageTasksAsync(Guid categoryId)
     {
-        var category = await _httpClient.GetFromJsonAsync<GetEventCategoryByIdResponse>($"api/categories/{categoryId}")
+        var category = await _backendClient.GetFromJsonAsync<GetEventCategoryByIdResponse>($"api/categories/{categoryId}")
             ?? throw new InvalidOperationException("API returned no category detail payload.");
 
-        var milestone = await _httpClient.GetFromJsonAsync<GetMilestoneByIdResponse>($"api/milestones/{category.Data.MilestoneId}")
+        var milestone = await _backendClient.GetFromJsonAsync<GetMilestoneByIdResponse>($"api/milestones/{category.Data.MilestoneId}")
             ?? throw new InvalidOperationException("API returned no milestone detail payload.");
 
-        var @event = await _httpClient.GetFromJsonAsync<GetEventByIdResponse>($"api/events/{milestone.Data.EventId}")
+        var @event = await _backendClient.GetFromJsonAsync<GetEventByIdResponse>($"api/events/{milestone.Data.EventId}")
             ?? throw new InvalidOperationException("API returned no event detail payload.");
 
-        var myOrgs = await _httpClient.GetFromJsonAsync<GetMyOrganizationsResponse>("api/users/me/organizations")
+        var myOrgs = await _backendClient.GetFromJsonAsync<GetMyOrganizationsResponse>("api/users/me/organizations")
             ?? new GetMyOrganizationsResponse([]);
 
         var myRole = myOrgs.Items.FirstOrDefault(x => x.OrganizationId == @event.Data.OrganizationId)?.MemberRole;

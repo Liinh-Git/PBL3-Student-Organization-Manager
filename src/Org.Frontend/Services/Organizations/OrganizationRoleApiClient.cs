@@ -1,28 +1,29 @@
 using System.Net.Http.Json;
+using Org.Frontend.Services.Auth;
 using Org.Frontend.ViewModels;
 using Org.Shared.Features.Organizations;
 using RoleUpsertRequest = Org.Frontend.ViewModels.UpsertOrganizationRoleRequest;
 
 namespace Org.Frontend.Services.Organizations;
 
-public sealed class OrganizationRoleApiClient(HttpClient httpClient) : IOrganizationRoleService
+public sealed class OrganizationRoleApiClient(IAuthenticatedBackendClient backendClient) : IOrganizationRoleService
 {
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
 
     public async Task<bool> CanManageRolesAsync(Guid organizationId, CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetOrganizationPermissionsMeResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetOrganizationPermissionsMeResponse>(
             $"api/organizations/{organizationId:D}/permissions/me",
-            cancellationToken: ct);
+            ct);
 
         return payload?.Data.CanManageRoles ?? false;
     }
 
     public async Task<IReadOnlyList<PermissionOptionViewModel>> GetAvailablePermissionsAsync(Guid organizationId, CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetOrganizationPermissionsCatalogResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetOrganizationPermissionsCatalogResponse>(
             $"api/organizations/{organizationId:D}/permissions",
-            cancellationToken: ct) ?? new GetOrganizationPermissionsCatalogResponse([]);
+            ct) ?? new GetOrganizationPermissionsCatalogResponse([]);
 
         return payload.Items
             .Select(x => new PermissionOptionViewModel
@@ -36,9 +37,9 @@ public sealed class OrganizationRoleApiClient(HttpClient httpClient) : IOrganiza
 
     public async Task<IReadOnlyList<OrganizationRoleViewModel>> GetRolesAsync(Guid organizationId, CancellationToken ct = default)
     {
-        var payload = await _httpClient.GetFromJsonAsync<GetOrganizationRolesResponse>(
+        var payload = await _backendClient.GetFromJsonAsync<GetOrganizationRolesResponse>(
             $"api/organizations/{organizationId:D}/roles",
-            cancellationToken: ct) ?? new GetOrganizationRolesResponse([]);
+            ct) ?? new GetOrganizationRolesResponse([]);
 
         return payload.Items
             .Select(x => new OrganizationRoleViewModel
@@ -66,14 +67,10 @@ public sealed class OrganizationRoleApiClient(HttpClient httpClient) : IOrganiza
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
                 .ToList());
 
-        using var response = await _httpClient.PostAsJsonAsync(
+        var created = await _backendClient.PostAsJsonAsync<Org.Shared.Features.Organizations.UpsertOrganizationRoleRequest, OrganizationRoleDto>(
             $"api/organizations/{organizationId:D}/roles",
             payload,
-            ct);
-        response.EnsureSuccessStatusCode();
-
-        var created = await response.Content.ReadFromJsonAsync<OrganizationRoleDto>(cancellationToken: ct)
-            ?? throw new InvalidOperationException("Backend returned empty role payload.");
+            ct) ?? throw new InvalidOperationException("Backend returned empty role payload.");
 
         return MapRole(created);
     }
@@ -90,32 +87,28 @@ public sealed class OrganizationRoleApiClient(HttpClient httpClient) : IOrganiza
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
                 .ToList());
 
-        using var response = await _httpClient.PutAsJsonAsync(
+        var updated = await _backendClient.PutAsJsonAsync<Org.Shared.Features.Organizations.UpsertOrganizationRoleRequest, OrganizationRoleDto>(
             $"api/organizations/roles/{roleId:D}",
             payload,
-            ct);
-        response.EnsureSuccessStatusCode();
-
-        var updated = await response.Content.ReadFromJsonAsync<OrganizationRoleDto>(cancellationToken: ct)
-            ?? throw new InvalidOperationException("Backend returned empty role payload.");
+            ct) ?? throw new InvalidOperationException("Backend returned empty role payload.");
 
         return MapRole(updated);
     }
 
     public async Task DeleteRoleAsync(Guid roleId, CancellationToken ct = default)
     {
-        using var response = await _httpClient.DeleteAsync($"api/organizations/roles/{roleId:D}", ct);
-        response.EnsureSuccessStatusCode();
+        await _backendClient.DeleteAsync($"api/organizations/roles/{roleId:D}", ct);
     }
 
     public async Task AssignRoleToMemberAsync(Guid organizationId, Guid memberId, Guid roleId, CancellationToken ct = default)
     {
         var payload = new AssignOrganizationRoleRequest(roleId);
-        using var response = await _httpClient.PostAsJsonAsync(
-            $"api/organizations/{organizationId:D}/members/{memberId:D}/role",
-            payload,
-            ct);
-        response.EnsureSuccessStatusCode();
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"api/organizations/{organizationId:D}/members/{memberId:D}/role")
+        {
+            Content = JsonContent.Create(payload)
+        };
+
+        using var _ = await _backendClient.SendAsync(request, ct);
     }
 
     private static OrganizationRoleViewModel MapRole(OrganizationRoleDto role)

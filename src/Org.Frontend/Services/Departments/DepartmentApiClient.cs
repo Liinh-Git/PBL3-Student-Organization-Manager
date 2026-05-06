@@ -1,8 +1,3 @@
-// ---- API client thực cho service phòng ban — gọn request qua HttpClient có Bearer token ----
-// Dùng alias import để tách biệt DTO củ (Contracts/) và DTO từ Features/ của API thật.
-// MapLegacyDto: chuyển FeatureDepartmentDto sang DepartmentDto cũ mà UI đang dùng.
-using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Org.Frontend.Services.Auth;
 using Org.Frontend.ViewModels;
@@ -19,24 +14,13 @@ using FeatureUpdateDepartmentRequest = Org.Shared.Features.Departments.UpdateDep
 namespace Org.Frontend.Services.Departments;
 
 public sealed class DepartmentApiClient(
-    HttpClient httpClient,
-    ITokenStorage tokenStorage,
-    IAccessTokenStore accessTokenStore) : IDepartmentService
+    IAuthenticatedBackendClient backendClient) : IDepartmentService
 {
-    private readonly HttpClient _httpClient = httpClient;
-    private readonly ITokenStorage _tokenStorage = tokenStorage;
-    private readonly IAccessTokenStore _accessTokenStore = accessTokenStore;
+    private readonly IAuthenticatedBackendClient _backendClient = backendClient;
 
     public async Task<List<DepartmentDto>> GetDepartments(Guid orgId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, $"api/organizations/{orgId}/departments", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadFromJsonAsync<FeatureGetDepartmentsResponse>(cancellationToken: CancellationToken.None)
+        var payload = await _backendClient.GetFromJsonAsync<FeatureGetDepartmentsResponse>($"api/organizations/{orgId}/departments")
             ?? new FeatureGetDepartmentsResponse([]);
 
         return payload.Items.Select(MapLegacyDto).ToList();
@@ -51,16 +35,10 @@ public sealed class DepartmentApiClient(
             req.Function,
             req.ManagerId);
 
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Post, "api/departments", CancellationToken.None);
-        request.Content = JsonContent.Create(payload);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
-
-        var created = await response.Content.ReadFromJsonAsync<FeatureDepartmentDto>(cancellationToken: CancellationToken.None)
-            ?? throw new InvalidOperationException("API returned no department payload.");
+        var created = await _backendClient.PostAsJsonAsync<FeatureCreateDepartmentRequest, FeatureDepartmentDto>(
+            "api/departments",
+            payload,
+            CancellationToken.None) ?? throw new InvalidOperationException("API returned no department payload.");
 
         return MapLegacyDto(created);
     }
@@ -74,80 +52,48 @@ public sealed class DepartmentApiClient(
             true,
             req.ManagerId);
 
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"api/departments/{id}", CancellationToken.None);
-        request.Content = JsonContent.Create(payload);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
-
-        var updated = await response.Content.ReadFromJsonAsync<FeatureDepartmentDto>(cancellationToken: CancellationToken.None)
-            ?? throw new InvalidOperationException("API returned no department payload.");
+        var updated = await _backendClient.PutAsJsonAsync<FeatureUpdateDepartmentRequest, FeatureDepartmentDto>(
+            $"api/departments/{id}",
+            payload,
+            CancellationToken.None) ?? throw new InvalidOperationException("API returned no department payload.");
 
         return MapLegacyDto(updated);
     }
 
     public async Task DeleteDepartment(Guid id)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Delete, $"api/departments/{id}", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
+        await _backendClient.DeleteAsync($"api/departments/{id}", CancellationToken.None);
     }
 
     public async Task<List<MemberDto>> GetDepartmentMembersAsync(Guid departmentId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, $"api/departments/{departmentId}/members", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadFromJsonAsync<FeatureGetDepartmentMembersResponse>(cancellationToken: CancellationToken.None)
-            ?? new FeatureGetDepartmentMembersResponse([]);
+        var payload = await _backendClient.GetFromJsonAsync<FeatureGetDepartmentMembersResponse>(
+            $"api/departments/{departmentId}/members",
+            CancellationToken.None) ?? new FeatureGetDepartmentMembersResponse([]);
 
         return payload.Items.Select(MapLegacyMemberDto).ToList();
     }
 
     public async Task<DepartmentDto> AssignManagerAsync(Guid departmentId, Guid? managerMemberId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"api/departments/{departmentId}/manager", CancellationToken.None);
-        request.Content = JsonContent.Create(new FeatureUpdateDepartmentManagerRequest(managerMemberId));
-
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
-
-        var updated = await response.Content.ReadFromJsonAsync<FeatureDepartmentDto>(cancellationToken: CancellationToken.None)
-            ?? throw new InvalidOperationException("API returned no department payload.");
+        var payload = new FeatureUpdateDepartmentManagerRequest(managerMemberId);
+        var updated = await _backendClient.PutAsJsonAsync<FeatureUpdateDepartmentManagerRequest, FeatureDepartmentDto>(
+            $"api/departments/{departmentId}/manager",
+            payload,
+            CancellationToken.None) ?? throw new InvalidOperationException("API returned no department payload.");
 
         return MapLegacyDto(updated);
     }
 
     public async Task AssignMemberAsync(Guid departmentId, Guid memberId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Post, $"api/departments/{departmentId}/members/{memberId}", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"api/departments/{departmentId}/members/{memberId}");
+        using var _ = await _backendClient.SendAsync(request, CancellationToken.None);
     }
 
     public async Task RemoveMemberAsync(Guid departmentId, Guid memberId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Delete, $"api/departments/{departmentId}/members/{memberId}", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
+        await _backendClient.DeleteAsync($"api/departments/{departmentId}/members/{memberId}", CancellationToken.None);
     }
 
     public Task<List<DepartmentTaskDto>> GetDepartmentTasksAsync(Guid departmentId)
@@ -182,15 +128,9 @@ public sealed class DepartmentApiClient(
 
     public async Task<DepartmentTasksOverviewViewModel> GetTasksOverviewAsync(Guid departmentId)
     {
-        using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, $"api/departments/{departmentId}/tasks/overview", CancellationToken.None);
-        using var response = await _httpClient.SendAsync(request, CancellationToken.None);
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
-
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadFromJsonAsync<FeatureGetDepartmentTasksOverviewResponse>(cancellationToken: CancellationToken.None)
-            ?? new FeatureGetDepartmentTasksOverviewResponse(departmentId, 0, 0, 0, []);
+        var payload = await _backendClient.GetFromJsonAsync<FeatureGetDepartmentTasksOverviewResponse>(
+            $"api/departments/{departmentId}/tasks/overview",
+            CancellationToken.None) ?? new FeatureGetDepartmentTasksOverviewResponse(departmentId, 0, 0, 0, []);
 
         return new DepartmentTasksOverviewViewModel
         {
@@ -271,35 +211,5 @@ public sealed class DepartmentApiClient(
             Org.Shared.TaskPriority.Low => "Low",
             _ => "Medium"
         };
-    }
-
-    private async Task<HttpRequestMessage> CreateAuthorizedRequestAsync(HttpMethod method, string uri, CancellationToken ct)
-    {
-        var request = new HttpRequestMessage(method, uri);
-
-        var token = await GetAccessTokenAsync(ct);
-        if (!string.IsNullOrWhiteSpace(token))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        return request;
-    }
-
-    private async Task<string?> GetAccessTokenAsync(CancellationToken ct)
-    {
-        if (!string.IsNullOrWhiteSpace(_accessTokenStore.AccessToken))
-            return _accessTokenStore.AccessToken;
-
-        try
-        {
-            var token = await _tokenStorage.GetTokenAsync(ct);
-            if (!string.IsNullOrWhiteSpace(token))
-                _accessTokenStore.AccessToken = token;
-
-            return token;
-        }
-        catch (InvalidOperationException)
-        {
-            return null;
-        }
     }
 }

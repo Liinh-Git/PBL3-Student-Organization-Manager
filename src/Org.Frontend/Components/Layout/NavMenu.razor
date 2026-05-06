@@ -1,8 +1,5 @@
 @inject NavigationManager Navigation
-@inject IOrganizationRouteAccessGate OrganizationRouteAccessGate
-@inject Org.Frontend.Services.Dashboard.IUserDashboardService DashboardService
 @inject FrontendAuthStateProvider AuthStateProvider
-@inject Org.Frontend.Services.Requests.IRequestService RequestService
 @implements IDisposable
 
 <div class="nav-scrollable">
@@ -19,23 +16,10 @@
 
             <div class="rail-separator"></div>
 
-            <div class="rail-org-list">
-                @if (_joinedOrganizations is not null)
-                {
-                    @foreach (var org in _joinedOrganizations)
-                    {
-                        <button class="rail-icon org-icon @(IsOrganizationWorkspaceActive(org.OrganizationId.ToString()) ? "active" : string.Empty)"
-                                type="button"
-                                title="@org.Name"
-                                @onclick="@(() => ActivateOrganizationWorkspace(org))">
-                            <img src="@org.AvatarUrl" alt="@org.Name" />
-                        </button>
-                    }
-                }
-            </div>
+            @* Tạm thời không load danh sách tổ chức ở rail để tránh gọi API sớm *@
 
             <div class="rail-logout-anchor">
-                <button class="rail-icon logout-icon-force" type="button" title="Dang xuat" @onclick="HandleSignOut">
+                <button class="rail-icon logout-icon-force" type="button" title="Đăng xuất" @onclick="HandleSignOut">
                     <MudIcon Icon="@Icons.Material.Filled.Logout" Class="rail-logout-icon" />
                 </button>
             </div>
@@ -61,19 +45,6 @@
                     }
                 </nav>
             </div>
-
-            @if (_activeWorkspace == WorkspaceKind.Organization)
-            {
-                <div class="workspace-footer-card">
-                    <div class="workspace-footer-card-inner">
-                        <div class="workspace-footer-badge">@ActiveOrganizationShortName</div>
-                        <div class="workspace-footer-meta">
-                            <p>@ActiveWorkspaceTitle</p>
-                            <span>Organization Workspace</span>
-                        </div>
-                    </div>
-                </div>
-            }
         </section>
     </div>
 </div>
@@ -89,96 +60,41 @@
 
     private static readonly IReadOnlyList<WorkspaceMenuItem> UserWorkspaceMenu =
     [
-        new("user-organizations", "To chuc cua toi", "/user/organizations", Icons.Material.Filled.Groups),
-        new("user-events", "Su kien cua toi", "/user/events", Icons.Material.Filled.Event),
-        new("user-settings", "Cai dat", "/user/settings", Icons.Material.Filled.Settings)
+        new("user-organizations", "Tổ chức của tôi", "/user/organizations", Icons.Material.Filled.Groups),
+        new("user-events", "Sự kiện của tôi", "/user/events", Icons.Material.Filled.Event),
+        new("user-settings", "Cài đặt", "/user/settings", Icons.Material.Filled.Settings)
     ];
 
     private static readonly IReadOnlyList<WorkspaceMenuItem> OrganizationWorkspaceMenu =
     [
-        new("org-overview", "Tong quan", "/org-overview", Icons.Material.Filled.SpaceDashboard),
-        new("org-members", "Thanh vien", "/org/members", Icons.Material.Filled.Group),
-        new("org-departments", "Phong ban", "/org/departments", Icons.Material.Filled.Apartment),
-        new("org-events", "Su kien", "/org/events", Icons.Material.Filled.EventNote),
-        new("org-requests", "Yeu cau", "/org/requests", Icons.Material.Filled.NotificationsActive)
+        new("org-overview", "Tổng quan", "/org-overview", Icons.Material.Filled.SpaceDashboard),
+        new("org-members", "Thành viên", "/org/members", Icons.Material.Filled.Group),
+        new("org-departments", "Phòng ban", "/org/departments", Icons.Material.Filled.Apartment),
+        new("org-events", "Sự kiện", "/org/events", Icons.Material.Filled.EventNote)
     ];
 
     private WorkspaceKind _activeWorkspace = WorkspaceKind.User;
     private Guid? _activeOrganizationId;
     private string _activeUserMenuKey = "user-organizations";
     private string _activeOrganizationMenuKey = "org-overview";
-    private IReadOnlyList<UserOrganizationViewModel>? _joinedOrganizations;
-    private bool _canViewOrganizationRequests;
-
-    protected override async Task OnInitializedAsync()
-    {
-        Navigation.LocationChanged += HandleLocationChanged;
-
-        var currentRoute = GetCurrentRoute(Navigation.Uri);
-        SyncWorkspaceAndMenuWithRoute(currentRoute, Navigation.Uri);
-
-        await LoadJoinedOrganizationsAsync();
-        await RefreshOrganizationPermissionsAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-            return;
-
-        await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
-        var currentRoute = GetCurrentRoute(Navigation.Uri);
-        SyncWorkspaceAndMenuWithRoute(currentRoute, Navigation.Uri);
-        await RefreshOrganizationPermissionsAsync();
-        await InvokeAsync(StateHasChanged);
-    }
 
     private IReadOnlyList<WorkspaceMenuItem> ActiveMenuItems =>
         _activeWorkspace == WorkspaceKind.User
             ? UserWorkspaceMenu
-            : GetOrganizationMenuItems();
+            : OrganizationWorkspaceMenu;
 
     private bool IsUserWorkspaceActive => _activeWorkspace == WorkspaceKind.User;
 
     private string ActiveWorkspaceHeading =>
-        _activeWorkspace == WorkspaceKind.User ? "WORKSPACE CA NHAN" : ActiveWorkspaceTitle.ToUpperInvariant();
+        _activeWorkspace == WorkspaceKind.User
+            ? "WORKSPACE CÁ NHÂN"
+            : "WORKSPACE TỔ CHỨC";
 
-    private string ActiveWorkspaceTitle
+    protected override void OnInitialized()
     {
-        get
-        {
-            if (_activeWorkspace == WorkspaceKind.User || _activeOrganizationId == null)
-                return "Khong gian ca nhan";
-
-            var org = _joinedOrganizations?.FirstOrDefault(x => x.OrganizationId == _activeOrganizationId);
-            return org?.Name ?? "To chuc";
-        }
+        SyncWorkspaceAndMenuWithRoute(GetCurrentRoute(Navigation.Uri), Navigation.Uri);
+        Navigation.LocationChanged += HandleLocationChanged;
     }
-
-    private string ActiveOrganizationShortName
-    {
-        get
-        {
-            if (_activeOrganizationId == null || _joinedOrganizations == null)
-                return "ORG";
-
-            var org = _joinedOrganizations.FirstOrDefault(x => x.OrganizationId == _activeOrganizationId);
-            if (org == null)
-                return "ORG";
-
-            var words = org.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length >= 2)
-                return (words[0][0].ToString() + words[1][0].ToString()).ToUpperInvariant();
-
-            return org.Name[..Math.Min(2, org.Name.Length)].ToUpperInvariant();
-        }
-    }
-
-    private bool IsOrganizationWorkspaceActive(string key)
-        => _activeWorkspace == WorkspaceKind.Organization && _activeOrganizationId?.ToString() == key;
-
-    private bool IsMenuItemActive(string key)
-        => _activeWorkspace == WorkspaceKind.User ? _activeUserMenuKey == key : _activeOrganizationMenuKey == key;
 
     private void ActivateUserWorkspace()
     {
@@ -187,26 +103,13 @@
         Navigation.NavigateTo("/user/organizations");
     }
 
-    private void ActivateOrganizationWorkspace(UserOrganizationViewModel org)
-    {
-        _activeWorkspace = WorkspaceKind.Organization;
-        _activeOrganizationId = org.OrganizationId;
-        _activeOrganizationMenuKey = "org-overview";
-        Navigation.NavigateTo($"/org-overview?orgId={org.OrganizationId}");
-    }
-
     private void NavigateToMenu(WorkspaceMenuItem item)
     {
-        if (_activeWorkspace == WorkspaceKind.Organization
-            && OrganizationRouteAccessGate.HasRestrictedPublicOrganization
-            && item.Href.StartsWith("/org/", StringComparison.OrdinalIgnoreCase))
-        {
-            Navigation.NavigateTo(OrganizationRouteAccessGate.BuildRestrictedOverviewRoute());
-            return;
-        }
-
         var targetHref = item.Href;
-        if (_activeWorkspace == WorkspaceKind.Organization && _activeOrganizationId.HasValue && targetHref.StartsWith("/org", StringComparison.Ordinal))
+
+        if (_activeWorkspace == WorkspaceKind.Organization
+            && _activeOrganizationId.HasValue
+            && targetHref.StartsWith("/org", StringComparison.Ordinal))
         {
             var sep = targetHref.Contains('?') ? "&" : "?";
             targetHref += $"{sep}orgId={_activeOrganizationId}";
@@ -220,58 +123,25 @@
         Navigation.NavigateTo(targetHref);
     }
 
-    private async Task LoadJoinedOrganizationsAsync()
-    {
-        try
-        {
-            var dashboard = await DashboardService.GetDashboardAsync();
-            _joinedOrganizations = dashboard.Organizations;
-            StateHasChanged();
-        }
-        catch
-        {
-            _joinedOrganizations = [];
-        }
-    }
-
     private async Task HandleSignOut()
     {
         await AuthStateProvider.SignOutAsync();
         Navigation.NavigateTo("/login", forceLoad: true);
     }
 
-    private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        _ = InvokeAsync(async () =>
+        _ = InvokeAsync(() =>
         {
-            await OrganizationRouteAccessGate.SyncFromUriAsync(e.Location);
-            var route = GetCurrentRoute(e.Location);
-            SyncWorkspaceAndMenuWithRoute(route, e.Location);
-            await RefreshOrganizationPermissionsAsync();
+            SyncWorkspaceAndMenuWithRoute(GetCurrentRoute(e.Location), e.Location);
             StateHasChanged();
         });
     }
 
-    private string GetCurrentRoute(string uri)
-    {
-        var route = "/" + Navigation.ToBaseRelativePath(uri).Trim('/');
-        if (string.IsNullOrWhiteSpace(route))
-            return "/";
-
-        var queryIndex = route.IndexOf('?');
-        if (queryIndex >= 0)
-            route = route[..queryIndex];
-
-        var hashIndex = route.IndexOf('#');
-        if (hashIndex >= 0)
-            route = route[..hashIndex];
-
-        return string.IsNullOrWhiteSpace(route) ? "/" : route;
-    }
-
     private void SyncWorkspaceAndMenuWithRoute(string route, string fullUri)
     {
-        _activeWorkspace = OrganizationRouteAccessGate.ShouldUseOrganizationWorkspace(route)
+        _activeWorkspace = route.StartsWith("/org", StringComparison.OrdinalIgnoreCase)
+            || route.StartsWith("/org-overview", StringComparison.OrdinalIgnoreCase)
             ? WorkspaceKind.Organization
             : WorkspaceKind.User;
 
@@ -293,9 +163,6 @@
 
     private void SyncActiveMenuWithRoute(string route)
     {
-        if (string.IsNullOrWhiteSpace(route) || route == "/")
-            return;
-
         var normalized = route.ToLowerInvariant();
 
         var userMatch = UserWorkspaceMenu.FirstOrDefault(item =>
@@ -309,38 +176,28 @@
             _activeOrganizationMenuKey = organizationMatch.Key;
     }
 
+    private bool IsMenuItemActive(string key)
+        => _activeWorkspace == WorkspaceKind.User
+            ? _activeUserMenuKey == key
+            : _activeOrganizationMenuKey == key;
+
+    private string GetCurrentRoute(string uri)
+    {
+        var route = "/" + Navigation.ToBaseRelativePath(uri).Trim('/');
+
+        var queryIndex = route.IndexOf('?');
+        if (queryIndex >= 0)
+            route = route[..queryIndex];
+
+        var hashIndex = route.IndexOf('#');
+        if (hashIndex >= 0)
+            route = route[..hashIndex];
+
+        return string.IsNullOrWhiteSpace(route) ? "/" : route;
+    }
+
     public void Dispose()
     {
         Navigation.LocationChanged -= HandleLocationChanged;
-    }
-
-    private IReadOnlyList<WorkspaceMenuItem> GetOrganizationMenuItems()
-    {
-        if (_canViewOrganizationRequests)
-        {
-            return OrganizationWorkspaceMenu;
-        }
-
-        return OrganizationWorkspaceMenu
-            .Where(x => !string.Equals(x.Key, "org-requests", StringComparison.OrdinalIgnoreCase))
-            .ToList();
-    }
-
-    private async Task RefreshOrganizationPermissionsAsync()
-    {
-        if (_activeWorkspace != WorkspaceKind.Organization || !_activeOrganizationId.HasValue)
-        {
-            _canViewOrganizationRequests = false;
-            return;
-        }
-
-        try
-        {
-            _canViewOrganizationRequests = await RequestService.CanViewOrganizationRequestsAsync(_activeOrganizationId.Value);
-        }
-        catch
-        {
-            _canViewOrganizationRequests = false;
-        }
     }
 }

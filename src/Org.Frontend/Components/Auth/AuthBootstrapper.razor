@@ -1,14 +1,2 @@
-@* ---- Auth bootstrapper: khởi động auth state khi app render lần đầu ---- *@
-@inject FrontendAuthStateProvider AuthStateProvider
-
-@code {
-    // ---- Chạy một lần khi app render để dựng auth state ban đầu ----
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-            return;
-
-        // Bước 1: đọc token hiện có và dựng auth state cho toàn app
-        await AuthStateProvider.InitializeAsync();
-    }
-}
+@* ---- Auth bootstrapper: giữ component placeholder để tương thích Routes. ---- *@
+@code { }

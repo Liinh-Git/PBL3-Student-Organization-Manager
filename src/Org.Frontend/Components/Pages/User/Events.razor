@@ -10,7 +10,7 @@
 <PageTitle>Sự kiện của tôi - Kora</PageTitle>
 
 <div class="user-events-dashboard">
-    @if (_isLoading)
+    @if (_isLoading || _isAuthInitializing)
     {
         <div class="d-flex justify-center pa-12">
             <MudProgressCircular Color="MudBlazor.Color.Primary" Indeterminate="true" />
@@ -20,7 +20,7 @@
     {
         <div class="events-empty-state">
             <p class="empty-note">@_errorMessage</p>
-            <button class="btn-dark" @onclick="LoadAsync">Thử lại</button>
+            <button class="btn-dark" @onclick="RetryLoadAsync">Thử lại</button>
         </div>
     }
     else
@@ -131,8 +131,10 @@
 @code {
     private MyEventsViewModel _myEvents = new();
     private bool _isLoading = true;
+    private bool _isAuthInitializing = true;
     private string? _errorMessage;
     private bool _hasBootstrapped;
+    private bool _authRetryAttempted;
     private EventStatusFilter _activeStatus = EventStatusFilter.All;
 
     private enum EventStatusFilter
@@ -149,16 +151,34 @@
             return;
 
         _hasBootstrapped = true;
-        await FrontendAuthStateProvider.InitializeAsync();
-        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
-        if (authState.User.Identity?.IsAuthenticated != true)
-            return;
-
-        await LoadAsync();
+        await LoadWithAuthGuardAsync();
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task LoadAsync()
+    private async Task RetryLoadAsync()
+    {
+        _authRetryAttempted = false;
+        await LoadWithAuthGuardAsync();
+    }
+
+    private async Task LoadWithAuthGuardAsync()
+    {
+        _isLoading = true;
+        _isAuthInitializing = true;
+        _errorMessage = null;
+
+        if (!await EnsureAuthenticatedAsync())
+        {
+            _isLoading = false;
+            _isAuthInitializing = false;
+            return;
+        }
+
+        _isAuthInitializing = false;
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
     {
         _isLoading = true;
         _errorMessage = null;
@@ -166,6 +186,27 @@
         try
         {
             _myEvents = await EventService.GetMyEventsAsync();
+            _authRetryAttempted = false;
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 0)
+        {
+            if (!_authRetryAttempted)
+            {
+                _authRetryAttempted = true;
+                _errorMessage = null;
+                _isAuthInitializing = true;
+
+                await Task.Delay(300);
+                await LoadWithAuthGuardAsync();
+                return;
+            }
+
+            _errorMessage = "Không thể khởi tạo phiên đăng nhập. Vui lòng tải lại trang.";
+        }
+        catch (AuthApiException ex) when (ex.StatusCode == 401)
+        {
+            await FrontendAuthStateProvider.SignOutAsync();
+            NavigationManager.NavigateTo("/login", forceLoad: true);
         }
         catch (Exception ex)
         {
@@ -174,7 +215,27 @@
         finally
         {
             _isLoading = false;
+            _isAuthInitializing = false;
         }
+    }
+
+    private async Task<bool> EnsureAuthenticatedAsync()
+    {
+        try
+        {
+            await FrontendAuthStateProvider.InitializeAsync();
+        }
+        catch
+        {
+            return false;
+        }
+
+        var authState = await FrontendAuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+            return true;
+
+        NavigationManager.NavigateTo("/login", forceLoad: true);
+        return false;
     }
 
     private List<MyEventItemViewModel> OrganizerEvents => ApplyStatusFilter(_myEvents.OrganizerEvents);

@@ -1,87 +1,60 @@
-@* ---- Layout chính của app: sidebar trái (NavMenu) + main area phải ---- *@
 @inherits LayoutComponentBase
-@inject FrontendAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
-@inject IOrganizationRouteAccessGate OrganizationRouteAccessGate
-@inject Org.Frontend.Services.Dashboard.IUserDashboardService DashboardService
-@inject Org.Frontend.Services.Notifications.INotificationService NotificationService
+@inject FrontendAuthStateProvider AuthStateProvider
 @implements IDisposable
+
 @using System.Security.Claims
-@using Org.Frontend.Components.Notifications
+@using Microsoft.AspNetCore.Components.Authorization
 
 <MudThemeProvider />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@if (IsPublicRoute)
+{
+    @Body
+}
+else
+{
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
+        </div>
 
-    <main class="@(_isOrganizationWorkspace ? "org-main" : "user-main")">
-        @if (_isOrganizationWorkspace)
-        {
-            <header class="org-top-row">
-                <div class="org-top-left">
-                    <h1 class="org-workspace-title">@_activeOrganizationName</h1>
+        <main class="@(_isOrganizationWorkspace ? "org-main" : "user-main")">
+            <header class="@(_isOrganizationWorkspace ? "org-top-row" : "user-top-row")">
+                <div class="@(_isOrganizationWorkspace ? "org-top-left" : "user-top-spacer")">
+                    @if (_isOrganizationWorkspace)
+                    {
+                        <h1 class="org-workspace-title">Workspace tổ chức</h1>
+                    }
                 </div>
 
-                <div class="org-top-right">
-                    <div class="org-icon-group" role="group" aria-label="Organization actions">
-                        <NotificationBadge />
-                        <button class="org-icon-button" type="button" aria-label="Settings" @onclick="NavigateToUserSettings">
-                            <MudIcon Icon="@Icons.Material.Outlined.Settings" />
-                        </button>
-                    </div>
+                <div class="@(_isOrganizationWorkspace ? "org-top-right" : "user-top-actions")">
+                    @* Tạm thời bỏ NotificationBadge để tránh gọi API sớm *@
 
                     <div class="profile-menu">
-                        <button type="button" class="org-profile clickable-profile" @onclick="NavigateToUserSettings">
-                            <div class="org-profile-meta">
-                                <strong>@DisplayName</strong>
-                                <span>Quản trị viên</span>
-                            </div>
-                            <div class="org-profile-avatar">
-                                <img src="/images/mockimages/AvtUser/Avt1.jpg" alt="@DisplayName" />
-                            </div>
-                        </button>
-                        <div class="profile-dropdown" role="menu" aria-label="Tài khoản">
-                            <button type="button" class="profile-menu-item" @onclick="NavigateToUserSettings">
-                                <MudIcon Icon="@Icons.Material.Outlined.Settings" Size="Size.Small" />
-                                <span>Cài đặt</span>
-                            </button>
-                            <button type="button" class="profile-menu-item danger" @onclick="HandleSignOut">
-                                <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" />
-                                <span>Đăng xuất</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-        }
-        else
-        {
-            <header class="user-top-row">
-                <div class="user-top-spacer"></div>
+                        <button type="button"
+                                class="@(_isOrganizationWorkspace ? "org-profile clickable-profile" : "user-profile clickable-profile")"
+                                @onclick="NavigateToUserSettings">
 
-                <div class="user-top-actions">
-                    <NotificationBadge />
-
-                    <div class="profile-menu">
-                        <button type="button" class="user-profile clickable-profile" @onclick="NavigateToUserSettings">
-                            <div class="user-profile-meta">
+                            <div class="@(_isOrganizationWorkspace ? "org-profile-meta" : "user-profile-meta")">
                                 <strong>@DisplayName</strong>
                                 <span>@UserWorkspaceLabel</span>
                             </div>
-                            <div class="user-profile-avatar">
+
+                            <div class="@(_isOrganizationWorkspace ? "org-profile-avatar" : "user-profile-avatar")">
                                 <img src="/images/mockimages/AvtUser/Avt1.jpg" alt="@DisplayName" />
                             </div>
                         </button>
+
                         <div class="profile-dropdown" role="menu" aria-label="Tài khoản">
                             <button type="button" class="profile-menu-item" @onclick="NavigateToUserSettings">
                                 <MudIcon Icon="@Icons.Material.Outlined.Settings" Size="Size.Small" />
                                 <span>Cài đặt</span>
                             </button>
+
                             <button type="button" class="profile-menu-item danger" @onclick="HandleSignOut">
                                 <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" />
                                 <span>Đăng xuất</span>
@@ -90,15 +63,15 @@
                     </div>
                 </div>
             </header>
-        }
 
-        <section class="app-main-surface @(_isOrganizationWorkspace ? "org-main-surface" : "user-main-surface")">
-            <article class="content">
-                @Body
-            </article>
-        </section>
-    </main>
-</div>
+            <section class="app-main-surface @(_isOrganizationWorkspace ? "org-main-surface" : "user-main-surface")">
+                <article class="content">
+                    @Body
+                </article>
+            </section>
+        </main>
+    </div>
+}
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -107,10 +80,20 @@
 </div>
 
 @code {
-    private bool _isOrganizationWorkspace;
-    private string _activeOrganizationName = "Đang tải...";
-    private Org.Frontend.ViewModels.UserDashboardViewModel? _dashboard;
     private ClaimsPrincipal _user = new(new ClaimsIdentity());
+    private bool _isOrganizationWorkspace;
+
+    private static readonly string[] PublicRoutePrefixes =
+    [
+        "",
+        "login",
+        "register",
+        "not-found",
+        "error",
+        "events"
+    ];
+
+    private bool IsPublicRoute => IsPublicRouteForUri(Navigation.Uri);
 
     private string DisplayName =>
         _user.Identity?.Name
@@ -121,32 +104,67 @@
         _user.FindFirst(ClaimTypes.Email)?.Value
         ?? "Workspace cá nhân";
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await AuthStateProvider.InitializeAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _user = authState.User;
-
+        SyncRouteOnly(Navigation.Uri);
         Navigation.LocationChanged += HandleLocationChanged;
-        if (_user.Identity?.IsAuthenticated == true)
-        {
-            await UpdateWorkspaceFromUriAsync(Navigation.Uri);
-        }
+        AuthStateProvider.AuthenticationStateChanged += HandleAuthenticationStateChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
+        if (!firstRender)
+            return;
 
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _user = authState.User;
-
-        if (_user.Identity?.IsAuthenticated == true)
-        {
-            await OrganizationRouteAccessGate.SyncFromUriAsync(Navigation.Uri);
-            await UpdateWorkspaceFromUriAsync(Navigation.Uri);
-        }
+        await RefreshUserDisplayOnlyAsync();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            SyncRouteOnly(e.Location);
+            await RefreshUserDisplayOnlyAsync();
+            StateHasChanged();
+        });
+    }
+
+    private void HandleAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            try
+            {
+                var state = await task;
+                _user = state.User;
+            }
+            catch
+            {
+                _user = new ClaimsPrincipal(new ClaimsIdentity());
+            }
+
+            StateHasChanged();
+        });
+    }
+
+    private async Task RefreshUserDisplayOnlyAsync()
+    {
+        try
+        {
+            var state = await AuthStateProvider.GetAuthenticationStateAsync();
+            _user = state.User;
+        }
+        catch
+        {
+            _user = new ClaimsPrincipal(new ClaimsIdentity());
+        }
+    }
+
+    private void SyncRouteOnly(string uri)
+    {
+        var route = GetCurrentRoute(uri);
+        _isOrganizationWorkspace = route.StartsWith("/org", StringComparison.OrdinalIgnoreCase);
     }
 
     private void NavigateToUserSettings()
@@ -158,67 +176,41 @@
         Navigation.NavigateTo("/login", forceLoad: true);
     }
 
-    private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
-    {
-        _ = InvokeAsync(async () =>
-        {
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            _user = authState.User;
-
-            if (_user.Identity?.IsAuthenticated == true)
-            {
-                await OrganizationRouteAccessGate.SyncFromUriAsync(e.Location);
-                await UpdateWorkspaceFromUriAsync(e.Location);
-            }
-            StateHasChanged();
-        });
-    }
-
-    private async Task UpdateWorkspaceFromUriAsync(string uri)
-    {
-        var route = GetCurrentRoute(uri);
-        _isOrganizationWorkspace = OrganizationRouteAccessGate.ShouldUseOrganizationWorkspace(route);
-
-        if (_isOrganizationWorkspace)
-        {
-            if (Uri.TryCreate(Navigation.ToAbsoluteUri(uri).ToString(), UriKind.Absolute, out var parsedUri))
-            {
-                var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(parsedUri.Query);
-                if (query.TryGetValue("orgId", out var rawId) && Guid.TryParse(rawId, out var orgId))
-                {
-                    if (_dashboard == null)
-                    {
-                        try { _dashboard = await DashboardService.GetDashboardAsync(); }
-                        catch { /* Bỏ qua nếu lỗi mạng */ }
-                    }
-
-                    var org = _dashboard?.Organizations.FirstOrDefault(o => o.OrganizationId == orgId);
-                    _activeOrganizationName = org?.Name ?? "Workspace tổ chức";
-                }
-                else
-                {
-                    _activeOrganizationName = "Workspace tổ chức";
-                }
-            }
-        }
-    }
-
     private string GetCurrentRoute(string uri)
     {
         var route = "/" + Navigation.ToBaseRelativePath(uri).Trim('/');
-        if (string.IsNullOrWhiteSpace(route)) return "/";
 
         var queryIndex = route.IndexOf('?');
-        if (queryIndex >= 0) route = route[..queryIndex];
+        if (queryIndex >= 0)
+            route = route[..queryIndex];
 
         var hashIndex = route.IndexOf('#');
-        if (hashIndex >= 0) route = route[..hashIndex];
+        if (hashIndex >= 0)
+            route = route[..hashIndex];
 
         return string.IsNullOrWhiteSpace(route) ? "/" : route;
+    }
+
+    private bool IsPublicRouteForUri(string uri)
+    {
+        var currentPath = Navigation
+            .ToBaseRelativePath(uri)
+            .Split('?', '#')[0]
+            .Trim('/')
+            .ToLowerInvariant();
+
+        if (currentPath.StartsWith("org/", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return PublicRoutePrefixes.Any(prefix =>
+            string.Equals(currentPath, prefix, StringComparison.OrdinalIgnoreCase)
+            || (!string.IsNullOrWhiteSpace(prefix)
+                && currentPath.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase)));
     }
 
     public void Dispose()
     {
         Navigation.LocationChanged -= HandleLocationChanged;
+        AuthStateProvider.AuthenticationStateChanged -= HandleAuthenticationStateChanged;
     }
 }

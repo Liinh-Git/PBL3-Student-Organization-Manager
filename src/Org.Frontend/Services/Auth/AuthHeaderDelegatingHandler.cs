@@ -1,6 +1,3 @@
-// ---- DelegatingHandler tự động gắn Bearer token vào mọi request API ----
-// Ưu tiên đọc từ AccessTokenStore (memory) trước, fallback sang localStorage nếu chưa có.
-// Nếu token hết hạn hoặc server trả 401 → xóa token và ném AuthApiException.
 using Microsoft.JSInterop;
 using System.Net;
 using System.Net.Http.Headers;
@@ -17,7 +14,6 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
     private readonly CircuitServicesAccessor _circuitServicesAccessor;
     private readonly ILogger<AuthHeaderDelegatingHandler> _logger;
 
-    // ---- Inject token storage (localStorage) và in-memory token store ----
     public AuthHeaderDelegatingHandler(
         ITokenStorage tokenStorage,
         IAccessTokenStore accessTokenStore,
@@ -30,7 +26,9 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
         _logger = logger;
     }
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
     {
         var tokenStorage = _fallbackTokenStorage;
         var accessTokenStore = _fallbackAccessTokenStore;
@@ -61,7 +59,7 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
             if (expiresAtUtc is not null && expiresAtUtc <= DateTime.UtcNow)
             {
                 await ClearPersistedTokenAsync(tokenStorage, accessTokenStore, cancellationToken);
-                throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+                throw new AuthApiException("Phien dang nhap da het han. Vui long dang nhap lai.", 401);
             }
 
             if (!string.IsNullOrWhiteSpace(token))
@@ -72,11 +70,11 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
         }
         catch (InvalidOperationException)
         {
-            // Ignore JSInterop exceptions if running during Prerendering
+            // JS interop may be unavailable during prerender.
         }
         catch (JSDisconnectedException)
         {
-            // Ignore JSInterop exceptions when the SignalR circuit has disconnected.
+            // Circuit disconnected.
         }
 
         _logger.LogInformation(
@@ -89,23 +87,36 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
             authHeaderAttached);
 
         var response = await base.SendAsync(request, cancellationToken);
+
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
+            if (authHeaderAttached)
+            {
+                _logger.LogWarning(
+                    "AuthHeaderDelegatingHandler received 401 after attaching token for {Method} {Path}; clearing token state.",
+                    request.Method.Method,
+                    request.RequestUri?.PathAndQuery ?? request.RequestUri?.ToString() ?? "(unknown)");
+
+                await ClearPersistedTokenAsync(tokenStorage, accessTokenStore, cancellationToken);
+
+                response.Dispose();
+                throw new AuthApiException("Phien dang nhap da het han. Vui long dang nhap lai.", 401);
+            }
+
             _logger.LogWarning(
-                "AuthHeaderDelegatingHandler received 401 for {Method} {Path}; clearing token state.",
+                "AuthHeaderDelegatingHandler received 401 without attached token for {Method} {Path}; keeping current token state.",
                 request.Method.Method,
                 request.RequestUri?.PathAndQuery ?? request.RequestUri?.ToString() ?? "(unknown)");
 
-            await ClearPersistedTokenAsync(tokenStorage, accessTokenStore, cancellationToken);
-
-            response.Dispose();
-            throw new AuthApiException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", 401);
+            return response;
         }
 
         return response;
     }
 
-    private bool TryResolveCircuitTokenServices(out ITokenStorage tokenStorage, out IAccessTokenStore accessTokenStore)
+    private bool TryResolveCircuitTokenServices(
+        out ITokenStorage tokenStorage,
+        out IAccessTokenStore accessTokenStore)
     {
         tokenStorage = _fallbackTokenStorage;
         accessTokenStore = _fallbackAccessTokenStore;
@@ -116,6 +127,7 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
 
         var resolvedTokenStorage = services.GetService<ITokenStorage>();
         var resolvedAccessTokenStore = services.GetService<IAccessTokenStore>();
+
         if (resolvedTokenStorage is null || resolvedAccessTokenStore is null)
             return false;
 
@@ -138,11 +150,11 @@ public class AuthHeaderDelegatingHandler : DelegatingHandler
         }
         catch (InvalidOperationException)
         {
-            // Ignore JSInterop exceptions if running during Prerendering
+            // JS interop may be unavailable during prerender.
         }
         catch (JSDisconnectedException)
         {
-            // Ignore JSInterop exceptions when the SignalR circuit has disconnected.
+            // Circuit disconnected.
         }
     }
 }
