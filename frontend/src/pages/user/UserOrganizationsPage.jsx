@@ -1,18 +1,18 @@
 /**
  * UserOrganizationsPage.jsx - User's organizations page
- * 
+ *
  * Phase 4B-1: Real backend API integration
  */
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getMyOrganizations } from '../../services/userService.js';
-import { createOrganization } from '../../services/organizationService.js';
-import PageHeader from '../../components/shared/PageHeader';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import EmptyState from '../../components/shared/EmptyState';
-import ErrorState from '../../components/shared/ErrorState';
-import OrgCard from '../../components/org/OrgCard';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getMyOrganizations } from "../../services/userService.js";
+import { createOrganization } from "../../services/organizationService.js";
+import PageHeader from "../../components/shared/PageHeader";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import EmptyState from "../../components/shared/EmptyState";
+import ErrorState from "../../components/shared/ErrorState";
+import OrgCard from "../../components/org/OrgCard";
 
 function UserOrganizationsPage() {
   const navigate = useNavigate();
@@ -24,14 +24,14 @@ function UserOrganizationsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
   const [formData, setFormData] = useState({
-    orgName: '',
-    description: '',
-    avatarUrl: '',
-    coverUrl: '',
-    foundingDate: '',
-    location: '',
-    contactEmail: '',
-    contactPhone: ''
+    orgName: "",
+    description: "",
+    avatarUrl: "",
+    coverUrl: "",
+    foundingDate: "",
+    location: "",
+    contactEmail: "",
+    contactPhone: "",
   });
 
   useEffect(() => {
@@ -41,7 +41,7 @@ function UserOrganizationsPage() {
         const data = await getMyOrganizations();
         setOrganizations(data);
       } catch (err) {
-        setError(err.message || 'Failed to load organizations');
+        setError(err.message || "Failed to load organizations");
       } finally {
         setIsLoading(false);
       }
@@ -71,25 +71,25 @@ function UserOrganizationsPage() {
       if (formData.contactPhone) payload.contactPhone = formData.contactPhone;
 
       const newOrg = await createOrganization(payload);
-      
+
       // Refresh organizations list
       const updatedOrgs = await getMyOrganizations();
       setOrganizations(updatedOrgs);
-      
+
       // Close modal and reset form
       setShowCreateModal(false);
       setFormData({
-        orgName: '',
-        description: '',
-        avatarUrl: '',
-        coverUrl: '',
-        foundingDate: '',
-        location: '',
-        contactEmail: '',
-        contactPhone: ''
+        orgName: "",
+        description: "",
+        avatarUrl: "",
+        coverUrl: "",
+        foundingDate: "",
+        location: "",
+        contactEmail: "",
+        contactPhone: "",
       });
     } catch (err) {
-      setCreateError(err.message || 'Failed to create organization');
+      setCreateError(err.message || "Failed to create organization");
     } finally {
       setIsCreating(false);
     }
@@ -97,9 +97,9 @@ function UserOrganizationsPage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -160,7 +160,10 @@ function UserOrganizationsPage() {
 
       {/* Create Organization Modal */}
       {showCreateModal && (
-        <div className="app-modal-overlay" onClick={() => setShowCreateModal(false)}>
+        <div
+          className="app-modal-overlay"
+          onClick={() => setShowCreateModal(false)}
+        >
           <div className="app-modal" onClick={(e) => e.stopPropagation()}>
             <div className="app-modal-header">
               <h3>Create New Organization</h3>
@@ -301,7 +304,7 @@ function UserOrganizationsPage() {
                     className="app-button app-button--primary"
                     disabled={isCreating}
                   >
-                    {isCreating ? 'Creating...' : 'Create Organization'}
+                    {isCreating ? "Creating..." : "Create Organization"}
                   </button>
                 </div>
               </form>

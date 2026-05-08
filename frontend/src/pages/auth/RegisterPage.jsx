@@ -88,7 +88,7 @@ function RegisterPage() {
       setIsSubmitting(false);
     }
   };
-
+  // đã có hàm validateForm để kiểm tra tính hợp lệ của form trước khi submit, và hàm isFormValid để kiểm tra xem form có thể submit hay không (dựa trên lỗi và dữ liệu đã nhập).
   const isFormValid = () => {
     return (
       formData.email.trim() &&
