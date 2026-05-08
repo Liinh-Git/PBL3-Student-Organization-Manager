@@ -92,7 +92,7 @@ function OrgOverviewPage() {
     setIsSubmitting(true);
     try {
       const updated = await updateOrganization(orgId, {
-        name: orgName,
+        orgName: orgName,
         description: description || undefined,
         location: location || undefined,
         contactEmail: contactEmail || undefined,
