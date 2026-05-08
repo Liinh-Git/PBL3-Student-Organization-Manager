@@ -115,7 +115,8 @@ function Sidebar() {
               <ul>
                 <li><Link to="/user/organizations" className={isActive('/user/organizations') ? 'active' : ''}>My Organizations</Link></li>
                 <li><Link to="/user/events" className={isActive('/user/events') ? 'active' : ''}>My Events</Link></li>
-                <li><Link to="/user/friends" className={isActive('/user/friends') ? 'active' : ''}>Friends</Link></li>
+                {/* Comment để implement sau */}
+                {/* <li><Link to="/user/friends" className={isActive('/user/friends') ? 'active' : ''}>Friends</Link></li> */}
                 <li><Link to="/user/discover" className={isActive('/user/discover') ? 'active' : ''}>Discover</Link></li>
                 <li><Link to="/user/profile" className={isActive('/user/profile') ? 'active' : ''}>Profile</Link></li>
                 <li><Link to="/user/settings" className={isActive('/user/settings') ? 'active' : ''}>Settings</Link></li>
@@ -131,7 +132,8 @@ function Sidebar() {
                 <li><Link to={`/org/members?orgId=${activeOrgId}`} className={isActive('/org/members') ? 'active' : ''}>Members</Link></li>
                 <li><Link to={`/org/departments?orgId=${activeOrgId}`} className={isActive('/org/departments') ? 'active' : ''}>Departments</Link></li>
                 <li><Link to={`/org/events?orgId=${activeOrgId}`} className={isActive('/org/events') ? 'active' : ''}>Events</Link></li>
-                <li><Link to={`/org/roles?orgId=${activeOrgId}`} className={isActive('/org/roles') ? 'active' : ''}>Roles</Link></li>
+                {/* Comment đó chưa đụng */}
+                {/* <li><Link to={`/org/roles?orgId=${activeOrgId}`} className={isActive('/org/roles') ? 'active' : ''}>Roles</Link></li> */}
                 <li><Link to={`/org/requests?orgId=${activeOrgId}`} className={isActive('/org/requests') ? 'active' : ''}>Requests</Link></li>
                 <li><Link to={`/org/notifications?orgId=${activeOrgId}`} className={isActive('/org/notifications') ? 'active' : ''}>Notifications</Link></li>
               </ul>
