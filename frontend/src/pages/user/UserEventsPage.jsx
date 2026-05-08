@@ -39,61 +39,89 @@
  * - No mock event cards
  */
 
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { getMyEvents } from '../../services/userService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import EventCard from '../../components/event/EventCard.jsx';
 
 function UserEventsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // TODO Phase 3C-5+: Add state management
-  // const [events, setEvents] = useState([]);
-  // const [isLoading, setIsLoading] = useState(false);
-  // const [error, setError] = useState(null);
+  useEffect(() => {
+    async function loadEvents() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getMyEvents();
+        setEvents(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setError(err.message || 'Failed to load my events');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadEvents();
+  }, []);
 
-  // TODO Phase 3C-5+: Load events
-  // useEffect(() => {
-  //   async function loadEvents() {
-  //     setIsLoading(true);
-  //     try {
-  //       const params = {
-  //         search: searchParams.get('search') || '',
-  //         status: searchParams.get('status') || ''
-  //       };
-  //       const data = await userService.getMyEvents(params);
-  //       const adapted = data.map(userAdapter.toMyEventViewModel);
-  //       setEvents(adapted);
-  //     } catch (err) {
-  //       setError(err.message);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   }
-  //   loadEvents();
-  // }, [searchParams]);
+  const getEventId = (event) => event?.id || event?.eventId;
+  const getOrgId = (event) => event?.organizationId || event?.orgId || event?.organization?.id;
+
+  const handleViewEvent = (event) => {
+    const eventId = getEventId(event);
+    const orgId = getOrgId(event);
+
+    if (!eventId || !orgId) {
+      alert('Missing event or organization ID');
+      return;
+    }
+
+    navigate(`/org/events/${eventId}?orgId=${orgId}`);
+  };
+
+  const searchKeyword = (searchParams.get('search') || '').trim().toLowerCase();
+  const statusFilter = (searchParams.get('status') || '').trim().toLowerCase();
+
+  const filteredEvents = events.filter((event) => {
+    const eventName = String(event?.name || event?.eventName || '').toLowerCase();
+    const description = String(event?.description || '').toLowerCase();
+    const status = String(event?.status || '').toLowerCase();
+    const matchesSearch = !searchKeyword || eventName.includes(searchKeyword) || description.includes(searchKeyword);
+    const matchesStatus = !statusFilter || status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
-    <div className="user-events-page">
+    <div className="app-page">
       <PageHeader
         title="My Events"
         description="Events you are involved in"
       />
 
-      {/* TODO Phase 3C-5+: Filter controls */}
-      <div className="events-filters">
-        {/* TODO: Add search input */}
-        {/* TODO: Add status filter */}
-      </div>
-
-      {/* TODO Phase 3C-5+: Events list */}
-      <div className="events-list">
-        {/* TODO: Show LoadingSpinner when isLoading */}
-        {/* TODO: Show ErrorState when error */}
-        {/* TODO: Show EmptyState when no events */}
-        {/* TODO: Render EventCard components when data loaded */}
+      <div className="app-section">
+        {isLoading && <LoadingSpinner message="Loading your events..." />}
+        {!isLoading && error && <ErrorState message={error} />}
+        {!isLoading && !error && filteredEvents.length === 0 && (
+          <EmptyState message="No events found for your account" />
+        )}
+        {!isLoading && !error && filteredEvents.length > 0 && (
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {filteredEvents.map((event) => (
+              <EventCard
+                key={getEventId(event)}
+                event={event}
+                onView={() => handleViewEvent(event)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
