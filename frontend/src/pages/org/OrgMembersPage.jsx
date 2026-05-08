@@ -229,7 +229,7 @@ function OrgMembersPage() {
                   <option value="">No Department</option>
                   {departments.map(dept => (
                     <option key={dept.id} value={dept.id}>
-                      {dept.departmentName}
+                      {dept.deptName || dept.departmentName}
                     </option>
                   ))}
                 </select>
@@ -280,7 +280,7 @@ function OrgMembersPage() {
                           <option value="">No Department</option>
                           {departments.map(dept => (
                             <option key={dept.id} value={dept.id}>
-                              {dept.departmentName}
+                              {dept.deptName || dept.departmentName}
                             </option>
                           ))}
                         </select>

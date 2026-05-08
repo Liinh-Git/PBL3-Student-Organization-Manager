@@ -300,7 +300,7 @@ function OrgDepartmentsPage() {
                 <label className="form-label">Department Name *</label>
                 <input
                   name="departmentName"
-                  defaultValue={editingDept.departmentName}
+                  defaultValue={editingDept.deptName || editingDept.departmentName || ''}
                   placeholder="Department name"
                   required
                   className="form-input"

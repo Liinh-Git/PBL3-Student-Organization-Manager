@@ -20,12 +20,12 @@ function DepartmentCard({
   return (
     <div className="app-card">
       <div className="app-section-header">
-        <h3 className="app-section-title">{department.departmentName || 'Unnamed Department'}</h3>
+        <h3 className="app-section-title">{department.deptName || department.departmentName || 'Unnamed Department'}</h3>
       </div>
 
       <div className="app-muted">
         <p><strong>Manager:</strong> {managerName}</p>
-        <p><strong>Description:</strong> {department.description || '-'}</p>
+        <p><strong>Description:</strong> {department.function || department.description || '-'}</p>
         <p><strong>Members:</strong> {memberCount}</p>
         <p><strong>Tasks:</strong> {normalizedTaskCount}</p>
         <p><strong>Status:</strong> {department.status || '-'}</p>

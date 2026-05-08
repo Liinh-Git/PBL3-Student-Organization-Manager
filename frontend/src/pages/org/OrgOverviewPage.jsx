@@ -353,8 +353,8 @@ function OrgOverviewPage() {
             <div>
               <label className="form-label">Created</label>
               <p style={{ margin: "0.25rem 0 0", color: "var(--ink-700)" }}>
-                {contextOrg?.createdAt
-                  ? new Date(contextOrg.createdAt).toLocaleDateString()
+                {(contextOrg?.createdAtUtc || contextOrg?.createdAt)
+                  ? new Date(contextOrg.createdAtUtc || contextOrg.createdAt).toLocaleDateString()
                   : "-"}
               </p>
             </div>
