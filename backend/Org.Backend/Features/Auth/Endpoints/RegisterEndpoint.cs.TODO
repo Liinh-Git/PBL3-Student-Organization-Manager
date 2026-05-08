@@ -1,0 +1,70 @@
+// RegisterEndpoint.cs.TODO
+// NOT IMPLEMENTED IN PHASE 3C - This is a TODO skeleton file
+
+/*
+ * Endpoint Name: RegisterEndpoint
+ * HTTP Method: POST
+ * Backend Route: /api/auth/register
+ * 
+ * Future Request Contract: RegisterRequest
+ *   - FullName: string (required, max 100 chars)
+ *   - Email: string (required, valid email, unique)
+ *   - Password: string (required, min 6 chars, complexity rules)
+ *   - ConfirmPassword: string (must match Password)
+ * 
+ * Future Response Contract: RegisterResponse
+ *   - User: UserDto (newly created user profile)
+ *   - Message: string (success message)
+ * 
+ * Required Permission: None (public endpoint)
+ * 
+ * Related Domain Entities:
+ *   - User (Domain/Entities/User.cs)
+ * 
+ * Validation Steps:
+ *   1. Validate FullName not empty, max 100 chars
+ *   2. Validate Email format and uniqueness
+ *   3. Validate Password min 6 chars, complexity rules
+ *   4. Validate ConfirmPassword matches Password
+ *   5. Check Email does not already exist in database
+ * 
+ * Implementation Steps:
+ *   1. Receive RegisterRequest
+ *   2. Check if Email already exists in AppDbContext
+ *   3. Hash password using BCrypt.HashPassword()
+ *   4. Create new User entity with hashed password
+ *   5. Set default values: Status = Active, EmailConfirmed = false
+ *   6. Save User to database
+ *   7. Map User entity to UserDto (exclude PasswordHash)
+ *   8. Return RegisterResponse with user info and success message
+ * 
+ * Error Cases:
+ *   - 400 Bad Request: validation errors (invalid email, weak password, password mismatch)
+ *   - 409 Conflict: email already exists
+ *   - 500 Internal Server Error: unexpected database or hashing errors
+ * 
+ * EXPLICIT NOTE: NOT IMPLEMENTED IN PHASE 3C
+ * This file is a TODO skeleton only. Real implementation will be done in later phase.
+ */
+
+// Example structure (NOT IMPLEMENTED):
+// public class RegisterEndpoint : Endpoint<RegisterRequest, RegisterResponse>
+// {
+//     private readonly AppDbContext _db;
+//     
+//     public override void Configure()
+//     {
+//         Post("/api/auth/register");
+//         AllowAnonymous();
+//     }
+//     
+//     public override async Task HandleAsync(RegisterRequest req, CancellationToken ct)
+//     {
+//         // TODO: Check email uniqueness
+//         // TODO: Hash password
+//         // TODO: Create User entity
+//         // TODO: Save to database
+//         // TODO: Map to UserDto
+//         // TODO: Return RegisterResponse
+//     }
+// }

@@ -1,0 +1,60 @@
+// GetCurrentUserEndpoint.cs.TODO
+// NOT IMPLEMENTED IN PHASE 3C - This is a TODO skeleton file
+
+/*
+ * Endpoint Name: GetCurrentUserEndpoint
+ * HTTP Method: GET
+ * Backend Route: /api/auth/me
+ * 
+ * Future Request Contract: None (uses JWT from Authorization header)
+ * 
+ * Future Response Contract: CurrentUserResponse
+ *   - User: UserDto (current authenticated user profile)
+ * 
+ * Required Permission: Valid JWT token
+ * 
+ * Related Domain Entities:
+ *   - User (Domain/Entities/User.cs)
+ * 
+ * Validation Steps:
+ *   1. Validate JWT token is present and valid
+ *   2. Extract UserId from JWT claims
+ *   3. Verify user exists in database
+ * 
+ * Implementation Steps:
+ *   1. Extract UserId from JWT claims (User.FindFirst(ClaimTypes.NameIdentifier))
+ *   2. Query User by Id from AppDbContext
+ *   3. Check if user exists and is Active
+ *   4. Map User entity to UserDto (exclude PasswordHash)
+ *   5. Return CurrentUserResponse with user info
+ * 
+ * Error Cases:
+ *   - 401 Unauthorized: missing or invalid JWT token
+ *   - 404 Not Found: user not found in database
+ *   - 403 Forbidden: user account is suspended or inactive
+ *   - 500 Internal Server Error: unexpected database errors
+ * 
+ * EXPLICIT NOTE: NOT IMPLEMENTED IN PHASE 3C
+ * This file is a TODO skeleton only. Real implementation will be done in later phase.
+ */
+
+// Example structure (NOT IMPLEMENTED):
+// public class GetCurrentUserEndpoint : EndpointWithoutRequest<CurrentUserResponse>
+// {
+//     private readonly AppDbContext _db;
+//     
+//     public override void Configure()
+//     {
+//         Get("/api/auth/me");
+//         // Requires JWT authentication
+//     }
+//     
+//     public override async Task HandleAsync(CancellationToken ct)
+//     {
+//         // TODO: Extract UserId from JWT claims
+//         // TODO: Query user from database
+//         // TODO: Check user status
+//         // TODO: Map to UserDto
+//         // TODO: Return CurrentUserResponse
+//     }
+// }

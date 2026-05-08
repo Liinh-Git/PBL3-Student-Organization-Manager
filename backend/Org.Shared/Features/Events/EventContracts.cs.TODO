@@ -1,0 +1,85 @@
+// EventContracts.cs.TODO
+// TODO skeleton for Events module contracts
+// NOT IMPLEMENTED IN PHASE 3C
+
+/*
+namespace Org.Shared.Features.Events;
+
+// REQUEST DTOs
+public class CreateEventRequest
+{
+    public string EventName { get; set; } = string.Empty; // Required
+    public string? Description { get; set; }
+    public DateTime StartDate { get; set; } // Required
+    public DateTime EndDate { get; set; } // Required
+    public string Visibility { get; set; } = "OrganizationOnly"; // Public, OrganizationOnly, Private
+    public string? Location { get; set; }
+    public int? TargetParticipants { get; set; }
+    public decimal? Budget { get; set; }
+    public string? Tags { get; set; } // JSON string
+}
+
+public class UpdateEventRequest
+{
+    public string EventName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string Status { get; set; } = string.Empty; // Draft, Published, Ongoing, Completed, Cancelled, Archived
+    public string Visibility { get; set; } = string.Empty;
+    public string? Location { get; set; }
+    public int? TargetParticipants { get; set; }
+    public decimal? Budget { get; set; }
+    public string? Tags { get; set; }
+}
+
+// RESPONSE DTOs
+public class EventDto
+{
+    public Guid Id { get; set; }
+    public Guid OrganizationId { get; set; }
+    public string EventName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string Visibility { get; set; } = string.Empty;
+    public string? Location { get; set; }
+    public int? TargetParticipants { get; set; } // Nullable, do not fake
+    public decimal? Budget { get; set; } // Nullable, do not fake
+    public decimal? AverageRating { get; set; } // Nullable, do not fake
+    public string? Tags { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime UpdatedAtUtc { get; set; }
+}
+
+public class EventSummaryDto
+{
+    public Guid Id { get; set; }
+    public string EventName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string Visibility { get; set; } = string.Empty;
+}
+
+public class EventPublicDto
+{
+    public Guid Id { get; set; }
+    public string EventName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string? Location { get; set; }
+    public Guid OrganizationId { get; set; }
+    public string OrganizationName { get; set; } = string.Empty;
+}
+
+*/
+
+// TODO: Implement all DTOs
+// TODO: Do not fake TargetParticipants/Budget/AverageRating if missing
+// TODO: EventMember/Attendee UI not required in base prototype
+// NOT IMPLEMENTED IN PHASE 3C

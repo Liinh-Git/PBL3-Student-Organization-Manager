@@ -1,0 +1,92 @@
+// UserContracts.cs.TODO
+// This is a TODO skeleton file for Users module contracts.
+// DO NOT implement this file in Phase 3C. This is documentation only.
+
+/*
+namespace Org.Shared.Features.Users;
+
+// REQUEST DTOs
+public class UpdateUserProfileRequest
+{
+    public string FullName { get; set; } = string.Empty;
+    public string? PhoneNumber { get; set; }
+    public DateTime? Dob { get; set; }
+    public string? Gender { get; set; }
+    public string? Address { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? Bio { get; set; }
+    public string? SocialLinks { get; set; } // JSON string
+    public string? ProfileVisibility { get; set; } // Public, OrganizationOnly, Private
+}
+
+public class ChangePasswordRequest
+{
+    public string CurrentPassword { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+    public string? ConfirmNewPassword { get; set; }
+}
+
+// RESPONSE DTOs
+public class UserProfileDto
+{
+    public Guid Id { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? PhoneNumber { get; set; }
+    public DateTime? Dob { get; set; }
+    public string? Gender { get; set; }
+    public string? Address { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? Bio { get; set; }
+    public string? SocialLinks { get; set; }
+    public string Status { get; set; } = string.Empty; // Active, Inactive, Suspended
+    public string? ProfileVisibility { get; set; }
+    public DateTime? LastLoginAtUtc { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+public class MyOrganizationDto
+{
+    public Guid Id { get; set; }
+    public string OrgName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string MyMemberStatus { get; set; } = string.Empty;
+    public string? MyRoleName { get; set; }
+    public DateTime JoinedAtUtc { get; set; }
+}
+
+public class MyEventDto
+{
+    public Guid Id { get; set; }
+    public string EventName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string Visibility { get; set; } = string.Empty;
+    public Guid OrganizationId { get; set; }
+    public string OrganizationName { get; set; } = string.Empty;
+}
+
+public class DiscoverOrganizationDto
+{
+    public Guid Id { get; set; }
+    public string OrgName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public int TotalMembers { get; set; }
+    public string Status { get; set; } = string.Empty;
+}
+
+*/
+
+// TODO: Implement all DTOs in later phase
+// TODO: Add validation for UpdateUserProfileRequest
+// TODO: Add validation for ChangePasswordRequest
+// TODO: Ensure PasswordHash is never exposed
+// TODO: getMyOrganizations belongs to userService, NOT organizationService
+// TODO: No mock fallback for DiscoverOrganizationDto
+
+// NOT IMPLEMENTED IN PHASE 3C

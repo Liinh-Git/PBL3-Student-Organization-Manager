@@ -1,0 +1,270 @@
+using Microsoft.EntityFrameworkCore;
+using Org.Backend.Domain.Entities;
+using Org.Backend.Domain.Enums;
+using Org.Backend.Features.Organizations.Mappings;
+using Org.Backend.Infrastructure.Persistence;
+using Org.Backend.Infrastructure.Persistence.Seed;
+using Org.Shared.Features.Organizations;
+
+namespace Org.Backend.Features.Organizations.Services;
+
+public class OrganizationService : IOrganizationService
+{
+    private readonly AppDbContext _context;
+
+    public OrganizationService(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<List<OrganizationSummaryDto>> GetOrganizationsAsync(CancellationToken ct = default)
+    {
+        var organizations = await _context.Organizations
+            .Where(o => o.Status == OrgStatus.Active)
+            .OrderBy(o => o.OrgName)
+            .ToListAsync(ct);
+
+        return organizations.Select(o => o.ToOrganizationSummaryDto()).ToList();
+    }
+
+    public async Task<OrganizationDto> GetDefaultOrganizationAsync(Guid userId, CancellationToken ct = default)
+    {
+        // Get first organization where user is a member
+        var member = await _context.Members
+            .Include(m => m.Organization)
+            .Where(m => m.UserId == userId && m.Status == MemberStatus.Active)
+            .OrderBy(m => m.JoinDate)
+            .FirstOrDefaultAsync(ct);
+
+        if (member == null)
+        {
+            throw new KeyNotFoundException("No organization found for user");
+        }
+
+        return member.Organization.ToOrganizationDto();
+    }
+
+    public async Task<OrganizationDto> GetOrganizationByIdAsync(Guid orgId, Guid userId, CancellationToken ct = default)
+    {
+        // Verify user is a member of this organization
+        var isMember = await _context.Members
+            .AnyAsync(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
+
+        if (!isMember)
+        {
+            throw new UnauthorizedAccessException("You do not have access to this organization");
+        }
+
+        var organization = await _context.Organizations
+            .FirstOrDefaultAsync(o => o.Id == orgId, ct);
+
+        if (organization == null)
+        {
+            throw new KeyNotFoundException("Organization not found");
+        }
+
+        return organization.ToOrganizationDto();
+    }
+
+    public async Task<OrganizationPublicOverviewDto> GetPublicOverviewAsync(Guid orgId, CancellationToken ct = default)
+    {
+        var organization = await _context.Organizations
+            .FirstOrDefaultAsync(o => o.Id == orgId, ct);
+
+        if (organization == null)
+        {
+            throw new KeyNotFoundException("Organization not found");
+        }
+
+        // Count public events
+        var publicEventsCount = await _context.Events
+            .CountAsync(e => e.OrgId == orgId && e.Visibility == EventVisibility.Public, ct);
+
+        // Count departments
+        var departmentsCount = await _context.Departments
+            .CountAsync(d => d.OrgId == orgId, ct);
+
+        return organization.ToOrganizationPublicOverviewDto(publicEventsCount, departmentsCount);
+    }
+
+    public async Task<OrganizationDto> CreateOrganizationAsync(Guid userId, CreateOrganizationRequest request, CancellationToken ct = default)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync(ct);
+        
+        try
+        {
+            // Create organization
+            var organization = new Organization
+            {
+                Id = Guid.NewGuid(),
+                OrgName = request.OrgName.Trim(),
+                Description = request.Description?.Trim(),
+                AvatarUrl = request.AvatarUrl?.Trim(),
+                CoverUrl = request.CoverUrl?.Trim(),
+                FoundingDate = request.FoundingDate,
+                Location = request.Location?.Trim(),
+                ContactEmail = request.ContactEmail?.Trim(),
+                ContactPhone = request.ContactPhone?.Trim(),
+                TotalMembers = 1,
+                Status = OrgStatus.Active,
+                CreatedByUserId = userId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Organizations.Add(organization);
+            await _context.SaveChangesAsync(ct);
+
+            // Create default roles (President, Manager, Member)
+            var presidentRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                OrgId = organization.Id,
+                RoleName = SeedConstants.PresidentRoleName,
+                Description = "Organization president with full permissions",
+                IsDefault = true,
+                Level = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var managerRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                OrgId = organization.Id,
+                RoleName = SeedConstants.ManagerRoleName,
+                Description = "Organization manager with management permissions",
+                IsDefault = true,
+                Level = 2,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var memberRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                OrgId = organization.Id,
+                RoleName = SeedConstants.MemberRoleName,
+                Description = "Organization member with basic permissions",
+                IsDefault = true,
+                Level = 3,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Roles.AddRange(presidentRole, managerRole, memberRole);
+            await _context.SaveChangesAsync(ct);
+
+            // Get all canonical permissions
+            var permissions = await _context.Permissions
+                .Where(p => SeedConstants.CanonicalPermissions.Contains(p.PermissionKey))
+                .ToListAsync(ct);
+
+            // Assign all permissions to President role
+            var presidentPermissions = permissions.Select(p => new RolePermission
+            {
+                RoleId = presidentRole.Id,
+                PermissionId = p.Id
+            }).ToList();
+
+            // Assign manager permissions to Manager role
+            var managerPermissions = permissions
+                .Where(p => SeedConstants.ManagerPermissions.Contains(p.PermissionKey))
+                .Select(p => new RolePermission
+                {
+                    RoleId = managerRole.Id,
+                    PermissionId = p.Id
+                }).ToList();
+
+            // Assign member permissions to Member role
+            var memberPermissions = permissions
+                .Where(p => SeedConstants.MemberPermissions.Contains(p.PermissionKey))
+                .Select(p => new RolePermission
+                {
+                    RoleId = memberRole.Id,
+                    PermissionId = p.Id
+                }).ToList();
+
+            _context.RolePermissions.AddRange(presidentPermissions);
+            _context.RolePermissions.AddRange(managerPermissions);
+            _context.RolePermissions.AddRange(memberPermissions);
+            await _context.SaveChangesAsync(ct);
+
+            // Create current user as President member
+            var member = new Member
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                OrgId = organization.Id,
+                RoleId = presidentRole.Id,
+                JoinDate = DateTime.UtcNow,
+                Status = MemberStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Members.Add(member);
+            await _context.SaveChangesAsync(ct);
+
+            await transaction.CommitAsync(ct);
+
+            return organization.ToOrganizationDto();
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct);
+            throw;
+        }
+    }
+
+    public async Task<OrganizationDto> UpdateOrganizationAsync(Guid orgId, Guid userId, UpdateOrganizationRequest request, CancellationToken ct = default)
+    {
+        // Verify user is a member with org.overview.write permission
+        var member = await _context.Members
+            .Include(m => m.Role)
+                .ThenInclude(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
+            .FirstOrDefaultAsync(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
+
+        if (member == null)
+        {
+            throw new UnauthorizedAccessException("You are not a member of this organization");
+        }
+
+        if (member.Role == null)
+        {
+            throw new UnauthorizedAccessException("You do not have a role assigned in this organization");
+        }
+
+        var hasPermission = member.Role.RolePermissions
+            .Any(rp => rp.Permission?.PermissionKey == "org.overview.write");
+
+        if (!hasPermission)
+        {
+            throw new UnauthorizedAccessException("You do not have permission to update this organization");
+        }
+
+        var organization = await _context.Organizations
+            .FirstOrDefaultAsync(o => o.Id == orgId, ct);
+
+        if (organization == null)
+        {
+            throw new KeyNotFoundException("Organization not found");
+        }
+
+        // Update organization fields
+        organization.OrgName = request.OrgName.Trim();
+        organization.Description = request.Description?.Trim();
+        organization.AvatarUrl = request.AvatarUrl?.Trim();
+        organization.CoverUrl = request.CoverUrl?.Trim();
+        organization.FoundingDate = request.FoundingDate;
+        organization.Location = request.Location?.Trim();
+        organization.ContactEmail = request.ContactEmail?.Trim();
+        organization.ContactPhone = request.ContactPhone?.Trim();
+        organization.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+
+        return organization.ToOrganizationDto();
+    }
+}

@@ -1,0 +1,42 @@
+// FriendContracts.cs.TODO
+// TODO skeleton for Friends module contracts
+// NOT IMPLEMENTED IN PHASE 3C
+
+/*
+namespace Org.Shared.Features.Friends;
+
+// REQUEST DTOs
+public class SendFriendRequestRequest
+{
+    public Guid ReceiverId { get; set; } // Required, must not be self
+}
+
+// RESPONSE DTOs
+public class FriendDto
+{
+    public Guid Id { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
+    public string Status { get; set; } = string.Empty; // Active, Inactive, Suspended
+}
+
+public class FriendRequestDto
+{
+    public Guid Id { get; set; }
+    public Guid SenderId { get; set; }
+    public string SenderName { get; set; } = string.Empty;
+    public string? SenderAvatarUrl { get; set; }
+    public Guid ReceiverId { get; set; }
+    public string ReceiverName { get; set; } = string.Empty;
+    public string? ReceiverAvatarUrl { get; set; }
+    public string Status { get; set; } = string.Empty; // Pending, Accepted, Rejected, Cancelled, Blocked
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime? RespondedAt { get; set; }
+}
+
+*/
+
+// TODO: Implement all DTOs
+// TODO: SenderId != ReceiverId is enforced at service level
+// NOT IMPLEMENTED IN PHASE 3C
