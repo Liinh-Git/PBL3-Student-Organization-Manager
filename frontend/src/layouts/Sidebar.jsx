@@ -1,110 +1,139 @@
 /**
  * Sidebar.jsx - Navigation sidebar with rail for authenticated pages
- * 
- * Old repo layout: left icon rail (64px) + menu pane (220px)
- * 
- * IMPORTANT RULES:
- * - No Posts/Comments links (hard-excluded from rescue v1)
- * - Prototype-only nav items are hidden from demo navigation
- * - No fake org data, no fake counts
- * - Rail uses already loaded user organizations if available
- * - Do not call loadWorkspaceOrg repeatedly (org load loop fix)
- * 
- * Prototype-only pages are hidden from demo navigation. Task CRUD is available in EventDetail tree.
  */
 
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
+import { getMyOrganizations } from '../services/userService.js';
 
 function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const orgId = searchParams.get('orgId');
+  const routeOrgId = searchParams.get('orgId');
   const { user } = useAuthContext();
 
-  const isActive = (path) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
-  };
+  const [organizations, setOrganizations] = useState([]);
+  const [selectedWorkspace, setSelectedWorkspace] = useState('user');
+  const [selectedOrgId, setSelectedOrgId] = useState(null);
 
-  // Get user initials for avatar
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
+
   const getInitials = (name) => {
     if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const getOrgInitials = (org) => {
+    const orgName = org?.name || org?.orgName || org?.organizationName || '';
+    if (!orgName) return 'O';
+    return orgName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  useEffect(() => {
+    async function loadOrganizations() {
+      try {
+        const data = await getMyOrganizations();
+        setOrganizations(Array.isArray(data) ? data : []);
+      } catch {
+        setOrganizations([]);
+      }
+    }
+    loadOrganizations();
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/org') && routeOrgId) {
+      setSelectedWorkspace('org');
+      setSelectedOrgId(routeOrgId);
+      return;
+    }
+
+    if (location.pathname.startsWith('/user')) {
+      setSelectedWorkspace('user');
+    }
+  }, [location.pathname, routeOrgId]);
+
+  const activeOrgId = useMemo(() => {
+    if (selectedWorkspace !== 'org') return null;
+    return selectedOrgId || routeOrgId || organizations[0]?.id || null;
+  }, [selectedWorkspace, selectedOrgId, routeOrgId, organizations]);
+
+  const handleSelectUserWorkspace = () => {
+    setSelectedWorkspace('user');
+    navigate('/user/organizations');
+  };
+
+  const handleSelectOrgWorkspace = (orgId) => {
+    setSelectedWorkspace('org');
+    setSelectedOrgId(orgId);
+    navigate(`/org/overview?orgId=${orgId}`);
   };
 
   return (
     <>
-      {/* Left Icon Rail (64px) */}
       <aside className="app-rail">
-        <div className="app-rail-logo">SOM</div>
-        
+
         <div className="app-rail-divider"></div>
-        
-        {/* Organization icons - placeholder for org avatars */}
-        {/* In a full implementation, this would show user's organizations */}
-        
+
+        <button
+          type="button"
+          onClick={handleSelectUserWorkspace}
+          className={`app-rail-icon ${selectedWorkspace === 'user' ? 'app-rail-icon--active' : ''}`}
+          title="User Workspace"
+        >
+          {getInitials(user?.fullName)}
+        </button>
+
         <div className="app-rail-divider"></div>
-        
-        {/* My Organizations shortcut */}
-        <Link 
-          to="/user/organizations" 
-          className="app-rail-shortcut"
-          title="My Organizations"
-        >
-          🏢
-        </Link>
-        
-        {/* Profile shortcut */}
-        <Link 
-          to="/user/profile" 
-          className="app-rail-shortcut"
-          title="Profile"
-        >
-          👤
-        </Link>
-        
-        {/* Settings shortcut */}
-        <Link 
-          to="/user/settings" 
-          className="app-rail-shortcut"
-          title="Settings"
-        >
-          ⚙️
-        </Link>
+
+        <div style={{ display: 'grid', gap: '8px', width: '100%', justifyItems: 'center', overflowY: 'auto' }}>
+          {organizations.map((org) => (
+            <button
+              key={org.id}
+              type="button"
+              onClick={() => handleSelectOrgWorkspace(org.id)}
+              className={`app-rail-icon ${selectedWorkspace === 'org' && activeOrgId === org.id ? 'app-rail-icon--active' : ''}`}
+              title={org.orgName || org.name || 'Organization'}
+            >
+              {getOrgInitials(org)}
+            </button>
+          ))}
+        </div>
       </aside>
 
-      {/* Menu Pane (220px) */}
       <aside className="app-sidebar">
         <div className="sidebar-header">
-          <h2>Workspace</h2>
+          <h2>{selectedWorkspace === 'org' ? 'Organization' : 'User'}</h2>
         </div>
 
         <nav className="sidebar-nav">
-          {/* User workspace links */}
-          <div className="nav-section">
-            <h3>User</h3>
-            <ul>
-              <li><Link to="/user/organizations" className={isActive('/user/organizations') ? 'active' : ''}>My Organizations</Link></li>
-              <li><Link to="/user/events" className={isActive('/user/events') ? 'active' : ''}>My Events</Link></li>
-              <li><Link to="/user/friends" className={isActive('/user/friends') ? 'active' : ''}>Friends</Link></li>
-              <li><Link to="/user/discover" className={isActive('/user/discover') ? 'active' : ''}>Discover</Link></li>
-              <li><Link to="/user/profile" className={isActive('/user/profile') ? 'active' : ''}>Profile</Link></li>
-              <li><Link to="/user/settings" className={isActive('/user/settings') ? 'active' : ''}>Settings</Link></li>
-            </ul>
-          </div>
+          {selectedWorkspace === 'user' && (
+            <div className="nav-section">
+              <h3>User</h3>
+              <ul>
+                <li><Link to="/user/organizations" className={isActive('/user/organizations') ? 'active' : ''}>My Organizations</Link></li>
+                <li><Link to="/user/events" className={isActive('/user/events') ? 'active' : ''}>My Events</Link></li>
+                <li><Link to="/user/friends" className={isActive('/user/friends') ? 'active' : ''}>Friends</Link></li>
+                <li><Link to="/user/discover" className={isActive('/user/discover') ? 'active' : ''}>Discover</Link></li>
+                <li><Link to="/user/profile" className={isActive('/user/profile') ? 'active' : ''}>Profile</Link></li>
+                <li><Link to="/user/settings" className={isActive('/user/settings') ? 'active' : ''}>Settings</Link></li>
+              </ul>
+            </div>
+          )}
 
-          {/* Org workspace links (conditional on orgId) */}
-          {orgId && (
+          {selectedWorkspace === 'org' && activeOrgId && (
             <div className="nav-section">
               <h3>Organization</h3>
               <ul>
-                <li><Link to={`/org/overview?orgId=${orgId}`} className={isActive('/org/overview') ? 'active' : ''}>Overview</Link></li>
-                <li><Link to={`/org/members?orgId=${orgId}`} className={isActive('/org/members') ? 'active' : ''}>Members</Link></li>
-                <li><Link to={`/org/departments?orgId=${orgId}`} className={isActive('/org/departments') ? 'active' : ''}>Departments</Link></li>
-                <li><Link to={`/org/events?orgId=${orgId}`} className={isActive('/org/events') ? 'active' : ''}>Events</Link></li>
-                <li><Link to={`/org/roles?orgId=${orgId}`} className={isActive('/org/roles') ? 'active' : ''}>Roles</Link></li>
-                <li><Link to={`/org/requests?orgId=${orgId}`} className={isActive('/org/requests') ? 'active' : ''}>Requests</Link></li>
-                <li><Link to={`/org/notifications?orgId=${orgId}`} className={isActive('/org/notifications') ? 'active' : ''}>Notifications</Link></li>
+                <li><Link to={`/org/overview?orgId=${activeOrgId}`} className={isActive('/org/overview') ? 'active' : ''}>Overview</Link></li>
+                <li><Link to={`/org/members?orgId=${activeOrgId}`} className={isActive('/org/members') ? 'active' : ''}>Members</Link></li>
+                <li><Link to={`/org/departments?orgId=${activeOrgId}`} className={isActive('/org/departments') ? 'active' : ''}>Departments</Link></li>
+                <li><Link to={`/org/events?orgId=${activeOrgId}`} className={isActive('/org/events') ? 'active' : ''}>Events</Link></li>
+                <li><Link to={`/org/roles?orgId=${activeOrgId}`} className={isActive('/org/roles') ? 'active' : ''}>Roles</Link></li>
+                <li><Link to={`/org/requests?orgId=${activeOrgId}`} className={isActive('/org/requests') ? 'active' : ''}>Requests</Link></li>
+                <li><Link to={`/org/notifications?orgId=${activeOrgId}`} className={isActive('/org/notifications') ? 'active' : ''}>Notifications</Link></li>
               </ul>
             </div>
           )}
