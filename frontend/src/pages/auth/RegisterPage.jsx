@@ -1,16 +1,16 @@
 /**
  * RegisterPage.jsx - User registration page
  * 
- * Phase 3C-4C: Page skeleton only
+ * Phase 3C-5+: Full implementation with backend API integration
  * 
- * TODO Phase 3C-5+ Implementation:
- * - Create registration form (email, password, confirmPassword, firstName, lastName)
- * - Handle form submission
+ * Implementation:
+ * - Registration form (email, password, confirmPassword, firstName, lastName)
+ * - Handle form submission with validation
  * - Call authService.register()
  * - Redirect to /login on success
  * - Display error message on failure
  * 
- * Future Service Usage:
+ * Service Usage:
  * - authService.register(payload)
  * 
  * Permissions:
@@ -20,60 +20,120 @@
  * - /register
  * 
  * Form Fields:
- * - email (required)
+ * - email (required, email format)
  * - password (required, min 8 chars)
  * - confirmPassword (required, must match password)
  * - firstName (required)
  * - lastName (required)
  * 
  * State Management:
- * - TODO: useState for form data
- * - TODO: useState for validation errors
- * - TODO: useState for submission loading
- * - TODO: useState for API error
- * - TODO: useNavigate for redirect
- * 
- * IMPORTANT:
- * - No real API calls in Phase 3C
- * - No fake registration success
- * - No hardcoded user data
+ * - formData: useState for form data
+ * - errors: useState for validation errors
+ * - isSubmitting: useState for submission loading
+ * - apiError: useState for API error
+ * - useNavigate for redirect
  */
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/shared/PageHeader';
 import ErrorState from '../../components/shared/ErrorState';
+import { register } from '../../services/authService';
 
 function RegisterPage() {
   const navigate = useNavigate();
 
-  // TODO Phase 3C-5+: Add state management
-  // const [formData, setFormData] = useState({
-  //   email: '',
-  //   password: '',
-  //   confirmPassword: '',
-  //   firstName: '',
-  //   lastName: ''
-  // });
-  // const [errors, setErrors] = useState({});
-  // const [isSubmitting, setIsSubmitting] = useState(false);
-  // const [apiError, setApiError] = useState(null);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    firstName: '',
+    lastName: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState(null);
 
-  // TODO Phase 3C-5+: Handle form submission
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setIsSubmitting(true);
-  //   setApiError(null);
-  //   try {
-  //     await authService.register(formData);
-  //     // Redirect to /login on success
-  //     navigate('/login');
-  //   } catch (err) {
-  //     setApiError(err.message);
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setApiError(null);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Backend expects fullName, so combine firstName + lastName
+      const payload = {
+        fullName: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        email: formData.email.trim(),
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
+      };
+
+      await register(payload);
+      // Redirect to /login on success
+      navigate('/login');
+    } catch (err) {
+      setApiError(err.message || 'Registration failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const isFormValid = () => {
+    return (
+      formData.email.trim() &&
+      formData.password &&
+      formData.confirmPassword &&
+      formData.firstName.trim() &&
+      formData.lastName.trim() &&
+      Object.values(errors).every(error => !error)
+    );
+  };
 
   return (
     <div className="register-page">
@@ -83,10 +143,9 @@ function RegisterPage() {
       />
 
       <div className="register-form-container">
-        {/* TODO Phase 3C-5+: Show ErrorState when apiError */}
+        {apiError && <ErrorState message={apiError} />}
 
-        <form className="register-form">
-          {/* TODO Phase 3C-5+: Email input */}
+        <form className="register-form" onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="email">Email</label>
             <input
@@ -94,11 +153,12 @@ function RegisterPage() {
               id="email"
               name="email"
               placeholder="Enter your email"
-              disabled
+              value={formData.email}
+              onChange={handleChange}
             />
+            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
-          {/* TODO Phase 3C-5+: Password input */}
           <div className="form-field">
             <label htmlFor="password">Password</label>
             <input
@@ -106,11 +166,12 @@ function RegisterPage() {
               id="password"
               name="password"
               placeholder="Enter your password"
-              disabled
+              value={formData.password}
+              onChange={handleChange}
             />
+            {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
 
-          {/* TODO Phase 3C-5+: Confirm password input */}
           <div className="form-field">
             <label htmlFor="confirmPassword">Confirm Password</label>
             <input
@@ -118,11 +179,12 @@ function RegisterPage() {
               id="confirmPassword"
               name="confirmPassword"
               placeholder="Confirm your password"
-              disabled
+              value={formData.confirmPassword}
+              onChange={handleChange}
             />
+            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
           </div>
 
-          {/* TODO Phase 3C-5+: First name input */}
           <div className="form-field">
             <label htmlFor="firstName">First Name</label>
             <input
@@ -130,11 +192,12 @@ function RegisterPage() {
               id="firstName"
               name="firstName"
               placeholder="Enter your first name"
-              disabled
+              value={formData.firstName}
+              onChange={handleChange}
             />
+            {errors.firstName && <span className="error-message">{errors.firstName}</span>}
           </div>
 
-          {/* TODO Phase 3C-5+: Last name input */}
           <div className="form-field">
             <label htmlFor="lastName">Last Name</label>
             <input
@@ -142,17 +205,21 @@ function RegisterPage() {
               id="lastName"
               name="lastName"
               placeholder="Enter your last name"
-              disabled
+              value={formData.lastName}
+              onChange={handleChange}
             />
+            {errors.lastName && <span className="error-message">{errors.lastName}</span>}
           </div>
 
-          {/* TODO Phase 3C-5+: Submit button */}
-          <button type="submit" disabled className="register-button">
-            Register (TODO Phase 3C-5+)
+          <button
+            type="submit"
+            disabled={isSubmitting || !isFormValid()}
+            className="register-button"
+          >
+            {isSubmitting ? 'Registering...' : 'Register'}
           </button>
         </form>
 
-        {/* TODO Phase 3C-5+: Link to login */}
         <div className="register-footer">
           <p>
             Already have an account? <Link to="/login">Login</Link>
