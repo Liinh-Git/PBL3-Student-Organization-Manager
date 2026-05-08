@@ -135,6 +135,7 @@ code {
 .app-rail-icon {
   width: 40px;
   height: 40px;
+  border: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   display: flex;
