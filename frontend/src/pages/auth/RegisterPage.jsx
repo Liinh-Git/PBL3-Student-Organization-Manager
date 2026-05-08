@@ -118,7 +118,12 @@ function RegisterPage() {
       // Redirect to /login on success
       navigate('/login');
     } catch (err) {
-      setApiError(err.message || 'Registration failed');
+      // Extract error message from response if available
+      const errorMessage = err.response?.data?.errors?.[0] || 
+                          err.response?.data?.message || 
+                          err.message || 
+                          'Registration failed';
+      setApiError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
