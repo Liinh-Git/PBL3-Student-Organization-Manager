@@ -11,6 +11,7 @@
  */
 
 import httpClient from '../api/httpClient.js';
+import { toMemberListViewModel, toMemberViewModel } from '../adapters/memberAdapter.js';
 
 /**
  * Get organization members
@@ -34,7 +35,7 @@ export async function getOrganizationMembers(orgId) {
     throw new Error(response.data.message || 'Failed to get organization members');
   }
   
-  return response.data.data; // Direct array, not data.items
+  return toMemberListViewModel(response.data.data); // Direct array, not data.items
 }
 
 /**
@@ -60,7 +61,7 @@ export async function addMember(orgId, payload) {
     throw new Error(response.data.message || 'Failed to add member');
   }
   
-  return response.data.data;
+  return toMemberViewModel(response.data.data);
 }
 
 /**
@@ -85,7 +86,7 @@ export async function updateMemberDepartment(memberId, payload) {
     throw new Error(response.data.message || 'Failed to update member department');
   }
   
-  return response.data.data;
+  return toMemberViewModel(response.data.data);
 }
 
 /**
