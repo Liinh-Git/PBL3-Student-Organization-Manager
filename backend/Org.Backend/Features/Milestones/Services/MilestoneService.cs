@@ -67,14 +67,18 @@ public class MilestoneService : IMilestoneService
         // Auto-increment OrderIndex if not provided
         var orderIndex = request.OrderIndex ?? await GetNextOrderIndexAsync(eventId, ct);
 
+        // Convert to UTC if provided
+        var utcStartDate = request.StartDate.HasValue ? DateTime.SpecifyKind(request.StartDate.Value, DateTimeKind.Utc) : (DateTime?)null;
+        var utcEndDate = request.EndDate.HasValue ? DateTime.SpecifyKind(request.EndDate.Value, DateTimeKind.Utc) : (DateTime?)null;
+
         var milestone = new Milestone
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
             Title = request.Title,
             Description = request.Description,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
+            StartDate = utcStartDate,
+            EndDate = utcEndDate,
             OrderIndex = orderIndex,
             Status = MilestoneStatus.Planned,
             CreatedAt = DateTime.UtcNow
@@ -106,10 +110,14 @@ public class MilestoneService : IMilestoneService
             throw new ArgumentException($"Invalid status: {request.Status}");
         }
 
+        // Convert to UTC if provided
+        var utcStartDate = request.StartDate.HasValue ? DateTime.SpecifyKind(request.StartDate.Value, DateTimeKind.Utc) : (DateTime?)null;
+        var utcEndDate = request.EndDate.HasValue ? DateTime.SpecifyKind(request.EndDate.Value, DateTimeKind.Utc) : (DateTime?)null;
+
         milestone.Title = request.Title;
         milestone.Description = request.Description;
-        milestone.StartDate = request.StartDate;
-        milestone.EndDate = request.EndDate;
+        milestone.StartDate = utcStartDate;
+        milestone.EndDate = utcEndDate;
         milestone.Status = status;
         milestone.OrderIndex = request.OrderIndex ?? milestone.OrderIndex;
         milestone.UpdatedAt = DateTime.UtcNow;

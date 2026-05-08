@@ -109,6 +109,9 @@ public class TaskService : ITaskService
             throw new ArgumentException($"Invalid priority: {request.Priority}");
         }
 
+        // Convert to UTC if provided
+        var utcDeadline = request.Deadline.HasValue ? DateTime.SpecifyKind(request.Deadline.Value, DateTimeKind.Utc) : (DateTime?)null;
+
         var task = new OrgTask
         {
             Id = Guid.NewGuid(),
@@ -117,7 +120,7 @@ public class TaskService : ITaskService
             Description = request.Description,
             AssigneeId = request.AssigneeId,
             DeptId = request.DeptId,
-            Deadline = request.Deadline,
+            Deadline = utcDeadline,
             Priority = priority,
             Status = DomainTaskStatus.Todo,
             Note = request.Note,
@@ -223,11 +226,14 @@ public class TaskService : ITaskService
             }
         }
 
+        // Convert to UTC if provided
+        var utcDeadline = request.Deadline.HasValue ? DateTime.SpecifyKind(request.Deadline.Value, DateTimeKind.Utc) : (DateTime?)null;
+
         task.TaskName = request.TaskName;
         task.Description = request.Description;
         task.AssigneeId = request.AssigneeId;
         task.DeptId = request.DeptId;
-        task.Deadline = request.Deadline;
+        task.Deadline = utcDeadline;
         task.Note = request.Note;
         task.UpdatedAt = DateTime.UtcNow;
 

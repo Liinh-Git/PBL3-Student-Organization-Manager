@@ -306,7 +306,7 @@ function OrgEventsPage() {
                   id="editEventName"
                   name="eventName"
                   className="form-input"
-                  defaultValue={editingEvent.eventName}
+                  defaultValue={editingEvent.name}
                   placeholder="Event name"
                   required
                 />
@@ -403,7 +403,7 @@ function OrgEventsPage() {
               <tbody>
                 {events.map((event) => (
                   <tr key={event.id}>
-                    <td>{event.eventName || '-'}</td>
+                    <td>{event.name || '-'}</td>
                     <td>{event.description || '-'}</td>
                     <td>{event.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}</td>
                     <td>{event.endDate ? new Date(event.endDate).toLocaleDateString() : '-'}</td>

@@ -7,10 +7,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useOrgContext } from '../../contexts/OrgContext.jsx';
-import { getEventById } from '../../services/eventService.js';
+import { getEventById, updateEvent } from '../../services/eventService.js';
 import { getEventMilestones } from '../../services/milestoneService.js';
 import { getMilestoneCategories } from '../../services/categoryService.js';
-import { createTask, updateTaskStatus, assignTask, deleteTask } from '../../services/taskService.js';
+import { createTask, updateTask, updateTaskStatus, assignTask, deleteTask } from '../../services/taskService.js';
 import { getOrganizationMembers } from '../../services/memberService.js';
 import { createMilestone, updateMilestone, deleteMilestone } from '../../services/milestoneService.js';
 import { createCategory, updateCategory, deleteCategory } from '../../services/categoryService.js';
@@ -37,6 +37,11 @@ function OrgEventDetailPage() {
   const [categoryLoading, setCategoryLoading] = useState({});
   const [showCreateMilestone, setShowCreateMilestone] = useState(false);
   const [showCreateCategory, setShowCreateCategory] = useState({});
+  const [editingEvent, setEditingEvent] = useState(false);
+  const [editingMilestone, setEditingMilestone] = useState(null);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
+  const [isEventUpdating, setIsEventUpdating] = useState(false);
 
   useEffect(() => {
     if (!eventId || !orgId || !isMember) return;
@@ -399,6 +404,129 @@ function OrgEventDetailPage() {
     }
   };
 
+  const handleUpdateEvent = async (e) => {
+    e.preventDefault();
+    if (!canManage) return;
+    
+    const form = e.target;
+    const eventName = form.eventName.value;
+    const description = form.description.value;
+    const startDate = form.startDate.value;
+    const endDate = form.endDate.value;
+    const location = form.location.value;
+    const bannerUrl = form.bannerUrl.value;
+    const visibility = form.visibility.value;
+    
+    setIsEventUpdating(true);
+    try {
+      const updated = await updateEvent(eventId, {
+        eventName,
+        description: description || undefined,
+        startDate,
+        endDate: endDate || undefined,
+        location: location || undefined,
+        bannerUrl: bannerUrl || undefined,
+        visibility
+      });
+      setEvent(updated);
+      setEditingEvent(false);
+    } catch (err) {
+      alert(err.message || 'Failed to update event');
+    } finally {
+      setIsEventUpdating(false);
+    }
+  };
+
+  const handleUpdateMilestone = async (milestoneId, e) => {
+    e.preventDefault();
+    if (!canManage) return;
+    
+    const form = e.target;
+    const title = form.title.value;
+    const description = form.description.value;
+    
+    setMilestoneLoading(prev => ({ ...prev, [milestoneId]: true }));
+    try {
+      const updated = await updateMilestone(milestoneId, {
+        title,
+        description: description || undefined
+      });
+      
+      setMilestones(prev => prev.map(m => m.id === milestoneId ? {...m, title: updated.title, description: updated.description} : m));
+      setEditingMilestone(null);
+    } catch (err) {
+      alert(err.message || 'Failed to update milestone');
+    } finally {
+      setMilestoneLoading(prev => ({ ...prev, [milestoneId]: false }));
+    }
+  };
+
+  const handleUpdateCategory = async (categoryId, milestoneId, e) => {
+    e.preventDefault();
+    if (!canManage) return;
+    
+    const form = e.target;
+    const categoryName = form.categoryName.value;
+    const description = form.description.value;
+    
+    setCategoryLoading(prev => ({ ...prev, [categoryId]: true }));
+    try {
+      const updated = await updateCategory(categoryId, {
+        categoryName,
+        description: description || undefined
+      });
+      
+      setCategoriesByMilestone(prev => ({
+        ...prev,
+        [milestoneId]: prev[milestoneId].map(c => c.id === categoryId ? {...c, categoryName: updated.categoryName, description: updated.description} : c)
+      }));
+      setEditingCategory(null);
+    } catch (err) {
+      alert(err.message || 'Failed to update category');
+    } finally {
+      setCategoryLoading(prev => ({ ...prev, [categoryId]: false }));
+    }
+  };
+
+  const handleUpdateTask = async (taskId, e) => {
+    e.preventDefault();
+    if (!canManage) return;
+    
+    const form = e.target;
+    const taskName = form.taskName.value;
+    const description = form.description.value;
+    const priority = form.priority.value;
+    const deadline = form.deadline.value;
+    
+    setTaskLoading(prev => ({ ...prev, [taskId]: true }));
+    try {
+      const updatedTask = await updateTask(taskId, {
+        taskName,
+        description: description || undefined,
+        priority,
+        deadline: deadline || undefined
+      });
+      
+      setCategoriesByMilestone(prev => {
+        const updated = { ...prev };
+        for (const mId in updated) {
+          updated[mId] = updated[mId].map(cat => ({
+            ...cat,
+            tasks: cat.tasks?.map(task => 
+              task.id === taskId ? { ...task, taskName: updatedTask.taskName, description: updatedTask.description, priority: updatedTask.priority, deadline: updatedTask.deadline } : task
+            ) || []
+          }));
+        }
+        return updated;
+      });
+      setEditingTask(null);
+    } catch (err) {
+      alert(err.message || 'Failed to update task');
+    } finally {
+      setTaskLoading(prev => ({ ...prev, [taskId]: false }));
+    }
+  };
+
   return (
     <div className="app-page">
       <PageHeader
@@ -413,8 +541,8 @@ function OrgEventDetailPage() {
               Back to Events
             </button>
             {canManage && (
-              <button disabled className="app-button app-button--primary">
-                Edit Event
+              <button onClick={() => setEditingEvent(!editingEvent)} className="app-button app-button--primary">
+                {editingEvent ? 'Cancel Edit' : 'Edit Event'}
               </button>
             )}
           </>
@@ -426,34 +554,83 @@ function OrgEventDetailPage() {
           <div className="app-section-header">
             <h3 className="app-section-title">Event Information</h3>
           </div>
-          <table>
-            <tbody>
-              <tr>
-                <th>Name</th>
-                <td>{event?.eventName || '-'}</td>
-              </tr>
-              <tr>
-                <th>Description</th>
-                <td>{event?.description || '-'}</td>
-              </tr>
-              <tr>
-                <th>Start Date</th>
-                <td>{event?.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}</td>
-              </tr>
-              <tr>
-                <th>End Date</th>
-                <td>{event?.endDate ? new Date(event.endDate).toLocaleDateString() : '-'}</td>
-              </tr>
-              <tr>
-                <th>Status</th>
-                <td>{event?.status || '-'}</td>
-              </tr>
-              <tr>
-                <th>Visibility</th>
-                <td>{event?.visibility || '-'}</td>
-              </tr>
-            </tbody>
-          </table>
+          
+          {editingEvent ? (
+            <form onSubmit={handleUpdateEvent} className="auth-form">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.9rem' }}>
+                <div className="form-group">
+                  <label htmlFor="eventName" className="form-label">Event Name *</label>
+                  <input id="eventName" name="eventName" className="form-input" defaultValue={event?.name} required />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="description" className="form-label">Description</label>
+                  <input id="description" name="description" className="form-input" defaultValue={event?.description || ''} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="startDate" className="form-label">Start Date *</label>
+                  <input id="startDate" name="startDate" type="date" className="form-input" defaultValue={event?.startDate ? String(event.startDate).split('T')[0] : ''} required />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="endDate" className="form-label">End Date</label>
+                  <input id="endDate" name="endDate" type="date" className="form-input" defaultValue={event?.endDate ? String(event.endDate).split('T')[0] : ''} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="location" className="form-label">Location</label>
+                  <input id="location" name="location" className="form-input" defaultValue={event?.location || ''} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="bannerUrl" className="form-label">Banner URL</label>
+                  <input id="bannerUrl" name="bannerUrl" className="form-input" defaultValue={event?.bannerUrl || ''} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="visibility" className="form-label">Visibility</label>
+                  <select id="visibility" name="visibility" defaultValue={event?.visibility || 'Private'} className="form-select">
+                    <option value="Public">Public</option>
+                    <option value="OrganizationOnly">Organization Only</option>
+                    <option value="Private">Private</option>
+                  </select>
+                </div>
+              </div>
+              <div className="app-action-row" style={{ marginTop: '1rem' }}>
+                <button type="submit" disabled={isEventUpdating} className="app-button app-button--primary">
+                  {isEventUpdating ? 'Updating...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <table>
+              <tbody>
+                <tr>
+                  <th>Name</th>
+                  <td>{event?.name || '-'}</td>
+                </tr>
+                <tr>
+                  <th>Description</th>
+                  <td>{event?.description || '-'}</td>
+                </tr>
+                <tr>
+                  <th>Start Date</th>
+                  <td>{event?.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}</td>
+                </tr>
+                <tr>
+                  <th>End Date</th>
+                  <td>{event?.endDate ? new Date(event.endDate).toLocaleDateString() : '-'}</td>
+                </tr>
+                <tr>
+                  <th>Location</th>
+                  <td>{event?.location || '-'}</td>
+                </tr>
+                <tr>
+                  <th>Status</th>
+                  <td>{event?.status || '-'}</td>
+                </tr>
+                <tr>
+                  <th>Visibility</th>
+                  <td>{event?.visibility || '-'}</td>
+                </tr>
+              </tbody>
+            </table>
+          )}
         </div>
 
         <div className="app-card">
@@ -505,16 +682,37 @@ function OrgEventDetailPage() {
                 <div className="app-section-header">
                   <h4 className="app-section-title">{milestone.title || '-'}</h4>
                   {canManage && (
-                    <button
-                      onClick={() => handleDeleteMilestone(milestone.id)}
-                      disabled={milestoneLoading[milestone.id]}
-                      className="app-button app-button--danger"
-                    >
-                      {milestoneLoading[milestone.id] ? 'Deleting...' : 'Delete Milestone'}
-                    </button>
+                    <div className="app-action-row">
+                      <button
+                        onClick={() => setEditingMilestone(editingMilestone === milestone.id ? null : milestone.id)}
+                        className="app-button app-button--secondary"
+                      >
+                        {editingMilestone === milestone.id ? 'Cancel' : 'Edit'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMilestone(milestone.id)}
+                        disabled={milestoneLoading[milestone.id]}
+                        className="app-button app-button--danger"
+                      >
+                        {milestoneLoading[milestone.id] ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
                   )}
                 </div>
-                {milestone.description && <p style={{ marginBottom: '1rem' }}>{milestone.description}</p>}
+                
+                {editingMilestone === milestone.id ? (
+                  <form onSubmit={(e) => handleUpdateMilestone(milestone.id, e)} className="auth-form" style={{ marginBottom: '1rem' }}>
+                    <div className="app-action-row">
+                      <input name="title" className="form-input" defaultValue={milestone.title} required style={{ width: '200px' }} />
+                      <input name="description" className="form-input" defaultValue={milestone.description || ''} style={{ width: '300px' }} placeholder="Description" />
+                      <button type="submit" disabled={milestoneLoading[milestone.id]} className="app-button app-button--primary">
+                        {milestoneLoading[milestone.id] ? 'Saving...' : 'Save'}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  milestone.description && <p style={{ marginBottom: '1rem' }}>{milestone.description}</p>
+                )}
                 
                 <div className="app-section-header">
                   <h5 className="app-section-title">Categories</h5>
@@ -568,16 +766,36 @@ function OrgEventDetailPage() {
                       <div className="app-section-header">
                         <h6 className="app-section-title">{category.categoryName || '-'}</h6>
                         {canManage && (
-                          <button
-                            onClick={() => handleDeleteCategory(category.id, milestone.id)}
-                            disabled={categoryLoading[category.id]}
-                            className="app-button app-button--danger"
-                          >
-                            {categoryLoading[category.id] ? 'Deleting...' : 'Delete Category'}
-                          </button>
+                          <div className="app-action-row">
+                            <button
+                              onClick={() => setEditingCategory(editingCategory === category.id ? null : category.id)}
+                              className="app-button app-button--secondary"
+                            >
+                              {editingCategory === category.id ? 'Cancel' : 'Edit'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCategory(category.id, milestone.id)}
+                              disabled={categoryLoading[category.id]}
+                              className="app-button app-button--danger"
+                            >
+                              {categoryLoading[category.id] ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </div>
                         )}
                       </div>
                       
+                      {editingCategory === category.id && (
+                        <form onSubmit={(e) => handleUpdateCategory(category.id, milestone.id, e)} className="auth-form" style={{ marginBottom: '1rem' }}>
+                          <div className="app-action-row">
+                            <input name="categoryName" className="form-input" defaultValue={category.categoryName} required style={{ width: '200px' }} />
+                            <input name="description" className="form-input" defaultValue={category.description || ''} style={{ width: '300px' }} placeholder="Description" />
+                            <button type="submit" disabled={categoryLoading[category.id]} className="app-button app-button--primary">
+                              {categoryLoading[category.id] ? 'Saving...' : 'Save'}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+
                       <div className="app-section-header">
                         <span className="app-section-title" style={{ fontSize: '0.9rem' }}>Tasks</span>
                         {canManage && (
@@ -631,9 +849,32 @@ function OrgEventDetailPage() {
                           <tbody>
                             {category.tasks?.map((task) => (
                               <tr key={task.id}>
-                                <td>{task.taskName || '-'}</td>
-                                <td>{task.description || '-'}</td>
-                                <td>{task.priority || '-'}</td>
+                                <td>
+                                  {editingTask === task.id ? (
+                                    <input form={`edit-task-${task.id}`} name="taskName" defaultValue={task.taskName} required className="form-input" style={{ width: '150px' }} />
+                                  ) : (
+                                    task.taskName || '-'
+                                  )}
+                                </td>
+                                <td>
+                                  {editingTask === task.id ? (
+                                    <input form={`edit-task-${task.id}`} name="description" defaultValue={task.description || ''} className="form-input" style={{ width: '150px' }} />
+                                  ) : (
+                                    task.description || '-'
+                                  )}
+                                </td>
+                                <td>
+                                  {editingTask === task.id ? (
+                                    <select form={`edit-task-${task.id}`} name="priority" defaultValue={task.priority} className="form-select">
+                                      <option value="Low">Low</option>
+                                      <option value="Medium">Medium</option>
+                                      <option value="High">High</option>
+                                      <option value="Urgent">Urgent</option>
+                                    </select>
+                                  ) : (
+                                    task.priority || '-'
+                                  )}
+                                </td>
                                 <td>
                                   {canManage ? (
                                     <select
@@ -675,13 +916,35 @@ function OrgEventDetailPage() {
                                 </td>
                                 {canManage && (
                                   <td>
-                                    <button
-                                      onClick={() => handleDeleteTask(task.id, category.id)}
-                                      disabled={taskLoading[task.id]}
-                                      className="app-button app-button--danger"
-                                    >
-                                      {taskLoading[task.id] ? 'Deleting...' : 'Delete'}
-                                    </button>
+                                    <div className="app-action-row">
+                                      <form id={`edit-task-${task.id}`} onSubmit={(e) => handleUpdateTask(task.id, e)} style={{ display: 'none' }}></form>
+                                      {editingTask === task.id ? (
+                                        <>
+                                          <button form={`edit-task-${task.id}`} type="submit" disabled={taskLoading[task.id]} className="app-button app-button--primary">
+                                            Save
+                                          </button>
+                                          <button onClick={() => setEditingTask(null)} type="button" className="app-button app-button--ghost">
+                                            Cancel
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <button
+                                            onClick={() => setEditingTask(task.id)}
+                                            className="app-button app-button--secondary"
+                                          >
+                                            Edit
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteTask(task.id, category.id)}
+                                            disabled={taskLoading[task.id]}
+                                            className="app-button app-button--danger"
+                                          >
+                                            {taskLoading[task.id] ? 'Deleting...' : 'Delete'}
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
                                   </td>
                                 )}
                               </tr>

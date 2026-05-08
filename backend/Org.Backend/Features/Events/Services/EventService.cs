@@ -135,6 +135,9 @@ public class EventService : IEventService
             throw new InvalidOperationException("End date must be greater than or equal to start date");
         }
 
+        var utcStartDate = DateTime.SpecifyKind(request.StartDate, DateTimeKind.Utc);
+        var utcEndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc);
+
         // Create event
         var evt = new Event
         {
@@ -142,8 +145,8 @@ public class EventService : IEventService
             OrgId = orgId,
             EventName = request.EventName,
             Description = request.Description,
-            StartDate = request.StartDate,
-            EndDate = endDate,
+            StartDate = utcStartDate,
+            EndDate = utcEndDate,
             Location = request.Location,
             Visibility = visibility,
             Status = EventStatus.Draft,
@@ -212,11 +215,14 @@ public class EventService : IEventService
             throw new InvalidOperationException("End date must be greater than or equal to start date");
         }
 
+        var utcStartDate = DateTime.SpecifyKind(request.StartDate, DateTimeKind.Utc);
+        var utcEndDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc);
+
         // Update event
         evt.EventName = request.EventName;
         evt.Description = request.Description;
-        evt.StartDate = request.StartDate;
-        evt.EndDate = endDate;
+        evt.StartDate = utcStartDate;
+        evt.EndDate = utcEndDate;
         evt.Location = request.Location;
         evt.Visibility = visibility;
         evt.UpdatedAt = DateTime.UtcNow;
