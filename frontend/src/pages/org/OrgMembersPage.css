@@ -1,0 +1,363 @@
+/* OrgMembersPage.css */
+
+.members-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #1e293b;
+  padding: 2rem 3rem;
+  box-sizing: border-box;
+}
+
+.members-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.members-page-title {
+  font-size: 1.6rem;
+  font-weight: 850;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.members-page-desc {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Stats Cards */
+.members-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.m-stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.m-stat-card.primary {
+  border-bottom: 4px solid #0f172a;
+}
+
+.m-stat-card.accent {
+  border-bottom: 4px solid #fb923c;
+}
+
+.m-stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.m-stat-icon.dark {
+  background: #0f172a;
+  color: white;
+}
+.m-stat-icon.orange {
+  background: #ffedd5;
+  color: #fb923c;
+}
+
+.m-stat-info span {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.m-stat-info h3 {
+  font-size: 1.8rem;
+  font-weight: 850;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Table Area */
+.members-table-wrapper {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.members-table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.members-table-toolbar h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.modern-table th {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  letter-spacing: 0.05em;
+}
+
+.modern-table td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.modern-table tr:last-child td {
+  border-bottom: none;
+}
+.modern-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* User Profile Cell */
+.user-profile-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: #e2e8f0;
+  color: #475569;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.user-meta h4 {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.user-meta p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* Badges & Inputs */
+.role-badge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.role-badge.admin {
+  background: #0f172a;
+  color: white;
+}
+.role-badge.moderator {
+  background: #ffedd5;
+  color: #ea580c;
+}
+.role-badge.member {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.status-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.table-select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.table-select:focus {
+  border-color: #fb923c;
+}
+
+.btn-remove-icon {
+  background: #fef2f2;
+  color: #ef4444;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-remove-icon:hover {
+  background: #fee2e2;
+}
+
+/* MODAL ĐỒNG BỘ */
+.org-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.org-modal {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.org-modal-header {
+  padding: 2rem 2.5rem 1.5rem;
+}
+.org-modal-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.org-modal-body {
+  padding: 0 2.5rem 1.5rem;
+  overflow-y: auto;
+}
+
+.org-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.org-form-group {
+  margin-bottom: 1rem;
+}
+.org-form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.org-input,
+.org-select {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background-color: #f8fafc;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.org-input:focus,
+.org-select:focus {
+  border-color: #fb923c;
+  background-color: #ffffff;
+}
+
+.org-modal-footer {
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.org-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+.org-btn-secondary {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+.org-btn-primary {
+  background-color: #fb923c;
+  color: white;
+}
+
+/* Các State dùng lại từ file cũ nhưng điều chỉnh */
+.app-empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+  font-weight: 600;
+}
