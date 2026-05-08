@@ -1,18 +1,14 @@
 /**
  * UserOrganizationsPage.jsx - User's organizations page
- *
- * Phase 4B-1: Real backend API integration
+ * * Phase 4B-1: Real backend API integration
  */
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyOrganizations } from "../../services/userService.js";
 import { createOrganization } from "../../services/organizationService.js";
-import PageHeader from "../../components/shared/PageHeader";
-import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import EmptyState from "../../components/shared/EmptyState";
-import ErrorState from "../../components/shared/ErrorState";
 import OrgCard from "../../components/org/OrgCard";
+import "./UserOrganizationsPage.css";
 
 function UserOrganizationsPage() {
   const navigate = useNavigate();
@@ -23,6 +19,7 @@ function UserOrganizationsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
+
   const [formData, setFormData] = useState({
     orgName: "",
     description: "",
@@ -41,7 +38,7 @@ function UserOrganizationsPage() {
         const data = await getMyOrganizations();
         setOrganizations(data);
       } catch (err) {
-        setError(err.message || "Failed to load organizations");
+        setError(err.message || "Tải danh sách tổ chức thất bại");
       } finally {
         setIsLoading(false);
       }
@@ -70,7 +67,7 @@ function UserOrganizationsPage() {
       if (formData.contactEmail) payload.contactEmail = formData.contactEmail;
       if (formData.contactPhone) payload.contactPhone = formData.contactPhone;
 
-      const newOrg = await createOrganization(payload);
+      await createOrganization(payload);
 
       // Refresh organizations list
       const updatedOrgs = await getMyOrganizations();
@@ -89,7 +86,7 @@ function UserOrganizationsPage() {
         contactPhone: "",
       });
     } catch (err) {
-      setCreateError(err.message || "Failed to create organization");
+      setCreateError(err.message || "Tạo tổ chức thất bại");
     } finally {
       setIsCreating(false);
     }
@@ -103,50 +100,63 @@ function UserOrganizationsPage() {
     }));
   };
 
-  if (isLoading) {
-    return (
-      <div className="app-page">
-        <PageHeader
-          title="My Organizations"
-          description="Organizations you are a member of"
-        />
-        <LoadingSpinner message="Loading organizations..." />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="app-page">
-        <PageHeader
-          title="My Organizations"
-          description="Organizations you are a member of"
-        />
-        <ErrorState message={error} />
-      </div>
-    );
-  }
-
   return (
-    <div className="app-page">
-      <PageHeader
-        title="My Organizations"
-        description="Organizations you are a member of"
-        actions={
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="app-button app-button--primary"
+    <div className="org-layout">
+      {/* Header */}
+      <div className="org-header">
+        <div className="org-header-icon">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            Create Organization
-          </button>
-        }
-      />
+            <path d="M3 21h18"></path>
+            <path d="M3 10h18"></path>
+            <path d="M5 6l7-3 7 3"></path>
+            <path d="M4 10v11"></path>
+            <path d="M20 10v11"></path>
+            <path d="M8 14v3"></path>
+            <path d="M12 14v3"></path>
+            <path d="M16 14v3"></path>
+          </svg>
+        </div>
+        <div className="org-header-text">
+          <h1>Tổ chức của tôi</h1>
+          <p>Quản lý và tham gia kiến tạo cộng đồng</p>
+        </div>
+      </div>
 
-      <div className="app-section">
-        {organizations.length === 0 ? (
-          <EmptyState message="You are not a member of any organizations" />
-        ) : (
-          <div className="org-card-grid">
+      {isLoading ? (
+        <div className="org-loading">Đang tải danh sách tổ chức...</div>
+      ) : error ? (
+        <div className="org-alert-error">{error}</div>
+      ) : (
+        <div className="org-section">
+          <div className="org-section-title">
+            <h2>Danh sách tổ chức</h2>
+            <span className="org-badge">Tổng cộng: {organizations.length}</span>
+          </div>
+
+          <div className="org-grid">
+            {/* Create New Card */}
+            <button
+              className="org-create-card"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <div className="org-create-icon">+</div>
+              <h3>Tạo tổ chức mới</h3>
+              <p>
+                Bắt đầu hành trình kiến tạo một cộng đồng sinh viên mới của
+                riêng bạn.
+              </p>
+            </button>
+
+            {/* Organizations List */}
             {organizations.map((org) => (
               <OrgCard
                 key={org.id}
@@ -155,36 +165,33 @@ function UserOrganizationsPage() {
               />
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Create Organization Modal */}
       {showCreateModal && (
         <div
-          className="app-modal-overlay"
+          className="org-modal-overlay"
           onClick={() => setShowCreateModal(false)}
         >
-          <div className="app-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="app-modal-header">
-              <h3>Create New Organization</h3>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="app-modal-close"
-              >
-                ×
-              </button>
+          <div className="org-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="org-modal-header">
+              <h3>Tạo tổ chức mới</h3>
+              <p>
+                Khai báo thông tin cơ bản để thành lập một câu lạc bộ hoặc tổ
+                chức mới.
+              </p>
             </div>
-            <div className="app-modal-body">
-              <form onSubmit={handleCreateOrganization}>
+
+            <div className="org-modal-body">
+              <form id="createOrgForm" onSubmit={handleCreateOrganization}>
                 {createError && (
-                  <div className="app-alert app-alert--error">
-                    {createError}
-                  </div>
+                  <div className="org-alert-error">{createError}</div>
                 )}
 
-                <div className="app-form-group">
-                  <label htmlFor="orgName" className="app-form-label">
-                    Organization Name *
+                <div className="org-form-group">
+                  <label htmlFor="orgName" className="org-form-label">
+                    Tên tổ chức *
                   </label>
                   <input
                     type="text"
@@ -192,62 +199,31 @@ function UserOrganizationsPage() {
                     name="orgName"
                     value={formData.orgName}
                     onChange={handleInputChange}
-                    className="app-form-input"
+                    className="org-input"
                     required
                     minLength={2}
                     maxLength={200}
-                    placeholder="Enter organization name"
+                    placeholder="Ví dụ: CLB Âm nhạc Kora, Ban Truyền thông..."
                   />
                 </div>
 
-                <div className="app-form-group">
-                  <label htmlFor="description" className="app-form-label">
-                    Description
+                <div className="org-form-group">
+                  <label htmlFor="description" className="org-form-label">
+                    Mô tả hoạt động
                   </label>
                   <textarea
                     id="description"
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="app-form-input"
-                    rows={3}
-                    placeholder="Enter organization description"
+                    className="org-input"
+                    placeholder="Giới thiệu ngắn gọn về mục đích, sứ mệnh và hoạt động của tổ chức..."
                   />
                 </div>
 
-                <div className="app-form-group">
-                  <label htmlFor="avatarUrl" className="app-form-label">
-                    Avatar URL
-                  </label>
-                  <input
-                    type="url"
-                    id="avatarUrl"
-                    name="avatarUrl"
-                    value={formData.avatarUrl}
-                    onChange={handleInputChange}
-                    className="app-form-input"
-                    placeholder="https://example.com/avatar.png"
-                  />
-                </div>
-
-                <div className="app-form-group">
-                  <label htmlFor="coverUrl" className="app-form-label">
-                    Cover URL
-                  </label>
-                  <input
-                    type="url"
-                    id="coverUrl"
-                    name="coverUrl"
-                    value={formData.coverUrl}
-                    onChange={handleInputChange}
-                    className="app-form-input"
-                    placeholder="https://example.com/cover.png"
-                  />
-                </div>
-
-                <div className="app-form-group">
-                  <label htmlFor="location" className="app-form-label">
-                    Location
+                <div className="org-form-group">
+                  <label htmlFor="location" className="org-form-label">
+                    Địa điểm (Không bắt buộc)
                   </label>
                   <input
                     type="text"
@@ -255,59 +231,124 @@ function UserOrganizationsPage() {
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="app-form-input"
-                    placeholder="Enter organization location"
+                    className="org-input"
+                    placeholder="Ví dụ: Tòa nhà A1, Đại học Bách Khoa..."
                   />
                 </div>
 
-                <div className="app-form-group">
-                  <label htmlFor="contactEmail" className="app-form-label">
-                    Contact Email
-                  </label>
-                  <input
-                    type="email"
-                    id="contactEmail"
-                    name="contactEmail"
-                    value={formData.contactEmail}
-                    onChange={handleInputChange}
-                    className="app-form-input"
-                    placeholder="contact@example.com"
-                  />
-                </div>
-
-                <div className="app-form-group">
-                  <label htmlFor="contactPhone" className="app-form-label">
-                    Contact Phone
-                  </label>
-                  <input
-                    type="tel"
-                    id="contactPhone"
-                    name="contactPhone"
-                    value={formData.contactPhone}
-                    onChange={handleInputChange}
-                    className="app-form-input"
-                    placeholder="+1234567890"
-                  />
-                </div>
-
-                <div className="app-modal-actions">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateModal(false)}
-                    className="app-button app-button--secondary"
-                    disabled={isCreating}
+                {/* Phần thông tin thêm */}
+                <div
+                  style={{
+                    marginTop: "2rem",
+                    paddingTop: "1rem",
+                    borderTop: "1px solid #e2e8f0",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "0.8rem",
+                      color: "#94a3b8",
+                      marginBottom: "1rem",
+                    }}
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="app-button app-button--primary"
-                    disabled={isCreating}
-                  >
-                    {isCreating ? "Creating..." : "Create Organization"}
-                  </button>
+                    THÔNG TIN BỔ SUNG
+                  </p>
+
+                  <div className="org-form-group">
+                    <label htmlFor="avatarUrl" className="org-form-label">
+                      Link Ảnh đại diện
+                    </label>
+                    <input
+                      type="url"
+                      id="avatarUrl"
+                      name="avatarUrl"
+                      value={formData.avatarUrl}
+                      onChange={handleInputChange}
+                      className="org-input"
+                      placeholder="https://example.com/avatar.png"
+                    />
+                  </div>
+
+                  <div className="org-form-group">
+                    <label htmlFor="coverUrl" className="org-form-label">
+                      Link Ảnh bìa
+                    </label>
+                    <input
+                      type="url"
+                      id="coverUrl"
+                      name="coverUrl"
+                      value={formData.coverUrl}
+                      onChange={handleInputChange}
+                      className="org-input"
+                      placeholder="https://example.com/cover.png"
+                    />
+                  </div>
+
+                  <div className="org-form-group">
+                    <label htmlFor="foundingDate" className="org-form-label">
+                      Ngày thành lập
+                    </label>
+                    <input
+                      type="date"
+                      id="foundingDate"
+                      name="foundingDate"
+                      value={formData.foundingDate}
+                      onChange={handleInputChange}
+                      className="org-input"
+                    />
+                  </div>
+
+                  <div style={{ display: "flex", gap: "1rem" }}>
+                    <div className="org-form-group" style={{ flex: 1 }}>
+                      <label htmlFor="contactEmail" className="org-form-label">
+                        Email liên hệ
+                      </label>
+                      <input
+                        type="email"
+                        id="contactEmail"
+                        name="contactEmail"
+                        value={formData.contactEmail}
+                        onChange={handleInputChange}
+                        className="org-input"
+                        placeholder="contact@example.com"
+                      />
+                    </div>
+                    <div className="org-form-group" style={{ flex: 1 }}>
+                      <label htmlFor="contactPhone" className="org-form-label">
+                        SĐT liên hệ
+                      </label>
+                      <input
+                        type="tel"
+                        id="contactPhone"
+                        name="contactPhone"
+                        value={formData.contactPhone}
+                        onChange={handleInputChange}
+                        className="org-input"
+                        placeholder="0123456789"
+                      />
+                    </div>
+                  </div>
                 </div>
               </form>
+            </div>
+
+            <div className="org-modal-footer">
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                className="org-btn org-btn-secondary"
+                disabled={isCreating}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="submit"
+                form="createOrgForm"
+                className="org-btn org-btn-primary"
+                disabled={isCreating}
+              >
+                {isCreating ? "Đang tạo..." : "Tạo ngay"}
+              </button>
             </div>
           </div>
         </div>

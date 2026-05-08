@@ -1,26 +1,31 @@
 /**
  * OrgMembersPage.jsx - Organization members page
- * 
  * Phase 4B-1: Real backend API integration
  */
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useOrgContext } from '../../contexts/OrgContext.jsx';
-import { useAuth } from '../../hooks/useAuth.js';
-import { getOrganizationMembers, addMember, updateMemberDepartment, removeMember } from '../../services/memberService.js';
-import { getOrganizationRoles } from '../../services/roleService.js';
-import { getOrganizationDepartments } from '../../services/departmentService.js';
-import PageHeader from '../../components/shared/PageHeader';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import EmptyState from '../../components/shared/EmptyState';
-import ErrorState from '../../components/shared/ErrorState';
-import ForbiddenState from '../../components/shared/ForbiddenState';
-import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useOrgContext } from "../../contexts/OrgContext.jsx";
+import { useAuth } from "../../hooks/useAuth.js";
+import {
+  getOrganizationMembers,
+  addMember,
+  updateMemberDepartment,
+  removeMember,
+} from "../../services/memberService.js";
+import { getOrganizationRoles } from "../../services/roleService.js";
+import { getOrganizationDepartments } from "../../services/departmentService.js";
+import PageHeader from "../../components/shared/PageHeader";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import EmptyState from "../../components/shared/EmptyState";
+import ErrorState from "../../components/shared/ErrorState";
+import ForbiddenState from "../../components/shared/ForbiddenState";
+import ConfirmDialog from "../../components/shared/ConfirmDialog";
+import "./OrgMembersPage.css";
 
 function OrgMembersPage() {
   const [searchParams] = useSearchParams();
-  const orgId = searchParams.get('orgId');
+  const orgId = searchParams.get("orgId");
   const { permissions, isMember } = useOrgContext();
   const { user } = useAuth();
 
@@ -41,13 +46,13 @@ function OrgMembersPage() {
         const [memberData, deptData, roleData] = await Promise.all([
           getOrganizationMembers(orgId),
           getOrganizationDepartments(orgId),
-          getOrganizationRoles(orgId)
+          getOrganizationRoles(orgId),
         ]);
         setMembers(memberData);
         setDepartments(deptData);
         setRoles(roleData);
       } catch (err) {
-        setError(err.message || 'Failed to load members');
+        setError(err.message || "Failed to load members");
       } finally {
         setIsLoading(false);
       }
@@ -61,43 +66,44 @@ function OrgMembersPage() {
 
   if (!isMember) {
     return (
-      <div className="app-page">
-        <PageHeader
-          title="Members"
-          description="Manage organization members"
-        />
-        <ForbiddenState message="You are not a member of this organization" />
-      </div>
+      <ForbiddenState message="You are not a member of this organization" />
     );
   }
 
-  const canManage = permissions.includes('org.members.manage');
+  const canManage = permissions.includes("org.members.manage");
   const currentUserId = user?.id || user?.userId || null;
   const isSelfMember = (member) =>
     !!currentUserId &&
     (member?.userId === currentUserId || member?.user?.id === currentUserId);
   const isLeadershipRole = (member) => {
-    const roleName = (member?.role?.roleName || member?.roleName || '').trim().toLowerCase();
-    return roleName === 'president' || roleName === 'vice president' || roleName === 'vicepresident';
+    const roleName = (member?.role?.roleName || member?.roleName || "")
+      .trim()
+      .toLowerCase();
+    return (
+      roleName === "president" ||
+      roleName === "vice president" ||
+      roleName === "vicepresident"
+    );
   };
-  const canLeaveOrganization = (member) => isSelfMember(member) && !isLeadershipRole(member);
+  const canLeaveOrganization = (member) =>
+    isSelfMember(member) && !isLeadershipRole(member);
   const myMemberRecord = members.find((member) => isSelfMember(member)) || null;
 
   const handleAddMember = async (e) => {
     e.preventDefault();
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
-    
+
     const form = e.target;
     const userId = form.userId.value;
     const roleId = form.roleId.value;
     const departmentId = form.departmentId.value;
     const studentCode = form.studentCode.value;
-    
+
     if (!userId) {
-      alert('User ID is required');
+      alert("User ID is required");
       return;
     }
 
@@ -107,13 +113,13 @@ function OrgMembersPage() {
         userId,
         roleId: roleId || undefined,
         departmentId: departmentId || undefined,
-        studentCode: studentCode || undefined
+        studentCode: studentCode || undefined,
       });
-      setMembers(prev => [...prev, newMember]);
+      setMembers((prev) => [...prev, newMember]);
       form.reset();
       setShowAddForm(false);
     } catch (err) {
-      alert(err.message || 'Failed to add member');
+      alert(err.message || "Failed to add member");
     } finally {
       setIsSubmitting(false);
     }
@@ -121,16 +127,18 @@ function OrgMembersPage() {
 
   const handleUpdateDepartment = async (memberId, newDeptId) => {
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const updated = await updateMemberDepartment(memberId, { departmentId: newDeptId || null });
-      setMembers(prev => prev.map(m => m.id === memberId ? updated : m));
+      const updated = await updateMemberDepartment(memberId, {
+        departmentId: newDeptId || null,
+      });
+      setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
     } catch (err) {
-      alert(err.message || 'Failed to update department');
+      alert(err.message || "Failed to update department");
     } finally {
       setIsSubmitting(false);
     }
@@ -138,13 +146,13 @@ function OrgMembersPage() {
 
   const handleRemoveMember = async (memberId) => {
     if (!canManage) {
-      alert('You do not have permission to perform this action');
+      alert("You do not have permission to perform this action");
       return;
     }
 
     const targetMember = members.find((m) => m.id === memberId);
     if (targetMember && isSelfMember(targetMember)) {
-      alert('You cannot remove yourself');
+      alert("You cannot remove yourself");
       return;
     }
 
@@ -153,7 +161,7 @@ function OrgMembersPage() {
 
   const handleLeaveOrganization = (member) => {
     if (!canLeaveOrganization(member)) {
-      alert('You cannot leave organization with current role');
+      alert("You cannot leave organization with current role");
       return;
     }
     setPendingRemoveMember(member);
@@ -165,211 +173,332 @@ function OrgMembersPage() {
     setIsSubmitting(true);
     try {
       await removeMember(pendingRemoveMember.id);
-      setMembers(prev => prev.filter(m => m.id !== pendingRemoveMember.id));
+      setMembers((prev) => prev.filter((m) => m.id !== pendingRemoveMember.id));
       setPendingRemoveMember(null);
       if (isSelfMember(pendingRemoveMember)) {
-        window.location.href = '/user/organizations';
+        window.location.href = "/user/organizations";
       }
     } catch (err) {
-      alert(err.message || 'Failed to remove member');
+      alert(err.message || "Failed to remove member");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="app-page">
-        <PageHeader
-          title="Members"
-          description="Manage organization members"
-          actions={canManage && <button disabled className="app-button app-button--primary">Add Member</button>}
-        />
-        <LoadingSpinner message="Loading members..." />
-      </div>
-    );
-  }
+  // Hàm phụ trợ lấy style cho Role Badge cho đẹp mắt
+  const getRoleStyle = (roleName) => {
+    if (!roleName) return "member";
+    const name = roleName.toLowerCase();
+    if (name.includes("admin") || name.includes("chủ nhiệm")) return "admin";
+    if (name.includes("kiểm duyệt") || name.includes("manager"))
+      return "moderator";
+    return "member";
+  };
 
-  if (error) {
-    return (
-      <div className="app-page">
-        <PageHeader
-          title="Members"
-          description="Manage organization members"
-          actions={canManage && <button disabled className="app-button app-button--primary">Add Member</button>}
-        />
-        <ErrorState message={error} />
-      </div>
-    );
-  }
+  if (isLoading)
+    return <LoadingSpinner message="Đang tải danh sách thành viên..." />;
+  if (error) return <ErrorState message={error} />;
 
   return (
-    <div className="app-page">
-      <PageHeader
-        title="Members"
-        description="Manage organization members"
-        actions={
-          canManage && (
-            <button 
-              onClick={() => setShowAddForm(true)}
-              className="app-button app-button--primary"
-            >
-              Add Member
-            </button>
-          )
-        }
-      />
-
-      {showAddForm && canManage && (
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Add Member</h3>
-          </div>
-          <form onSubmit={handleAddMember} className="auth-form">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.9rem' }}>
-              <div className="form-group">
-                <label htmlFor="userId" className="form-label">User ID *</label>
-                <input
-                  id="userId"
-                  name="userId"
-                  className="form-input"
-                  placeholder="User ID"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="studentCode" className="form-label">Student Code</label>
-                <input
-                  id="studentCode"
-                  name="studentCode"
-                  className="form-input"
-                  placeholder="Student Code"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="roleId" className="form-label">Role</label>
-                <select id="roleId" name="roleId" className="form-select">
-                  <option value="">No Role</option>
-                  {roles.map(role => (
-                    <option key={role.id} value={role.id}>
-                      {role.roleName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label htmlFor="departmentId" className="form-label">Department</label>
-                <select id="departmentId" name="departmentId" className="form-select">
-                  <option value="">No Department</option>
-                  {departments.map(dept => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.deptName || dept.departmentName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="app-action-row">
-              <button type="submit" disabled={isSubmitting} className="app-button app-button--primary">
-                {isSubmitting ? 'Adding...' : 'Add'}
-              </button>
-              <button type="button" onClick={() => setShowAddForm(false)} className="app-button app-button--ghost">
-                Cancel
-              </button>
-            </div>
-          </form>
+    <div className="members-container">
+      {/* Header */}
+      <div className="members-header-section">
+        <div>
+          <h1 className="members-page-title">Quản lý thành viên</h1>
+          <p className="members-page-desc">
+            Xem danh sách, phân quyền và điều phối nhân sự tổ chức.
+          </p>
         </div>
-      )}
+      </div>
 
-      <div className="app-section">
-        {members.length === 0 ? (
-          <EmptyState message="No members found" />
-        ) : (
-          <div className="app-card">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Department</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {members.map((member) => (
-                  <tr key={member.id}>
-                    <td>{member.user?.fullName || '-'}</td>
-                    <td>{member.user?.email || '-'}</td>
-                    <td>
-                      {canManage ? (
-                        <select
-                          value={member.departmentId || ''}
-                          onChange={(e) => handleUpdateDepartment(member.id, e.target.value)}
-                          disabled={isSubmitting}
-                          className="form-select"
-                          style={{ minWidth: '150px' }}
-                        >
-                          <option value="">No Department</option>
-                          {departments.map(dept => (
-                            <option key={dept.id} value={dept.id}>
-                              {dept.deptName || dept.departmentName}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        member.department?.deptName || '-'
-                      )}
-                    </td>
-                    <td>{member.role?.roleName || '-'}</td>
-                    <td><span className="app-badge app-badge--success">{member.status || '-'}</span></td>
-                    <td>
-                      {canManage && !isSelfMember(member) && (
-                        <button
-                          onClick={() => handleRemoveMember(member.id)}
-                          disabled={isSubmitting}
-                          className="app-button app-button--danger"
-                        >
-                          {isSubmitting ? 'Removing...' : 'Remove'}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Thẻ Thống Kê (Lấy từ dữ liệu có sẵn) */}
+      <div className="members-stats-grid">
+        <div className="m-stat-card primary">
+          <div className="m-stat-icon dark">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
           </div>
+          <div className="m-stat-info">
+            <span>Tổng số thành viên</span>
+            <h3>{members.length}</h3>
+          </div>
+        </div>
+
+        <div className="m-stat-card accent">
+          <div className="m-stat-icon orange">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <polygon points="12 2 2 7 12 12 22 7 12 2" />
+              <polyline points="2 17 12 22 22 17" />
+              <polyline points="2 12 12 17 22 12" />
+            </svg>
+          </div>
+          <div className="m-stat-info">
+            <span>Số lượng phòng ban</span>
+            <h3>{departments.length}</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Bảng Danh Sách */}
+      <div className="members-table-wrapper">
+        <div className="members-table-toolbar">
+          <h3>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+            Danh sách nhân sự
+          </h3>
+          {canManage && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="org-btn org-btn-primary"
+              style={{ padding: "8px 16px", fontSize: "0.85rem" }}
+            >
+              + Thêm thành viên
+            </button>
+          )}
+        </div>
+
+        {members.length === 0 ? (
+          <div className="app-empty-state">
+            Chưa có thành viên nào trong danh sách.
+          </div>
+        ) : (
+          <table className="modern-table">
+            <thead>
+              <tr>
+                <th>Họ và Tên</th>
+                <th>Phòng ban chuyên môn</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                {canManage && <th style={{ textAlign: "center" }}>Thao tác</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {members.map((member) => (
+                <tr key={member.id}>
+                  {/* Cột 1: Gộp Avatar, Name và Email */}
+                  <td>
+                    <div className="user-profile-cell">
+                      <div className="user-avatar">
+                        {member.user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+                      </div>
+                      <div className="user-meta">
+                        <h4>{member.user?.fullName || "Người dùng ẩn danh"}</h4>
+                        <p>{member.user?.email || "Không có email"}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Cột 2: Select đổi phòng ban */}
+                  <td>
+                    {canManage ? (
+                      <select
+                        value={member.departmentId || ""}
+                        onChange={(e) =>
+                          handleUpdateDepartment(member.id, e.target.value)
+                        }
+                        disabled={isSubmitting}
+                        className="table-select"
+                      >
+                        <option value="">-- Trống --</option>
+                        {departments.map((dept) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.departmentName}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      member.department?.deptName || "-"
+                    )}
+                  </td>
+
+                  {/* Cột 3: Role Badge */}
+                  <td>
+                    <span
+                      className={`role-badge ${getRoleStyle(member.role?.roleName)}`}
+                    >
+                      {member.role?.roleName || "THÀNH VIÊN"}
+                    </span>
+                  </td>
+
+                  {/* Cột 4: Status */}
+                  <td>
+                    <span className="status-badge">
+                      {member.status || "Hoạt động"}
+                    </span>
+                  </td>
+
+                  {/* Cột 5: Xóa */}
+                  {canManage && (
+                    <td style={{ textAlign: "center" }}>
+                      <button
+                        onClick={() => handleRemoveMember(member.id)}
+                        disabled={isSubmitting}
+                        className="btn-remove-icon"
+                        title="Xóa thành viên"
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
         {canLeaveOrganization(myMemberRecord) && (
-          <div style={{ marginTop: '1rem' }}>
+          <div style={{ marginTop: "1rem" }}>
             <button
               onClick={() => handleLeaveOrganization(myMemberRecord)}
               disabled={isSubmitting}
               className="app-button app-button--danger"
             >
-              {isSubmitting ? 'Leaving...' : 'Leave Organization'}
+              {isSubmitting ? "Leaving..." : "Leave Organization"}
             </button>
           </div>
         )}
       </div>
 
-      <ConfirmDialog
-        isOpen={!!pendingRemoveMember}
-        title={isSelfMember(pendingRemoveMember) ? 'Leave Organization' : 'Remove Member'}
-        message={isSelfMember(pendingRemoveMember)
-          ? 'Are you sure you want to leave this organization?'
-          : `Are you sure you want to remove ${pendingRemoveMember?.user?.fullName || pendingRemoveMember?.fullName || pendingRemoveMember?.user?.email || 'this member'}?`}
-        confirmText={isSubmitting ? (isSelfMember(pendingRemoveMember) ? 'Leaving...' : 'Removing...') : (isSelfMember(pendingRemoveMember) ? 'Leave' : 'Remove')}
-        cancelText="Cancel"
-        onConfirm={handleConfirmRemoveMember}
-        onCancel={() => {
-          if (!isSubmitting) setPendingRemoveMember(null);
-        }}
-      />
+      {/* Modal Thêm Thành Viên - Đồng bộ thiết kế với Modal Tổ chức */}
+      {showAddForm && canManage && (
+        <div
+          className="org-modal-overlay"
+          onClick={() => setShowAddForm(false)}
+        >
+          <div className="org-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="org-modal-header">
+              <h3>Thêm thành viên mới</h3>
+            </div>
+
+            <div className="org-modal-body">
+              <form id="addMemberForm" onSubmit={handleAddMember}>
+                <div className="org-form-grid">
+                  <div className="org-form-group">
+                    <label htmlFor="userId" className="org-form-label">
+                      Mã User ID *
+                    </label>
+                    <input
+                      id="userId"
+                      name="userId"
+                      className="org-input"
+                      placeholder="Nhập ID người dùng"
+                      required
+                    />
+                  </div>
+
+                  <div className="org-form-group">
+                    <label htmlFor="studentCode" className="org-form-label">
+                      Mã Sinh Viên
+                    </label>
+                    <input
+                      id="studentCode"
+                      name="studentCode"
+                      className="org-input"
+                      placeholder="VD: 102210..."
+                    />
+                  </div>
+
+                  <div className="org-form-group">
+                    <label htmlFor="roleId" className="org-form-label">
+                      Vai trò
+                    </label>
+                    <select id="roleId" name="roleId" className="org-select">
+                      <option value="">-- Chọn vai trò --</option>
+                      {roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.roleName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="org-form-group">
+                    <label htmlFor="departmentId" className="org-form-label">
+                      Phòng ban
+                    </label>
+                    <select
+                      id="departmentId"
+                      name="departmentId"
+                      className="org-select"
+                    >
+                      <option value="">-- Chọn phòng ban --</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.departmentName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div className="org-modal-footer">
+              <button
+                type="button"
+                onClick={() => setShowAddForm(false)}
+                className="org-btn org-btn-secondary"
+                disabled={isSubmitting}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="submit"
+                form="addMemberForm"
+                className="org-btn org-btn-primary"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Đang xử lý..." : "Thêm thành viên"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default OrgMembersPage;
-
