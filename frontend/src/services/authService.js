@@ -57,7 +57,8 @@ export async function register(payload) {
   const response = await httpClient.post('/auth/register', payload);
   
   if (!response.data.success) {
-    throw new Error(response.data.message || 'Registration failed');
+    const errorMessage = response.data.errors?.[0] || response.data.message || 'Registration failed';
+    throw new Error(errorMessage);
   }
   
   const { accessToken, expiresAtUtc, user } = response.data.data;
