@@ -1,16 +1,25 @@
 /**
  * requestService.js - Request management service (join organization workflow)
  * 
- * Phase 3C-4B: Service skeleton only
+ * Phase 4B-1B: Real backend API integration
  * 
  * IMPORTANT RULES:
  * - VITE_API_BASE_URL already includes /api
  * - Service paths must NOT include /api prefix
- * - No real API calls yet
- * - No mock data, no fake success
+ * - Backend uses ApiResponse<T> wrapper: { success, data, message, errors }
  */
 
-// import httpClient from '../api/httpClient.js';
+import httpClient from '../api/httpClient.js';
+import { toRequestListViewModel, toRequestViewModel } from '../adapters/requestAdapter.js';
+
+function getApiErrorMessage(responseData, fallbackMessage) {
+  if (!responseData) return fallbackMessage;
+  if (responseData.message) return responseData.message;
+  if (Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+    return responseData.errors.join(', ');
+  }
+  return fallbackMessage;
+}
 
 /**
  * Get organization requests
@@ -32,15 +41,20 @@
  * - Used by OrgRequestsPage to list pending/reviewed requests
  */
 export async function getOrganizationRequests(orgId, params = {}) {
-  throw new Error('TODO: implement getOrganizationRequests after API contract verification');
+  const response = await httpClient.get(`/organizations/${orgId}/requests`, { params });
+
+  if (!response.data.success) {
+    throw new Error(getApiErrorMessage(response.data, 'Failed to get organization requests'));
+  }
+
+  return toRequestListViewModel(response.data.data);
 }
 
 /**
  * Create organization request (join request)
  * 
- * TODO Phase implementation:
  * Backend route: POST /api/organizations/{orgId}/requests
- * Frontend path later: /organizations/{orgId}/requests
+ * Frontend path: /organizations/{orgId}/requests
  * Input:
  * - orgId: string
  * - payload: { requestType: string, title?: string, content: string, desiredDepartmentId?: string, desiredPosition?: string }
@@ -53,9 +67,23 @@ export async function getOrganizationRequests(orgId, params = {}) {
  * Rules:
  * - requestType values: JoinOrganization, DepartmentChange, RoleChange, EventParticipation, Other
  * - content is required
+ * Backend Contract:
+ * - Backend expects: { orgId: guid, request: { requestType, content, ... } }
  */
 export async function createOrganizationRequest(orgId, payload) {
-  throw new Error('TODO: implement createOrganizationRequest after API contract verification');
+  // Wrap payload to match backend contract: CreateRequestEndpointRequest
+  const requestBody = {
+    orgId: orgId,
+    request: payload
+  };
+  
+  const response = await httpClient.post(`/organizations/${orgId}/requests`, requestBody);
+  
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to create request');
+  }
+  
+  return response.data.data;
 }
 
 /**
@@ -76,7 +104,13 @@ export async function createOrganizationRequest(orgId, payload) {
  * - Returns request with sender and reviewer data
  */
 export async function getRequestById(requestId) {
-  throw new Error('TODO: implement getRequestById after API contract verification');
+  const response = await httpClient.get(`/requests/${requestId}`);
+
+  if (!response.data.success) {
+    throw new Error(getApiErrorMessage(response.data, 'Failed to get request'));
+  }
+
+  return toRequestViewModel(response.data.data);
 }
 
 /**
@@ -100,5 +134,19 @@ export async function getRequestById(requestId) {
  * - On Approved for JoinOrganization, create Member record
  */
 export async function reviewRequest(requestId, payload) {
-  throw new Error('TODO: implement reviewRequest after API contract verification');
+  const requestBody = {
+    requestId,
+    review: {
+      decision: payload?.decision,
+      reviewNote: payload?.reviewNote || undefined
+    }
+  };
+
+  const response = await httpClient.post(`/organizations/requests/${requestId}/review`, requestBody);
+
+  if (!response.data.success) {
+    throw new Error(getApiErrorMessage(response.data, 'Failed to review request'));
+  }
+
+  return toRequestViewModel(response.data.data);
 }

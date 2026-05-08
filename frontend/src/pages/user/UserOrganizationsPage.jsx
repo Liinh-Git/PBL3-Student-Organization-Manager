@@ -243,20 +243,6 @@ function UserOrganizationsPage() {
                 </div>
 
                 <div className="app-form-group">
-                  <label htmlFor="foundingDate" className="app-form-label">
-                    Founding Date
-                  </label>
-                  <input
-                    type="date"
-                    id="foundingDate"
-                    name="foundingDate"
-                    value={formData.foundingDate}
-                    onChange={handleInputChange}
-                    className="app-form-input"
-                  />
-                </div>
-
-                <div className="app-form-group">
                   <label htmlFor="location" className="app-form-label">
                     Location
                   </label>

@@ -18,6 +18,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { discoverMyOrganizations } from '../../services/userService.js';
+import { createOrganizationRequest } from '../../services/requestService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
@@ -29,6 +30,8 @@ function UserDiscoverPage() {
   const [organizations, setOrganizations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [requestingOrgId, setRequestingOrgId] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     async function loadData() {
@@ -44,6 +47,26 @@ function UserDiscoverPage() {
     }
     loadData();
   }, []);
+
+  const handleRequestToJoin = async (orgId, orgName) => {
+    const safeOrgName = orgName || 'this organization';
+
+    setRequestingOrgId(orgId);
+    setSuccessMessage(null);
+
+    try {
+      await createOrganizationRequest(orgId, {
+        requestType: 'JoinOrganization',
+        content: `I would like to join ${safeOrgName}`,
+      });
+
+      setSuccessMessage(`Request sent to ${safeOrgName}`);
+    } catch (err) {
+      setError(err.message || 'Failed to send join request');
+    } finally {
+      setRequestingOrgId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -77,6 +100,11 @@ function UserDiscoverPage() {
       />
 
       <div className="app-section">
+        {successMessage && (
+          <div className="app-card" style={{ marginBottom: '16px', backgroundColor: '#d4edda', borderColor: '#c3e6cb' }}>
+            <p style={{ color: '#155724', margin: 0 }}>{successMessage}</p>
+          </div>
+        )}
         {/* Organizations section */}
         <div className="app-card">
           <div className="app-section-header">
@@ -97,18 +125,28 @@ function UserDiscoverPage() {
                 </tr>
               </thead>
               <tbody>
-                {organizations.map((org) => (
+                {organizations.map((org) => {
+                const orgName = org.name || org.orgName || org.organizationName || 'Unknown organization';
+
+                return (
                   <tr key={org.id}>
-                    <td>{org.orgName || '-'}</td>
+                    <td>{orgName}</td>
                     <td>{org.description || '-'}</td>
                     <td>{org.location || '-'}</td>
-                    <td>{org.totalMembers || '-'}</td>
-                    <td>{org.status || '-'}</td>
+                    <td>{org.totalMembers ?? '-'}</td>
+                    <td>{org.status || (org.isActive ? 'Active' : 'Inactive')}</td>
                     <td>
-                      <button disabled className="app-button app-button--primary">Request to Join (Write UI Pending)</button>
+                      <button
+                        onClick={() => handleRequestToJoin(org.id, orgName)}
+                        disabled={requestingOrgId === org.id}
+                        className="app-button app-button--primary"
+                      >
+                        {requestingOrgId === org.id ? 'Sending...' : 'Request to Join'}
+                      </button>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           )}

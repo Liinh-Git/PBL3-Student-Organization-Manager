@@ -26,7 +26,27 @@
  */
 export function toRequestViewModel(dto) {
   if (!dto) return null;
-  throw new Error('TODO: implement toRequestViewModel after RequestDto is verified');
+  return {
+    id: dto.id,
+    senderId: dto.senderId,
+    senderName: dto.senderName || 'Unknown',
+    senderEmail: dto.senderEmail || null,
+    organizationId: dto.organizationId,
+    organizationName: dto.organizationName || '',
+    requestType: dto.requestType || 'Other',
+    title: dto.title || '',
+    content: dto.content || '',
+    desiredDepartmentId: dto.desiredDepartmentId || null,
+    desiredDepartmentName: dto.desiredDepartmentName || null,
+    desiredPosition: dto.desiredPosition || null,
+    status: dto.status || 'Pending',
+    reviewNote: dto.reviewNote || '',
+    reviewedByMemberId: dto.reviewedByMemberId || null,
+    reviewedByMemberName: dto.reviewedByMemberName || null,
+    reviewedAt: dto.reviewedAt || null,
+    createdAtUtc: dto.createdAtUtc || null,
+    updatedAtUtc: dto.updatedAtUtc || null
+  };
 }
 
 /**

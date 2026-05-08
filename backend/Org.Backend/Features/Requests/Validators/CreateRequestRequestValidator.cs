@@ -27,7 +27,8 @@ public class CreateRequestRequestValidator : Validator<CreateRequestRequest>
 
     private bool BeValidRequestType(string requestType)
     {
+        var normalized = requestType.Trim();
         var validTypes = new[] { "JoinOrganization", "DepartmentChange", "RoleChange", "EventParticipation", "Other" };
-        return validTypes.Contains(requestType);
+        return validTypes.Contains(normalized, StringComparer.OrdinalIgnoreCase);
     }
 }

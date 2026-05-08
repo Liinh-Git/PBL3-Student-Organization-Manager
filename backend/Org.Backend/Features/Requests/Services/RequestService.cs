@@ -87,7 +87,8 @@ public class RequestService : IRequestService
         }
 
         // Parse request type
-        if (!Enum.TryParse<RequestType>(request.RequestType, out var requestType))
+        var normalizedRequestType = request.RequestType.Trim();
+        if (!Enum.TryParse<RequestType>(normalizedRequestType, true, out var requestType))
         {
             throw new ArgumentException($"Invalid request type: {request.RequestType}");
         }
