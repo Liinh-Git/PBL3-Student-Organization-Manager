@@ -36,7 +36,7 @@ function OrgOverviewPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    if (orgId && !contextOrg) {
+    if (orgId && (!contextOrg || String(contextOrg.id) !== String(orgId))) {
       loadWorkspaceOrg(orgId);
     }
   }, [orgId, contextOrg, loadWorkspaceOrg]);
@@ -83,6 +83,7 @@ function OrgOverviewPage() {
 
   const canEdit = permissions.includes("org.overview.write");
   const canDelete = permissions.includes("org.delete");
+  const orgLocation = contextOrg?.location || contextOrg?.Location || "-";
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -215,7 +216,7 @@ function OrgOverviewPage() {
                 id="location"
                 name="location"
                 className="form-input"
-                defaultValue={contextOrg?.location || ""}
+                defaultValue={contextOrg?.location || contextOrg?.Location || ""}
                 placeholder="Location"
               />
             </div>
@@ -351,6 +352,12 @@ function OrgOverviewPage() {
               </p>
             </div>
             <div>
+              <label className="form-label">Location</label>
+              <p style={{ margin: "0.25rem 0 0", color: "var(--ink-700)" }}>
+                {orgLocation}
+              </p>
+            </div>
+            <div>
               <label className="form-label">Created</label>
               <p style={{ margin: "0.25rem 0 0", color: "var(--ink-700)" }}>
                 {(contextOrg?.createdAtUtc || contextOrg?.createdAt)
@@ -431,7 +438,7 @@ function OrgOverviewPage() {
                   color: "var(--ink-900)",
                 }}
               >
-                {contextOrg?.location || "-"}
+                {orgLocation}
               </p>
             </div>
           </div>
