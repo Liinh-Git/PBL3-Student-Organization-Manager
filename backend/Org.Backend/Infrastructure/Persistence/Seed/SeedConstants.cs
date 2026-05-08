@@ -48,6 +48,7 @@ public static class SeedConstants
     {
         "org.overview.read",
         "org.overview.write",
+        "org.delete",
         "org.workspace.access",
         "org.members.manage",
         "org.roles.view",
@@ -70,6 +71,7 @@ public static class SeedConstants
     {
         { "org.overview.read", "View Organization Overview" },
         { "org.overview.write", "Edit Organization Overview" },
+        { "org.delete", "Delete Organization" },
         { "org.workspace.access", "Access Organization Workspace" },
         { "org.members.manage", "Manage Members" },
         { "org.roles.view", "View Roles" },
@@ -92,6 +94,7 @@ public static class SeedConstants
     {
         { "org.overview.read", "Overview" },
         { "org.overview.write", "Overview" },
+        { "org.delete", "Overview" },
         { "org.workspace.access", "Workspace" },
         { "org.members.manage", "Members" },
         { "org.roles.view", "Roles" },

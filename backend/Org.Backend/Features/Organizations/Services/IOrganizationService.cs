@@ -12,4 +12,5 @@ public interface IOrganizationService
     // Write operations
     Task<OrganizationDto> CreateOrganizationAsync(Guid userId, CreateOrganizationRequest request, CancellationToken ct = default);
     Task<OrganizationDto> UpdateOrganizationAsync(Guid orgId, Guid userId, UpdateOrganizationRequest request, CancellationToken ct = default);
+    Task DeleteOrganizationAsync(Guid orgId, Guid userId, CancellationToken ct = default);
 }

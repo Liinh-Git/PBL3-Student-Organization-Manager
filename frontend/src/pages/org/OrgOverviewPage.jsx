@@ -6,8 +6,9 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useOrgContext } from '../../contexts/OrgContext.jsx';
-import { getOrganizationById, updateOrganization } from '../../services/organizationService.js';
+import { getOrganizationById, updateOrganization, deleteOrganization } from '../../services/organizationService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import ErrorState from '../../components/shared/ErrorState';
@@ -21,6 +22,8 @@ function OrgOverviewPage() {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (orgId && !contextOrg) {
@@ -69,6 +72,7 @@ function OrgOverviewPage() {
   }
 
   const canEdit = permissions.includes('org.overview.write');
+  const canDelete = permissions.includes('org.delete');
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -107,20 +111,54 @@ function OrgOverviewPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!canDelete || !orgId) {
+      alert('Bạn không có quyền thực hiện thao tác này');
+      return;
+    }
+
+    if (!confirm(`Bạn có chắc chắn muốn xóa tổ chức "${contextOrg?.name}"? Hành động này không thể hoàn tác.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteOrganization(orgId);
+      alert('Đã xóa tổ chức thành công');
+      navigate('/user/organizations');
+    } catch (err) {
+      alert(err.message || 'Failed to delete organization');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <div className="app-page">
       <PageHeader
         title="Organization Overview"
         description="View organization details and statistics"
         actions={
-          canEdit && (
-            <button 
-              onClick={() => setShowEditForm(true)}
-              className="app-button app-button--primary"
-            >
-              Edit Organization
-            </button>
-          )
+          <>
+            {canEdit && (
+              <button 
+                onClick={() => setShowEditForm(true)}
+                className="app-button app-button--primary"
+              >
+                Edit Organization
+              </button>
+            )}
+            {canDelete && (
+              <button 
+                onClick={() => setShowDeleteConfirm(true)}
+                className="app-button app-button--danger"
+                style={{ marginLeft: '0.5rem' }}
+              >
+                Delete Organization
+              </button>
+            )}
+          </>
         }
       />
 
@@ -193,6 +231,59 @@ function OrgOverviewPage() {
         </div>
       )}
 
+      {showDeleteConfirm && (
+        <div className="app-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="app-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="app-modal-header">
+              <h3>Xác nhận xóa tổ chức</h3>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="app-modal-close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="app-modal-body">
+              <p style={{ marginBottom: '1rem' }}>
+                Bạn có chắc chắn muốn xóa tổ chức <strong>"{contextOrg?.orgName || contextOrg?.name}"</strong>?
+              </p>
+              <p style={{ marginBottom: '1rem', color: 'var(--danger-600)' }}>
+                ⚠️ Hành động này sẽ xóa toàn bộ dữ liệu của tổ chức bao gồm:
+              </p>
+              <ul style={{ marginBottom: '1rem', paddingLeft: '1.5rem', color: 'var(--danger-600)' }}>
+                <li>Tất cả thành viên</li>
+                <li>Tất cả vai trò và quyền hạn</li>
+                <li>Tất cả sự kiện</li>
+                <li>Tất cả phòng ban</li>
+                <li>Tất cả tài nguyên</li>
+                <li>Lịch sử hoạt động</li>
+              </ul>
+              <p style={{ marginBottom: '1.5rem', color: 'var(--danger-600)', fontWeight: 'bold' }}>
+                Hành động này KHÔNG THỂ hoàn tác!
+              </p>
+              <div className="app-modal-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="app-button app-button--secondary"
+                  disabled={isDeleting}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="app-button app-button--danger"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Đang xóa...' : 'Xóa tổ chức'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="app-section">
         <div className="app-card">
           <div className="app-section-header">
@@ -201,7 +292,7 @@ function OrgOverviewPage() {
           <div style={{ display: 'grid', gap: '1rem' }}>
             <div>
               <label className="form-label">Name</label>
-              <p style={{ margin: '0.25rem 0 0', color: 'var(--ink-700)' }}>{contextOrg?.name || '-'}</p>
+              <p style={{ margin: '0.25rem 0 0', color: 'var(--ink-700)' }}>{contextOrg?.orgName || contextOrg?.name || '-'}</p>
             </div>
             <div>
               <label className="form-label">Description</label>

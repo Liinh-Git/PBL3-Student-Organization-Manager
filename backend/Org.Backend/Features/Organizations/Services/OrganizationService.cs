@@ -267,4 +267,110 @@ public class OrganizationService : IOrganizationService
 
         return organization.ToOrganizationDto();
     }
+
+    public async Task DeleteOrganizationAsync(Guid orgId, Guid userId, CancellationToken ct = default)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync(ct);
+        
+        try
+        {
+            // Verify user is a member with org.delete permission
+            var member = await _context.Members
+                .Include(m => m.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
+                .FirstOrDefaultAsync(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
+
+            if (member == null)
+            {
+                throw new UnauthorizedAccessException("You are not a member of this organization");
+            }
+
+            if (member.Role == null)
+            {
+                throw new UnauthorizedAccessException("You do not have a role assigned in this organization");
+            }
+
+            var hasPermission = member.Role.RolePermissions
+                .Any(rp => rp.Permission?.PermissionKey == "org.delete");
+
+            if (!hasPermission)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to delete this organization");
+            }
+
+            var organization = await _context.Organizations
+                .FirstOrDefaultAsync(o => o.Id == orgId, ct);
+
+            if (organization == null)
+            {
+                throw new KeyNotFoundException("Organization not found");
+            }
+
+            // Delete in proper order to handle foreign key constraints
+            // 1. Delete activity histories
+            var activityHistories = await _context.ActivityHistories
+                .Where(ah => ah.OrgId == orgId)
+                .ToListAsync(ct);
+            _context.ActivityHistories.RemoveRange(activityHistories);
+
+            // 2. Delete requests
+            var requests = await _context.Requests
+                .Where(r => r.OrgId == orgId)
+                .ToListAsync(ct);
+            _context.Requests.RemoveRange(requests);
+
+            // 3. Delete resources
+            var resources = await _context.Resources
+                .Where(r => r.OrgId == orgId)
+                .ToListAsync(ct);
+            _context.Resources.RemoveRange(resources);
+
+            // 4. Delete events
+            var events = await _context.Events
+                .Where(e => e.OrgId == orgId)
+                .ToListAsync(ct);
+            _context.Events.RemoveRange(events);
+
+            // 5. Delete departments
+            var departments = await _context.Departments
+                .Where(d => d.OrgId == orgId)
+                .ToListAsync(ct);
+            _context.Departments.RemoveRange(departments);
+
+            // 6. Delete role permissions
+            var roleIds = await _context.Roles
+                .Where(r => r.OrgId == orgId)
+                .Select(r => r.Id)
+                .ToListAsync(ct);
+            
+            var rolePermissions = await _context.RolePermissions
+                .Where(rp => roleIds.Contains(rp.RoleId))
+                .ToListAsync(ct);
+            _context.RolePermissions.RemoveRange(rolePermissions);
+
+            // 7. Delete roles
+            var roles = await _context.Roles
+                .Where(r => r.OrgId == orgId)
+                .ToListAsync(ct);
+            _context.Roles.RemoveRange(roles);
+
+            // 8. Delete members
+            var members = await _context.Members
+                .Where(m => m.OrgId == orgId)
+                .ToListAsync(ct);
+            _context.Members.RemoveRange(members);
+
+            // 9. Finally delete the organization
+            _context.Organizations.Remove(organization);
+
+            await _context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct);
+            throw;
+        }
+    }
 }

@@ -162,3 +162,28 @@ export async function getPublicOverview(id) {
   
   return response.data.data;
 }
+
+/**
+ * Delete organization
+ * 
+ * Backend route: DELETE /api/organizations/{id}
+ * Frontend path: /organizations/{id}
+ * Input:
+ * - id: string (organization ID)
+ * Response:
+ * - ApiResponse<bool>
+ * Permission:
+ * - President only (role level 1)
+ * Rules:
+ * - Only President can delete organization
+ * - Cascade deletes all related data (members, roles, events, departments, etc.)
+ */
+export async function deleteOrganization(id) {
+  const response = await httpClient.delete(`/organizations/${id}`);
+  
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to delete organization');
+  }
+  
+  return response.data.data;
+}
