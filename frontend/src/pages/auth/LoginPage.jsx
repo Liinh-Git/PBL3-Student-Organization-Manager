@@ -1,20 +1,18 @@
 /**
  * LoginPage.jsx - User login page
- * 
  * Phase 4B-1: Real backend API integration
  */
 
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuthContext } from '../../contexts/AuthContext.jsx';
-import PageHeader from '../../components/shared/PageHeader';
-import ErrorState from '../../components/shared/ErrorState';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthContext } from "../../contexts/AuthContext.jsx";
+import "./auth.css"; // Import file CSS thuần
 
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuthContext();
 
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState(null);
 
@@ -24,9 +22,9 @@ function LoginPage() {
     setApiError(null);
     try {
       await login(formData);
-      navigate('/user/organizations');
+      navigate("/user/organizations");
     } catch (err) {
-      setApiError(err.message || 'Login failed');
+      setApiError(err.message || "Login failed");
     } finally {
       setIsSubmitting(false);
     }
@@ -37,52 +35,104 @@ function LoginPage() {
   };
 
   return (
-    <div className="auth-form-shell">
-      <div className="auth-form-header">
-        <h2>Welcome Back</h2>
-        <p>Sign in to your account to continue</p>
+    <div className="auth-layout">
+      {/* Top Navigation */}
+      <div className="auth-nav">
+        <span style={{ color: "#0f172a" }}>Đăng nhập</span>
+        <Link to="/register" className="auth-nav-btn">
+          Đăng ký
+        </Link>
       </div>
 
-      {apiError && <div className="auth-alert auth-alert-error">{apiError}</div>}
+      {/* Main Content */}
+      <div className="auth-main">
+        <div className="auth-card">
+          <div className="auth-header">
+            <h2 className="auth-title">Đăng nhập</h2>
+            <p className="auth-subtitle">
+              Vui lòng nhập thông tin để đăng nhập vào hệ thống
+            </p>
+          </div>
 
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <div className="auth-field-group">
-          <label htmlFor="email" className="auth-label">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            className="auth-input"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChange={handleChange}
-            disabled={isSubmitting}
-            required
-          />
+          {apiError && <div className="auth-alert-error">{apiError}</div>}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="auth-field">
+              <label htmlFor="email" className="auth-label">
+                Email
+              </label>
+              <div className="auth-input-wrapper">
+                <svg
+                  className="auth-icon"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  className="auth-input"
+                  placeholder="ten@truong.edu.vn"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="password" className="auth-label">
+                Mật khẩu
+              </label>
+              <div className="auth-input-wrapper">
+                <svg
+                  className="auth-icon"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  className="auth-input"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
+            </div>
+
+            <button type="submit" disabled={isSubmitting} className="auth-btn">
+              {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            Chưa có tài khoản?{" "}
+            <Link to="/register" className="auth-link">
+              Đăng ký ngay
+            </Link>
+          </div>
         </div>
-
-        <div className="auth-field-group">
-          <label htmlFor="password" className="auth-label">Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            className="auth-input"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange}
-            disabled={isSubmitting}
-            required
-          />
-        </div>
-
-        <button type="submit" disabled={isSubmitting} className="auth-primary-btn">
-          {isSubmitting ? 'Logging in...' : 'Sign In'}
-        </button>
-      </form>
-
-      <div className="auth-footnote">
-        Don't have an account? <Link to="/register">Register</Link>
       </div>
     </div>
   );
