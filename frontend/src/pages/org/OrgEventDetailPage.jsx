@@ -124,6 +124,26 @@ function OrgEventDetailPage() {
   }
 
   const canManage = permissions.includes('org.events.manage');
+  const getTaskAssigneeId = (task) =>
+    task?.assigneeId ||
+    task?.assignedMemberId ||
+    task?.assignee?.id ||
+    task?.assignee?.memberId ||
+    task?.assignee?.userId ||
+    '';
+
+  const getTaskAssigneeName = (task) => {
+    const directName =
+      task?.assignee?.user?.fullName ||
+      task?.assignee?.fullName ||
+      task?.assigneeName;
+    if (directName) return directName;
+
+    const assigneeId = getTaskAssigneeId(task);
+    if (!assigneeId) return '-';
+    const matchedMember = members.find((member) => member.id === assigneeId);
+    return matchedMember?.fullName || matchedMember?.email || '-';
+  };
 
   // Task mutation handlers
   const handleCreateTask = async (categoryId, e) => {
@@ -899,7 +919,7 @@ function OrgEventDetailPage() {
                                 <td>
                                   {canManage ? (
                                     <select
-                                      value={task.assigneeId || ''}
+                                      value={getTaskAssigneeId(task)}
                                       onChange={(e) => handleAssignTask(task.id, e.target.value, category.id)}
                                       disabled={taskLoading[task.id]}
                                       className="form-select"
@@ -913,7 +933,7 @@ function OrgEventDetailPage() {
                                       ))}
                                     </select>
                                   ) : (
-                                    task.assignee?.user?.fullName || '-'
+                                    getTaskAssigneeName(task)
                                   )}
                                 </td>
                                 {canManage && (
