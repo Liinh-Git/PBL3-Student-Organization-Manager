@@ -1,0 +1,127 @@
+BỘ QUY TẮC HOÀN CHỈNH CHO DỮ LIỆU SEED/TEST
+
+1) Quy tắc ID
+- Dùng UUID cho tất cả khóa chính (PK) và khóa ngoại (FK).
+- ID chỉ phục vụ kỹ thuật, không nhúng ý nghĩa nghiệp vụ.
+- Có thể thêm mã hiển thị (code) để dễ đọc trên UI:
+  + ORG-001
+  + DEP-ORG001-01
+  + EVT-ORG001-2026-001
+  + TSK-EVT001-0001
+- Không tái sử dụng code đã từng cấp.
+- Bắt buộc tạo index:
+  + PK cho id
+  + Unique cho các code cần tra cứu
+
+2) Quy tắc tài khoản mẫu
+- Tài khoản mẫu cho người thứ N: exampleN@gmail.com
+- Mật khẩu tương ứng: exampleN
+- Ví dụ:
+  + Người 1: example1@gmail.com / example1
+  + Người 25: example25@gmail.com / example25
+- Lưu ý: trong database chỉ lưu hash mật khẩu, không lưu plain text.
+
+3) Quy tắc mật khẩu
+- Mật khẩu luôn được băm bằng BCrypt trước khi lưu.
+- Dữ liệu seed có thể dùng quy tắc exampleN để test nhanh.
+- Khuyến nghị cho môi trường thật:
+  + Tối thiểu 8 ký tự
+  + Có chữ hoa, chữ thường, số, ký tự đặc biệt
+
+4) Quy tắc vai trò người dùng và phòng ban
+- Mỗi nhóm có 1 Quản trị viên (President), và luôn thuộc ban Chủ nhiệm.
+- Mỗi nhóm có 1 Kiểm duyệt (Manager), và luôn thuộc ban Quản lí.
+- Còn lại là Thành viên (Member), được chia đều vào các ban còn lại.
+- Cơ cấu phòng ban (Departments):
+  + Tổ chức có 4 ban: Hậu cần, Truyền thông, Quản lí, Chủ nhiệm.
+  + Tổ chức có 3 ban: Hậu cần, Quản lí, Chủ nhiệm (không có truyền thông).
+
+5) Quy tắc số lượng mẫu
+- Mỗi đối tượng tối thiểu 10 mẫu.
+- Số lượng mẫu cụ thể cho từng bảng:
+  + Users: 40
+  + Members: 40
+  + Roles: 2 (mem, lead)
+  + Permissions: 20
+  + RolePermissions: 30
+  + Organizations: 6
+  + Departments: 20
+  + ActivityHistories: 40
+  + Requests: 30
+  + Resources: 30
+  + Events: 40
+  + EventMembers: 45
+  + EventReports: 20
+  + Milestones: 120
+  + EventCategories: 30
+  + Tasks: 45
+  + Attendees: 60
+  + DigitalAssets: 30
+
+6) Quy tắc quan hệ giữa các bảng (phân bổ mẫu)
+- Users <-> Organizations (qua Members):
+  + Tổng Members = 40 (chia đều xoay vòng cho 6 tổ chức).
+  + Thành viên đầu: Quản trị viên (ban Chủ nhiệm).
+  + Thành viên hai: Kiểm duyệt (ban Quản lí).
+  + Thành viên còn lại: Thành viên thường (vào các ban Hậu cần, Truyền thông).
+
+- Organizations <-> Departments:
+  + 2 hội nhóm đầu có 4 phòng ban.
+  + 4 hội nhóm còn lại có 3 phòng ban.
+  + Tổng Departments = 20.
+
+- Roles <-> Permissions (qua RolePermissions):
+  + Lead (Quản trị viên) có 3 quyền.
+  + Mem (Thành viên/Kiểm duyệt) có 2 quyền.
+
+- Organizations <-> Events:
+  + 4 hội nhóm đầu có 7 sự kiện, 2 hội nhóm còn lại có 6 sự kiện.
+  + Tổng Events = 40.
+
+- Events <-> Milestones:
+  + Mỗi sự kiện có 3 cột mốc (chuẩn bị, bắt đầu, kết thúc).
+  + Tổng Milestones = 120.
+
+- Milestones <-> EventCategories:
+  + 30 cột mốc đầu có đúng 1 event category.
+  + 90 cột mốc còn lại không có category (mốc dự phòng/draft).
+  + Tổng EventCategories = 30.
+
+- Milestones <-> Tasks:
+  + 5 cột mốc đầu tiên có 2 nhiệm vụ/cột mốc.
+  + 35 cột mốc còn lại có 1 nhiệm vụ/cột mốc.
+  + Tổng Tasks = 45.
+
+- Events <-> Members (qua EventMembers):
+  + 15 sự kiện đầu tiên có 1 member phụ trách.
+  + 15 sự kiện còn lại có 2 member phụ trách.
+  + 10 sự kiện không ai phụ trách.
+  + Tổng EventMembers = 45.
+
+- Events <-> Users (qua Attendees):
+  + 20 sự kiện đầu tiên có 1 attendee.
+  + 20 sự kiện còn lại có 2 attendee.
+  + Tổng Attendees = 60.
+
+- Events <-> EventReports:
+  + 20 sự kiện đầu tiên có 1 báo cáo.
+  + 20 sự kiện còn lại không có báo cáo.
+  + Tổng EventReports = 20.
+
+- Organizations <-> Requests:
+  + Mỗi hội nhóm có 5 request.
+  + Tổng Requests = 30.
+
+- Organizations <-> Resources:
+  + Mỗi hội nhóm có 5 resource.
+  + Trong 5 resource/hội nhóm: 1 resource gắn EventId, 4 resource cấp tổ chức (EventId = null).
+  + Tổng Resources = 30.
+
+- Events <-> DigitalAssets:
+  + 30 sự kiện đầu tiên có 1 tài sản số.
+  + 10 sự kiện còn lại không có tài sản số.
+  + Tổng DigitalAssets = 30.
+
+- Organizations <-> ActivityHistories:
+  + 4 hội nhóm đầu có 7 nhật ký hoạt động, 2 hội nhóm còn lại có 6 nhật ký hoạt động.
+  + Tổng ActivityHistories = 40.
