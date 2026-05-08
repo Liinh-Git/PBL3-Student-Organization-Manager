@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useOrgContext } from '../../contexts/OrgContext.jsx';
+import { useAuth } from '../../hooks/useAuth.js';
 import { getOrganizationMembers, addMember, updateMemberDepartment, removeMember } from '../../services/memberService.js';
 import { getOrganizationRoles } from '../../services/roleService.js';
 import { getOrganizationDepartments } from '../../services/departmentService.js';
@@ -15,11 +16,13 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import ForbiddenState from '../../components/shared/ForbiddenState';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 
 function OrgMembersPage() {
   const [searchParams] = useSearchParams();
   const orgId = searchParams.get('orgId');
   const { permissions, isMember } = useOrgContext();
+  const { user } = useAuth();
 
   const [members, setMembers] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -28,6 +31,7 @@ function OrgMembersPage() {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [pendingRemoveMember, setPendingRemoveMember] = useState(null);
 
   useEffect(() => {
     if (!orgId || !isMember) return;
@@ -68,6 +72,16 @@ function OrgMembersPage() {
   }
 
   const canManage = permissions.includes('org.members.manage');
+  const currentUserId = user?.id || user?.userId || null;
+  const isSelfMember = (member) =>
+    !!currentUserId &&
+    (member?.userId === currentUserId || member?.user?.id === currentUserId);
+  const isLeadershipRole = (member) => {
+    const roleName = (member?.role?.roleName || member?.roleName || '').trim().toLowerCase();
+    return roleName === 'president' || roleName === 'vice president' || roleName === 'vicepresident';
+  };
+  const canLeaveOrganization = (member) => isSelfMember(member) && !isLeadershipRole(member);
+  const myMemberRecord = members.find((member) => isSelfMember(member)) || null;
 
   const handleAddMember = async (e) => {
     e.preventDefault();
@@ -124,18 +138,38 @@ function OrgMembersPage() {
 
   const handleRemoveMember = async (memberId) => {
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert('You do not have permission to perform this action');
       return;
     }
 
-    if (!window.confirm('Are you sure you want to remove this member?')) {
+    const targetMember = members.find((m) => m.id === memberId);
+    if (targetMember && isSelfMember(targetMember)) {
+      alert('You cannot remove yourself');
       return;
     }
+
+    setPendingRemoveMember(targetMember);
+  };
+
+  const handleLeaveOrganization = (member) => {
+    if (!canLeaveOrganization(member)) {
+      alert('You cannot leave organization with current role');
+      return;
+    }
+    setPendingRemoveMember(member);
+  };
+
+  const handleConfirmRemoveMember = async () => {
+    if (!pendingRemoveMember?.id) return;
 
     setIsSubmitting(true);
     try {
-      await removeMember(memberId);
-      setMembers(prev => prev.filter(m => m.id !== memberId));
+      await removeMember(pendingRemoveMember.id);
+      setMembers(prev => prev.filter(m => m.id !== pendingRemoveMember.id));
+      setPendingRemoveMember(null);
+      if (isSelfMember(pendingRemoveMember)) {
+        window.location.href = '/user/organizations';
+      }
     } catch (err) {
       alert(err.message || 'Failed to remove member');
     } finally {
@@ -291,7 +325,7 @@ function OrgMembersPage() {
                     <td>{member.role?.roleName || '-'}</td>
                     <td><span className="app-badge app-badge--success">{member.status || '-'}</span></td>
                     <td>
-                      {canManage && (
+                      {canManage && !isSelfMember(member) && (
                         <button
                           onClick={() => handleRemoveMember(member.id)}
                           disabled={isSubmitting}
@@ -307,9 +341,35 @@ function OrgMembersPage() {
             </table>
           </div>
         )}
+        {canLeaveOrganization(myMemberRecord) && (
+          <div style={{ marginTop: '1rem' }}>
+            <button
+              onClick={() => handleLeaveOrganization(myMemberRecord)}
+              disabled={isSubmitting}
+              className="app-button app-button--danger"
+            >
+              {isSubmitting ? 'Leaving...' : 'Leave Organization'}
+            </button>
+          </div>
+        )}
       </div>
+
+      <ConfirmDialog
+        isOpen={!!pendingRemoveMember}
+        title={isSelfMember(pendingRemoveMember) ? 'Leave Organization' : 'Remove Member'}
+        message={isSelfMember(pendingRemoveMember)
+          ? 'Are you sure you want to leave this organization?'
+          : `Are you sure you want to remove ${pendingRemoveMember?.user?.fullName || pendingRemoveMember?.fullName || pendingRemoveMember?.user?.email || 'this member'}?`}
+        confirmText={isSubmitting ? (isSelfMember(pendingRemoveMember) ? 'Leaving...' : 'Removing...') : (isSelfMember(pendingRemoveMember) ? 'Leave' : 'Remove')}
+        cancelText="Cancel"
+        onConfirm={handleConfirmRemoveMember}
+        onCancel={() => {
+          if (!isSubmitting) setPendingRemoveMember(null);
+        }}
+      />
     </div>
   );
 }
 
 export default OrgMembersPage;
+
