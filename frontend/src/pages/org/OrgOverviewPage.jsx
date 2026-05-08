@@ -1,22 +1,16 @@
 /**
  * OrgOverviewPage.jsx - Organization overview page
- *
  * Phase 4B-1: Real backend API integration
  */
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import { useOrgContext } from "../../contexts/OrgContext.jsx";
-import {
-  getOrganizationById,
-  updateOrganization,
-  deleteOrganization,
-} from "../../services/organizationService.js";
-import PageHeader from "../../components/shared/PageHeader";
+import { updateOrganization } from "../../services/organizationService.js";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorState from "../../components/shared/ErrorState";
 import ForbiddenState from "../../components/shared/ForbiddenState";
+import "./OrgOverviewPage.css";
 
 function OrgOverviewPage() {
   const [searchParams] = useSearchParams();
@@ -29,7 +23,6 @@ function OrgOverviewPage() {
     isLoading: contextLoading,
   } = useOrgContext();
 
-  const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -42,326 +35,184 @@ function OrgOverviewPage() {
   }, [orgId, contextOrg, loadWorkspaceOrg]);
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Cần có ID tổ chức để xem trang này" />;
   }
 
   if (contextLoading) {
-    return (
-      <div className="app-page">
-        <PageHeader
-          title="Organization Overview"
-          description="View organization details and statistics"
-        />
-        <LoadingSpinner message="Loading organization..." />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="app-page">
-        <PageHeader
-          title="Organization Overview"
-          description="View organization details and statistics"
-        />
-        <ErrorState message={error} />
-      </div>
-    );
+    return <LoadingSpinner message="Đang tải dữ liệu tổ chức..." />;
   }
 
   if (!isMember) {
     return (
-      <div className="app-page">
-        <PageHeader
-          title="Organization Overview"
-          description="View organization details and statistics"
-        />
-        <ForbiddenState message="You are not a member of this organization" />
-      </div>
+      <ForbiddenState message="Bạn không phải là thành viên của tổ chức này" />
     );
   }
 
   const canEdit = permissions.includes("org.overview.write");
-  const canDelete = permissions.includes("org.delete");
-  const orgLocation = contextOrg?.location || contextOrg?.Location || "-";
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    if (!canEdit || !orgId) {
-      alert("Bạn không có quyền thực hiện thao tác này");
-      return;
-    }
+    if (!canEdit || !orgId) return;
 
     const form = e.target;
-    const orgName = form.orgName.value;
-    const description = form.description.value;
-    const location = form.location.value;
-    const contactEmail = form.contactEmail.value;
-    const contactPhone = form.contactPhone.value;
-
-    if (!orgName) {
-      alert("Organization name is required");
-      return;
-    }
+    const payload = {
+      name: form.orgName.value,
+      description: form.description.value || undefined,
+      location: form.location.value || undefined,
+      contactEmail: form.contactEmail.value || undefined,
+      contactPhone: form.contactPhone.value || undefined,
+    };
 
     setIsSubmitting(true);
     try {
-      const updated = await updateOrganization(orgId, {
-        orgName: orgName,
-        description: description || undefined,
-        location: location || undefined,
-        contactEmail: contactEmail || undefined,
-        contactPhone: contactPhone || undefined,
-      });
+      await updateOrganization(orgId, payload);
       loadWorkspaceOrg(orgId);
       setShowEditForm(false);
     } catch (err) {
-      alert(err.message || "Failed to update organization");
+      alert(err.message || "Cập nhật thất bại");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!canDelete || !orgId) {
-      alert("Bạn không có quyền thực hiện thao tác này");
-      return;
-    }
-
-    if (
-      !confirm(
-        `Bạn có chắc chắn muốn xóa tổ chức "${contextOrg?.name}"? Hành động này không thể hoàn tác.`,
-      )
-    ) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      await deleteOrganization(orgId);
-      alert("Đã xóa tổ chức thành công");
-      navigate("/user/organizations");
-    } catch (err) {
-      alert(err.message || "Failed to delete organization");
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteConfirm(false);
-    }
-  };
+  const displayFoundingDate = contextOrg?.foundingDate
+    ? new Date(contextOrg.foundingDate).toLocaleDateString("vi-VN")
+    : "Chưa cập nhật";
 
   return (
-    <div className="app-page">
-      <PageHeader
-        title="Organization Overview"
-        description="View organization details and statistics"
-        actions={
-          <>
-            {canEdit && (
-              <button
-                onClick={() => setShowEditForm(true)}
-                className="app-button app-button--primary"
-              >
-                Edit Organization
-              </button>
-            )}
-            {canDelete && (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="app-button app-button--danger"
-                style={{ marginLeft: "0.5rem" }}
-              >
-                Delete Organization
-              </button>
-            )}
-          </>
-        }
-      />
+    <div className="org-overview-container">
+      {/* Banner */}
+      <div className="org-banner-section"></div>
 
-      {showEditForm && canEdit && (
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Edit Organization</h3>
-          </div>
-          <form onSubmit={handleUpdate} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="orgName" className="form-label">
-                Organization Name *
-              </label>
-              <input
-                id="orgName"
-                name="orgName"
-                className="form-input"
-                defaultValue={contextOrg?.name || ""}
-                placeholder="Organization name"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="description" className="form-label">
-                Description
-              </label>
-              <input
-                id="description"
-                name="description"
-                className="form-input"
-                defaultValue={contextOrg?.description || ""}
-                placeholder="Description"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="location" className="form-label">
-                Location
-              </label>
-              <input
-                id="location"
-                name="location"
-                className="form-input"
-                defaultValue={contextOrg?.location || contextOrg?.Location || ""}
-                placeholder="Location"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="contactEmail" className="form-label">
-                Contact Email
-              </label>
-              <input
-                id="contactEmail"
-                name="contactEmail"
-                className="form-input"
-                defaultValue={contextOrg?.contactEmail || ""}
-                placeholder="Contact Email"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="contactPhone" className="form-label">
-                Contact Phone
-              </label>
-              <input
-                id="contactPhone"
-                name="contactPhone"
-                className="form-input"
-                defaultValue={contextOrg?.contactPhone || ""}
-                placeholder="Contact Phone"
-              />
-            </div>
-            <div className="app-action-row">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="app-button app-button--primary"
-              >
-                {isSubmitting ? "Updating..." : "Update"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowEditForm(false)}
-                className="app-button app-button--ghost"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+      {/* Header Info */}
+      <div className="org-profile-nav">
+        <div className="org-avatar-frame">
+          <svg
+            width="45"
+            height="45"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="2.5"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
         </div>
-      )}
+        <div className="org-title-block">
+          <h1>{contextOrg?.name || "Tổ chức"}</h1>
+          <p>Trang thông tin tổng quan và liên hệ chính thức.</p>
+        </div>
+        {canEdit && (
+          <button
+            onClick={() => setShowEditForm(true)}
+            className="org-btn-header"
+          >
+            Chỉnh sửa hồ sơ
+          </button>
+        )}
+      </div>
 
-      {showDeleteConfirm && (
-        <div
-          className="app-modal-overlay"
-          onClick={() => setShowDeleteConfirm(false)}
-        >
-          <div className="app-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="app-modal-header">
-              <h3>Xác nhận xóa tổ chức</h3>
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="app-modal-close"
-              >
-                ×
-              </button>
-            </div>
-            <div className="app-modal-body">
-              <p style={{ marginBottom: "1rem" }}>
-                Bạn có chắc chắn muốn xóa tổ chức{" "}
-                <strong>"{contextOrg?.orgName || contextOrg?.name}"</strong>?
-              </p>
-              <p style={{ marginBottom: "1rem", color: "var(--danger-600)" }}>
-                ⚠️ Hành động này sẽ xóa toàn bộ dữ liệu của tổ chức bao gồm:
-              </p>
-              <ul
-                style={{
-                  marginBottom: "1rem",
-                  paddingLeft: "1.5rem",
-                  color: "var(--danger-600)",
-                }}
-              >
-                <li>Tất cả thành viên</li>
-                <li>Tất cả vai trò và quyền hạn</li>
-                <li>Tất cả sự kiện</li>
-                <li>Tất cả phòng ban</li>
-                <li>Tất cả tài nguyên</li>
-                <li>Lịch sử hoạt động</li>
-              </ul>
-              <p
-                style={{
-                  marginBottom: "1.5rem",
-                  color: "var(--danger-600)",
-                  fontWeight: "bold",
-                }}
-              >
-                Hành động này KHÔNG THỂ hoàn tác!
-              </p>
-              <div className="app-modal-actions">
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="app-button app-button--secondary"
-                  disabled={isDeleting}
-                >
-                  Hủy
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className="app-button app-button--danger"
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? "Đang xóa..." : "Xóa tổ chức"}
-                </button>
-              </div>
-            </div>
+      {/* Stats Grid */}
+      <div className="org-stats-dashboard">
+        <div className="stat-item-card">
+          <div className="stat-icon-circle">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+          </div>
+          <div>
+            <span className="org-form-label-small">Địa điểm</span>
+            <p className="stat-value-text">
+              {contextOrg?.location || "Chưa xác định"}
+            </p>
           </div>
         </div>
-      )}
 
-      <div className="app-section">
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Organization Details</h3>
+        <div className="stat-item-card">
+          <div className="stat-icon-circle">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            </svg>
           </div>
-          <div style={{ display: "grid", gap: "1rem" }}>
-            <div>
-              <label className="form-label">Name</label>
-              <p style={{ margin: "0.25rem 0 0", color: "var(--ink-700)" }}>
-                {contextOrg?.orgName || contextOrg?.name || "-"}
+          <div>
+            <span className="org-form-label-small">Thành viên</span>
+            <p className="stat-value-text">
+              {contextOrg?.totalMembers || 0} Người
+            </p>
+          </div>
+        </div>
+
+        <div className="stat-item-card">
+          <div className="stat-icon-circle">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
+          <div>
+            <span className="org-form-label-small">Ngày thành lập</span>
+            <p className="stat-value-text">{displayFoundingDate}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Layout */}
+      <div className="org-main-layout">
+        <div className="layout-left">
+          <h2 className="content-header">Giới thiệu chung</h2>
+          <div className="info-text-card">
+            {contextOrg?.description || "Tổ chức chưa có mô tả chi tiết."}
+          </div>
+        </div>
+
+        <div className="layout-right">
+          <h2 className="content-header">Thông tin liên hệ</h2>
+          <div className="contact-info-list">
+            <div className="contact-row">
+              <span className="org-form-label-small">Email liên hệ</span>
+              <p className="contact-val-text">
+                {contextOrg?.contactEmail || "-"}
               </p>
             </div>
-            <div>
-              <label className="form-label">Description</label>
-              <p style={{ margin: "0.25rem 0 0", color: "var(--ink-700)" }}>
-                {contextOrg?.description || "-"}
+            <div className="contact-row">
+              <span className="org-form-label-small">Số điện thoại</span>
+              <p className="contact-val-text">
+                {contextOrg?.contactPhone || "-"}
               </p>
             </div>
-            <div>
-              <label className="form-label">Location</label>
-              <p style={{ margin: "0.25rem 0 0", color: "var(--ink-700)" }}>
-                {orgLocation}
-              </p>
-            </div>
-            <div>
-              <label className="form-label">Created</label>
-              <p style={{ margin: "0.25rem 0 0", color: "var(--ink-700)" }}>
-                {(contextOrg?.createdAtUtc || contextOrg?.createdAt)
-                  ? new Date(contextOrg.createdAtUtc || contextOrg.createdAt).toLocaleDateString()
+            <div className="contact-row">
+              <span className="org-form-label-small">
+                Ngày gia nhập hệ thống
+              </span>
+              <p className="contact-val-text">
+                {contextOrg?.createdAt
+                  ? new Date(contextOrg.createdAt).toLocaleDateString("vi-VN")
                   : "-"}
               </p>
             </div>
@@ -369,81 +220,118 @@ function OrgOverviewPage() {
         </div>
       </div>
 
-      <div className="app-section">
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Statistics</h3>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            <div
-              style={{
-                background: "#f4f8fc",
-                border: "1px solid #dde7f1",
-                borderRadius: "0.85rem",
-                padding: "0.85rem",
-              }}
-            >
-              <label className="form-label">Members</label>
-              <p
-                style={{
-                  margin: "0.2rem 0 0",
-                  fontSize: "1.6rem",
-                  fontWeight: "700",
-                  color: "var(--ink-900)",
-                }}
-              >
-                {contextOrg?.totalMembers || "-"}
+      {/* Edit Profile Modal - Cấu trúc đồng bộ với Tạo tổ chức */}
+      {showEditForm && canEdit && (
+        <div
+          className="org-modal-overlay"
+          onClick={() => setShowEditForm(false)}
+        >
+          <div className="org-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="org-modal-header">
+              <h3>Chỉnh sửa hồ sơ</h3>
+              <p>
+                Cập nhật thông tin chi tiết để mọi người hiểu rõ hơn về tổ chức
+                của bạn.
               </p>
             </div>
-            <div
-              style={{
-                background: "#f4f8fc",
-                border: "1px solid #dde7f1",
-                borderRadius: "0.85rem",
-                padding: "0.85rem",
-              }}
-            >
-              <label className="form-label">Status</label>
-              <p
-                style={{
-                  margin: "0.2rem 0 0",
-                  fontSize: "1.6rem",
-                  fontWeight: "700",
-                  color: "var(--ink-900)",
-                }}
-              >
-                {contextOrg?.status || "-"}
-              </p>
+
+            <div className="org-modal-body">
+              <form id="editOrgForm" onSubmit={handleUpdate}>
+                <div className="org-form-group">
+                  <label htmlFor="orgName" className="org-form-label">
+                    Tên tổ chức *
+                  </label>
+                  <input
+                    type="text"
+                    id="orgName"
+                    name="orgName"
+                    className="org-input"
+                    defaultValue={contextOrg?.name || ""}
+                    required
+                    placeholder="Nhập tên tổ chức..."
+                  />
+                </div>
+
+                <div className="org-form-group">
+                  <label htmlFor="description" className="org-form-label">
+                    Mô tả hoạt động
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    className="org-input"
+                    defaultValue={contextOrg?.description || ""}
+                    placeholder="Mô tả về mục đích và các hoạt động..."
+                    style={{ minHeight: "120px", resize: "vertical" }}
+                  />
+                </div>
+
+                <div className="org-form-group">
+                  <label htmlFor="location" className="org-form-label">
+                    Địa điểm
+                  </label>
+                  <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    className="org-input"
+                    defaultValue={contextOrg?.location || ""}
+                    placeholder="Ví dụ: Tòa nhà A1, Đại học Bách Khoa..."
+                  />
+                </div>
+
+                <div className="org-form-row">
+                  <div className="org-form-group flex-1">
+                    <label htmlFor="contactEmail" className="org-form-label">
+                      Email liên hệ
+                    </label>
+                    <input
+                      type="email"
+                      id="contactEmail"
+                      name="contactEmail"
+                      className="org-input"
+                      defaultValue={contextOrg?.contactEmail || ""}
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                  <div className="org-form-group flex-1">
+                    <label htmlFor="contactPhone" className="org-form-label">
+                      Số điện thoại
+                    </label>
+                    <input
+                      type="tel"
+                      id="contactPhone"
+                      name="contactPhone"
+                      className="org-input"
+                      defaultValue={contextOrg?.contactPhone || ""}
+                      placeholder="0123 456 789"
+                    />
+                  </div>
+                </div>
+              </form>
             </div>
-            <div
-              style={{
-                background: "#f4f8fc",
-                border: "1px solid #dde7f1",
-                borderRadius: "0.85rem",
-                padding: "0.85rem",
-              }}
-            >
-              <label className="form-label">Location</label>
-              <p
-                style={{
-                  margin: "0.2rem 0 0",
-                  fontSize: "1.6rem",
-                  fontWeight: "700",
-                  color: "var(--ink-900)",
-                }}
+
+            <div className="org-modal-footer">
+              <button
+                type="button"
+                onClick={() => setShowEditForm(false)}
+                className="org-btn org-btn-secondary"
+                disabled={isSubmitting}
               >
-                {orgLocation}
-              </p>
+                Hủy bỏ
+              </button>
+              <button
+                type="submit"
+                form="editOrgForm"
+                className="org-btn org-btn-primary"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

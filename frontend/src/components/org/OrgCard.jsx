@@ -1,13 +1,10 @@
 /**
  * OrgCard.jsx - Organization card component
- * 
- * This component displays an organization summary card.
- * 
- * Props:
+ * * This component displays an organization summary card using the new clean UI.
+ * * Props:
  * - organization: Organization data object (OrganizationDto or OrganizationSummaryDto)
  * - onClick: Callback when card is clicked
- * 
- * Data fields used:
+ * * Data fields used:
  * - name: Organization name
  * - description: Organization description
  * - avatarUrl: Organization avatar/image
@@ -30,17 +27,17 @@ function OrgCard({ organization, onClick }) {
     totalMembers,
     status,
     foundingDate,
-    createdAtUtc
+    createdAtUtc,
   } = organization;
 
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return null;
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return date.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -48,51 +45,77 @@ function OrgCard({ organization, onClick }) {
 
   return (
     <div className="org-card" onClick={() => onClick?.(id)}>
-      <div className="org-card-header">
-        {avatarUrl ? (
-          <img 
-            src={avatarUrl} 
-            alt={`${name} avatar`} 
-            className="org-card-avatar"
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
-        ) : (
-          <div className="org-card-avatar-placeholder">
-            {name?.charAt(0)?.toUpperCase() || 'O'}
-          </div>
-        )}
-        <h4 className="org-card-name">{name || 'Organization Name'}</h4>
-      </div>
-
-      <div className="org-card-body">
-        <p className="org-card-description">
-          {description || 'No description available'}
-        </p>
-        
-        <div className="org-card-meta">
-          <div className="org-card-meta-item">
-            <span className="org-card-meta-label">Members:</span>
-            <span className="org-card-meta-value">{totalMembers || 0}</span>
-          </div>
-          
-          {status && (
-            <div className="org-card-meta-item">
-              <span className="org-card-meta-label">Status:</span>
-              <span className="org-card-meta-value">{status}</span>
-            </div>
-          )}
-          
-          {displayDate && (
-            <div className="org-card-meta-item">
-              <span className="org-card-meta-label">
-                {foundingDate ? 'Founded:' : 'Created:'}
-              </span>
-              <span className="org-card-meta-value">{displayDate}</span>
-            </div>
+      <div className="org-card-top">
+        <div className="org-card-logo">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={`${name} avatar`}
+              onError={(e) => {
+                e.target.style.display = "none";
+              }}
+            />
+          ) : (
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
           )}
         </div>
+      </div>
+
+      <h3 className="org-card-title">{name || "Tên tổ chức"}</h3>
+      <p className="org-card-desc">{description || "Chưa có mô tả"}</p>
+
+      <div className="org-card-stats">
+        <div className="org-stat-item">
+          <span className="org-stat-label">Thành viên</span>
+          <span className="org-stat-val">{totalMembers || 0}</span>
+        </div>
+
+        {status && (
+          <div className="org-stat-item">
+            <span className="org-stat-label">Trạng thái</span>
+            <span className="org-stat-val">{status}</span>
+          </div>
+        )}
+
+        {displayDate && (
+          <div className="org-stat-item">
+            <span className="org-stat-label">
+              {foundingDate ? "Thành lập" : "Tạo ngày"}
+            </span>
+            <span className="org-stat-val small-text">{displayDate}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="org-card-action">
+        Xem chi tiết
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ marginLeft: "4px" }}
+        >
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
       </div>
     </div>
   );
