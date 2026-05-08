@@ -71,19 +71,24 @@ export async function getOrganizationRequests(orgId, params = {}) {
  * - Backend expects: { orgId: guid, request: { requestType, content, ... } }
  */
 export async function createOrganizationRequest(orgId, payload) {
-  // Wrap payload to match backend contract: CreateRequestEndpointRequest
-  const requestBody = {
-    orgId: orgId,
-    request: payload
-  };
-  
-  const response = await httpClient.post(`/organizations/${orgId}/requests`, requestBody);
-  
-  if (!response.data.success) {
-    throw new Error(response.data.message || 'Failed to create request');
+  try {
+    // Wrap payload to match backend contract: CreateRequestEndpointRequest
+    const requestBody = {
+      orgId: orgId,
+      request: payload
+    };
+
+    const response = await httpClient.post(`/organizations/${orgId}/requests`, requestBody);
+
+    if (!response.data.success) {
+      throw new Error(getApiErrorMessage(response.data, 'Failed to create request'));
+    }
+
+    return response.data.data;
+  } catch (error) {
+    const responseData = error?.response?.data;
+    throw new Error(getApiErrorMessage(responseData, error?.message || 'Failed to create request'));
   }
-  
-  return response.data.data;
 }
 
 /**

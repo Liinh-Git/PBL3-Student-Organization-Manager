@@ -5,7 +5,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useOrgContext } from '../../contexts/OrgContext.jsx';
-import { getOrganizationRequests, reviewRequest } from '../../services/requestService.js';
+import { useAuth } from '../../hooks/useAuth.js';
+import { getOrganizationMembers } from '../../services/memberService.js';
+import { createOrganizationRequest, getOrganizationRequests, reviewRequest } from '../../services/requestService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import ErrorState from '../../components/shared/ErrorState';
 import EmptyState from '../../components/shared/EmptyState';
@@ -23,15 +25,23 @@ function OrgRequestsPage() {
   const [searchParams] = useSearchParams();
   const orgId = searchParams.get('orgId');
   const { permissions, isMember } = useOrgContext();
+  const { user } = useAuth();
 
   const [requests, setRequests] = useState([]);
+  const [members, setMembers] = useState([]);
   const [statusFilter, setStatusFilter] = useState('All');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const canView = permissions.includes('org.requests.view');
-  const canReview = permissions.includes('org.requests.review') || permissions.includes('org.requests.approve');
+  const currentUserId = user?.id || user?.userId;
+  const myMember = members.find((m) => m.userId === currentUserId || m.user?.id === currentUserId);
+  const myRoleName = (myMember?.role?.roleName || myMember?.roleName || '').trim().toLowerCase();
+  const isLeader = myRoleName === 'president' || myRoleName === 'vice president' || myRoleName === 'vicepresident';
+  const canView = isMember && (permissions.includes('org.requests.view') || !isLeader);
+  const canReview = isLeader && (permissions.includes('org.requests.review') || permissions.includes('org.requests.approve'));
+  const canCreateRequest = isMember && !isLeader;
 
   useEffect(() => {
     if (!orgId || !isMember || !canView) return;
@@ -42,6 +52,8 @@ function OrgRequestsPage() {
       try {
         const data = await getOrganizationRequests(orgId);
         setRequests(data);
+        const memberData = await getOrganizationMembers(orgId);
+        setMembers(memberData);
       } catch (err) {
         setError(err.message || 'Failed to load requests');
       } finally {
@@ -51,6 +63,37 @@ function OrgRequestsPage() {
 
     loadRequests();
   }, [orgId, isMember, canView]);
+
+  const handleCreateRequest = async (e) => {
+    e.preventDefault();
+    if (!canCreateRequest) return;
+
+    const form = e.target;
+    const requestType = form.requestType.value;
+    const content = form.content.value;
+    const title = form.title.value;
+
+    if (!content) {
+      alert('Content is required');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const created = await createOrganizationRequest(orgId, {
+        requestType: requestType || 'Other',
+        title: title || undefined,
+        content
+      });
+      setRequests((prev) => [created, ...prev]);
+      form.reset();
+      setShowCreateForm(false);
+    } catch (err) {
+      alert(err.message || 'Failed to create request');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const filteredRequests = useMemo(() => {
     if (statusFilter === 'All') return requests;
@@ -144,8 +187,50 @@ function OrgRequestsPage() {
       <PageHeader
         title="Requests"
         description="Manage organization join requests"
+        actions={
+          canCreateRequest ? (
+            <button
+              onClick={() => setShowCreateForm((v) => !v)}
+              className="app-button app-button--primary"
+            >
+              {showCreateForm ? 'Cancel' : 'Create Request'}
+            </button>
+          ) : null
+        }
       />
       <div className="app-section">
+        {showCreateForm && canCreateRequest && (
+          <div className="app-card">
+            <div className="app-section-header">
+              <h3 className="app-section-title">Create Request</h3>
+            </div>
+            <form onSubmit={handleCreateRequest} className="auth-form">
+              <div className="form-group">
+                <label className="form-label">Type</label>
+                <select name="requestType" className="form-select" defaultValue="Other">
+                  <option value="DepartmentChange">Department Change</option>
+                  <option value="RoleChange">Role Change</option>
+                  <option value="EventParticipation">Event Participation</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Title</label>
+                <input name="title" className="form-input" placeholder="Title (optional)" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Content *</label>
+                <input name="content" className="form-input" placeholder="Your request details" required />
+              </div>
+              <div className="app-action-row">
+                <button type="submit" disabled={isSubmitting} className="app-button app-button--primary">
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         <div className="app-card">
           <div className="app-section-header" style={{ marginBottom: '1rem' }}>
             <h3 className="app-section-title">Request Summary</h3>

@@ -36,7 +36,10 @@ public class RequestService : IRequestService
         }
 
         var hasPermission = member.Role.RolePermissions
-            .Any(rp => rp.Permission?.PermissionKey == "org.requests.view");
+            .Any(rp =>
+                rp.Permission?.PermissionKey == "org.requests.view" ||
+                rp.Permission?.PermissionKey == "org.requests.review" ||
+                rp.Permission?.PermissionKey == "org.requests.approve");
 
         if (!hasPermission)
         {
@@ -59,6 +62,13 @@ public class RequestService : IRequestService
 
     public async Task<RequestDto> CreateRequestAsync(Guid userId, Guid orgId, CreateRequestRequest request, CancellationToken ct = default)
     {
+        // Parse request type first - business rules depend on type
+        var normalizedRequestType = request.RequestType.Trim();
+        if (!Enum.TryParse<RequestType>(normalizedRequestType, true, out var requestType))
+        {
+            throw new ArgumentException($"Invalid request type: {request.RequestType}");
+        }
+
         // Verify organization exists
         var organization = await _context.Organizations
             .FirstOrDefaultAsync(o => o.Id == orgId, ct);
@@ -72,25 +82,27 @@ public class RequestService : IRequestService
         var existingMember = await _context.Members
             .FirstOrDefaultAsync(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
 
-        if (existingMember != null)
+        // JoinOrganization is only for non-members; other request types are for existing members.
+        if (requestType == RequestType.JoinOrganization && existingMember != null)
         {
             throw new InvalidOperationException("You are already a member of this organization");
         }
+        if (requestType != RequestType.JoinOrganization && existingMember == null)
+        {
+            throw new InvalidOperationException("You must be an active member to submit this request type");
+        }
 
-        // Check for duplicate pending request
+        // Check for duplicate pending request by type
         var existingRequest = await _context.Requests
-            .FirstOrDefaultAsync(r => r.OrgId == orgId && r.SenderId == userId && r.Status == RequestStatus.Pending, ct);
+            .FirstOrDefaultAsync(r =>
+                r.OrgId == orgId &&
+                r.SenderId == userId &&
+                r.Status == RequestStatus.Pending &&
+                r.RequestType == requestType, ct);
 
         if (existingRequest != null)
         {
-            throw new InvalidOperationException("You already have a pending request for this organization");
-        }
-
-        // Parse request type
-        var normalizedRequestType = request.RequestType.Trim();
-        if (!Enum.TryParse<RequestType>(normalizedRequestType, true, out var requestType))
-        {
-            throw new ArgumentException($"Invalid request type: {request.RequestType}");
+            throw new InvalidOperationException($"You already have a pending {requestType} request for this organization");
         }
 
         // Validate desired department if provided
@@ -146,6 +158,12 @@ public class RequestService : IRequestService
             throw new KeyNotFoundException("Request not found");
         }
 
+        // Sender can always view their own request (including non-member join requests)
+        if (request.SenderId == userId)
+        {
+            return request.ToRequestDto();
+        }
+
         // Verify user has permission to view this request
         var member = await _context.Members
             .Include(m => m.Role)
@@ -164,7 +182,10 @@ public class RequestService : IRequestService
         }
 
         var hasPermission = member.Role.RolePermissions
-            .Any(rp => rp.Permission?.PermissionKey == "org.requests.view");
+            .Any(rp =>
+                rp.Permission?.PermissionKey == "org.requests.view" ||
+                rp.Permission?.PermissionKey == "org.requests.review" ||
+                rp.Permission?.PermissionKey == "org.requests.approve");
 
         if (!hasPermission)
         {
