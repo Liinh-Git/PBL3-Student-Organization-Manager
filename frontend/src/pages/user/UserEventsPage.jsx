@@ -4,15 +4,17 @@
  * Phase 4B-1: Real backend API integration
  */
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { getMyEvents } from '../../services/userService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
-import { getMyEvents } from '../../services/userService.js';
+import EventCard from '../../components/event/EventCard.jsx';
 
 function UserEventsPage() {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
