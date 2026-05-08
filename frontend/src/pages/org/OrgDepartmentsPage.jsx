@@ -8,7 +8,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useOrgContext } from '../../contexts/OrgContext.jsx';
 import { getOrganizationDepartments, createDepartment, updateDepartment, deleteDepartment } from '../../services/departmentService.js';
-import { getOrganizationMembers } from '../../services/memberService.js';
+import { getOrganizationMembers, updateMemberDepartment } from '../../services/memberService.js';
+import DepartmentCard from '../../components/org/DepartmentCard.jsx';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
@@ -65,11 +66,12 @@ function OrgDepartmentsPage() {
   }
 
   const canManage = permissions.includes('org.departments.manage');
+  const canManageMembers = permissions.includes('org.members.manage');
 
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert('You do not have permission to perform this action');
       return;
     }
     
@@ -103,7 +105,7 @@ function OrgDepartmentsPage() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!canManage || !editingDept) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert('You do not have permission to perform this action');
       return;
     }
     
@@ -135,7 +137,7 @@ function OrgDepartmentsPage() {
 
   const handleDelete = async (deptId) => {
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert('You do not have permission to perform this action');
       return;
     }
 
@@ -149,6 +151,50 @@ function OrgDepartmentsPage() {
       setDepartments(prev => prev.filter(d => d.id !== deptId));
     } catch (err) {
       alert(err.message || 'Failed to delete department');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getManagerName = (dept) => {
+    if (dept?.manager?.user?.fullName) return dept.manager.user.fullName;
+    if (dept?.manager?.fullName) return dept.manager.fullName;
+    if (dept?.managerName) return dept.managerName;
+
+    if (dept?.managerId) {
+      const managerMember = members.find((m) => m.id === dept.managerId);
+      return managerMember?.fullName || managerMember?.email || '-';
+    }
+    return '-';
+  };
+
+  const getMemberCount = (dept) => members.filter((m) => m.departmentId === dept.id).length;
+  const getDepartmentMembers = (dept) => members.filter((m) => m.departmentId === dept.id);
+  const getAssignableMembers = (dept) => members.filter((m) => m.departmentId !== dept.id);
+
+  const getTaskCount = (dept) => {
+    if (typeof dept?.taskCount === 'number') return dept.taskCount;
+    if (typeof dept?.tasksCount === 'number') return dept.tasksCount;
+    if (Array.isArray(dept?.tasks)) return dept.tasks.length;
+    return null;
+  };
+
+  const handleAddMemberToDepartment = async (deptId, memberId) => {
+    if (!canManageMembers) {
+      alert('You do not have permission to perform this action');
+      return;
+    }
+    if (!memberId) {
+      alert('Please select a member');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const updatedMember = await updateMemberDepartment(memberId, { departmentId: deptId });
+      setMembers((prev) => prev.map((m) => (m.id === updatedMember.id ? updatedMember : m)));
+    } catch (err) {
+      alert(err.message || 'Failed to add member to department');
     } finally {
       setIsSubmitting(false);
     }
@@ -292,55 +338,31 @@ function OrgDepartmentsPage() {
           </div>
         )}
 
-        <div className="app-card">
-          {departments.length === 0 ? (
+        {departments.length === 0 ? (
+          <div className="app-card">
             <EmptyState message="No departments found" />
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Description</th>
-                  <th>Manager</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {departments.map((dept) => (
-                  <tr key={dept.id}>
-                    <td>{dept.departmentName || '-'}</td>
-                    <td>{dept.description || '-'}</td>
-                    <td>{dept.manager?.user?.fullName || '-'}</td>
-                    <td>{dept.status || '-'}</td>
-                    <td>
-                      <div className="app-action-row">
-                        {canManage && (
-                          <>
-                            <button
-                              onClick={() => setEditingDept(dept)}
-                              disabled={isSubmitting}
-                              className="app-button app-button--secondary"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(dept.id)}
-                              disabled={isSubmitting}
-                              className="app-button app-button--danger"
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {departments.map((dept) => (
+              <DepartmentCard
+                key={dept.id}
+                department={dept}
+                memberCount={getMemberCount(dept)}
+                departmentMembers={getDepartmentMembers(dept)}
+                assignableMembers={getAssignableMembers(dept)}
+                taskCount={getTaskCount(dept)}
+                managerName={getManagerName(dept)}
+                canManage={canManage}
+                canManageMembers={canManageMembers}
+                isSubmitting={isSubmitting}
+                onEdit={setEditingDept}
+                onDelete={handleDelete}
+                onAddMember={handleAddMemberToDepartment}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
