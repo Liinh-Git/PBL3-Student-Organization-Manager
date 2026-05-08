@@ -16,6 +16,7 @@ import { createMilestone, updateMilestone, deleteMilestone } from '../../service
 import { createCategory, updateCategory, deleteCategory } from '../../services/categoryService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import ForbiddenState from '../../components/shared/ForbiddenState';
 
@@ -42,6 +43,7 @@ function OrgEventDetailPage() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
   const [isEventUpdating, setIsEventUpdating] = useState(false);
+  const getEventName = (eventData) => eventData?.name || eventData?.eventName;
 
   useEffect(() => {
     if (!eventId || !orgId || !isMember) return;
@@ -560,7 +562,7 @@ function OrgEventDetailPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.9rem' }}>
                 <div className="form-group">
                   <label htmlFor="eventName" className="form-label">Event Name *</label>
-                  <input id="eventName" name="eventName" className="form-input" defaultValue={event?.name} required />
+                  <input id="eventName" name="eventName" className="form-input" defaultValue={getEventName(event)} required />
                 </div>
                 <div className="form-group">
                   <label htmlFor="description" className="form-label">Description</label>
@@ -602,7 +604,7 @@ function OrgEventDetailPage() {
               <tbody>
                 <tr>
                   <th>Name</th>
-                  <td>{event?.name || '-'}</td>
+                  <td>{getEventName(event) || '-'}</td>
                 </tr>
                 <tr>
                   <th>Description</th>

@@ -61,6 +61,8 @@ function OrgEventsPage() {
 
   const canCreate = permissions.includes('org.events.create');
   const canManage = permissions.includes('org.events.manage');
+  const getEventId = (event) => event?.id || event?.eventId;
+  const getEventName = (event) => event?.name || event?.eventName;
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -127,7 +129,12 @@ function OrgEventsPage() {
 
     setIsSubmitting(true);
     try {
-      const updated = await updateEvent(editingEvent.id, {
+      const editingEventId = getEventId(editingEvent);
+      if (!editingEventId) {
+        alert('Event ID is missing');
+        return;
+      }
+      const updated = await updateEvent(editingEventId, {
         eventName,
         description: description || undefined,
         startDate,
@@ -136,7 +143,7 @@ function OrgEventsPage() {
         bannerUrl: bannerUrl || undefined,
         visibility
       });
-      setEvents(prev => prev.map(ev => ev.id === editingEvent.id ? updated : ev));
+      setEvents(prev => prev.map(ev => (getEventId(ev) === editingEventId ? updated : ev)));
       setEditingEvent(null);
     } catch (err) {
       alert(err.message || 'Failed to update event');
@@ -158,7 +165,7 @@ function OrgEventsPage() {
     setIsSubmitting(true);
     try {
       await deleteEvent(eventId);
-      setEvents(prev => prev.filter(ev => ev.id !== eventId));
+      setEvents(prev => prev.filter(ev => getEventId(ev) !== eventId));
     } catch (err) {
       alert(err.message || 'Failed to delete event');
     } finally {
@@ -306,7 +313,7 @@ function OrgEventsPage() {
                   id="editEventName"
                   name="eventName"
                   className="form-input"
-                  defaultValue={editingEvent.name}
+                  defaultValue={getEventName(editingEvent)}
                   placeholder="Event name"
                   required
                 />
@@ -402,8 +409,8 @@ function OrgEventsPage() {
               </thead>
               <tbody>
                 {events.map((event) => (
-                  <tr key={event.id}>
-                    <td>{event.name || '-'}</td>
+                  <tr key={getEventId(event)}>
+                    <td>{getEventName(event) || '-'}</td>
                     <td>{event.description || '-'}</td>
                     <td>{event.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}</td>
                     <td>{event.endDate ? new Date(event.endDate).toLocaleDateString() : '-'}</td>
@@ -412,7 +419,14 @@ function OrgEventsPage() {
                     <td>
                       <div className="app-action-row">
                         <button 
-                          onClick={() => navigate(`/org/events/${event.id}?orgId=${orgId}`)}
+                          onClick={() => {
+                            const selectedEventId = getEventId(event);
+                            if (!selectedEventId) {
+                              alert('Event ID is missing');
+                              return;
+                            }
+                            navigate(`/org/events/${selectedEventId}?orgId=${orgId}`);
+                          }}
                           className="app-button app-button--primary"
                         >
                           View
@@ -427,7 +441,7 @@ function OrgEventsPage() {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(event.id)}
+                              onClick={() => handleDelete(getEventId(event))}
                               disabled={isSubmitting}
                               className="app-button app-button--danger"
                             >
