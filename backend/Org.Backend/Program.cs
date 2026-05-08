@@ -1,5 +1,6 @@
 using System.Text;
 using FastEndpoints;
+using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -89,6 +90,9 @@ builder.Services.AddScoped<Org.Backend.Features.Discover.Services.IDiscoverServi
 // Add FastEndpoints
 builder.Services.AddFastEndpoints();
 
+// Add Swagger for FastEndpoints
+builder.Services.SwaggerDocument();
+
 // Add dev data seeder (development only)
 if (builder.Environment.IsDevelopment())
 {
@@ -134,6 +138,11 @@ if (app.Environment.IsDevelopment())
 
 // Configure the HTTP request pipeline
 app.UseCors();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerGen();
+}
 
 // CRITICAL: Middleware order matters
 app.UseAuthentication();
