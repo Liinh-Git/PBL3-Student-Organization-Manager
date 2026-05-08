@@ -12,6 +12,7 @@
  */
 
 import httpClient from '../api/httpClient.js';
+import { toMemberViewModel } from '../adapters/memberAdapter.js';
 
 /**
  * Get my permissions in organization
@@ -234,5 +235,5 @@ export async function assignRoleToMember(orgId, memberId, payload) {
     throw new Error(response.data.message || 'Failed to assign role to member');
   }
   
-  return response.data.data;
+  return toMemberViewModel(response.data.data);
 }
