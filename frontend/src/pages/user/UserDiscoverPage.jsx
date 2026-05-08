@@ -16,18 +16,23 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { discoverMyOrganizations } from '../../services/userService.js';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { discoverMyOrganizations, getMyOrganizations } from '../../services/userService.js';
+import { getOrganizationEvents, getPublicEvents } from '../../services/eventService.js';
 import { createOrganizationRequest } from '../../services/requestService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import EventCard from '../../components/event/EventCard.jsx';
 
 function UserDiscoverPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [organizations, setOrganizations] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [myOrgIds, setMyOrgIds] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [requestingOrgId, setRequestingOrgId] = useState(null);
@@ -36,9 +41,40 @@ function UserDiscoverPage() {
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
+      setError(null);
       try {
-        const data = await discoverMyOrganizations();
-        setOrganizations(data);
+        const [discoverableOrgs, myOrgs, publicEvents] = await Promise.all([
+          discoverMyOrganizations(),
+          getMyOrganizations(),
+          getPublicEvents()
+        ]);
+
+        const orgIds = (myOrgs || []).map((org) => org.id).filter(Boolean);
+        setMyOrgIds(orgIds);
+        setOrganizations(discoverableOrgs || []);
+
+        const orgEventsResults = await Promise.all(
+          orgIds.map(async (orgId) => {
+            try {
+              const orgEvents = await getOrganizationEvents(orgId);
+              return (orgEvents || []).map((event) => ({
+                ...event,
+                organizationId: event.organizationId || orgId
+              }));
+            } catch {
+              return [];
+            }
+          })
+        );
+
+        const mergedEvents = [...(publicEvents || []), ...orgEventsResults.flat()];
+        const uniqueEventMap = new Map();
+        for (const event of mergedEvents) {
+          const eventId = event?.id || event?.eventId;
+          if (!eventId) continue;
+          if (!uniqueEventMap.has(eventId)) uniqueEventMap.set(eventId, event);
+        }
+        setEvents(Array.from(uniqueEventMap.values()));
       } catch (err) {
         setError(err.message || 'Failed to load discoverable organizations');
       } finally {
@@ -66,6 +102,23 @@ function UserDiscoverPage() {
     } finally {
       setRequestingOrgId(null);
     }
+  };
+
+  const handleViewEvent = (event) => {
+    const eventId = event?.id || event?.eventId;
+    const orgId = event?.organizationId || event?.orgId || event?.organization?.id;
+
+    if (!eventId) {
+      alert('Event ID is missing');
+      return;
+    }
+
+    if (orgId && myOrgIds.includes(orgId)) {
+      navigate(`/org/events/${eventId}?orgId=${orgId}`);
+      return;
+    }
+
+    navigate(`/events/${eventId}`);
   };
 
   if (isLoading) {
@@ -152,12 +205,24 @@ function UserDiscoverPage() {
           )}
         </div>
 
-        {/* Events section - Not implemented yet (backend Phase 4A-5 pending) */}
+        {/* Events section */}
         <div className="app-card">
           <div className="app-section-header">
             <h3 className="app-section-title">Events</h3>
           </div>
-          <EmptyState message="Event discovery not implemented yet (backend Phase 4A-5 pending)" />
+          {events.length === 0 ? (
+            <EmptyState message="No events available to view" />
+          ) : (
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {events.map((event) => (
+                <EventCard
+                  key={event?.id || event?.eventId}
+                  event={event}
+                  onView={() => handleViewEvent(event)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
