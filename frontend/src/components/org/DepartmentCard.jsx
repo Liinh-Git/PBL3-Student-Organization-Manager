@@ -1,90 +1,143 @@
-import { useState } from 'react';
+/**
+ * DepartmentCard.jsx - Component hiển thị thẻ phòng ban
+ */
+
+import { useState } from "react";
 
 function DepartmentCard({
   department,
-  memberCount = 0,
-  departmentMembers = [],
-  assignableMembers = [],
-  taskCount = null,
-  managerName = '-',
-  canManage = false,
-  canManageMembers = false,
-  isSubmitting = false,
+  memberCount,
+  departmentMembers,
+  assignableMembers,
+  taskCount,
+  managerName,
+  canManage,
+  canManageMembers,
+  isSubmitting,
   onEdit,
   onDelete,
-  onAddMember
+  onAddMember,
 }) {
-  const normalizedTaskCount = taskCount ?? '-';
-  const [selectedMemberId, setSelectedMemberId] = useState('');
+  const [selectedMember, setSelectedMember] = useState("");
+
+  const handleAddSubmit = (e) => {
+    e.preventDefault();
+    if (selectedMember) {
+      onAddMember(department.id, selectedMember);
+      setSelectedMember("");
+    }
+  };
+
+  // Lấy tối đa 3 thành viên để render Avatar xếp chồng
+  const displayMembers = departmentMembers.slice(0, 3);
+  const remainingMembers = memberCount > 3 ? memberCount - 3 : 0;
 
   return (
-    <div className="app-card">
-      <div className="app-section-header">
-        <h3 className="app-section-title">{department.deptName || department.departmentName || 'Unnamed Department'}</h3>
-      </div>
+    <div className="dept-card">
+      <h3 className="dept-card-title">
+        {department.departmentName || department.deptName}
+      </h3>
+      <p className="dept-card-desc">
+        {department.description || "Chưa có mô tả phòng ban."}
+      </p>
 
-      <div className="app-muted">
-        <p><strong>Manager:</strong> {managerName}</p>
-        <p><strong>Description:</strong> {department.function || department.description || '-'}</p>
-        <p><strong>Members:</strong> {memberCount}</p>
-        <p><strong>Tasks:</strong> {normalizedTaskCount}</p>
-        <p><strong>Status:</strong> {department.status || '-'}</p>
-        <p>
-          <strong>Department Members:</strong>{' '}
-          {departmentMembers.length > 0
-            ? departmentMembers.map((m) => m.fullName || m.email || m.id).join(', ')
-            : '-'}
-        </p>
-      </div>
-
-      <div className="app-action-row">
-        {canManage && (
-          <>
-            <button
-              type="button"
-              onClick={() => onEdit(department)}
-              disabled={isSubmitting}
-              className="app-button app-button--secondary"
+      {/* Box Thành viên */}
+      <div className="dept-members-box">
+        <div className="dept-avatars-stack">
+          {displayMembers.length > 0 ? (
+            displayMembers.map((m, idx) => (
+              <div
+                key={idx}
+                className="dept-avatar-circle"
+                style={{ zIndex: 10 - idx }}
+              >
+                {m.user?.fullName?.charAt(0)?.toUpperCase() ||
+                  m.fullName?.charAt(0)?.toUpperCase() ||
+                  "U"}
+              </div>
+            ))
+          ) : (
+            <div
+              className="dept-avatar-circle"
+              style={{ background: "#cbd5e1" }}
             >
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={() => onDelete(department.id)}
-              disabled={isSubmitting}
-              className="app-button app-button--danger"
-            >
-              Delete
-            </button>
-          </>
-        )}
+              -
+            </div>
+          )}
+          {remainingMembers > 0 && (
+            <div className="dept-avatar-circle more" style={{ zIndex: 0 }}>
+              +{remainingMembers}
+            </div>
+          )}
+        </div>
+        <div className="dept-members-info">
+          <h4>{memberCount} Thành viên</h4>
+          <p>Quản lý: {managerName}</p>
+        </div>
       </div>
 
+      {/* Box Nhiệm vụ (Priority Tasks) */}
+      <div className="dept-tasks-header">Nhiệm vụ phòng ban</div>
+      <div className="dept-tasks-box">
+        <h4>Tổng số công việc</h4>
+        <p>{taskCount || 0} Nhiệm vụ được giao</p>
+      </div>
+
+      {/* Thêm thành viên mới (Nếu có quyền) */}
       {canManageMembers && (
-        <div className="app-action-row" style={{ marginTop: '0.75rem' }}>
+        <form onSubmit={handleAddSubmit} className="dept-add-member-row">
           <select
-            value={selectedMemberId}
-            onChange={(e) => setSelectedMemberId(e.target.value)}
-            disabled={isSubmitting || assignableMembers.length === 0}
-            className="form-select"
+            value={selectedMember}
+            onChange={(e) => setSelectedMember(e.target.value)}
+            className="dept-select-sm"
+            disabled={isSubmitting}
           >
-            <option value="">Select member to add</option>
-            {assignableMembers.map((member) => (
-              <option key={member.id} value={member.id}>
-                {member.fullName || member.email}
+            <option value="">Thêm thành viên...</option>
+            {assignableMembers.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.fullName || m.email || m.user?.fullName}
               </option>
             ))}
           </select>
           <button
-            type="button"
-            onClick={() => {
-              onAddMember(department.id, selectedMemberId);
-              setSelectedMemberId('');
-            }}
-            disabled={isSubmitting || !selectedMemberId}
-            className="app-button app-button--ghost"
+            type="submit"
+            disabled={isSubmitting || !selectedMember}
+            className="btn-add-sm"
           >
-            Add Member
+            Thêm
+          </button>
+        </form>
+      )}
+
+      {/* Các nút Hành động */}
+      {canManage && (
+        <div className="dept-actions">
+          <button
+            className="btn-dark-full"
+            onClick={() => onEdit(department)}
+            disabled={isSubmitting}
+          >
+            Chỉnh sửa chi tiết
+          </button>
+          <button
+            className="btn-danger-icon"
+            onClick={() => onDelete(department.id)}
+            disabled={isSubmitting}
+            title="Xóa phòng ban"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
           </button>
         </div>
       )}
