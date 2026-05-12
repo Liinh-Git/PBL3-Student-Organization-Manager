@@ -39,7 +39,8 @@ public static class EventMappings
             EndDate = evt.EndDate,
             Status = evt.Status.ToString(),
             Visibility = evt.Visibility.ToString(),
-            Location = evt.Location
+            Location = evt.Location,
+            TargetParticipants = evt.TargetParticipants
         };
     }
 

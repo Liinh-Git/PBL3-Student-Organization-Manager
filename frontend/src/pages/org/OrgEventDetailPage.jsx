@@ -444,9 +444,9 @@ function OrgEventDetailPage() {
       const updated = await updateEvent(eventId, {
         eventName,
         description: description || undefined,
-        startDate,
-        endDate: endDate || undefined,
+        startDate: `${form.startDate.value}T${form.startTime.value || '00:00'}:00Z`,
         location: location || undefined,
+        targetParticipants: form.targetParticipants.value ? parseInt(form.targetParticipants.value) : undefined,
         bannerUrl: bannerUrl || undefined,
         visibility
       });
@@ -589,12 +589,16 @@ function OrgEventDetailPage() {
                   <input id="description" name="description" className="form-input" defaultValue={event?.description || ''} />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="startDate" className="form-label">Start Date *</label>
+                  <label htmlFor="startDate" className="form-label">Ngày tổ chức *</label>
                   <input id="startDate" name="startDate" type="date" className="form-input" defaultValue={event?.startDate ? String(event.startDate).split('T')[0] : ''} required />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="endDate" className="form-label">End Date</label>
-                  <input id="endDate" name="endDate" type="date" className="form-input" defaultValue={event?.endDate ? String(event.endDate).split('T')[0] : ''} />
+                  <label htmlFor="startTime" className="form-label">Giờ bắt đầu</label>
+                  <input id="startTime" name="startTime" type="time" className="form-input" defaultValue={event?.startDate && String(event.startDate).includes('T') ? String(event.startDate).split('T')[1].substring(0, 5) : '00:00'} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="targetParticipants" className="form-label">Số lượng tham gia</label>
+                  <input id="targetParticipants" name="targetParticipants" type="number" className="form-input" defaultValue={event?.targetParticipants || ''} />
                 </div>
                 <div className="form-group">
                   <label htmlFor="location" className="form-label">Location</label>
@@ -631,12 +635,16 @@ function OrgEventDetailPage() {
                   <td>{event?.description || '-'}</td>
                 </tr>
                 <tr>
-                  <th>Start Date</th>
+                  <th>Ngày tổ chức</th>
                   <td>{event?.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}</td>
                 </tr>
                 <tr>
-                  <th>End Date</th>
-                  <td>{event?.endDate ? new Date(event.endDate).toLocaleDateString() : '-'}</td>
+                  <th>Giờ bắt đầu</th>
+                  <td>{event?.startDate && String(event.startDate).includes('T') ? String(event.startDate).split('T')[1].substring(0, 5) : '-'}</td>
+                </tr>
+                <tr>
+                  <th>Số lượng tham gia</th>
+                  <td>{event?.targetParticipants || '-'}</td>
                 </tr>
                 <tr>
                   <th>Location</th>

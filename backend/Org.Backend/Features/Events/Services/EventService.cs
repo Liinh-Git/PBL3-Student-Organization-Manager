@@ -149,6 +149,7 @@ public class EventService : IEventService
             EndDate = utcEndDate,
             Location = request.Location,
             Visibility = visibility,
+            TargetParticipants = request.TargetParticipants,
             Status = EventStatus.Draft,
             CreatedByMemberId = member.Id,
             CreatedAt = DateTime.UtcNow,
@@ -225,6 +226,7 @@ public class EventService : IEventService
         evt.EndDate = utcEndDate;
         evt.Location = request.Location;
         evt.Visibility = visibility;
+        evt.TargetParticipants = request.TargetParticipants;
         evt.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);

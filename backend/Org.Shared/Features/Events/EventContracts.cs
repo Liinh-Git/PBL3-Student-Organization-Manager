@@ -36,6 +36,7 @@ public record EventSummaryDto
     public required string Status { get; init; }
     public required string Visibility { get; init; }
     public string? Location { get; init; }
+    public int? TargetParticipants { get; init; }
 }
 
 /// <summary>

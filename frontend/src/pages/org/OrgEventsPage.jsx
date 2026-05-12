@@ -75,8 +75,9 @@ function OrgEventsPage() {
     const eventName = form.eventName.value;
     const description = form.description.value;
     const startDate = form.startDate.value;
-    const endDate = form.endDate.value;
+    const startTime = form.startTime.value; // repurposed endDate field label but actually we need to handle this
     const location = form.location.value;
+    const targetParticipants = form.targetParticipants.value;
     const bannerUrl = form.bannerUrl.value;
     const visibility = form.visibility.value;
     
@@ -90,9 +91,9 @@ function OrgEventsPage() {
       const newEvent = await createEvent(orgId, {
         eventName,
         description: description || undefined,
-        startDate,
-        endDate: endDate || undefined,
+        startDate: `${startDate}T${startTime || '00:00'}:00Z`, // Combine date and time
         location: location || undefined,
+        targetParticipants: targetParticipants ? parseInt(targetParticipants) : undefined,
         bannerUrl: bannerUrl || undefined,
         visibility
       });
@@ -137,9 +138,9 @@ function OrgEventsPage() {
       const updated = await updateEvent(editingEventId, {
         eventName,
         description: description || undefined,
-        startDate,
-        endDate: endDate || undefined,
+        startDate: `${form.startDate.value}T${form.startTime.value || '00:00'}:00Z`,
         location: location || undefined,
+        targetParticipants: form.targetParticipants.value ? parseInt(form.targetParticipants.value) : undefined,
         bannerUrl: bannerUrl || undefined,
         visibility
       });
@@ -243,7 +244,7 @@ function OrgEventsPage() {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="startDate" className="form-label">Start Date *</label>
+                <label htmlFor="startDate" className="form-label">Ngày tổ chức *</label>
                 <input
                   id="startDate"
                   name="startDate"
@@ -253,12 +254,22 @@ function OrgEventsPage() {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="endDate" className="form-label">End Date</label>
+                <label htmlFor="startTime" className="form-label">Giờ bắt đầu</label>
                 <input
-                  id="endDate"
-                  name="endDate"
-                  type="date"
+                  id="startTime"
+                  name="startTime"
+                  type="time"
                   className="form-input"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="targetParticipants" className="form-label">Số lượng tham gia</label>
+                <input
+                  id="targetParticipants"
+                  name="targetParticipants"
+                  type="number"
+                  className="form-input"
+                  placeholder="Ví dụ: 100"
                 />
               </div>
               <div className="form-group">
@@ -329,7 +340,7 @@ function OrgEventsPage() {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="editStartDate" className="form-label">Start Date *</label>
+                <label htmlFor="editStartDate" className="form-label">Ngày tổ chức *</label>
                 <input
                   id="editStartDate"
                   name="startDate"
@@ -340,13 +351,23 @@ function OrgEventsPage() {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="editEndDate" className="form-label">End Date</label>
+                <label htmlFor="editStartTime" className="form-label">Giờ bắt đầu</label>
                 <input
-                  id="editEndDate"
-                  name="endDate"
-                  type="date"
+                  id="editStartTime"
+                  name="startTime"
+                  type="time"
                   className="form-input"
-                  defaultValue={editingEvent.endDate ? editingEvent.endDate.split('T')[0] : ''}
+                  defaultValue={editingEvent.startDate && editingEvent.startDate.includes('T') ? editingEvent.startDate.split('T')[1].substring(0, 5) : '00:00'}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="editTargetParticipants" className="form-label">Số lượng tham gia</label>
+                <input
+                  id="editTargetParticipants"
+                  name="targetParticipants"
+                  type="number"
+                  className="form-input"
+                  defaultValue={editingEvent.targetParticipants || ''}
                 />
               </div>
               <div className="form-group">
@@ -400,8 +421,9 @@ function OrgEventsPage() {
                 <tr>
                   <th>Event Name</th>
                   <th>Description</th>
-                  <th>Start Date</th>
-                  <th>End Date</th>
+                  <th>Ngày tổ chức</th>
+                  <th>Giờ bắt đầu</th>
+                  <th>Số lượng</th>
                   <th>Status</th>
                   <th>Visibility</th>
                   <th>Actions</th>
@@ -413,7 +435,8 @@ function OrgEventsPage() {
                     <td>{getEventName(event) || '-'}</td>
                     <td>{event.description || '-'}</td>
                     <td>{event.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}</td>
-                    <td>{event.endDate ? new Date(event.endDate).toLocaleDateString() : '-'}</td>
+                    <td>{event.startDate && event.startDate.includes('T') ? event.startDate.split('T')[1].substring(0, 5) : '-'}</td>
+                    <td>{event.targetParticipants || '-'}</td>
                     <td><span className="app-badge app-badge--success">{event.status || '-'}</span></td>
                     <td>{event.visibility || '-'}</td>
                     <td>

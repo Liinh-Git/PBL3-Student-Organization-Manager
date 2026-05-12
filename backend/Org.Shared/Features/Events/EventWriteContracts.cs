@@ -44,6 +44,11 @@ public record CreateEventRequest
     /// Valid values: "Public", "Internal", "Private"
     /// </summary>
     public string? Visibility { get; init; }
+
+    /// <summary>
+    /// Target number of participants (optional)
+    /// </summary>
+    public int? TargetParticipants { get; init; }
 }
 
 /// <summary>
@@ -86,4 +91,9 @@ public record UpdateEventRequest
     /// Valid values: "Public", "Internal", "Private"
     /// </summary>
     public string? Visibility { get; init; }
+
+    /// <summary>
+    /// Target number of participants (optional)
+    /// </summary>
+    public int? TargetParticipants { get; init; }
 }
