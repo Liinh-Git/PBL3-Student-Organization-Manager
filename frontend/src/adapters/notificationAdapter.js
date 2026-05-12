@@ -26,7 +26,21 @@
  */
 export function toNotificationViewModel(dto) {
   if (!dto) return null;
-  throw new Error('TODO: implement toNotificationViewModel after NotificationDto is verified');
+  return {
+    id: dto.id ?? null,
+    receiverId: dto.receiverId ?? null,
+    actorId: dto.actorId ?? null,
+    actorName: dto.actorName ?? null,
+    title: dto.title ?? '',
+    message: dto.message ?? '',
+    type: dto.type ?? 'System',
+    relatedEntityType: dto.relatedEntityType ?? null,
+    relatedEntityId: dto.relatedEntityId ?? null,
+    actionUrl: dto.actionUrl ?? null,
+    isRead: Boolean(dto.isRead),
+    readAt: dto.readAt ?? null,
+    createdAtUtc: dto.createdAtUtc ?? null,
+  };
 }
 
 /**

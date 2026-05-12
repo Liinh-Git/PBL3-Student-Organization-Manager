@@ -11,7 +11,7 @@
  * - No mock data, no fake success
  */
 
-// import httpClient from '../api/httpClient.js';
+import httpClient from '../api/httpClient.js';
 
 /**
  * Get notifications
@@ -32,7 +32,8 @@
  * - Can filter by isRead and type
  */
 export async function getNotifications(params = {}) {
-  throw new Error('TODO: implement getNotifications after API contract verification');
+  const response = await httpClient.get('/notifications', { params });
+  return response?.data?.data ?? [];
 }
 
 /**
@@ -53,7 +54,8 @@ export async function getNotifications(params = {}) {
  * - Used by NotificationBadge component
  */
 export async function getUnreadCount() {
-  throw new Error('TODO: implement getUnreadCount after API contract verification');
+  const response = await httpClient.get('/notifications/unread-count');
+  return response?.data?.data?.count ?? 0;
 }
 
 /**
@@ -73,7 +75,8 @@ export async function getUnreadCount() {
  * - Updates isRead = true, readAt = now
  */
 export async function markNotificationRead(id) {
-  throw new Error('TODO: implement markNotificationRead after API contract verification');
+  const response = await httpClient.post(`/notifications/${id}/read`);
+  return response?.data?.data ?? null;
 }
 
 /**
@@ -93,7 +96,8 @@ export async function markNotificationRead(id) {
  * - Updates isRead = true, readAt = now for all unread notifications
  */
 export async function markAllNotificationsRead() {
-  throw new Error('TODO: implement markAllNotificationsRead after API contract verification');
+  const response = await httpClient.post('/notifications/read-all');
+  return Boolean(response?.data?.success);
 }
 
 /**

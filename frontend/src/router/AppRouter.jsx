@@ -46,7 +46,6 @@ import OrgEventsPage from '../pages/org/OrgEventsPage';
 import OrgEventDetailPage from '../pages/org/OrgEventDetailPage';
 import OrgRequestsPage from '../pages/org/OrgRequestsPage';
 import OrgRolesPage from '../pages/org/OrgRolesPage';
-import OrgNotificationsPage from '../pages/org/OrgNotificationsPage';
 
 // Prototype-only placeholder pages
 import OrgTasksPlaceholderPage from '../pages/org/OrgTasksPlaceholderPage';
@@ -87,8 +86,6 @@ function AppRouter() {
             <Route path="/org/events/:eventId" element={<OrgEventDetailPage />} />
             <Route path="/org/requests" element={<OrgRequestsPage />} />
             <Route path="/org/roles" element={<OrgRolesPage />} />
-            <Route path="/org/notifications" element={<OrgNotificationsPage />} />
-            
             {/* Prototype-only placeholder routes */}
             <Route path="/org/tasks" element={<OrgTasksPlaceholderPage />} />
             <Route path="/org/resources" element={<OrgResourcesPlaceholderPage />} />
@@ -102,4 +99,3 @@ function AppRouter() {
 }
 
 export default AppRouter;
-

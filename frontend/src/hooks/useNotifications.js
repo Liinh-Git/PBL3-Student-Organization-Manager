@@ -16,34 +16,55 @@
  * - No mock data, no fake counts
  */
 
+import { useCallback, useEffect, useState } from 'react';
+import {
+  getNotifications,
+  getUnreadCount,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from '../services/notificationService.js';
+import { toNotificationListViewModel, toNotificationViewModel } from '../adapters/notificationAdapter.js';
+
 export function useNotifications() {
-  // TODO Phase 3C-4B/4C: Implement notification state and methods
-  
-  const unreadCount = 0; // TODO: Fetch from notificationService
-  const notifications = []; // TODO: Fetch from notificationService
-  const isLoading = false;
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchUnreadCount = async () => {
-    // TODO Phase 3C-4B/4C: Implement unread count fetch
-    // const count = await notificationService.getUnreadCount();
-    // return count;
-  };
+  const fetchUnreadCount = useCallback(async () => {
+    const count = await getUnreadCount();
+    setUnreadCount(Number.isFinite(count) ? count : 0);
+    return count;
+  }, []);
 
-  const fetchNotifications = async () => {
-    // TODO Phase 3C-4B/4C: Implement notifications fetch
-    // const notifs = await notificationService.getAll();
-    // return notifs;
-  };
+  const fetchNotifications = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const items = await getNotifications();
+      const mapped = toNotificationListViewModel(items);
+      setNotifications(mapped);
+      return mapped;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const markAsRead = async (notificationId) => {
-    // TODO Phase 3C-4B/4C: Implement mark as read
-    // await notificationService.markAsRead(notificationId);
-  };
+  const markAsRead = useCallback(async (notificationId) => {
+    const updated = await markNotificationRead(notificationId);
+    const mapped = toNotificationViewModel(updated);
+    setNotifications((prev) => prev.map((item) => (item.id === notificationId ? { ...item, ...(mapped || {}), isRead: true } : item)));
+    setUnreadCount((prev) => Math.max(prev - 1, 0));
+  }, []);
 
-  const markAllAsRead = async () => {
-    // TODO Phase 3C-4B/4C: Implement mark all as read
-    // await notificationService.markAllAsRead();
-  };
+  const markAllAsRead = useCallback(async () => {
+    await markAllNotificationsRead();
+    setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
+    setUnreadCount(0);
+  }, []);
+
+  useEffect(() => {
+    fetchUnreadCount().catch(() => setUnreadCount(0));
+    fetchNotifications().catch(() => setNotifications([]));
+  }, [fetchNotifications, fetchUnreadCount]);
 
   return {
     unreadCount,

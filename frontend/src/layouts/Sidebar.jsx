@@ -135,7 +135,6 @@ function Sidebar() {
                 {/* Comment đó chưa đụng */}
                 {/* <li><Link to={`/org/roles?orgId=${activeOrgId}`} className={isActive('/org/roles') ? 'active' : ''}>Roles</Link></li> */}
                 <li><Link to={`/org/requests?orgId=${activeOrgId}`} className={isActive('/org/requests') ? 'active' : ''}>Requests</Link></li>
-                <li><Link to={`/org/notifications?orgId=${activeOrgId}`} className={isActive('/org/notifications') ? 'active' : ''}>Notifications</Link></li>
               </ul>
             </div>
           )}
