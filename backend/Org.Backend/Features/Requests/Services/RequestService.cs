@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Domain.Enums;
+using Org.Backend.Features.Invitations;
+using Org.Backend.Features.Invitations.Services;
 using Org.Backend.Features.Requests.Mappings;
 using Org.Backend.Infrastructure.Persistence;
 using Org.Backend.Infrastructure.Persistence.Seed;
@@ -11,10 +13,12 @@ namespace Org.Backend.Features.Requests.Services;
 public class RequestService : IRequestService
 {
     private readonly AppDbContext _context;
+    private readonly IInvitationService _invitationService;
 
-    public RequestService(AppDbContext context)
+    public RequestService(AppDbContext context, IInvitationService invitationService)
     {
         _context = context;
+        _invitationService = invitationService;
     }
 
     public async Task<List<RequestDto>> GetOrganizationRequestsAsync(Guid userId, Guid orgId, CancellationToken ct = default)
@@ -353,6 +357,23 @@ public class RequestService : IRequestService
                     pending.UpdatedAt = DateTime.UtcNow;
                 }
 
+            }
+
+            if (newStatus == RequestStatus.Approved &&
+                request.RequestType == RequestType.Other &&
+                request.Title == InvitationMarkers.RecommendationTitle)
+            {
+                if (!Guid.TryParse(request.DesiredPosition, out var receiverUserId))
+                {
+                    throw new InvalidOperationException("Recommendation target user is invalid");
+                }
+
+                await _invitationService.CreateInvitationByMemberIdAsync(
+                    request.OrgId,
+                    member.Id,
+                    receiverUserId,
+                    request.ReviewNote ?? request.Content,
+                    ct);
             }
 
             // Update request

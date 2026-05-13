@@ -39,6 +39,25 @@ public class FriendService : IFriendService
         return friends.OrderBy(f => f.FullName).ToList();
     }
 
+    public async Task<List<FriendDto>> GetFriendSuggestionsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var blockedUserIds = await _context.FriendRequests
+            .Where(fr =>
+                fr.SenderId == userId ||
+                fr.ReceiverId == userId)
+            .Select(fr => fr.SenderId == userId ? fr.ReceiverId : fr.SenderId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        var suggestions = await _context.Users
+            .Where(u => u.Id != userId && !blockedUserIds.Contains(u.Id))
+            .OrderBy(u => u.FullName)
+            .Take(30)
+            .ToListAsync(ct);
+
+        return suggestions.Select(u => u.ToFriendDto()).ToList();
+    }
+
     public async Task<List<FriendRequestDto>> GetFriendRequestsAsync(Guid userId, CancellationToken ct = default)
     {
         // Get pending friend requests where user is the receiver
@@ -102,6 +121,20 @@ public class FriendService : IFriendService
         };
 
         _context.FriendRequests.Add(friendRequest);
+
+        _context.Notifications.Add(new Notification
+        {
+            ReceiverId = request.ReceiverId,
+            ActorId = userId,
+            Title = "New friend request",
+            Message = "You received a new friend request.",
+            Type = NotificationType.FriendRequest,
+            RelatedEntityType = nameof(FriendRequest),
+            RelatedEntityId = friendRequest.Id,
+            ActionUrl = "/user/discover",
+            IsRead = false
+        });
+
         await _context.SaveChangesAsync(ct);
 
         // Reload with navigation properties
@@ -141,6 +174,19 @@ public class FriendService : IFriendService
         friendRequest.Status = FriendRequestStatus.Accepted;
         friendRequest.RespondedAt = DateTime.UtcNow;
 
+        _context.Notifications.Add(new Notification
+        {
+            ReceiverId = friendRequest.SenderId,
+            ActorId = userId,
+            Title = "Friend request accepted",
+            Message = $"{friendRequest.Receiver.FullName} accepted your friend request.",
+            Type = NotificationType.FriendRequest,
+            RelatedEntityType = nameof(FriendRequest),
+            RelatedEntityId = friendRequest.Id,
+            ActionUrl = "/user/discover",
+            IsRead = false
+        });
+
         await _context.SaveChangesAsync(ct);
 
         // Return the friend (sender)
@@ -172,6 +218,19 @@ public class FriendService : IFriendService
         // Reject request
         friendRequest.Status = FriendRequestStatus.Rejected;
         friendRequest.RespondedAt = DateTime.UtcNow;
+
+        _context.Notifications.Add(new Notification
+        {
+            ReceiverId = friendRequest.SenderId,
+            ActorId = userId,
+            Title = "Friend request rejected",
+            Message = "Your friend request was rejected.",
+            Type = NotificationType.FriendRequest,
+            RelatedEntityType = nameof(FriendRequest),
+            RelatedEntityId = friendRequest.Id,
+            ActionUrl = "/user/discover",
+            IsRead = false
+        });
 
         await _context.SaveChangesAsync(ct);
     }

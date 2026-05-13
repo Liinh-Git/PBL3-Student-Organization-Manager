@@ -86,6 +86,7 @@ builder.Services.AddScoped<Org.Backend.Features.Requests.Services.IRequestServic
 builder.Services.AddScoped<Org.Backend.Features.Notifications.Services.INotificationService, Org.Backend.Features.Notifications.Services.NotificationService>();
 builder.Services.AddScoped<Org.Backend.Features.Friends.Services.IFriendService, Org.Backend.Features.Friends.Services.FriendService>();
 builder.Services.AddScoped<Org.Backend.Features.Discover.Services.IDiscoverService, Org.Backend.Features.Discover.Services.DiscoverService>();
+builder.Services.AddScoped<Org.Backend.Features.Invitations.Services.IInvitationService, Org.Backend.Features.Invitations.Services.InvitationService>();
 
 // Add FastEndpoints
 builder.Services.AddFastEndpoints();

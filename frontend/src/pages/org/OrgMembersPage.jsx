@@ -1,13 +1,17 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useOrgContext } from "../../contexts/OrgContext.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
 import {
   getOrganizationMembers,
-  addMember,
   updateMemberDepartment,
   removeMember,
 } from "../../services/memberService.js";
+import { getFriends } from "../../services/friendService.js";
+import {
+  createOrganizationInvitation,
+  createOrganizationInvitationRecommendation,
+} from "../../services/invitationService.js";
 import { getOrganizationRoles } from "../../services/roleService.js";
 import { getOrganizationDepartments } from "../../services/departmentService.js";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -24,10 +28,14 @@ function OrgMembersPage() {
   const [members, setMembers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [friends, setFriends] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [friendSearch, setFriendSearch] = useState("");
+  const [invitingFriendId, setInvitingFriendId] = useState(null);
+  const [sentInviteUserIds, setSentInviteUserIds] = useState(new Set());
   const [pendingRemoveMember, setPendingRemoveMember] = useState(null);
   const [removeReason, setRemoveReason] = useState("");
 
@@ -39,14 +47,16 @@ function OrgMembersPage() {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [memberData, deptData, roleData] = await Promise.all([
+        const [memberData, deptData, roleData, friendData] = await Promise.all([
           getOrganizationMembers(orgId),
           getOrganizationDepartments(orgId),
           getOrganizationRoles(orgId),
+          getFriends(),
         ]);
         setMembers(memberData);
         setDepartments(deptData);
         setRoles(roleData);
+        setFriends(friendData || []);
       } catch (err) {
         setError(err.message || "Failed to load members");
       } finally {
@@ -54,7 +64,7 @@ function OrgMembersPage() {
       }
     }
     loadData();
-  }, [orgId, isMember]);
+  }, [orgId, isMember, canManage]);
 
   const isSelfMember = (member) => !!currentUserId && member?.userId === currentUserId;
 
@@ -65,6 +75,14 @@ function OrgMembersPage() {
 
   const canLeaveOrganization = (member) => isSelfMember(member) && !isLeadershipRole(member);
   const myMemberRecord = members.find((member) => isSelfMember(member)) || null;
+
+  const filteredFriends = useMemo(() => {
+    const keyword = friendSearch.trim().toLowerCase();
+    return friends.filter((friend) => {
+      const text = `${friend.fullName || ""} ${friend.email || ""}`.toLowerCase();
+      return !keyword || text.includes(keyword);
+    });
+  }, [friends, friendSearch]);
 
   const getDisplayRole = (member) => {
     const roleName = (member?.roleName || member?.role?.roleName || "MEMBER").trim();
@@ -77,29 +95,33 @@ function OrgMembersPage() {
     return roleName;
   };
 
-  const handleAddMember = async (e) => {
-    e.preventDefault();
-    if (!canManage) return;
-
-    const form = e.target;
-    const userId = form.userId.value;
-    if (!userId) return;
-
-    setIsSubmitting(true);
+  const handleInviteFriend = async (friendUserId) => {
+    if (!isMember) return;
+    setInvitingFriendId(friendUserId);
     try {
-      const newMember = await addMember(orgId, {
-        userId,
-        roleId: form.roleId.value || undefined,
-        departmentId: form.departmentId.value || undefined,
-        studentCode: form.studentCode.value || undefined,
+      try {
+        if (canManage) {
+          await createOrganizationInvitation(orgId, { receiverUserId: friendUserId });
+        } else {
+          await createOrganizationInvitationRecommendation(orgId, { receiverUserId: friendUserId });
+        }
+      } catch (inviteErr) {
+        const msg = (inviteErr?.message || "").toLowerCase();
+        if (msg.includes("permission to invite members")) {
+          await createOrganizationInvitationRecommendation(orgId, { receiverUserId: friendUserId });
+        } else {
+          throw inviteErr;
+        }
+      }
+      setSentInviteUserIds((prev) => {
+        const next = new Set(prev);
+        next.add(friendUserId);
+        return next;
       });
-      setMembers((prev) => [...prev, newMember]);
-      form.reset();
-      setShowAddForm(false);
     } catch (err) {
-      alert(err.message || "Failed to add member");
+      alert(err.message || "Failed to invite friend");
     } finally {
-      setIsSubmitting(false);
+      setInvitingFriendId(null);
     }
   };
 
@@ -161,9 +183,9 @@ function OrgMembersPage() {
       <div className="members-table-wrapper">
         <div className="members-table-toolbar">
           <h3>Danh sách nhân sự</h3>
-          {canManage && (
-            <button onClick={() => setShowAddForm(true)} className="org-btn org-btn-primary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
-              + Thêm thành viên
+          {isMember && (
+            <button onClick={() => setShowInviteForm(true)} className="org-btn org-btn-primary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
+              {canManage ? "+ Mời bạn bè" : "+ Đề cử bạn bè"}
             </button>
           )}
         </div>
@@ -228,21 +250,59 @@ function OrgMembersPage() {
         )}
       </div>
 
-      {showAddForm && canManage && (
-        <div className="org-modal-overlay" onClick={() => setShowAddForm(false)}>
+      {showInviteForm && isMember && (
+        <div className="org-modal-overlay" onClick={() => setShowInviteForm(false)}>
           <div className="org-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="org-modal-header"><h3>Thêm thành viên mới</h3></div>
+            <div className="org-modal-header"><h3>{canManage ? "Mời bạn bè vào tổ chức hiện tại" : "Đề cử bạn bè (chờ leader duyệt)"}</h3></div>
             <div className="org-modal-body">
-              <form id="addMemberForm" onSubmit={handleAddMember}>
-                <div className="org-form-group"><label className="org-form-label">User ID *</label><input name="userId" className="org-input" required /></div>
-                <div className="org-form-group"><label className="org-form-label">Mã sinh viên</label><input name="studentCode" className="org-input" /></div>
-                <div className="org-form-group"><label className="org-form-label">Vai trò</label><select name="roleId" className="org-select"><option value="">-- Chọn vai trò --</option>{roles.map((role) => <option key={role.id} value={role.id}>{role.roleName}</option>)}</select></div>
-                <div className="org-form-group"><label className="org-form-label">Phòng ban</label><select name="departmentId" className="org-select"><option value="">-- Chọn phòng ban --</option>{departments.map((dept) => <option key={dept.id} value={dept.id}>{dept.departmentName || dept.deptName}</option>)}</select></div>
-              </form>
+              <div className="org-form-group">
+                <label className="org-form-label">Tìm bạn bè</label>
+                <input
+                  className="org-input"
+                  value={friendSearch}
+                  onChange={(e) => setFriendSearch(e.target.value)}
+                  placeholder="Nhập tên hoặc email"
+                />
+              </div>
+              <div style={{ display: "grid", gap: "0.6rem" }}>
+                {filteredFriends.length === 0 ? (
+                  <p style={{ color: "#64748b", margin: 0 }}>Không có bạn bè để mời.</p>
+                ) : filteredFriends.map((friend) => {
+                  const isMemberAlready = members.some((m) => m.userId === friend.userId);
+                  const isSending = invitingFriendId === friend.userId;
+                  const isSent = sentInviteUserIds.has(friend.userId);
+                  return (
+                    <div
+                      key={friend.userId}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "8px",
+                        padding: "0.65rem 0.8rem",
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 700 }}>{friend.fullName}</div>
+                        <div style={{ color: "#64748b", fontSize: "0.85rem" }}>{friend.email || "-"}</div>
+                      </div>
+                      <button
+                        type="button"
+                        className={`org-btn ${isMemberAlready || isSent ? "org-btn-secondary" : "org-btn-primary"}`}
+                        disabled={isMemberAlready || isSent || isSending}
+                        onClick={() => handleInviteFriend(friend.userId)}
+                      >
+                        {isMemberAlready ? "Đã là thành viên" : isSending ? "Đang gửi..." : isSent ? (canManage ? "Đã gửi lời mời" : "Đã gửi đề cử") : (canManage ? "Mời" : "Đề cử")}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
             <div className="org-modal-footer">
-              <button type="button" onClick={() => setShowAddForm(false)} className="org-btn org-btn-secondary" disabled={isSubmitting}>Hủy</button>
-              <button type="submit" form="addMemberForm" className="org-btn org-btn-primary" disabled={isSubmitting}>{isSubmitting ? "Đang xử lý..." : "Thêm thành viên"}</button>
+              <button type="button" onClick={() => setShowInviteForm(false)} className="org-btn org-btn-secondary" disabled={isSubmitting}>Đóng</button>
             </div>
           </div>
         </div>

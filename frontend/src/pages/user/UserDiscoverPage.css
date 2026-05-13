@@ -1,0 +1,93 @@
+﻿.discover-page .app-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.discover-success {
+  background: #ecfdf3;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.discover-success p {
+  margin: 0;
+  color: #065f46;
+  font-weight: 600;
+}
+
+.discover-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.discover-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.discover-item-title {
+  font-weight: 700;
+  color: #111827;
+}
+
+.discover-item-meta {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-top: 0.2rem;
+}
+
+.discover-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.discover-org-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.discover-org-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.discover-search {
+  min-width: 220px;
+}
+
+.discover-filter {
+  min-width: 140px;
+}
+
+.discover-org-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.discover-org-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+@media (max-width: 760px) {
+  .discover-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

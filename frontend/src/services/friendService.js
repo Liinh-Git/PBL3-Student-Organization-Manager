@@ -1,16 +1,29 @@
 /**
  * friendService.js - Friend request management service
  * 
- * Phase 3C-4B: Service skeleton only
+ * Phase 4B-1: Real backend API integration
  * 
  * IMPORTANT RULES:
  * - VITE_API_BASE_URL already includes /api
  * - Service paths must NOT include /api prefix
- * - No real API calls yet
- * - No mock data, no fake success
+ * - Backend uses ApiResponse<T> wrapper: { success, data, message, errors }
  */
 
-// import httpClient from '../api/httpClient.js';
+import httpClient from '../api/httpClient.js';
+import {
+  toFriendViewModel,
+  toFriendRequestListViewModel,
+  toFriendRequestViewModel
+} from '../adapters/friendAdapter.js';
+
+function getApiErrorMessage(responseData, fallbackMessage) {
+  if (!responseData) return fallbackMessage;
+  if (responseData.message) return responseData.message;
+  if (Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+    return responseData.errors.join(', ');
+  }
+  return fallbackMessage;
+}
 
 /**
  * Get friends
@@ -30,7 +43,12 @@
  * - Returns accepted friend relationships for current user
  */
 export async function getFriends(params = {}) {
-  throw new Error('TODO: implement getFriends after API contract verification');
+  const response = await httpClient.get('/friends', { params });
+  if (!response.data.success) {
+    throw new Error(getApiErrorMessage(response.data, 'Failed to get friends'));
+  }
+  const items = Array.isArray(response.data.data) ? response.data.data : [];
+  return items.map(toFriendViewModel).filter(Boolean);
 }
 
 /**
@@ -52,7 +70,20 @@ export async function getFriends(params = {}) {
  * - Can filter by status (Pending, Accepted, Rejected, Cancelled, Blocked)
  */
 export async function getFriendRequests(params = {}) {
-  throw new Error('TODO: implement getFriendRequests after API contract verification');
+  const response = await httpClient.get('/friends/requests', { params });
+  if (!response.data.success) {
+    throw new Error(getApiErrorMessage(response.data, 'Failed to get friend requests'));
+  }
+  return toFriendRequestListViewModel(response.data.data);
+}
+
+export async function getFriendSuggestions(params = {}) {
+  const response = await httpClient.get('/friends/suggestions', { params });
+  if (!response.data.success) {
+    throw new Error(getApiErrorMessage(response.data, 'Failed to get friend suggestions'));
+  }
+  const items = Array.isArray(response.data.data) ? response.data.data : [];
+  return items.map(toFriendViewModel).filter(Boolean);
 }
 
 /**
@@ -75,7 +106,15 @@ export async function getFriendRequests(params = {}) {
  * - Cannot send duplicate request
  */
 export async function sendFriendRequest(payload) {
-  throw new Error('TODO: implement sendFriendRequest after API contract verification');
+  try {
+    const response = await httpClient.post('/friends/requests', payload);
+    if (!response.data.success) {
+      throw new Error(getApiErrorMessage(response.data, 'Failed to send friend request'));
+    }
+    return toFriendRequestViewModel(response.data.data);
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error?.response?.data, error?.message || 'Failed to send friend request'));
+  }
 }
 
 /**
@@ -97,7 +136,15 @@ export async function sendFriendRequest(payload) {
  * - Sets respondedAt timestamp
  */
 export async function acceptFriendRequest(id) {
-  throw new Error('TODO: implement acceptFriendRequest after API contract verification');
+  try {
+    const response = await httpClient.post(`/friends/requests/${id}/accept`, {});
+    if (!response.data.success) {
+      throw new Error(getApiErrorMessage(response.data, 'Failed to accept friend request'));
+    }
+    return toFriendViewModel(response.data.data);
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error?.response?.data, error?.message || 'Failed to accept friend request'));
+  }
 }
 
 /**
@@ -119,5 +166,13 @@ export async function acceptFriendRequest(id) {
  * - Sets respondedAt timestamp
  */
 export async function rejectFriendRequest(id) {
-  throw new Error('TODO: implement rejectFriendRequest after API contract verification');
+  try {
+    const response = await httpClient.post(`/friends/requests/${id}/reject`, {});
+    if (!response.data.success) {
+      throw new Error(getApiErrorMessage(response.data, 'Failed to reject friend request'));
+    }
+    return !!response.data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error?.response?.data, error?.message || 'Failed to reject friend request'));
+  }
 }

@@ -26,7 +26,14 @@
  */
 export function toFriendViewModel(dto) {
   if (!dto) return null;
-  throw new Error('TODO: implement toFriendViewModel after FriendDto is verified');
+  return {
+    userId: dto.userId || null,
+    fullName: dto.fullName || 'Unknown user',
+    email: dto.email || null,
+    avatarUrl: dto.avatarUrl || null,
+    status: dto.status || 'Active',
+    friendsSince: dto.friendsSince || null
+  };
 }
 
 /**
@@ -46,7 +53,18 @@ export function toFriendViewModel(dto) {
  */
 export function toFriendRequestViewModel(dto) {
   if (!dto) return null;
-  throw new Error('TODO: implement toFriendRequestViewModel after FriendRequestDto is verified');
+  return {
+    id: dto.id || null,
+    senderId: dto.senderId || null,
+    senderName: dto.senderName || 'Unknown sender',
+    senderAvatarUrl: dto.senderAvatarUrl || null,
+    receiverId: dto.receiverId || null,
+    receiverName: dto.receiverName || 'Unknown receiver',
+    receiverAvatarUrl: dto.receiverAvatarUrl || null,
+    status: dto.status || 'Pending',
+    createdAtUtc: dto.createdAtUtc || null,
+    respondedAt: dto.respondedAt || null
+  };
 }
 
 /**
