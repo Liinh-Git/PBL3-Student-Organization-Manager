@@ -1,4 +1,4 @@
-/**
+﻿/**
  * UserOrganizationsPage.jsx - User's organizations page
  * * Phase 4B-1: Real backend API integration
  */
@@ -127,7 +127,7 @@ function UserOrganizationsPage() {
         </div>
         <div className="org-header-text">
           <h1>Tổ chức của tôi</h1>
-          <p>Quản lý và tham gia kiến tạo cộng đồng</p>
+          <p>Quản lý và tham gia xây dựng cộng đồng</p>
         </div>
       </div>
 
@@ -151,7 +151,7 @@ function UserOrganizationsPage() {
               <div className="org-create-icon">+</div>
               <h3>Tạo tổ chức mới</h3>
               <p>
-                Bắt đầu hành trình kiến tạo một cộng đồng sinh viên mới của
+                Bắt đầu hành trình xây dựng một cộng đồng sinh viên mới của
                 riêng bạn.
               </p>
             </button>
@@ -236,7 +236,7 @@ function UserOrganizationsPage() {
                   />
                 </div>
 
-                {/* Phần thông tin thêm */}
+                {/* Pháº§n thÃ´ng tin thÃªm */}
                 <div
                   style={{
                     marginTop: "2rem",
@@ -256,7 +256,7 @@ function UserOrganizationsPage() {
 
                   <div className="org-form-group">
                     <label htmlFor="avatarUrl" className="org-form-label">
-                      Link Ảnh đại diện
+                      Link ảnh đại diện
                     </label>
                     <input
                       type="url"
@@ -271,7 +271,7 @@ function UserOrganizationsPage() {
 
                   <div className="org-form-group">
                     <label htmlFor="coverUrl" className="org-form-label">
-                      Link Ảnh bìa
+                      Link ảnh bìa
                     </label>
                     <input
                       type="url"
@@ -286,7 +286,7 @@ function UserOrganizationsPage() {
 
                   <div className="org-form-group">
                     <label htmlFor="foundingDate" className="org-form-label">
-                      Ngày thành lập
+                      Ngày thành lập (Không bắt buộc)
                     </label>
                     <input
                       type="date"
@@ -315,7 +315,7 @@ function UserOrganizationsPage() {
                     </div>
                     <div className="org-form-group" style={{ flex: 1 }}>
                       <label htmlFor="contactPhone" className="org-form-label">
-                        SĐT liên hệ
+                        Số điện thoại liên hệ
                       </label>
                       <input
                         type="tel"
@@ -358,3 +358,4 @@ function UserOrganizationsPage() {
 }
 
 export default UserOrganizationsPage;
+

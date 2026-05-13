@@ -101,7 +101,7 @@ public class OrganizationService : IOrganizationService
                 Description = request.Description?.Trim(),
                 AvatarUrl = request.AvatarUrl?.Trim(),
                 CoverUrl = request.CoverUrl?.Trim(),
-                FoundingDate = request.FoundingDate?.ToUniversalTime(),
+                FoundingDate = request.FoundingDate?.ToUniversalTime() ?? DateTime.UtcNow,
                 Location = request.Location?.Trim(),
                 ContactEmail = request.ContactEmail?.Trim(),
                 ContactPhone = request.ContactPhone?.Trim(),
