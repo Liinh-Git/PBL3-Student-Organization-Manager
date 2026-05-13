@@ -3,6 +3,7 @@ using Org.Backend.Domain.Entities;
 using Org.Backend.Domain.Enums;
 using Org.Backend.Features.Departments.Mappings;
 using Org.Backend.Infrastructure.Persistence;
+using Org.Backend.Infrastructure.Persistence.Seed;
 using Org.Shared.Features.Departments;
 
 namespace Org.Backend.Features.Departments.Services;
@@ -102,15 +103,30 @@ public class DepartmentService : IDepartmentService
             throw new UnauthorizedAccessException("You do not have permission to manage departments");
         }
 
+        var actorRoleName = (member.Role.RoleName ?? string.Empty).Trim().ToLowerInvariant();
+        var isLeadership = actorRoleName == "president" || actorRoleName == "vice president" || actorRoleName == "vicepresident";
+
         // Validate manager if provided
         if (request.ManagerId.HasValue)
         {
+            if (!isLeadership)
+            {
+                throw new UnauthorizedAccessException("Only President/Vice President can assign manager");
+            }
+
             var managerExists = await _context.Members
                 .AnyAsync(m => m.Id == request.ManagerId.Value && m.OrgId == orgId && m.Status == MemberStatus.Active, ct);
 
             if (!managerExists)
             {
                 throw new InvalidOperationException("Manager must be an active member of this organization");
+            }
+
+            var managerInOtherDepartment = await _context.Members
+                .AnyAsync(m => m.Id == request.ManagerId.Value && m.DepartmentId.HasValue, ct);
+            if (managerInOtherDepartment)
+            {
+                throw new InvalidOperationException("Manager already belongs to another department");
             }
         }
 
@@ -130,6 +146,31 @@ public class DepartmentService : IDepartmentService
         _context.Departments.Add(department);
         await _context.SaveChangesAsync(ct);
 
+        // Keep manager assignment consistent with member's department assignment
+        if (request.ManagerId.HasValue)
+        {
+            var managerMember = await _context.Members
+                .Include(m => m.Role)
+                .FirstOrDefaultAsync(m => m.Id == request.ManagerId.Value, ct);
+            if (managerMember != null)
+            {
+                managerMember.DepartmentId = department.Id;
+                if (!IsLeadershipRole(managerMember.Role?.RoleName))
+                {
+                    var managerRoleId = await _context.Roles
+                        .Where(r => r.OrgId == orgId && r.RoleName == SeedConstants.ManagerRoleName)
+                        .Select(r => (Guid?)r.Id)
+                        .FirstOrDefaultAsync(ct);
+                    if (managerRoleId.HasValue)
+                    {
+                        managerMember.RoleId = managerRoleId.Value;
+                    }
+                }
+                managerMember.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync(ct);
+            }
+        }
+
         // Load manager info for response
         if (department.ManagerId.HasValue)
         {
@@ -140,7 +181,9 @@ public class DepartmentService : IDepartmentService
                 .LoadAsync(ct);
         }
 
-        return department.ToDepartmentDto(0);
+        var created = department.ToDepartmentDto(0);
+        await NotifyDepartmentCreatedAsync(department, userId, ct);
+        return created;
     }
 
     public async Task<DepartmentDto> UpdateDepartmentAsync(Guid departmentId, Guid userId, UpdateDepartmentRequest request, CancellationToken ct = default)
@@ -168,7 +211,7 @@ public class DepartmentService : IDepartmentService
             throw new UnauthorizedAccessException("You are not a member of this organization");
         }
 
-        // Verify user has org.departments.manage permission
+        // Verify user has org.departments.manage permission or is manager of this department
         if (member.Role == null)
         {
             throw new UnauthorizedAccessException("You do not have a role assigned");
@@ -177,14 +220,24 @@ public class DepartmentService : IDepartmentService
         var hasPermission = member.Role.RolePermissions
             .Any(rp => rp.Permission?.PermissionKey == "org.departments.manage");
 
-        if (!hasPermission)
+        var isDepartmentManager = department.ManagerId.HasValue && department.ManagerId.Value == member.Id;
+
+        if (!hasPermission && !isDepartmentManager)
         {
             throw new UnauthorizedAccessException("You do not have permission to manage departments");
         }
 
+        var actorRoleName = (member.Role.RoleName ?? string.Empty).Trim().ToLowerInvariant();
+        var isLeadership = actorRoleName == "president" || actorRoleName == "vice president" || actorRoleName == "vicepresident";
+
         // Validate manager if provided
         if (request.ManagerId.HasValue)
         {
+            if (!isLeadership && request.ManagerId != department.ManagerId)
+            {
+                throw new UnauthorizedAccessException("Only President/Vice President can change manager");
+            }
+
             var managerExists = await _context.Members
                 .AnyAsync(m => m.Id == request.ManagerId.Value && m.OrgId == department.OrgId && m.Status == MemberStatus.Active, ct);
 
@@ -192,7 +245,16 @@ public class DepartmentService : IDepartmentService
             {
                 throw new InvalidOperationException("Manager must be an active member of this organization");
             }
+
+            var managerInOtherDepartment = await _context.Members
+                .AnyAsync(m => m.Id == request.ManagerId.Value && m.DepartmentId.HasValue && m.DepartmentId != department.Id, ct);
+            if (managerInOtherDepartment)
+            {
+                throw new InvalidOperationException("Manager already belongs to another department");
+            }
         }
+
+        var previousManagerId = department.ManagerId;
 
         // Update department
         department.DeptName = request.DepartmentName;
@@ -201,6 +263,57 @@ public class DepartmentService : IDepartmentService
         department.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
+
+        // Keep manager assignment consistent with member's department assignment
+        if (request.ManagerId.HasValue)
+        {
+            var managerMember = await _context.Members
+                .Include(m => m.Role)
+                .FirstOrDefaultAsync(m => m.Id == request.ManagerId.Value, ct);
+            if (managerMember != null)
+            {
+                managerMember.DepartmentId = department.Id;
+                if (!IsLeadershipRole(managerMember.Role?.RoleName))
+                {
+                    var managerRoleId = await _context.Roles
+                        .Where(r => r.OrgId == department.OrgId && r.RoleName == SeedConstants.ManagerRoleName)
+                        .Select(r => (Guid?)r.Id)
+                        .FirstOrDefaultAsync(ct);
+                    if (managerRoleId.HasValue)
+                    {
+                        managerMember.RoleId = managerRoleId.Value;
+                    }
+                }
+                managerMember.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync(ct);
+            }
+        }
+
+        // If manager changed, clear old manager's department assignment only when it was this department
+        if (previousManagerId.HasValue && previousManagerId != request.ManagerId)
+        {
+            var oldManager = await _context.Members
+                .Include(m => m.Role)
+                .FirstOrDefaultAsync(m => m.Id == previousManagerId.Value, ct);
+            if (oldManager != null && oldManager.DepartmentId == department.Id)
+            {
+                oldManager.DepartmentId = null;
+                var oldRoleName = (oldManager.Role?.RoleName ?? string.Empty).Trim();
+                if (string.Equals(oldRoleName, SeedConstants.ManagerRoleName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var memberRoleId = await _context.Roles
+                        .Where(r => r.OrgId == department.OrgId && r.RoleName == SeedConstants.MemberRoleName)
+                        .Select(r => (Guid?)r.Id)
+                        .FirstOrDefaultAsync(ct);
+                    if (memberRoleId.HasValue)
+                    {
+                        oldManager.RoleId = memberRoleId.Value;
+                    }
+                }
+                oldManager.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync(ct);
+            }
+        }
 
         // Reload manager info if changed
         if (department.ManagerId.HasValue)
@@ -272,5 +385,59 @@ public class DepartmentService : IDepartmentService
         await _context.SaveChangesAsync(ct);
 
         return true;
+    }
+
+    private async Task NotifyDepartmentCreatedAsync(Department department, Guid actorUserId, CancellationToken ct)
+    {
+        var orgMembers = await _context.Members
+            .Include(m => m.Role)
+            .Where(m => m.OrgId == department.OrgId && m.Status == MemberStatus.Active)
+            .ToListAsync(ct);
+
+        var leaderReceiverIds = orgMembers
+            .Where(m =>
+            {
+                var roleName = (m.Role?.RoleName ?? string.Empty).Trim().ToLowerInvariant();
+                return roleName == "president" || roleName == "vice president" || roleName == "vicepresident";
+            })
+            .Select(m => m.UserId)
+            .Distinct()
+            .ToHashSet();
+
+        if (department.ManagerId.HasValue)
+        {
+            var manager = orgMembers.FirstOrDefault(m => m.Id == department.ManagerId.Value);
+            if (manager != null)
+            {
+                leaderReceiverIds.Add(manager.UserId);
+            }
+        }
+
+        if (leaderReceiverIds.Count == 0)
+        {
+            return;
+        }
+
+        var notifications = leaderReceiverIds.Select(receiverId => new Notification
+        {
+            ReceiverId = receiverId,
+            ActorId = actorUserId,
+            Title = "Department created",
+            Message = $"Department '{department.DeptName}' has been created.",
+            Type = NotificationType.System,
+            RelatedEntityType = nameof(Department),
+            RelatedEntityId = department.Id,
+            ActionUrl = $"/org/departments?orgId={department.OrgId}",
+            IsRead = false
+        });
+
+        _context.Notifications.AddRange(notifications);
+        await _context.SaveChangesAsync(ct);
+    }
+
+    private static bool IsLeadershipRole(string? roleName)
+    {
+        var normalized = (roleName ?? string.Empty).Trim().ToLowerInvariant();
+        return normalized == "president" || normalized == "vice president" || normalized == "vicepresident";
     }
 }

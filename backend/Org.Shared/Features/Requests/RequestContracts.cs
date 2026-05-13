@@ -54,3 +54,10 @@ public record RequestDto
     public required DateTime CreatedAtUtc { get; init; }
     public DateTime? UpdatedAtUtc { get; init; }
 }
+
+public record MyPendingJoinRequestDto
+{
+    public required Guid RequestId { get; init; }
+    public required Guid OrganizationId { get; init; }
+    public required DateTime CreatedAtUtc { get; init; }
+}

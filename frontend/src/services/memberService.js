@@ -104,8 +104,8 @@ export async function updateMemberDepartment(memberId, payload) {
  * - Soft-delete member record
  * - May prevent removing last President/admin
  */
-export async function removeMember(memberId) {
-  const response = await httpClient.delete(`/members/${memberId}`);
+export async function removeMember(memberId, payload = {}) {
+  const response = await httpClient.delete(`/members/${memberId}`, { data: payload });
   
   if (!response.data.success) {
     throw new Error(response.data.message || 'Failed to remove member');

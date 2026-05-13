@@ -10,5 +10,5 @@ public interface IMemberService
     // Write operations
     Task<MemberDto> AddMemberAsync(Guid orgId, Guid userId, AddMemberRequest request, CancellationToken ct = default);
     Task<MemberDto> UpdateMemberDepartmentAsync(Guid memberId, Guid userId, UpdateMemberDepartmentRequest request, CancellationToken ct = default);
-    Task<bool> RemoveMemberAsync(Guid memberId, Guid userId, CancellationToken ct = default);
+    Task<bool> RemoveMemberAsync(Guid memberId, Guid userId, RemoveMemberRequest? request, CancellationToken ct = default);
 }

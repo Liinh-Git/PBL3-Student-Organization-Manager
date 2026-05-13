@@ -33,12 +33,12 @@ public class EventCategoryService : IEventCategoryService
         // Get categories with tasks
         var categories = await _context.EventCategories
             .Include(c => c.OwnerDepartment)
-            .Include(c => c.Tasks.Where(t => !t.IsDeleted))
+            .Include(c => c.Tasks.Where(t => !t.IsDeleted && t.DeptId == null))
                 .ThenInclude(t => t.Assignee)
                     .ThenInclude(a => a!.User)
-            .Include(c => c.Tasks.Where(t => !t.IsDeleted))
+            .Include(c => c.Tasks.Where(t => !t.IsDeleted && t.DeptId == null))
                 .ThenInclude(t => t.Department)
-            .Include(c => c.Tasks.Where(t => !t.IsDeleted))
+            .Include(c => c.Tasks.Where(t => !t.IsDeleted && t.DeptId == null))
                 .ThenInclude(t => t.CreatedByMember)
                     .ThenInclude(cb => cb!.User)
             .Where(c => c.MilestoneId == milestoneId)
@@ -54,12 +54,12 @@ public class EventCategoryService : IEventCategoryService
             .Include(c => c.Milestone)
                 .ThenInclude(m => m.Event)
             .Include(c => c.OwnerDepartment)
-            .Include(c => c.Tasks.Where(t => !t.IsDeleted))
+            .Include(c => c.Tasks.Where(t => !t.IsDeleted && t.DeptId == null))
                 .ThenInclude(t => t.Assignee)
                     .ThenInclude(a => a!.User)
-            .Include(c => c.Tasks.Where(t => !t.IsDeleted))
+            .Include(c => c.Tasks.Where(t => !t.IsDeleted && t.DeptId == null))
                 .ThenInclude(t => t.Department)
-            .Include(c => c.Tasks.Where(t => !t.IsDeleted))
+            .Include(c => c.Tasks.Where(t => !t.IsDeleted && t.DeptId == null))
                 .ThenInclude(t => t.CreatedByMember)
                     .ThenInclude(cb => cb!.User)
             .FirstOrDefaultAsync(c => c.Id == categoryId, ct);
@@ -169,12 +169,12 @@ public class EventCategoryService : IEventCategoryService
         // Reload with navigation properties
         category = await _context.EventCategories
             .Include(c => c.OwnerDepartment)
-            .Include(c => c.Tasks.Where(t => !t.IsDeleted))
+            .Include(c => c.Tasks.Where(t => !t.IsDeleted && t.DeptId == null))
                 .ThenInclude(t => t.Assignee)
                     .ThenInclude(a => a!.User)
-            .Include(c => c.Tasks.Where(t => !t.IsDeleted))
+            .Include(c => c.Tasks.Where(t => !t.IsDeleted && t.DeptId == null))
                 .ThenInclude(t => t.Department)
-            .Include(c => c.Tasks.Where(t => !t.IsDeleted))
+            .Include(c => c.Tasks.Where(t => !t.IsDeleted && t.DeptId == null))
                 .ThenInclude(t => t.CreatedByMember)
                     .ThenInclude(cb => cb!.User)
             .FirstAsync(c => c.Id == categoryId, ct);

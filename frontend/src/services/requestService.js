@@ -91,6 +91,26 @@ export async function createOrganizationRequest(orgId, payload) {
   }
 }
 
+export async function getMyPendingJoinRequests() {
+  const response = await httpClient.get('/users/me/requests/pending-join');
+
+  if (!response.data.success) {
+    throw new Error(getApiErrorMessage(response.data, 'Failed to get pending join requests'));
+  }
+
+  return Array.isArray(response.data.data) ? response.data.data : [];
+}
+
+export async function withdrawOrganizationJoinRequest(orgId) {
+  const response = await httpClient.post(`/organizations/${orgId}/requests/withdraw`, { orgId });
+
+  if (!response.data.success) {
+    throw new Error(getApiErrorMessage(response.data, 'Failed to withdraw join request'));
+  }
+
+  return !!response.data.data;
+}
+
 /**
  * Get request by ID
  * 

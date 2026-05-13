@@ -168,6 +168,22 @@ export async function assignTask(taskId, payload) {
   return response.data.data;
 }
 
+export async function getDepartmentTasks(orgId, departmentId) {
+  const response = await httpClient.get(`/organizations/${orgId}/departments/${departmentId}/tasks`);
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to get department tasks');
+  }
+  return response.data.data;
+}
+
+export async function createDepartmentTask(orgId, departmentId, payload) {
+  const response = await httpClient.post(`/organizations/${orgId}/departments/${departmentId}/tasks`, payload);
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to create department task');
+  }
+  return response.data.data;
+}
+
 /**
  * IMPORTANT NOTE:
  * 

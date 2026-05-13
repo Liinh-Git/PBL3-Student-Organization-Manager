@@ -65,7 +65,11 @@ function OrgEventDetailPage() {
           // Ensure tasks array exists
           const categoriesWithTasks = categoriesData.map(cat => ({
             ...cat,
-            tasks: cat.tasks || []
+            tasks: (cat.tasks || []).filter((task) =>
+              task &&
+              (task.eventCategoryId === cat.id || task.categoryId === cat.id) &&
+              !task.deptId
+            )
           }));
           categoriesMap[milestone.id] = categoriesWithTasks;
         }

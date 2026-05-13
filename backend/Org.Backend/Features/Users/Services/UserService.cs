@@ -62,9 +62,10 @@ public class UserService : IUserService
 
     public async Task<List<DiscoverOrganizationDto>> DiscoverOrganizationsAsync(Guid userId, CancellationToken ct = default)
     {
-        // Get organizations where user is NOT already a member
+        // Get organizations where user is NOT currently an active member.
+        // Users who previously left (inactive membership) should still discover again.
         var memberOrgIds = await _context.Members
-            .Where(m => m.UserId == userId)
+            .Where(m => m.UserId == userId && m.Status == MemberStatus.Active)
             .Select(m => m.OrgId)
             .ToListAsync(ct);
 

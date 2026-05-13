@@ -19,7 +19,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { discoverMyOrganizations, getMyOrganizations } from '../../services/userService.js';
 import { getOrganizationEvents, getPublicEvents } from '../../services/eventService.js';
-import { createOrganizationRequest } from '../../services/requestService.js';
+import { createOrganizationRequest, getMyPendingJoinRequests, withdrawOrganizationJoinRequest } from '../../services/requestService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
@@ -37,21 +37,24 @@ function UserDiscoverPage() {
   const [error, setError] = useState(null);
   const [requestingOrgId, setRequestingOrgId] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [pendingJoinOrgIds, setPendingJoinOrgIds] = useState(new Set());
 
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
       setError(null);
       try {
-        const [discoverableOrgs, myOrgs, publicEvents] = await Promise.all([
+        const [discoverableOrgs, myOrgs, publicEvents, pendingJoinRequests] = await Promise.all([
           discoverMyOrganizations(),
           getMyOrganizations(),
-          getPublicEvents()
+          getPublicEvents(),
+          getMyPendingJoinRequests()
         ]);
 
         const orgIds = (myOrgs || []).map((org) => org.id).filter(Boolean);
         setMyOrgIds(orgIds);
         setOrganizations(discoverableOrgs || []);
+        setPendingJoinOrgIds(new Set((pendingJoinRequests || []).map((r) => r.organizationId).filter(Boolean)));
 
         const orgEventsResults = await Promise.all(
           orgIds.map(async (orgId) => {
@@ -89,14 +92,34 @@ function UserDiscoverPage() {
 
     setRequestingOrgId(orgId);
     setSuccessMessage(null);
+    setError(null);
 
     try {
-      await createOrganizationRequest(orgId, {
-        requestType: 'JoinOrganization',
-        content: `I would like to join ${safeOrgName}`,
-      });
+      if (pendingJoinOrgIds.has(orgId)) {
+        const withdrew = await withdrawOrganizationJoinRequest(orgId);
+        if (withdrew) {
+          setPendingJoinOrgIds((prev) => {
+            const next = new Set(prev);
+            next.delete(orgId);
+            return next;
+          });
+          setSuccessMessage(`Đã thu hồi yêu cầu tham gia ${safeOrgName}`);
+        } else {
+          setSuccessMessage(`Không có yêu cầu đang chờ để thu hồi cho ${safeOrgName}`);
+        }
+      } else {
+        await createOrganizationRequest(orgId, {
+          requestType: 'JoinOrganization',
+          content: `I would like to join ${safeOrgName}`,
+        });
 
-      setSuccessMessage(`Request sent to ${safeOrgName}`);
+        setPendingJoinOrgIds((prev) => {
+          const next = new Set(prev);
+          next.add(orgId);
+          return next;
+        });
+        setSuccessMessage(`Đã gửi yêu cầu tham gia ${safeOrgName}`);
+      }
     } catch (err) {
       setError(err.message || 'Failed to send join request');
     } finally {
@@ -180,6 +203,8 @@ function UserDiscoverPage() {
               <tbody>
                 {organizations.map((org) => {
                 const orgName = org.name || org.orgName || org.organizationName || 'Unknown organization';
+                const isPending = pendingJoinOrgIds.has(org.id);
+                const isWorking = requestingOrgId === org.id;
 
                 return (
                   <tr key={org.id}>
@@ -191,10 +216,11 @@ function UserDiscoverPage() {
                     <td>
                       <button
                         onClick={() => handleRequestToJoin(org.id, orgName)}
-                        disabled={requestingOrgId === org.id}
-                        className="app-button app-button--primary"
+                        disabled={isWorking}
+                        className={`app-button ${isPending ? 'app-button--secondary' : 'app-button--primary'}`}
+                        title={isPending ? 'Nhấn lại để thu hồi yêu cầu' : undefined}
                       >
-                        {requestingOrgId === org.id ? 'Sending...' : 'Request to Join'}
+                        {isWorking ? 'Đang xử lý...' : (isPending ? 'Đã gửi yêu cầu tham gia' : 'Request to Join')}
                       </button>
                     </td>
                   </tr>

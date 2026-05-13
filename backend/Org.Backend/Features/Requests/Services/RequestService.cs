@@ -35,13 +35,16 @@ public class RequestService : IRequestService
             throw new UnauthorizedAccessException("You do not have a role assigned");
         }
 
+        var roleName = (member.Role.RoleName ?? string.Empty).Trim().ToLowerInvariant();
+        var isLeadership = roleName == "president" || roleName == "vice president" || roleName == "vicepresident";
+
         var hasPermission = member.Role.RolePermissions
             .Any(rp =>
                 rp.Permission?.PermissionKey == "org.requests.view" ||
                 rp.Permission?.PermissionKey == "org.requests.review" ||
                 rp.Permission?.PermissionKey == "org.requests.approve");
 
-        if (!hasPermission)
+        if (!hasPermission && !isLeadership)
         {
             throw new UnauthorizedAccessException("You do not have permission to view requests");
         }
@@ -315,6 +318,43 @@ public class RequestService : IRequestService
             .FirstAsync(r => r.Id == requestId, ct);
 
         return updatedRequest.ToRequestDto();
+    }
+
+    public async Task<List<MyPendingJoinRequestDto>> GetMyPendingJoinRequestsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var pending = await _context.Requests
+            .Where(r => r.SenderId == userId && r.RequestType == RequestType.JoinOrganization && r.Status == RequestStatus.Pending)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new MyPendingJoinRequestDto
+            {
+                RequestId = r.Id,
+                OrganizationId = r.OrgId,
+                CreatedAtUtc = r.CreatedAt
+            })
+            .ToListAsync(ct);
+
+        return pending;
+    }
+
+    public async Task<bool> WithdrawMyPendingJoinRequestAsync(Guid userId, Guid orgId, CancellationToken ct = default)
+    {
+        var request = await _context.Requests
+            .FirstOrDefaultAsync(r =>
+                r.SenderId == userId &&
+                r.OrgId == orgId &&
+                r.RequestType == RequestType.JoinOrganization &&
+                r.Status == RequestStatus.Pending, ct);
+
+        if (request == null)
+        {
+            return false;
+        }
+
+        request.Status = RequestStatus.Cancelled;
+        request.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+        return true;
     }
 
     private async Task NotifyRequestReviewersAsync(Request request, string organizationName, CancellationToken ct)

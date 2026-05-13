@@ -2,10 +2,11 @@ using System.Security.Claims;
 using FastEndpoints;
 using Org.Backend.Features.Members.Services;
 using Org.Shared.Common;
+using Org.Shared.Features.Members;
 
 namespace Org.Backend.Features.Members.Endpoints;
 
-public class RemoveMemberEndpoint : EndpointWithoutRequest<ApiResponse<bool>>
+public class RemoveMemberEndpoint : Endpoint<RemoveMemberRequest, ApiResponse<bool>>
 {
     private readonly IMemberService _memberService;
 
@@ -19,7 +20,7 @@ public class RemoveMemberEndpoint : EndpointWithoutRequest<ApiResponse<bool>>
         Delete("/members/{id}");
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(RemoveMemberRequest req, CancellationToken ct)
     {
         try
         {
@@ -33,7 +34,7 @@ public class RemoveMemberEndpoint : EndpointWithoutRequest<ApiResponse<bool>>
 
             var memberId = Route<Guid>("id");
 
-            var result = await _memberService.RemoveMemberAsync(memberId, userId, ct);
+            var result = await _memberService.RemoveMemberAsync(memberId, userId, req, ct);
 
             Response = ApiResponse<bool>.SuccessResponse(result, "Member removed successfully");
         }

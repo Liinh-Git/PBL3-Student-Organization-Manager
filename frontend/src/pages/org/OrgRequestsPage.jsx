@@ -39,7 +39,12 @@ function OrgRequestsPage() {
   const myMember = members.find((m) => m.userId === currentUserId || m.user?.id === currentUserId);
   const myRoleName = (myMember?.role?.roleName || myMember?.roleName || '').trim().toLowerCase();
   const isLeader = myRoleName === 'president' || myRoleName === 'vice president' || myRoleName === 'vicepresident';
-  const canView = isMember && (permissions.includes('org.requests.view') || !isLeader);
+  const canView = isMember && (
+    isLeader ||
+    permissions.includes('org.requests.view') ||
+    permissions.includes('org.requests.review') ||
+    permissions.includes('org.requests.approve')
+  );
   const canReview = isLeader && (permissions.includes('org.requests.review') || permissions.includes('org.requests.approve'));
   const canCreateRequest = isMember && !isLeader;
 

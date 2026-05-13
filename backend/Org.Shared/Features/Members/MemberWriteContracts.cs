@@ -40,3 +40,14 @@ public record UpdateMemberDepartmentRequest
     /// </summary>
     public Guid? DepartmentId { get; init; }
 }
+
+/// <summary>
+/// Request DTO for removing/leaving organization member
+/// </summary>
+public record RemoveMemberRequest
+{
+    /// <summary>
+    /// Optional reason for removal/leave
+    /// </summary>
+    public string? Reason { get; init; }
+}
