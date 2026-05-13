@@ -102,7 +102,7 @@ export async function getMyPendingJoinRequests() {
 }
 
 export async function withdrawOrganizationJoinRequest(orgId) {
-  const response = await httpClient.post(`/organizations/${orgId}/requests/withdraw`);
+  const response = await httpClient.post(`/organizations/${orgId}/requests/withdraw`, {});
 
   if (!response.data.success) {
     throw new Error(getApiErrorMessage(response.data, 'Failed to withdraw join request'));
@@ -159,19 +159,23 @@ export async function getRequestById(requestId) {
  * - On Approved for JoinOrganization, create Member record
  */
 export async function reviewRequest(requestId, payload) {
-  const requestBody = {
-    requestId,
-    review: {
-      decision: payload?.decision,
-      reviewNote: payload?.reviewNote || undefined
+  try {
+    const requestBody = {
+      review: {
+        decision: payload?.decision,
+        reviewNote: payload?.reviewNote || undefined
+      }
+    };
+
+    const response = await httpClient.post(`/organizations/requests/${requestId}/review`, requestBody);
+
+    if (!response.data.success) {
+      throw new Error(getApiErrorMessage(response.data, 'Failed to review request'));
     }
-  };
 
-  const response = await httpClient.post(`/organizations/requests/${requestId}/review`, requestBody);
-
-  if (!response.data.success) {
-    throw new Error(getApiErrorMessage(response.data, 'Failed to review request'));
+    return toRequestViewModel(response.data.data);
+  } catch (error) {
+    const responseData = error?.response?.data;
+    throw new Error(getApiErrorMessage(responseData, error?.message || 'Failed to review request'));
   }
-
-  return toRequestViewModel(response.data.data);
 }

@@ -3,6 +3,7 @@ using Org.Backend.Domain.Entities;
 using Org.Backend.Domain.Enums;
 using Org.Backend.Features.Requests.Mappings;
 using Org.Backend.Infrastructure.Persistence;
+using Org.Backend.Infrastructure.Persistence.Seed;
 using Org.Shared.Features.Requests;
 
 namespace Org.Backend.Features.Requests.Services;
@@ -258,36 +259,53 @@ public class RequestService : IRequestService
 
         var newStatus = reviewRequest.Decision == "Approved" ? RequestStatus.Approved : RequestStatus.Rejected;
 
-        // Update request
-        request.Status = newStatus;
-        request.ReviewNote = reviewRequest.ReviewNote?.Trim();
-        request.ReviewedByMemberId = member.Id;
-        request.ReviewedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync(ct);
-        await NotifyRequestSenderReviewedAsync(request, member.UserId, ct);
-
-        // If approved and it's a join request, create member (simple implementation)
-        // Note: This is a basic implementation. Production code might need more complex logic.
-        if (newStatus == RequestStatus.Approved && request.RequestType == RequestType.JoinOrganization)
+        await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+        try
         {
-            // Check if user is not already a member
-            var existingMember = await _context.Members
-                .FirstOrDefaultAsync(m => m.OrgId == request.OrgId && m.UserId == request.SenderId, ct);
-
-            if (existingMember == null)
+            // If approved and it's a join request, ensure requester becomes ACTIVE member first.
+            // This prevents "Approved notification sent but membership not activated" inconsistency.
+            if (newStatus == RequestStatus.Approved && request.RequestType == RequestType.JoinOrganization)
             {
-                // Get default member role
-                var defaultRole = await _context.Roles
-                    .FirstOrDefaultAsync(r => r.OrgId == request.OrgId && r.IsDefault && r.RoleName == "Member", ct);
+                // Check existing member record regardless of status
+                var existingMember = await _context.Members
+                    .FirstOrDefaultAsync(m => m.OrgId == request.OrgId && m.UserId == request.SenderId, ct);
 
-                if (defaultRole != null)
+                // Resolve membership role robustly:
+                // 1) canonical "Member"
+                // 2) default non-leadership role with the highest level (least privileged)
+                var memberRole = await _context.Roles
+                    .Where(r => r.OrgId == request.OrgId && r.RoleName == SeedConstants.MemberRoleName)
+                    .OrderByDescending(r => r.IsDefault)
+                    .ThenByDescending(r => r.Level ?? int.MinValue)
+                    .FirstOrDefaultAsync(ct);
+
+                if (memberRole == null)
+                {
+                    memberRole = await _context.Roles
+                        .Where(r =>
+                            r.OrgId == request.OrgId &&
+                            r.IsDefault &&
+                            r.RoleName != null &&
+                            r.RoleName.ToLower() != "president" &&
+                            r.RoleName.ToLower() != "vice president" &&
+                            r.RoleName.ToLower() != "vicepresident")
+                        .OrderByDescending(r => r.Level ?? int.MinValue)
+                        .FirstOrDefaultAsync(ct);
+                }
+
+                if (memberRole == null)
+                {
+                    throw new InvalidOperationException("Cannot approve join request because no valid member role is configured in organization");
+                }
+
+                if (existingMember == null)
                 {
                     var newMember = new Member
                     {
+                        Id = Guid.NewGuid(),
                         UserId = request.SenderId,
                         OrgId = request.OrgId,
-                        RoleId = defaultRole.Id,
+                        RoleId = memberRole.Id,
                         DepartmentId = request.DesiredDepartmentId,
                         StudentCode = null,
                         Status = MemberStatus.Active,
@@ -295,18 +313,77 @@ public class RequestService : IRequestService
                     };
 
                     _context.Members.Add(newMember);
-                    
+
                     // Update organization total members
                     var org = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == request.OrgId, ct);
                     if (org != null)
                     {
                         org.TotalMembers++;
                     }
+                }
+                else if (existingMember.Status != MemberStatus.Active)
+                {
+                    // Reactivate existing member record
+                    existingMember.Status = MemberStatus.Active;
+                    existingMember.RoleId = memberRole.Id;
+                    existingMember.DepartmentId = request.DesiredDepartmentId;
+                    existingMember.JoinDate = DateTime.UtcNow;
+                    existingMember.UpdatedAt = DateTime.UtcNow;
 
-                    await _context.SaveChangesAsync(ct);
+                    var org = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == request.OrgId, ct);
+                    if (org != null)
+                    {
+                        org.TotalMembers++;
+                    }
+                }
+
+                // Cancel any other pending join requests for the same sender+org
+                var otherPendingRequests = await _context.Requests
+                    .Where(r =>
+                        r.Id != request.Id &&
+                        r.SenderId == request.SenderId &&
+                        r.OrgId == request.OrgId &&
+                        r.RequestType == RequestType.JoinOrganization &&
+                        r.Status == RequestStatus.Pending)
+                    .ToListAsync(ct);
+
+                foreach (var pending in otherPendingRequests)
+                {
+                    pending.Status = RequestStatus.Cancelled;
+                    pending.UpdatedAt = DateTime.UtcNow;
+                }
+
+            }
+
+            // Update request
+            request.Status = newStatus;
+            request.ReviewNote = reviewRequest.ReviewNote?.Trim();
+            request.ReviewedByMemberId = member.Id;
+            request.ReviewedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync(ct);
+
+            // Hard guarantee: validate after SaveChanges so newly added member is queryable from DB
+            if (newStatus == RequestStatus.Approved && request.RequestType == RequestType.JoinOrganization)
+            {
+                var hasActiveMembership = await _context.Members
+                    .AnyAsync(m => m.OrgId == request.OrgId && m.UserId == request.SenderId && m.Status == MemberStatus.Active, ct);
+
+                if (!hasActiveMembership)
+                {
+                    throw new InvalidOperationException("Join request approved but active membership was not created");
                 }
             }
+
+            await transaction.CommitAsync(ct);
         }
+        catch
+        {
+            await transaction.RollbackAsync(ct);
+            throw;
+        }
+
+        await NotifyRequestSenderReviewedAsync(request, member.UserId, ct);
 
         // Reload with navigation properties
         var updatedRequest = await _context.Requests

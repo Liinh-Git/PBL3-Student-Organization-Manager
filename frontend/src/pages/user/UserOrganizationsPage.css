@@ -217,6 +217,29 @@
   gap: 0.5rem;
   margin-top: auto;
 }
+.org-card-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+.org-delete-btn {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.org-delete-btn:hover:not(:disabled) {
+  background: #ffe4e6;
+}
+.org-delete-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
 
 /* Modal Overlay */
 .org-modal-overlay {

@@ -6,7 +6,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyOrganizations } from "../../services/userService.js";
-import { createOrganization } from "../../services/organizationService.js";
+import {
+  createOrganization,
+  deleteOrganization,
+} from "../../services/organizationService.js";
 import OrgCard from "../../components/org/OrgCard";
 import "./UserOrganizationsPage.css";
 
@@ -19,6 +22,7 @@ function UserOrganizationsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
+  const [deletingOrgId, setDeletingOrgId] = useState(null);
 
   const [formData, setFormData] = useState({
     orgName: "",
@@ -100,6 +104,25 @@ function UserOrganizationsPage() {
     }));
   };
 
+  const handleDeleteOrganization = async (orgId, orgName) => {
+    const confirmDelete = window.confirm(
+      `Bạn có chắc muốn xóa tổ chức "${orgName || "này"}"? Hành động này không thể hoàn tác.`,
+    );
+    if (!confirmDelete) return;
+
+    setDeletingOrgId(orgId);
+    setError(null);
+
+    try {
+      await deleteOrganization(orgId);
+      setOrganizations((prev) => prev.filter((org) => org.id !== orgId));
+    } catch (err) {
+      setError(err.message || "Xóa tổ chức thất bại");
+    } finally {
+      setDeletingOrgId(null);
+    }
+  };
+
   return (
     <div className="org-layout">
       {/* Header */}
@@ -162,6 +185,8 @@ function UserOrganizationsPage() {
                 key={org.id}
                 organization={org}
                 onClick={handleOrgClick}
+                onDelete={handleDeleteOrganization}
+                isDeleting={deletingOrgId === org.id}
               />
             ))}
           </div>

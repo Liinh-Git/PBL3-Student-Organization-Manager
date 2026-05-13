@@ -15,7 +15,7 @@
  * - /user/discover
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { discoverMyOrganizations, getMyOrganizations } from '../../services/userService.js';
 import { getOrganizationEvents, getPublicEvents } from '../../services/eventService.js';
@@ -39,22 +39,53 @@ function UserDiscoverPage() {
   const [successMessage, setSuccessMessage] = useState(null);
   const [pendingJoinOrgIds, setPendingJoinOrgIds] = useState(new Set());
 
+  const syncMembershipAndPendingState = useCallback(async () => {
+    const [discoverableOrgs, myOrgs, pendingJoinRequests] = await Promise.all([
+      discoverMyOrganizations(),
+      getMyOrganizations(),
+      getMyPendingJoinRequests()
+    ]);
+
+    const myOrgList = myOrgs || [];
+    const orgIds = myOrgList.map((org) => org.id).filter(Boolean);
+    setMyOrgIds(orgIds);
+
+    // Merge discoverable orgs + my orgs so joined state always wins in UI.
+    const mergedById = new Map();
+    (discoverableOrgs || []).forEach((org) => {
+      if (org?.id) mergedById.set(org.id, org);
+    });
+    myOrgList.forEach((org) => {
+      if (!org?.id) return;
+      const existing = mergedById.get(org.id) || {};
+      mergedById.set(org.id, {
+        ...existing,
+        id: org.id,
+        name: existing.name || org.name,
+        orgName: existing.orgName || org.name,
+        description: existing.description || org.description,
+        status: existing.status || "Active",
+        isJoined: true
+      });
+    });
+    setOrganizations(Array.from(mergedById.values()));
+
+    const pendingIds = new Set((pendingJoinRequests || []).map((r) => r.organizationId).filter(Boolean));
+    orgIds.forEach((id) => pendingIds.delete(id));
+    setPendingJoinOrgIds(pendingIds);
+
+    return orgIds;
+  }, []);
+
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
       setError(null);
       try {
-        const [discoverableOrgs, myOrgs, publicEvents, pendingJoinRequests] = await Promise.all([
-          discoverMyOrganizations(),
-          getMyOrganizations(),
-          getPublicEvents(),
-          getMyPendingJoinRequests()
+        const [orgIds, publicEvents] = await Promise.all([
+          syncMembershipAndPendingState(),
+          getPublicEvents()
         ]);
-
-        const orgIds = (myOrgs || []).map((org) => org.id).filter(Boolean);
-        setMyOrgIds(orgIds);
-        setOrganizations(discoverableOrgs || []);
-        setPendingJoinOrgIds(new Set((pendingJoinRequests || []).map((r) => r.organizationId).filter(Boolean)));
 
         const orgEventsResults = await Promise.all(
           orgIds.map(async (orgId) => {
@@ -85,10 +116,30 @@ function UserDiscoverPage() {
       }
     }
     loadData();
-  }, []);
+  }, [syncMembershipAndPendingState]);
+
+  useEffect(() => {
+    const syncQuietly = async () => {
+      try {
+        await syncMembershipAndPendingState();
+      } catch {
+        // keep current UI state if background sync fails
+      }
+    };
+
+    const onFocus = () => { syncQuietly(); };
+    window.addEventListener('focus', onFocus);
+    const intervalId = window.setInterval(syncQuietly, 5000);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.clearInterval(intervalId);
+    };
+  }, [syncMembershipAndPendingState]);
 
   const handleRequestToJoin = async (orgId, orgName) => {
     const safeOrgName = orgName || 'this organization';
+    if (myOrgIds.includes(orgId)) return;
 
     setRequestingOrgId(orgId);
     setSuccessMessage(null);
@@ -203,6 +254,7 @@ function UserDiscoverPage() {
               <tbody>
                 {organizations.map((org) => {
                 const orgName = org.name || org.orgName || org.organizationName || 'Unknown organization';
+                const isJoined = !!org.isJoined || myOrgIds.includes(org.id);
                 const isPending = pendingJoinOrgIds.has(org.id);
                 const isWorking = requestingOrgId === org.id;
 
@@ -215,12 +267,18 @@ function UserDiscoverPage() {
                     <td>{org.status || (org.isActive ? 'Active' : 'Inactive')}</td>
                     <td>
                       <button
-                        onClick={() => handleRequestToJoin(org.id, orgName)}
+                        onClick={() => {
+                          if (isJoined) {
+                            navigate(`/org/overview?orgId=${org.id}`);
+                            return;
+                          }
+                          handleRequestToJoin(org.id, orgName);
+                        }}
                         disabled={isWorking}
-                        className={`app-button ${isPending ? 'app-button--secondary' : 'app-button--primary'}`}
-                        title={isPending ? 'Nhấn lại để thu hồi yêu cầu' : undefined}
+                        className={`app-button ${isJoined || isPending ? 'app-button--secondary' : 'app-button--primary'}`}
+                        title={isJoined ? 'Xem chi tiết tổ chức' : (isPending ? 'Nhấn lại để thu hồi yêu cầu' : undefined)}
                       >
-                        {isWorking ? 'Đang xử lý...' : (isPending ? 'Đã gửi yêu cầu tham gia' : 'Request to Join')}
+                        {isWorking ? 'Đang xử lý...' : (isJoined ? 'Xem chi tiết' : (isPending ? 'Đã gửi yêu cầu tham gia' : 'Request to Join'))}
                       </button>
                     </td>
                   </tr>

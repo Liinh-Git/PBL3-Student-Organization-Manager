@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OrgCard.jsx - Organization card component
  * * This component displays an organization summary card using the new clean UI.
  * * Props:
@@ -14,7 +14,7 @@
  * - createdAtUtc: Creation timestamp (optional)
  */
 
-function OrgCard({ organization, onClick }) {
+function OrgCard({ organization, onClick, onDelete, isDeleting = false }) {
   if (!organization) {
     return null;
   }
@@ -30,7 +30,6 @@ function OrgCard({ organization, onClick }) {
     createdAtUtc,
   } = organization;
 
-  // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return null;
     const date = new Date(dateString);
@@ -100,22 +99,38 @@ function OrgCard({ organization, onClick }) {
         )}
       </div>
 
-      <div className="org-card-action">
-        Xem chi tiết
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ marginLeft: "4px" }}
-        >
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
+      <div className="org-card-action-row">
+        <div className="org-card-action">
+          Xem chi tiết
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ marginLeft: "4px" }}
+          >
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </div>
+
+        {onDelete && (
+          <button
+            type="button"
+            className="org-delete-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(id, name);
+            }}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Đang xóa..." : "Xóa"}
+          </button>
+        )}
       </div>
     </div>
   );
