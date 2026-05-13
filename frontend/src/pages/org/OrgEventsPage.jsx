@@ -1,7 +1,7 @@
 /**
  * OrgEventsPage.jsx - Organization events page
- * 
- * Phase 4B-1: Real backend API integration
+ *
+ * UI refactor: card-grid workspace launcher, giữ nguyên API/permission/handler flow.
  */
 
 import { useState, useEffect } from 'react';
@@ -64,23 +64,35 @@ function OrgEventsPage() {
   const getEventId = (event) => event?.id || event?.eventId;
   const getEventName = (event) => event?.name || event?.eventName;
 
+  const formatDate = (value) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  const formatTime = (value) => {
+    if (!value || !String(value).includes('T')) return '-';
+    return String(value).split('T')[1].substring(0, 5);
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!canCreate) {
       alert('Bạn không có quyền thực hiện thao tác này');
       return;
     }
-    
+
     const form = e.target;
     const eventName = form.eventName.value;
     const description = form.description.value;
     const startDate = form.startDate.value;
-    const startTime = form.startTime.value; // repurposed endDate field label but actually we need to handle this
+    const startTime = form.startTime.value;
     const location = form.location.value;
     const targetParticipants = form.targetParticipants.value;
     const bannerUrl = form.bannerUrl.value;
     const visibility = form.visibility.value;
-    
+
     if (!eventName || !startDate) {
       alert('Event name and start date are required');
       return;
@@ -91,9 +103,9 @@ function OrgEventsPage() {
       const newEvent = await createEvent(orgId, {
         eventName,
         description: description || undefined,
-        startDate: `${startDate}T${startTime || '00:00'}:00Z`, // Combine date and time
+        startDate: `${startDate}T${startTime || '00:00'}:00Z`,
         location: location || undefined,
-        targetParticipants: targetParticipants ? parseInt(targetParticipants) : undefined,
+        targetParticipants: targetParticipants ? parseInt(targetParticipants, 10) : undefined,
         bannerUrl: bannerUrl || undefined,
         visibility
       });
@@ -113,16 +125,17 @@ function OrgEventsPage() {
       alert('Bạn không có quyền thực hiện thao tác này');
       return;
     }
-    
+
     const form = e.target;
     const eventName = form.eventName.value;
     const description = form.description.value;
     const startDate = form.startDate.value;
-    const endDate = form.endDate.value;
+    const startTime = form.startTime.value;
     const location = form.location.value;
+    const targetParticipants = form.targetParticipants.value;
     const bannerUrl = form.bannerUrl.value;
     const visibility = form.visibility.value;
-    
+
     if (!eventName || !startDate) {
       alert('Event name and start date are required');
       return;
@@ -138,9 +151,9 @@ function OrgEventsPage() {
       const updated = await updateEvent(editingEventId, {
         eventName,
         description: description || undefined,
-        startDate: `${form.startDate.value}T${form.startTime.value || '00:00'}:00Z`,
+        startDate: `${startDate}T${startTime || '00:00'}:00Z`,
         location: location || undefined,
-        targetParticipants: form.targetParticipants.value ? parseInt(form.targetParticipants.value) : undefined,
+        targetParticipants: targetParticipants ? parseInt(targetParticipants, 10) : undefined,
         bannerUrl: bannerUrl || undefined,
         visibility
       });
@@ -174,13 +187,141 @@ function OrgEventsPage() {
     }
   };
 
+  const closeForms = () => {
+    setShowCreateForm(false);
+    setEditingEvent(null);
+  };
+
+  const openWorkspace = (event) => {
+    const selectedEventId = getEventId(event);
+    if (!selectedEventId) {
+      alert('Event ID is missing');
+      return;
+    }
+    navigate(`/org/events/${selectedEventId}?orgId=${orgId}`);
+  };
+
+  const EventForm = ({ mode, event }) => {
+    const isEdit = mode === 'edit';
+    return (
+      <div className="org-event-form-panel">
+        <div className="org-event-form-header">
+          <div>
+            <p className="org-eyebrow">{isEdit ? 'Cập nhật dự án' : 'Tạo dự án'}</p>
+            <h2>{isEdit ? 'Sửa sự kiện' : 'Tạo sự kiện mới'}</h2>
+          </div>
+          <button type="button" onClick={closeForms} className="org-icon-button" aria-label="Đóng form">
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={isEdit ? handleUpdate : handleCreate} className="org-event-form-grid">
+          <div className="form-group">
+            <label htmlFor={isEdit ? 'editEventName' : 'eventName'} className="form-label">Event Name *</label>
+            <input
+              id={isEdit ? 'editEventName' : 'eventName'}
+              name="eventName"
+              className="form-input"
+              defaultValue={isEdit ? getEventName(event) : ''}
+              placeholder="Event name"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor={isEdit ? 'editDescription' : 'description'} className="form-label">Description</label>
+            <input
+              id={isEdit ? 'editDescription' : 'description'}
+              name="description"
+              className="form-input"
+              defaultValue={isEdit ? event?.description || '' : ''}
+              placeholder="Description"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor={isEdit ? 'editStartDate' : 'startDate'} className="form-label">Ngày tổ chức *</label>
+            <input
+              id={isEdit ? 'editStartDate' : 'startDate'}
+              name="startDate"
+              type="date"
+              className="form-input"
+              defaultValue={isEdit && event?.startDate ? String(event.startDate).split('T')[0] : ''}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor={isEdit ? 'editStartTime' : 'startTime'} className="form-label">Giờ bắt đầu</label>
+            <input
+              id={isEdit ? 'editStartTime' : 'startTime'}
+              name="startTime"
+              type="time"
+              className="form-input"
+              defaultValue={isEdit && event?.startDate && String(event.startDate).includes('T') ? String(event.startDate).split('T')[1].substring(0, 5) : '00:00'}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor={isEdit ? 'editTargetParticipants' : 'targetParticipants'} className="form-label">Số lượng tham gia</label>
+            <input
+              id={isEdit ? 'editTargetParticipants' : 'targetParticipants'}
+              name="targetParticipants"
+              type="number"
+              className="form-input"
+              defaultValue={isEdit ? event?.targetParticipants || '' : ''}
+              placeholder="Ví dụ: 100"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor={isEdit ? 'editLocation' : 'location'} className="form-label">Location</label>
+            <input
+              id={isEdit ? 'editLocation' : 'location'}
+              name="location"
+              className="form-input"
+              defaultValue={isEdit ? event?.location || '' : ''}
+              placeholder="Location"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor={isEdit ? 'editBannerUrl' : 'bannerUrl'} className="form-label">Banner URL</label>
+            <input
+              id={isEdit ? 'editBannerUrl' : 'bannerUrl'}
+              name="bannerUrl"
+              className="form-input"
+              defaultValue={isEdit ? event?.bannerUrl || '' : ''}
+              placeholder="Banner URL"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor={isEdit ? 'editVisibility' : 'visibility'} className="form-label">Visibility</label>
+            <select
+              id={isEdit ? 'editVisibility' : 'visibility'}
+              name="visibility"
+              defaultValue={isEdit ? event?.visibility || 'Private' : 'Private'}
+              className="form-select"
+            >
+              <option value="Public">Public</option>
+              <option value="OrganizationOnly">Organization Only</option>
+              <option value="Private">Private</option>
+            </select>
+          </div>
+          <div className="org-form-actions">
+            <button type="submit" disabled={isSubmitting} className="org-button org-button-primary">
+              {isSubmitting ? (isEdit ? 'Đang cập nhật...' : 'Đang tạo...') : (isEdit ? 'Lưu thay đổi' : 'Tạo sự kiện')}
+            </button>
+            <button type="button" onClick={closeForms} className="org-button org-button-ghost">
+              Hủy
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
-      <div className="app-page">
+      <div className="app-page org-events-page">
         <PageHeader
-          title="Events"
-          description="Manage organization events"
-          actions={canCreate && <button disabled className="app-button app-button--primary">Create Event</button>}
+          title="Danh sách Dự án"
+          description="Quản lý tổng quan các sự kiện và dự án của tổ chức."
+          actions={canCreate && <button disabled className="app-button app-button--primary">Tạo sự kiện mới</button>}
         />
         <LoadingSpinner message="Loading events..." />
       </div>
@@ -189,11 +330,11 @@ function OrgEventsPage() {
 
   if (error) {
     return (
-      <div className="app-page">
+      <div className="app-page org-events-page">
         <PageHeader
-          title="Events"
-          description="Manage organization events"
-          actions={canCreate && <button disabled className="app-button app-button--primary">Create Event</button>}
+          title="Danh sách Dự án"
+          description="Quản lý tổng quan các sự kiện và dự án của tổ chức."
+          actions={canCreate && <button disabled className="app-button app-button--primary">Tạo sự kiện mới</button>}
         />
         <ErrorState message={error} />
       </div>
@@ -201,286 +342,392 @@ function OrgEventsPage() {
   }
 
   return (
-    <div className="app-page">
-      <PageHeader
-        title="Events"
-        description="Manage organization events"
-        actions={
-          canCreate && (
-            <button 
-              onClick={() => setShowCreateForm(true)}
-              className="app-button app-button--primary"
-            >
-              Create Event
-            </button>
-          )
+    <div className="org-events-page">
+      <style>{`
+        .org-events-page {
+          min-height: 100vh;
+          padding: 48px 34px;
+          background: #F8FAFC;
+          color: #0F172A;
         }
-      />
 
-      {showCreateForm && canCreate && (
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Create Event</h3>
+        .org-events-shell {
+          width: min(1120px, 100%);
+        }
+
+        .org-events-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 24px;
+          margin-bottom: 38px;
+        }
+
+        .org-events-header h1 {
+          margin: 0;
+          color: #0F172A;
+          font-size: clamp(28px, 3vw, 34px);
+          line-height: 1.15;
+          font-weight: 800;
+          letter-spacing: -0.035em;
+        }
+
+        .org-events-header p {
+          margin: 8px 0 0;
+          color: #64748B;
+          font-size: 14px;
+        }
+
+        .org-events-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 24px;
+        }
+
+        .org-event-card {
+          display: flex;
+          min-height: 304px;
+          flex-direction: column;
+          padding: 24px;
+          background: #FFFFFF;
+          border: 1px solid #DDE7F2;
+          border-radius: 12px;
+          box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 10px 20px rgba(15, 23, 42, 0.03);
+          transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+        }
+
+        .org-event-card:hover {
+          transform: translateY(-2px);
+          border-color: #CBD5E1;
+          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        }
+
+        .org-event-card-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 18px;
+        }
+
+        .org-status-badge {
+          display: inline-flex;
+          align-items: center;
+          min-height: 24px;
+          padding: 5px 9px;
+          border-radius: 4px;
+          background: #F1F5F9;
+          color: #475569;
+          font-size: 10px;
+          line-height: 1;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+        }
+
+        .org-event-card-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .org-icon-button {
+          display: inline-flex;
+          width: 30px;
+          height: 30px;
+          align-items: center;
+          justify-content: center;
+          border: 0;
+          border-radius: 8px;
+          background: transparent;
+          color: #94A3B8;
+          font-size: 18px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: background 150ms ease, color 150ms ease;
+        }
+
+        .org-icon-button:hover {
+          background: #F1F5F9;
+          color: #0F172A;
+        }
+
+        .org-icon-button-danger:hover {
+          background: #FEF2F2;
+          color: #DC2626;
+        }
+
+        .org-event-card h2 {
+          margin: 0 0 12px;
+          color: #0F172A;
+          font-size: 18px;
+          line-height: 1.35;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+
+        .org-event-description {
+          flex: 1;
+          margin: 0 0 24px;
+          color: #475569;
+          font-size: 14px;
+          line-height: 1.55;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .org-event-meta {
+          display: grid;
+          gap: 11px;
+          margin-bottom: 24px;
+          color: #334155;
+          font-size: 14px;
+        }
+
+        .org-event-meta-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+        }
+
+        .org-event-meta-row span:last-child {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .org-meta-icon {
+          width: 16px;
+          color: #94A3B8;
+          flex: 0 0 16px;
+          text-align: center;
+        }
+
+        .org-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          min-height: 42px;
+          padding: 0 18px;
+          border-radius: 8px;
+          border: 1px solid transparent;
+          font-size: 14px;
+          font-weight: 750;
+          cursor: pointer;
+          transition: background 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+        }
+
+        .org-button:disabled {
+          cursor: not-allowed;
+          opacity: 0.65;
+        }
+
+        .org-button-primary {
+          background: #F97316;
+          color: #FFFFFF;
+          box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+        }
+
+        .org-button-primary:hover:not(:disabled) {
+          background: #EA580C;
+        }
+
+        .org-button-ghost {
+          background: #FFFFFF;
+          border-color: #E2E8F0;
+          color: #334155;
+        }
+
+        .org-button-ghost:hover:not(:disabled) {
+          background: #F8FAFC;
+          border-color: #CBD5E1;
+        }
+
+        .org-button-card {
+          width: 100%;
+          background: #F8FAFC;
+          border-color: #DDE7F2;
+          color: #0F172A;
+          box-shadow: none;
+        }
+
+        .org-button-card:hover:not(:disabled) {
+          background: #F1F5F9;
+          border-color: #CBD5E1;
+        }
+
+        .org-event-form-panel {
+          margin-bottom: 28px;
+          padding: 24px;
+          background: #FFFFFF;
+          border: 1px solid #DDE7F2;
+          border-radius: 14px;
+          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        .org-event-form-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .org-event-form-header h2 {
+          margin: 3px 0 0;
+          color: #0F172A;
+          font-size: 20px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+
+        .org-eyebrow {
+          margin: 0;
+          color: #F97316;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .org-event-form-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .org-form-actions {
+          grid-column: 1 / -1;
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 4px;
+        }
+
+        .org-empty-card {
+          padding: 48px;
+          background: #FFFFFF;
+          border: 1px dashed #CBD5E1;
+          border-radius: 14px;
+        }
+
+        @media (max-width: 720px) {
+          .org-events-page {
+            padding: 28px 16px;
+          }
+
+          .org-events-header {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .org-event-form-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .org-form-actions {
+            flex-direction: column;
+          }
+
+          .org-form-actions .org-button,
+          .org-events-header .org-button {
+            width: 100%;
+          }
+        }
+      `}</style>
+
+      <main className="org-events-shell">
+        <header className="org-events-header">
+          <div>
+            <h1>Danh sách Dự án</h1>
+            <p>Quản lý tổng quan các sự kiện và dự án của tổ chức.</p>
           </div>
-          <form onSubmit={handleCreate} className="auth-form">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.9rem' }}>
-              <div className="form-group">
-                <label htmlFor="eventName" className="form-label">Event Name *</label>
-                <input
-                  id="eventName"
-                  name="eventName"
-                  className="form-input"
-                  placeholder="Event name"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="description" className="form-label">Description</label>
-                <input
-                  id="description"
-                  name="description"
-                  className="form-input"
-                  placeholder="Description"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="startDate" className="form-label">Ngày tổ chức *</label>
-                <input
-                  id="startDate"
-                  name="startDate"
-                  type="date"
-                  className="form-input"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="startTime" className="form-label">Giờ bắt đầu</label>
-                <input
-                  id="startTime"
-                  name="startTime"
-                  type="time"
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="targetParticipants" className="form-label">Số lượng tham gia</label>
-                <input
-                  id="targetParticipants"
-                  name="targetParticipants"
-                  type="number"
-                  className="form-input"
-                  placeholder="Ví dụ: 100"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="location" className="form-label">Location</label>
-                <input
-                  id="location"
-                  name="location"
-                  className="form-input"
-                  placeholder="Location"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="bannerUrl" className="form-label">Banner URL</label>
-                <input
-                  id="bannerUrl"
-                  name="bannerUrl"
-                  className="form-input"
-                  placeholder="Banner URL"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="visibility" className="form-label">Visibility</label>
-                <select id="visibility" name="visibility" defaultValue="Private" className="form-select">
-                  <option value="Public">Public</option>
-                  <option value="OrganizationOnly">Organization Only</option>
-                  <option value="Private">Private</option>
-                </select>
-              </div>
-            </div>
-            <div className="app-action-row">
-              <button type="submit" disabled={isSubmitting} className="app-button app-button--primary">
-                {isSubmitting ? 'Creating...' : 'Create'}
-              </button>
-              <button type="button" onClick={() => setShowCreateForm(false)} className="app-button app-button--ghost">
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+          {canCreate && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingEvent(null);
+                setShowCreateForm(true);
+              }}
+              className="org-button org-button-primary"
+            >
+              + Tạo sự kiện mới
+            </button>
+          )}
+        </header>
 
-      {editingEvent && canManage && (
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Edit Event</h3>
-          </div>
-          <form onSubmit={handleUpdate} className="auth-form">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.9rem' }}>
-              <div className="form-group">
-                <label htmlFor="editEventName" className="form-label">Event Name *</label>
-                <input
-                  id="editEventName"
-                  name="eventName"
-                  className="form-input"
-                  defaultValue={getEventName(editingEvent)}
-                  placeholder="Event name"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="editDescription" className="form-label">Description</label>
-                <input
-                  id="editDescription"
-                  name="description"
-                  className="form-input"
-                  defaultValue={editingEvent.description || ''}
-                  placeholder="Description"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="editStartDate" className="form-label">Ngày tổ chức *</label>
-                <input
-                  id="editStartDate"
-                  name="startDate"
-                  type="date"
-                  className="form-input"
-                  defaultValue={editingEvent.startDate ? editingEvent.startDate.split('T')[0] : ''}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="editStartTime" className="form-label">Giờ bắt đầu</label>
-                <input
-                  id="editStartTime"
-                  name="startTime"
-                  type="time"
-                  className="form-input"
-                  defaultValue={editingEvent.startDate && editingEvent.startDate.includes('T') ? editingEvent.startDate.split('T')[1].substring(0, 5) : '00:00'}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="editTargetParticipants" className="form-label">Số lượng tham gia</label>
-                <input
-                  id="editTargetParticipants"
-                  name="targetParticipants"
-                  type="number"
-                  className="form-input"
-                  defaultValue={editingEvent.targetParticipants || ''}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="editLocation" className="form-label">Location</label>
-                <input
-                  id="editLocation"
-                  name="location"
-                  className="form-input"
-                  defaultValue={editingEvent.location || ''}
-                  placeholder="Location"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="editBannerUrl" className="form-label">Banner URL</label>
-                <input
-                  id="editBannerUrl"
-                  name="bannerUrl"
-                  className="form-input"
-                  defaultValue={editingEvent.bannerUrl || ''}
-                  placeholder="Banner URL"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="editVisibility" className="form-label">Visibility</label>
-                <select id="editVisibility" name="visibility" defaultValue={editingEvent.visibility || 'Private'} className="form-select">
-                  <option value="Public">Public</option>
-                  <option value="OrganizationOnly">Organization Only</option>
-                  <option value="Private">Private</option>
-                </select>
-              </div>
-            </div>
-            <div className="app-action-row">
-              <button type="submit" disabled={isSubmitting} className="app-button app-button--primary">
-                {isSubmitting ? 'Updating...' : 'Update'}
-              </button>
-              <button type="button" onClick={() => setEditingEvent(null)} className="app-button app-button--ghost">
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+        {showCreateForm && canCreate && <EventForm mode="create" />}
+        {editingEvent && canManage && <EventForm mode="edit" event={editingEvent} />}
 
-      <div className="app-section">
         {events.length === 0 ? (
-          <EmptyState message="No events found" />
-        ) : (
-          <div className="app-card">
-            <table>
-              <thead>
-                <tr>
-                  <th>Event Name</th>
-                  <th>Description</th>
-                  <th>Ngày tổ chức</th>
-                  <th>Giờ bắt đầu</th>
-                  <th>Số lượng</th>
-                  <th>Status</th>
-                  <th>Visibility</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {events.map((event) => (
-                  <tr key={getEventId(event)}>
-                    <td>{getEventName(event) || '-'}</td>
-                    <td>{event.description || '-'}</td>
-                    <td>{event.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}</td>
-                    <td>{event.startDate && event.startDate.includes('T') ? event.startDate.split('T')[1].substring(0, 5) : '-'}</td>
-                    <td>{event.targetParticipants || '-'}</td>
-                    <td><span className="app-badge app-badge--success">{event.status || '-'}</span></td>
-                    <td>{event.visibility || '-'}</td>
-                    <td>
-                      <div className="app-action-row">
-                        <button 
-                          onClick={() => {
-                            const selectedEventId = getEventId(event);
-                            if (!selectedEventId) {
-                              alert('Event ID is missing');
-                              return;
-                            }
-                            navigate(`/org/events/${selectedEventId}?orgId=${orgId}`);
-                          }}
-                          className="app-button app-button--primary"
-                        >
-                          View
-                        </button>
-                        {canManage && (
-                          <>
-                            <button
-                              onClick={() => setEditingEvent(event)}
-                              disabled={isSubmitting}
-                              className="app-button app-button--secondary"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(getEventId(event))}
-                              disabled={isSubmitting}
-                              className="app-button app-button--danger"
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="org-empty-card">
+            <EmptyState message="No events found" />
           </div>
+        ) : (
+          <section className="org-events-grid" aria-label="Danh sách sự kiện">
+            {events.map((event) => {
+              const eventId = getEventId(event);
+              return (
+                <article key={eventId} className="org-event-card">
+                  <div className="org-event-card-top">
+                    <span className="org-status-badge">{event.status || 'Chưa xác định'}</span>
+                    {canManage && (
+                      <div className="org-event-card-actions">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCreateForm(false);
+                            setEditingEvent(event);
+                          }}
+                          disabled={isSubmitting}
+                          className="org-icon-button"
+                          title="Sửa sự kiện"
+                          aria-label="Sửa sự kiện"
+                        >
+                          ⚙
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(eventId)}
+                          disabled={isSubmitting}
+                          className="org-icon-button org-icon-button-danger"
+                          title="Xóa sự kiện"
+                          aria-label="Xóa sự kiện"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <h2>{getEventName(event) || '-'}</h2>
+                  <p className="org-event-description">{event.description || 'Không có mô tả.'}</p>
+
+                  <div className="org-event-meta">
+                    <div className="org-event-meta-row">
+                      <span className="org-meta-icon">□</span>
+                      <span>{formatDate(event.startDate)}</span>
+                      {formatTime(event.startDate) !== '-' && <span>· {formatTime(event.startDate)}</span>}
+                    </div>
+                    <div className="org-event-meta-row">
+                      <span className="org-meta-icon">⌖</span>
+                      <span>{event.location || 'Chưa xác định'}</span>
+                    </div>
+                  </div>
+
+                  <button type="button" onClick={() => openWorkspace(event)} className="org-button org-button-card">
+                    Mở không gian làm việc <span aria-hidden="true">→</span>
+                  </button>
+                </article>
+              );
+            })}
+          </section>
         )}
-      </div>
+      </main>
     </div>
   );
 }
