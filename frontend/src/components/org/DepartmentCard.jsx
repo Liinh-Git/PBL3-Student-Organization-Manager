@@ -488,38 +488,40 @@ function DepartmentCard({
                                     </div>
                                   </div>
 
-                                  <div className="dept-task-controls">
-                                    <div className="dept-task-inline-field">
-                                      <span className="dept-task-inline-label">Status</span>
-                                      <select
-                                        value={task.status}
-                                        onChange={(e) => onUpdateTaskStatus(task.id, e.target.value)}
-                                        className="dept-select dept-select--compact dept-select--compact-chip"
-                                      >
-                                        <option value="Todo">Todo</option>
-                                        <option value="InProgress">InProgress</option>
-                                        <option value="Blocked">Blocked</option>
-                                        <option value="Done">Done</option>
-                                        <option value="Cancelled">Cancelled</option>
-                                      </select>
-                                    </div>
+                                  {canManageTasks && (
+                                    <div className="dept-task-controls">
+                                      <div className="dept-task-inline-field">
+                                        <span className="dept-task-inline-label">Status</span>
+                                        <select
+                                          value={task.status}
+                                          onChange={(e) => onUpdateTaskStatus(task.id, e.target.value)}
+                                          className="dept-select dept-select--compact dept-select--compact-chip"
+                                        >
+                                          <option value="Todo">Todo</option>
+                                          <option value="InProgress">InProgress</option>
+                                          <option value="Blocked">Blocked</option>
+                                          <option value="Done">Done</option>
+                                          <option value="Cancelled">Cancelled</option>
+                                        </select>
+                                      </div>
 
-                                    <div className="dept-task-inline-field">
-                                      <span className="dept-task-inline-label">Assignee</span>
-                                      <select
-                                        value={task.assigneeId || ""}
-                                        onChange={(e) => onAssignTask(task.id, e.target.value)}
-                                        className="dept-select dept-select--compact dept-select--compact-chip dept-select--compact-accent"
-                                      >
-                                        <option value="">Gán người</option>
-                                        {departmentMembers.map((m) => (
-                                          <option key={m.id} value={m.id}>
-                                            {getMemberLabel(m)}
-                                          </option>
-                                        ))}
-                                      </select>
+                                      <div className="dept-task-inline-field">
+                                        <span className="dept-task-inline-label">Assignee</span>
+                                        <select
+                                          value={task.assigneeId || ""}
+                                          onChange={(e) => onAssignTask(task.id, e.target.value)}
+                                          className="dept-select dept-select--compact dept-select--compact-chip dept-select--compact-accent"
+                                        >
+                                          <option value="">Gán người</option>
+                                          {departmentMembers.map((m) => (
+                                            <option key={m.id} value={m.id}>
+                                              {getMemberLabel(m)}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </div>
                                     </div>
-                                  </div>
+                                  )}
                                 </article>
                               );
                             })}

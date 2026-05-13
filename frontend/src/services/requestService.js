@@ -102,7 +102,7 @@ export async function getMyPendingJoinRequests() {
 }
 
 export async function withdrawOrganizationJoinRequest(orgId) {
-  const response = await httpClient.post(`/organizations/${orgId}/requests/withdraw`, { orgId });
+  const response = await httpClient.post(`/organizations/${orgId}/requests/withdraw`);
 
   if (!response.data.success) {
     throw new Error(getApiErrorMessage(response.data, 'Failed to withdraw join request'));

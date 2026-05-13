@@ -5,7 +5,7 @@ using Org.Shared.Common;
 
 namespace Org.Backend.Features.Requests.Endpoints;
 
-public class WithdrawMyJoinRequestEndpoint : Endpoint<WithdrawMyJoinRequestRequest, ApiResponse<bool>>
+public class WithdrawMyJoinRequestEndpoint : EndpointWithoutRequest<ApiResponse<bool>>
 {
     private readonly IRequestService _requestService;
 
@@ -22,12 +22,13 @@ public class WithdrawMyJoinRequestEndpoint : Endpoint<WithdrawMyJoinRequestReque
             .Produces<ApiResponse<object>>(401));
     }
 
-    public override async Task HandleAsync(WithdrawMyJoinRequestRequest req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
         try
         {
             var userId = User.GetUserId();
-            var result = await _requestService.WithdrawMyPendingJoinRequestAsync(userId, req.OrgId, ct);
+            var orgId = Route<Guid>("orgId");
+            var result = await _requestService.WithdrawMyPendingJoinRequestAsync(userId, orgId, ct);
             Response = ApiResponse<bool>.SuccessResponse(result, result ? "Join request withdrawn" : "No pending join request to withdraw");
         }
         catch (UnauthorizedAccessException ex)
@@ -42,9 +43,3 @@ public class WithdrawMyJoinRequestEndpoint : Endpoint<WithdrawMyJoinRequestReque
         }
     }
 }
-
-public record WithdrawMyJoinRequestRequest
-{
-    public Guid OrgId { get; init; }
-}
-

@@ -35,18 +35,13 @@ function OrgRequestsPage() {
   const [error, setError] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const currentUserId = user?.id || user?.userId;
-  const myMember = members.find((m) => m.userId === currentUserId || m.user?.id === currentUserId);
-  const myRoleName = (myMember?.role?.roleName || myMember?.roleName || '').trim().toLowerCase();
-  const isLeader = myRoleName === 'president' || myRoleName === 'vice president' || myRoleName === 'vicepresident';
   const canView = isMember && (
-    isLeader ||
     permissions.includes('org.requests.view') ||
     permissions.includes('org.requests.review') ||
     permissions.includes('org.requests.approve')
   );
-  const canReview = isLeader && (permissions.includes('org.requests.review') || permissions.includes('org.requests.approve'));
-  const canCreateRequest = isMember && !isLeader;
+  const canReview = permissions.includes('org.requests.review') || permissions.includes('org.requests.approve');
+  const canCreateRequest = isMember && !canReview;
 
   useEffect(() => {
     if (!orgId || !isMember || !canView) return;

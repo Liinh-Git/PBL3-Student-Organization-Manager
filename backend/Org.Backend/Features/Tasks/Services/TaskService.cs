@@ -80,7 +80,7 @@ public class TaskService : ITaskService
         }
 
         var payload = request.Task with { DeptId = departmentId };
-        return await CreateTaskAsync(categoryId.Value, payload, userId, ct);
+        return await CreateTaskInternalAsync(categoryId.Value, payload, userId, ct, skipTaskPermissionCheck: true);
     }
 
     public async Task<TaskDto> GetTaskByIdAsync(Guid taskId, Guid userId, CancellationToken ct = default)
@@ -108,6 +108,11 @@ public class TaskService : ITaskService
 
     public async Task<TaskDto> CreateTaskAsync(Guid categoryId, CreateTaskRequest request, Guid userId, CancellationToken ct = default)
     {
+        return await CreateTaskInternalAsync(categoryId, request, userId, ct, skipTaskPermissionCheck: false);
+    }
+
+    private async Task<TaskDto> CreateTaskInternalAsync(Guid categoryId, CreateTaskRequest request, Guid userId, CancellationToken ct, bool skipTaskPermissionCheck)
+    {
         // Get category and verify membership + permission
         var category = await _context.EventCategories
             .Include(c => c.Milestone)
@@ -121,7 +126,10 @@ public class TaskService : ITaskService
 
         var orgId = category.Milestone.Event.OrgId;
         await VerifyMembershipAsync(orgId, userId, ct);
-        await VerifyTaskManagementPermissionAsync(orgId, userId, request.DeptId, ct);
+        if (!skipTaskPermissionCheck)
+        {
+            await VerifyTaskManagementPermissionAsync(orgId, userId, request.DeptId, ct);
+        }
 
         // Get current user's member record
         var currentMember = await _context.Members
