@@ -1,0 +1,149 @@
+/* AccountSettings.css
+  Giao diện Cài đặt tài khoản (Tab nổi, viền khối bo tròn, tông cam)
+*/
+
+.settings-modern-page .settings-wrapper {
+  max-width: 900px;
+  margin: 0; /* Lệch trái theo flow gốc */
+}
+
+/* Tabs */
+.pill-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background-color: #f1f5f9;
+  padding: 0.35rem;
+  border-radius: 0.75rem;
+  width: fit-content;
+}
+
+.pill-btn {
+  background: transparent;
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pill-btn:hover {
+  color: #0f1f29;
+}
+
+/* Active tab có màu cam */
+.pill-btn.active {
+  background: #ffffff;
+  color: #ff9b51;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Khung chứa nội dung */
+.settings-content-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.5rem;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  min-height: 450px;
+}
+
+.pane-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pane-header .app-section-title {
+  color: #0f1f29;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* Lưới Form */
+.modern-grid-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem 1.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group.max-w-half {
+  max-width: 50%;
+}
+
+.flex-end {
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+/* Override nút bấm gốc thành màu cam */
+.btn-orange {
+  background-color: #ff9b51 !important;
+  color: #0f1f29 !important;
+  border: none !important;
+  font-weight: 700;
+  padding: 0.65rem 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 10px rgba(255, 155, 81, 0.2);
+  transition: transform 0.2s;
+}
+
+.btn-orange:hover:not(:disabled) {
+  background-color: #ffaa6a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255, 155, 81, 0.3);
+}
+
+/* Form inputs styling tinh chỉnh nhẹ */
+.form-input,
+.form-textarea {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #0f1f29;
+}
+
+.form-input.readonly {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Animation */
+.animate-fade {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .modern-grid-form {
+    grid-template-columns: 1fr;
+  }
+  .form-group.max-w-half {
+    max-width: 100%;
+  }
+}
