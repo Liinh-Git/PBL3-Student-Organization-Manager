@@ -133,6 +133,11 @@ public class RequestService : IRequestService
         _context.Requests.Add(newRequest);
         await _context.SaveChangesAsync(ct);
 
+        if (requestType == RequestType.JoinOrganization)
+        {
+            await NotifyRequestReviewersAsync(newRequest, organization.OrgName, ct);
+        }
+
         // Reload with navigation properties
         var createdRequest = await _context.Requests
             .Include(r => r.Sender)
@@ -257,6 +262,7 @@ public class RequestService : IRequestService
         request.ReviewedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
+        await NotifyRequestSenderReviewedAsync(request, member.UserId, ct);
 
         // If approved and it's a join request, create member (simple implementation)
         // Note: This is a basic implementation. Production code might need more complex logic.
@@ -309,5 +315,78 @@ public class RequestService : IRequestService
             .FirstAsync(r => r.Id == requestId, ct);
 
         return updatedRequest.ToRequestDto();
+    }
+
+    private async Task NotifyRequestReviewersAsync(Request request, string organizationName, CancellationToken ct)
+    {
+        var reviewerUserIds = await _context.Members
+            .Include(m => m.Role)
+                .ThenInclude(r => r!.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
+            .Where(m => m.OrgId == request.OrgId && m.Status == MemberStatus.Active)
+            .Where(m => m.Role != null && m.Role.RolePermissions.Any(rp =>
+                rp.Permission != null &&
+                (rp.Permission.PermissionKey == "org.requests.review" || rp.Permission.PermissionKey == "org.requests.approve")))
+            .Select(m => m.UserId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        if (reviewerUserIds.Count == 0)
+        {
+            return;
+        }
+
+        var senderName = await _context.Users
+            .Where(u => u.Id == request.SenderId)
+            .Select(u => u.FullName)
+            .FirstOrDefaultAsync(ct) ?? "A member";
+
+        var notifications = reviewerUserIds.Select(receiverId => new Notification
+        {
+            ReceiverId = receiverId,
+            ActorId = request.SenderId,
+            Title = "New join request",
+            Message = $"{senderName} submitted a join request to {organizationName}.",
+            Type = NotificationType.RequestSubmitted,
+            RelatedEntityType = nameof(Request),
+            RelatedEntityId = request.Id,
+            ActionUrl = $"/org/requests?orgId={request.OrgId}",
+            IsRead = false
+        });
+
+        _context.Notifications.AddRange(notifications);
+        await _context.SaveChangesAsync(ct);
+    }
+
+    private async Task NotifyRequestSenderReviewedAsync(Request request, Guid reviewerUserId, CancellationToken ct)
+    {
+        var organizationName = await _context.Organizations
+            .Where(o => o.Id == request.OrgId)
+            .Select(o => o.OrgName)
+            .FirstOrDefaultAsync(ct) ?? "organization";
+
+        var reviewerName = await _context.Users
+            .Where(u => u.Id == reviewerUserId)
+            .Select(u => u.FullName)
+            .FirstOrDefaultAsync(ct) ?? "Reviewer";
+
+        var decisionText = request.Status == RequestStatus.Approved ? "approved" : "rejected";
+        var detail = string.IsNullOrWhiteSpace(request.ReviewNote) ? string.Empty : $" Note: {request.ReviewNote}";
+
+        var notification = new Notification
+        {
+            ReceiverId = request.SenderId,
+            ActorId = reviewerUserId,
+            Title = $"Request {decisionText}",
+            Message = $"Your request to {organizationName} was {decisionText} by {reviewerName}.{detail}",
+            Type = NotificationType.RequestReviewed,
+            RelatedEntityType = nameof(Request),
+            RelatedEntityId = request.Id,
+            ActionUrl = $"/org/requests?orgId={request.OrgId}",
+            IsRead = false
+        };
+
+        _context.Notifications.Add(notification);
+        await _context.SaveChangesAsync(ct);
     }
 }
