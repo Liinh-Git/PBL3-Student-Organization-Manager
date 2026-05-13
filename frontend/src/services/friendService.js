@@ -77,6 +77,14 @@ export async function getFriendRequests(params = {}) {
   return toFriendRequestListViewModel(response.data.data);
 }
 
+export async function getMyOutgoingFriendRequests(params = {}) {
+  const response = await httpClient.get('/friends/requests/outgoing', { params });
+  if (!response.data.success) {
+    throw new Error(getApiErrorMessage(response.data, 'Failed to get outgoing friend requests'));
+  }
+  return toFriendRequestListViewModel(response.data.data);
+}
+
 export async function getFriendSuggestions(params = {}) {
   const response = await httpClient.get('/friends/suggestions', { params });
   if (!response.data.success) {

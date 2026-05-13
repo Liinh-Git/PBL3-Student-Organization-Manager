@@ -81,7 +81,31 @@ public class InvitationService : IInvitationService
             r.Status == RequestStatus.Pending, ct);
         if (hasPendingRecommendation)
         {
-            throw new InvalidOperationException("You already have a pending recommendation for this user");
+            // Guard stale duplicates from old logic/data: keep newest pending, cancel older pendings.
+            var pendingRecs = await _context.Requests
+                .Where(r =>
+                    r.OrgId == orgId &&
+                    r.SenderId == recommenderUserId &&
+                    r.RequestType == RequestType.Other &&
+                    r.Title == InvitationMarkers.RecommendationTitle &&
+                    r.DesiredPosition == request.ReceiverUserId.ToString() &&
+                    r.Status == RequestStatus.Pending)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync(ct);
+
+            if (pendingRecs.Count > 1)
+            {
+                foreach (var rec in pendingRecs.Skip(1))
+                {
+                    rec.Status = RequestStatus.Cancelled;
+                    rec.UpdatedAt = DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync(ct);
+            }
+            else
+            {
+                throw new InvalidOperationException("You already have a pending recommendation for this user");
+            }
         }
 
         var recommendation = new Request
@@ -182,7 +206,30 @@ public class InvitationService : IInvitationService
             r.Status == RequestStatus.Pending, ct);
         if (hasPendingInvite)
         {
-            throw new InvalidOperationException("This user already has a pending invitation for this organization");
+            // Guard stale duplicates from old logic/data: keep newest pending, cancel older pendings.
+            var pendingInvites = await _context.Requests
+                .Where(r =>
+                    r.OrgId == orgId &&
+                    r.SenderId == receiverUserId &&
+                    r.RequestType == RequestType.Other &&
+                    r.Title == InvitationMarkers.InvitationTitle &&
+                    r.Status == RequestStatus.Pending)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync(ct);
+
+            if (pendingInvites.Count > 1)
+            {
+                foreach (var inv in pendingInvites.Skip(1))
+                {
+                    inv.Status = RequestStatus.Cancelled;
+                    inv.UpdatedAt = DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync(ct);
+            }
+            else
+            {
+                throw new InvalidOperationException("This user already has a pending invitation for this organization");
+            }
         }
 
         var inviteRequest = new Request

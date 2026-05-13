@@ -43,8 +43,8 @@ public class FriendService : IFriendService
     {
         var blockedUserIds = await _context.FriendRequests
             .Where(fr =>
-                fr.SenderId == userId ||
-                fr.ReceiverId == userId)
+                (fr.SenderId == userId || fr.ReceiverId == userId) &&
+                (fr.Status == FriendRequestStatus.Accepted || fr.Status == FriendRequestStatus.Pending))
             .Select(fr => fr.SenderId == userId ? fr.ReceiverId : fr.SenderId)
             .Distinct()
             .ToListAsync(ct);
@@ -65,6 +65,18 @@ public class FriendService : IFriendService
             .Include(fr => fr.Sender)
             .Include(fr => fr.Receiver)
             .Where(fr => fr.ReceiverId == userId && fr.Status == FriendRequestStatus.Pending)
+            .OrderByDescending(fr => fr.CreatedAt)
+            .ToListAsync(ct);
+
+        return requests.Select(fr => fr.ToFriendRequestDto()).ToList();
+    }
+
+    public async Task<List<FriendRequestDto>> GetMyOutgoingFriendRequestsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var requests = await _context.FriendRequests
+            .Include(fr => fr.Sender)
+            .Include(fr => fr.Receiver)
+            .Where(fr => fr.SenderId == userId && fr.Status == FriendRequestStatus.Pending)
             .OrderByDescending(fr => fr.CreatedAt)
             .ToListAsync(ct);
 

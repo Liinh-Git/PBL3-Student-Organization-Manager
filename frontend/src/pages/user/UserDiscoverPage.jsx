@@ -7,6 +7,7 @@ import { createOrganizationRequest, getMyPendingJoinRequests, withdrawOrganizati
 import {
   acceptFriendRequest,
   getFriendRequests,
+  getMyOutgoingFriendRequests,
   getFriends,
   getFriendSuggestions,
   rejectFriendRequest,
@@ -103,22 +104,25 @@ function UserDiscoverPage() {
     setPartialWarning(null);
 
     try {
-      const [orgIds, publicEvents, friendRequestsResult, myFriendsResult, invitationsResult, suggestionsResult] = await Promise.all([
+      const [orgIds, publicEvents, friendRequestsResult, outgoingRequestsResult, myFriendsResult, invitationsResult, suggestionsResult] = await Promise.all([
         syncMembershipAndPendingState(),
         getPublicEvents(),
         getFriendRequests().then((data) => ({ ok: true, data })).catch((err) => ({ ok: false, err })),
+        getMyOutgoingFriendRequests().then((data) => ({ ok: true, data })).catch((err) => ({ ok: false, err })),
         getFriends().then((data) => ({ ok: true, data })).catch((err) => ({ ok: false, err })),
         getMyInvitations().then((data) => ({ ok: true, data })).catch((err) => ({ ok: false, err })),
         getFriendSuggestions().then((data) => ({ ok: true, data })).catch((err) => ({ ok: false, err }))
       ]);
 
       const friendRequests = friendRequestsResult.ok ? friendRequestsResult.data : [];
+      const outgoingRequests = outgoingRequestsResult.ok ? outgoingRequestsResult.data : [];
       const myFriends = myFriendsResult.ok ? myFriendsResult.data : [];
       const invitations = invitationsResult.ok ? invitationsResult.data : [];
       const suggestions = suggestionsResult.ok ? suggestionsResult.data : [];
 
       const warnings = [];
       if (!friendRequestsResult.ok) warnings.push('friend requests');
+      if (!outgoingRequestsResult.ok) warnings.push('outgoing friend requests');
       if (!myFriendsResult.ok) warnings.push('friends');
       if (!invitationsResult.ok) warnings.push('invitations');
       if (!suggestionsResult.ok) warnings.push('friend suggestions');
@@ -131,6 +135,7 @@ function UserDiscoverPage() {
       setFriends(myFriends || []);
       setMyInvitations(invitations || []);
       setFriendSuggestions(suggestions || []);
+      setSentFriendRequestUserIds(new Set((outgoingRequests || []).map((r) => r.receiverId).filter(Boolean)));
 
       const memberMap = {};
       await Promise.all(
