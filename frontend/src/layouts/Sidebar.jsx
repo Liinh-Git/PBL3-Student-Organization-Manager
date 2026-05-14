@@ -118,7 +118,6 @@ function Sidebar() {
                 <li><Link to="/user/events" className={isActive('/user/events') ? 'active' : ''}>My Events</Link></li>
                 {/* Comment để implement sau */}
                 {/* <li><Link to="/user/friends" className={isActive('/user/friends') ? 'active' : ''}>Friends</Link></li> */}
-                <li><Link to="/user/profile" className={isActive('/user/profile') ? 'active' : ''}>Profile</Link></li>
                 <li><Link to="/user/settings" className={isActive('/user/settings') ? 'active' : ''}>Settings</Link></li>
               </ul>
             </div>
