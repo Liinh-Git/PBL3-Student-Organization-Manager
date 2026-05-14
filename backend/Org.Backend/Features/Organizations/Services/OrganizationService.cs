@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Domain.Enums;
 using Org.Backend.Features.Organizations.Mappings;
@@ -11,10 +12,12 @@ namespace Org.Backend.Features.Organizations.Services;
 public class OrganizationService : IOrganizationService
 {
     private readonly AppDbContext _context;
+    private readonly IHostEnvironment _hostEnvironment;
 
-    public OrganizationService(AppDbContext context)
+    public OrganizationService(AppDbContext context, IHostEnvironment hostEnvironment)
     {
         _context = context;
+        _hostEnvironment = hostEnvironment;
     }
 
     public async Task<List<OrganizationSummaryDto>> GetOrganizationsAsync(CancellationToken ct = default)
@@ -263,6 +266,102 @@ public class OrganizationService : IOrganizationService
         organization.ContactPhone = request.ContactPhone?.Trim();
         organization.UpdatedAt = DateTime.UtcNow;
 
+        await _context.SaveChangesAsync(ct);
+
+        return organization.ToOrganizationDto();
+    }
+
+    public async Task<OrganizationDto> UploadOrganizationImageAsync(
+        Guid orgId,
+        Guid userId,
+        Stream fileStream,
+        string originalFileName,
+        string contentType,
+        string imageType,
+        CancellationToken ct = default)
+    {
+        var allowedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        };
+
+        if (!allowedTypes.Contains(contentType))
+        {
+            throw new InvalidOperationException("Only jpeg, png, webp images are allowed");
+        }
+
+        // Verify user is a member with org.overview.write permission
+        var member = await _context.Members
+            .Include(m => m.Role)
+                .ThenInclude(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
+            .FirstOrDefaultAsync(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
+
+        if (member == null)
+        {
+            throw new UnauthorizedAccessException("You are not a member of this organization");
+        }
+
+        if (member.Role == null)
+        {
+            throw new UnauthorizedAccessException("You do not have a role assigned in this organization");
+        }
+
+        var hasPermission = member.Role.RolePermissions
+            .Any(rp => rp.Permission?.PermissionKey == "org.overview.write");
+
+        if (!hasPermission)
+        {
+            throw new UnauthorizedAccessException("You do not have permission to update this organization");
+        }
+
+        var organization = await _context.Organizations
+            .FirstOrDefaultAsync(o => o.Id == orgId, ct);
+
+        if (organization == null)
+        {
+            throw new KeyNotFoundException("Organization not found");
+        }
+
+        var extension = Path.GetExtension(originalFileName);
+        if (string.IsNullOrWhiteSpace(extension))
+        {
+            extension = contentType.ToLowerInvariant() switch
+            {
+                "image/jpeg" => ".jpg",
+                "image/png" => ".png",
+                "image/webp" => ".webp",
+                _ => ".bin"
+            };
+        }
+
+        var fileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow:yyyyMMddHHmmssfff}{extension}";
+        var uploadsRoot = Path.Combine(_hostEnvironment.ContentRootPath, "uploads", "organizations");
+        Directory.CreateDirectory(uploadsRoot);
+        var absolutePath = Path.Combine(uploadsRoot, fileName);
+
+        await using (var output = File.Create(absolutePath))
+        {
+            await fileStream.CopyToAsync(output, ct);
+        }
+
+        var relativeUrl = $"/uploads/organizations/{fileName}";
+        if (string.Equals(imageType, "avatar", StringComparison.OrdinalIgnoreCase))
+        {
+            organization.AvatarUrl = relativeUrl;
+        }
+        else if (string.Equals(imageType, "cover", StringComparison.OrdinalIgnoreCase))
+        {
+            organization.CoverUrl = relativeUrl;
+        }
+        else
+        {
+            throw new InvalidOperationException("Image type must be avatar or cover");
+        }
+
+        organization.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(ct);
 
         return organization.ToOrganizationDto();

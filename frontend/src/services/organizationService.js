@@ -138,6 +138,32 @@ export async function updateOrganization(id, payload) {
 }
 
 /**
+ * Upload organization image and update avatar/cover URL in backend
+ *
+ * Backend route: POST /api/organizations/{id}/upload-image
+ * Frontend path: /organizations/{id}/upload-image
+ * Input:
+ * - id: string (organization ID)
+ * - file: File
+ * - type: "avatar" | "cover"
+ * Response:
+ * - ApiResponse<OrganizationDto>
+ */
+export async function uploadOrganizationImage(id, file, type) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('type', type);
+
+  const response = await httpClient.post(`/organizations/${id}/upload-image`, formData);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to upload organization image');
+  }
+
+  return response.data.data;
+}
+
+/**
  * Get organization public overview
  * 
  * Backend route: GET /api/organizations/{id}/public-overview

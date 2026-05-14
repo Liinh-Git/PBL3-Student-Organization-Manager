@@ -1,16 +1,20 @@
-/**
- * OrgOverviewPage.jsx - Organization overview page
- * Phase 4B-1: Real backend API integration
- */
-
-import { useState, useEffect } from "react";
+﻿import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useOrgContext } from "../../contexts/OrgContext.jsx";
-import { updateOrganization } from "../../services/organizationService.js";
+import { updateOrganization, uploadOrganizationImage } from "../../services/organizationService.js";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorState from "../../components/shared/ErrorState";
 import ForbiddenState from "../../components/shared/ForbiddenState";
 import "./OrgOverviewPage.css";
+
+function toAbsoluteMediaUrl(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const origin = apiBase.replace(/\/api\/?$/, "");
+  if (url.startsWith("/")) return `${origin}${url}`;
+  return `${origin}/${url}`;
+}
 
 function OrgOverviewPage() {
   const [searchParams] = useSearchParams();
@@ -23,10 +27,21 @@ function OrgOverviewPage() {
     isLoading: contextLoading,
   } = useOrgContext();
 
+  const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [formState, setFormState] = useState({
+    orgName: "",
+    description: "",
+    location: "",
+    contactEmail: "",
+    contactPhone: "",
+    foundingDate: "",
+  });
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);
+  const [imageUrls, setImageUrls] = useState({ avatarUrl: "", coverUrl: "" });
 
   useEffect(() => {
     if (orgId && (!contextOrg || String(contextOrg.id) !== String(orgId))) {
@@ -34,141 +49,248 @@ function OrgOverviewPage() {
     }
   }, [orgId, contextOrg, loadWorkspaceOrg]);
 
+  useEffect(() => {
+    if (!contextOrg) return;
+    setFormState({
+      orgName: contextOrg.name || "",
+      description: contextOrg.description || "",
+      location: contextOrg.location || "",
+      contactEmail: contextOrg.contactEmail || "",
+      contactPhone: contextOrg.contactPhone || "",
+      foundingDate: contextOrg.foundingDate ? new Date(contextOrg.foundingDate).toISOString().slice(0, 10) : "",
+    });
+    setImageUrls({
+      avatarUrl: contextOrg.avatarUrl || "",
+      coverUrl: contextOrg.coverUrl || "",
+    });
+  }, [contextOrg]);
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+      if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+    };
+  }, [avatarPreviewUrl, coverPreviewUrl]);
+
   if (!orgId) {
-    return <ErrorState message="Cần có ID tổ chức để xem trang này" />;
+    return <ErrorState message="Organization ID is required" />;
   }
 
   if (contextLoading) {
-    return <LoadingSpinner message="Đang tải dữ liệu tổ chức..." />;
+    return <LoadingSpinner message="Loading organization data..." />;
   }
 
   if (!isMember) {
-    return (
-      <ForbiddenState message="Bạn không phải là thành viên của tổ chức này" />
-    );
+    return <ForbiddenState message="You are not a member of this organization" />;
   }
 
   const canEdit = permissions.includes("org.overview.write");
 
-  const handleUpdate = async (e) => {
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const resetForm = () => {
+    if (!contextOrg) return;
+    setFormState({
+      orgName: contextOrg.name || "",
+      description: contextOrg.description || "",
+      location: contextOrg.location || "",
+      contactEmail: contextOrg.contactEmail || "",
+      contactPhone: contextOrg.contactPhone || "",
+      foundingDate: contextOrg.foundingDate ? new Date(contextOrg.foundingDate).toISOString().slice(0, 10) : "",
+    });
+    if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+    if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+    setAvatarPreviewUrl(null);
+    setCoverPreviewUrl(null);
+    setImageUrls({
+      avatarUrl: contextOrg.avatarUrl || "",
+      coverUrl: contextOrg.coverUrl || "",
+    });
+  };
+
+  const handleCancel = () => {
+    resetForm();
+    setIsEditMode(false);
+  };
+
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!canEdit || !orgId) return;
 
-    const form = e.target;
     const payload = {
-      name: form.orgName.value,
-      description: form.description.value || undefined,
-      location: form.location.value || undefined,
-      contactEmail: form.contactEmail.value || undefined,
-      contactPhone: form.contactPhone.value || undefined,
+      orgName: formState.orgName,
+      description: formState.description || undefined,
+      location: formState.location || undefined,
+      contactEmail: formState.contactEmail || undefined,
+      contactPhone: formState.contactPhone || undefined,
+      foundingDate: formState.foundingDate ? new Date(formState.foundingDate).toISOString() : undefined,
+      avatarUrl: imageUrls.avatarUrl || undefined,
+      coverUrl: imageUrls.coverUrl || undefined,
     };
 
     setIsSubmitting(true);
     try {
       await updateOrganization(orgId, payload);
-      loadWorkspaceOrg(orgId);
-      setShowEditForm(false);
+      await loadWorkspaceOrg(orgId);
+      setIsEditMode(false);
     } catch (err) {
-      alert(err.message || "Cập nhật thất bại");
+      alert(err.message || "Failed to update organization");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleUploadImage = async (event, type) => {
+    if (!canEdit || !orgId) return;
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (type === "avatar") {
+      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+      setAvatarPreviewUrl(URL.createObjectURL(file));
+      setIsUploadingAvatar(true);
+    } else {
+      if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+      setCoverPreviewUrl(URL.createObjectURL(file));
+      setIsUploadingCover(true);
+    }
+
+    try {
+      const updatedOrg = await uploadOrganizationImage(orgId, file, type);
+      setImageUrls((prev) => ({
+        avatarUrl: updatedOrg?.avatarUrl || prev.avatarUrl || "",
+        coverUrl: updatedOrg?.coverUrl || prev.coverUrl || "",
+      }));
+      await loadWorkspaceOrg(orgId);
+      if (type === "avatar") setAvatarPreviewUrl(null);
+      if (type === "cover") setCoverPreviewUrl(null);
+    } catch (err) {
+      alert(err.message || "Failed to upload image");
+      if (type === "avatar") {
+        if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+        setAvatarPreviewUrl(null);
+      } else {
+        if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+        setCoverPreviewUrl(null);
+      }
+    } finally {
+      if (type === "avatar") setIsUploadingAvatar(false);
+      if (type === "cover") setIsUploadingCover(false);
+      event.target.value = "";
+    }
+  };
+
   const displayFoundingDate = contextOrg?.foundingDate
     ? new Date(contextOrg.foundingDate).toLocaleDateString("vi-VN")
-    : "Chưa cập nhật";
+    : "Not set";
+
+  const avatarSrc = avatarPreviewUrl || toAbsoluteMediaUrl(imageUrls.avatarUrl);
+  const coverSrc = coverPreviewUrl || toAbsoluteMediaUrl(imageUrls.coverUrl);
+  const initial = (contextOrg?.name || "O").charAt(0).toUpperCase();
+
+  const titleValue = isEditMode ? formState.orgName : (contextOrg?.name || "Organization");
+  const descriptionValue = isEditMode ? formState.description : (contextOrg?.description || "Organization has no description yet.");
+  const locationValue = isEditMode ? formState.location : (contextOrg?.location || "Not specified");
+  const contactEmailValue = isEditMode ? formState.contactEmail : (contextOrg?.contactEmail || "-");
+  const contactPhoneValue = isEditMode ? formState.contactPhone : (contextOrg?.contactPhone || "-");
 
   return (
     <div className="org-overview-container">
-      {/* Banner */}
-      <div className="org-banner-section"></div>
-
-      {/* Header Info */}
-      <div className="org-profile-nav">
-        <div className="org-avatar-frame">
-          <svg
-            width="45"
-            height="45"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2.5"
-          >
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
-        </div>
-        <div className="org-title-block">
-          <h1>{contextOrg?.name || "Tổ chức"}</h1>
-          <p>Trang thông tin tổng quan và liên hệ chính thức.</p>
-        </div>
-        {canEdit && (
-          <button
-            onClick={() => setShowEditForm(true)}
-            className="org-btn-header"
-          >
-            Chỉnh sửa hồ sơ
-          </button>
-        )}
+      <div className="org-banner-section">
+        {coverSrc ? <img className="org-banner-image" src={coverSrc} alt="Organization cover" /> : null}
+        {isEditMode && canEdit ? (
+          <label className="org-image-edit org-image-edit--cover">
+            {isUploadingCover ? "Uploading..." : "Edit cover/banner"}
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => handleUploadImage(e, "cover")} />
+          </label>
+        ) : null}
       </div>
 
-      {/* Stats Grid */}
+      <div className="org-profile-nav">
+        <div className="org-avatar-wrapper">
+          <div className="org-avatar-frame">
+            {avatarSrc ? (
+              <img className="org-avatar-image" src={avatarSrc} alt="Organization avatar" />
+            ) : (
+              <span className="org-avatar-fallback">{initial}</span>
+            )}
+          </div>
+          {isEditMode && canEdit ? (
+            <label className="org-image-edit org-image-edit--avatar">
+              {isUploadingAvatar ? "Uploading..." : "Edit avatar"}
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => handleUploadImage(e, "avatar")} />
+            </label>
+          ) : null}
+        </div>
+
+        <div className="org-title-block">
+          {isEditMode ? (
+            <input
+              type="text"
+              name="orgName"
+              className="org-inline-input org-inline-input--title"
+              value={formState.orgName}
+              onChange={handleFormChange}
+              required
+            />
+          ) : (
+            <h1>{titleValue}</h1>
+          )}
+          <p>Organization overview and official contact information.</p>
+        </div>
+
+        {canEdit ? (
+          <div className="org-header-actions">
+            {!isEditMode ? (
+              <button onClick={() => setIsEditMode(true)} className="org-btn-header">Edit</button>
+            ) : (
+              <>
+                <button onClick={handleCancel} className="org-btn org-btn-secondary" disabled={isSubmitting}>Cancel</button>
+                <button onClick={handleSave} className="org-btn org-btn-primary" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</button>
+              </>
+            )}
+          </div>
+        ) : null}
+      </div>
+
       <div className="org-stats-dashboard">
         <div className="stat-item-card">
           <div className="stat-icon-circle">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
           </div>
           <div>
-            <span className="org-form-label-small">Địa điểm</span>
-            <p className="stat-value-text">
-              {contextOrg?.location || "Chưa xác định"}
-            </p>
+            <span className="org-form-label-small">Location</span>
+            {isEditMode ? (
+              <input type="text" name="location" className="org-inline-input" value={formState.location} onChange={handleFormChange} />
+            ) : (
+              <p className="stat-value-text">{locationValue}</p>
+            )}
           </div>
         </div>
 
         <div className="stat-item-card">
           <div className="stat-icon-circle">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
             </svg>
           </div>
           <div>
-            <span className="org-form-label-small">Thành viên</span>
-            <p className="stat-value-text">
-              {contextOrg?.totalMembers || 0} Người
-            </p>
+            <span className="org-form-label-small">Members</span>
+            <p className="stat-value-text">{contextOrg?.totalMembers || 0} people</p>
           </div>
         </div>
 
         <div className="stat-item-card">
           <div className="stat-icon-circle">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
               <line x1="8" y1="2" x2="8" y2="6" />
@@ -176,164 +298,67 @@ function OrgOverviewPage() {
             </svg>
           </div>
           <div>
-            <span className="org-form-label-small">Ngày thành lập</span>
-            <p className="stat-value-text">{displayFoundingDate}</p>
+            <span className="org-form-label-small">Founding date</span>
+            {isEditMode ? (
+              <input type="date" name="foundingDate" className="org-inline-input" value={formState.foundingDate} onChange={handleFormChange} />
+            ) : (
+              <p className="stat-value-text">{displayFoundingDate}</p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Main Content Layout */}
       <div className="org-main-layout">
         <div className="layout-left">
-          <h2 className="content-header">Giới thiệu chung</h2>
+          <h2 className="content-header">About</h2>
           <div className="info-text-card">
-            {contextOrg?.description || "Tổ chức chưa có mô tả chi tiết."}
+            {isEditMode ? (
+              <textarea
+                name="description"
+                className="org-inline-textarea"
+                value={formState.description}
+                onChange={handleFormChange}
+                placeholder="Describe organization goals and activities..."
+              />
+            ) : (
+              descriptionValue
+            )}
           </div>
         </div>
 
         <div className="layout-right">
-          <h2 className="content-header">Thông tin liên hệ</h2>
+          <h2 className="content-header">Contact</h2>
           <div className="contact-info-list">
             <div className="contact-row">
-              <span className="org-form-label-small">Email liên hệ</span>
-              <p className="contact-val-text">
-                {contextOrg?.contactEmail || "-"}
-              </p>
+              <span className="org-form-label-small">Contact email</span>
+              {isEditMode ? (
+                <input type="email" name="contactEmail" className="org-inline-input" value={formState.contactEmail} onChange={handleFormChange} />
+              ) : (
+                <p className="contact-val-text">{contactEmailValue}</p>
+              )}
             </div>
             <div className="contact-row">
-              <span className="org-form-label-small">Số điện thoại</span>
-              <p className="contact-val-text">
-                {contextOrg?.contactPhone || "-"}
-              </p>
+              <span className="org-form-label-small">Phone</span>
+              {isEditMode ? (
+                <input type="tel" name="contactPhone" className="org-inline-input" value={formState.contactPhone} onChange={handleFormChange} />
+              ) : (
+                <p className="contact-val-text">{contactPhoneValue}</p>
+              )}
             </div>
             <div className="contact-row">
-              <span className="org-form-label-small">
-                Ngày gia nhập hệ thống
-              </span>
+              <span className="org-form-label-small">Created at</span>
               <p className="contact-val-text">
-                {contextOrg?.createdAt
-                  ? new Date(contextOrg.createdAt).toLocaleDateString("vi-VN")
+                {contextOrg?.createdAtUtc
+                  ? new Date(contextOrg.createdAtUtc).toLocaleDateString("vi-VN")
                   : "-"}
               </p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Edit Profile Modal - Cấu trúc đồng bộ với Tạo tổ chức */}
-      {showEditForm && canEdit && (
-        <div
-          className="org-modal-overlay"
-          onClick={() => setShowEditForm(false)}
-        >
-          <div className="org-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="org-modal-header">
-              <h3>Chỉnh sửa hồ sơ</h3>
-              <p>
-                Cập nhật thông tin chi tiết để mọi người hiểu rõ hơn về tổ chức
-                của bạn.
-              </p>
-            </div>
-
-            <div className="org-modal-body">
-              <form id="editOrgForm" onSubmit={handleUpdate}>
-                <div className="org-form-group">
-                  <label htmlFor="orgName" className="org-form-label">
-                    Tên tổ chức *
-                  </label>
-                  <input
-                    type="text"
-                    id="orgName"
-                    name="orgName"
-                    className="org-input"
-                    defaultValue={contextOrg?.name || ""}
-                    required
-                    placeholder="Nhập tên tổ chức..."
-                  />
-                </div>
-
-                <div className="org-form-group">
-                  <label htmlFor="description" className="org-form-label">
-                    Mô tả hoạt động
-                  </label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    className="org-input"
-                    defaultValue={contextOrg?.description || ""}
-                    placeholder="Mô tả về mục đích và các hoạt động..."
-                    style={{ minHeight: "120px", resize: "vertical" }}
-                  />
-                </div>
-
-                <div className="org-form-group">
-                  <label htmlFor="location" className="org-form-label">
-                    Địa điểm
-                  </label>
-                  <input
-                    type="text"
-                    id="location"
-                    name="location"
-                    className="org-input"
-                    defaultValue={contextOrg?.location || ""}
-                    placeholder="Ví dụ: Tòa nhà A1, Đại học Bách Khoa..."
-                  />
-                </div>
-
-                <div className="org-form-row">
-                  <div className="org-form-group flex-1">
-                    <label htmlFor="contactEmail" className="org-form-label">
-                      Email liên hệ
-                    </label>
-                    <input
-                      type="email"
-                      id="contactEmail"
-                      name="contactEmail"
-                      className="org-input"
-                      defaultValue={contextOrg?.contactEmail || ""}
-                      placeholder="email@example.com"
-                    />
-                  </div>
-                  <div className="org-form-group flex-1">
-                    <label htmlFor="contactPhone" className="org-form-label">
-                      Số điện thoại
-                    </label>
-                    <input
-                      type="tel"
-                      id="contactPhone"
-                      name="contactPhone"
-                      className="org-input"
-                      defaultValue={contextOrg?.contactPhone || ""}
-                      placeholder="0123 456 789"
-                    />
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <div className="org-modal-footer">
-              <button
-                type="button"
-                onClick={() => setShowEditForm(false)}
-                className="org-btn org-btn-secondary"
-                disabled={isSubmitting}
-              >
-                Hủy bỏ
-              </button>
-              <button
-                type="submit"
-                form="editOrgForm"
-                className="org-btn org-btn-primary"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
 export default OrgOverviewPage;
+
