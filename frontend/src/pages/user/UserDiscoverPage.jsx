@@ -56,6 +56,7 @@ function UserDiscoverPage() {
 
   const [orgSearch, setOrgSearch] = useState('');
   const [orgFilter, setOrgFilter] = useState('all'); // all|joined|pending|available
+  const [activeTab, setActiveTab] = useState('organizations');
 
   const syncMembershipAndPendingState = useCallback(async () => {
     const [discoverableOrgs, myOrgs, pendingJoinRequests] = await Promise.all([
@@ -383,290 +384,243 @@ function UserDiscoverPage() {
       <PageHeader
         title="Discover"
         description="Find organizations, events, and pending friend requests"
-        actions={
-          <button className="app-button app-button--secondary" onClick={loadData}>
-            Refresh
-          </button>
-        }
+        actions={<button className="app-button app-button--secondary" onClick={loadData}>Refresh</button>}
       />
 
-      <div className="app-section">
-        {successMessage ? (
-          <div className="discover-success">
-            <p>{successMessage}</p>
-          </div>
-        ) : null}
-        {partialWarning ? (
-          <div className="discover-success" style={{ background: '#fffbeb', borderColor: '#fde68a' }}>
-            <p style={{ color: '#92400e' }}>{partialWarning}</p>
-          </div>
-        ) : null}
+      <div className="app-section discover-shell">
+        {successMessage ? <div className="discover-success"><p>{successMessage}</p></div> : null}
+        {partialWarning ? <div className="discover-success discover-success--warning"><p>{partialWarning}</p></div> : null}
 
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">My Organization Invitations</h3>
-          </div>
+        <div className="discover-layout">
+          <aside className="discover-col discover-col--left">
+            <div className="app-card discover-panel">
+              <div className="app-section-header">
+                <h3 className="app-section-title">Friend Requests</h3>
+                <span className="app-badge app-badge--info">{incomingFriendRequests.length}</span>
+              </div>
+              {incomingFriendRequests.length === 0 ? <EmptyState message="No friend requests" /> : (
+                <div className="discover-list">
+                  {incomingFriendRequests.map((item) => {
+                    const isBusy = processingFriendRequestId === item.id;
+                    return (
+                      <div key={item.id} className="discover-list-item discover-list-item--stacked">
+                        <div>
+                          <div className="discover-item-title">{item.senderName}</div>
+                          <div className="discover-item-meta">Requested at: {item.createdAtUtc ? new Date(item.createdAtUtc).toLocaleString() : '-'}</div>
+                        </div>
+                        <div className="discover-actions discover-actions--full">
+                          <button className="app-button app-button--primary discover-btn-half" disabled={isBusy} onClick={() => handleFriendReview(item.id, 'accept')}>{isBusy ? 'Processing...' : 'Accept'}</button>
+                          <button className="app-button app-button--secondary discover-btn-half" disabled={isBusy} onClick={() => handleFriendReview(item.id, 'reject')}>Remove</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-          {myInvitations.length === 0 ? (
-            <EmptyState message="No invitations yet" />
-          ) : (
-            <div className="discover-list">
-              {myInvitations.map((item) => {
-                const isPending = item.status === 'Pending';
-                const isBusy = processingInvitationId === item.invitationId;
-                return (
-                  <div key={item.invitationId} className="discover-list-item">
-                    <div>
-                      <div className="discover-item-title">{item.organizationName}</div>
-                      <div className="discover-item-meta">Inviter: {item.inviterName || '-'}</div>
-                      <div className="discover-item-meta">Message: {item.message || '-'}</div>
-                      <div className="discover-item-meta">Status: {item.status}</div>
-                    </div>
-                    <div className="discover-actions">
-                      {isPending ? (
-                        <>
-                          <button
-                            className="app-button app-button--primary"
-                            disabled={isBusy}
-                            onClick={() => handleMyInvitationAction(item.invitationId, 'accept')}
-                          >
-                            {isBusy ? 'Processing...' : 'Accept'}
-                          </button>
-                          <button
-                            className="app-button app-button--danger"
-                            disabled={isBusy}
-                            onClick={() => handleMyInvitationAction(item.invitationId, 'reject')}
-                          >
-                            Reject
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          className="app-button app-button--secondary"
-                          onClick={() => navigate(`/org/overview?orgId=${item.organizationId}`)}
-                        >
-                          View organization
-                        </button>
-                      )}
-                    </div>
+            <div className="app-card discover-panel">
+              <div className="app-section-header"><h3 className="app-section-title">Group Invitations</h3></div>
+              {myInvitations.length === 0 ? <EmptyState message="No invitations" /> : (
+                <div className="discover-list">
+                  {myInvitations.map((item) => {
+                    const isPending = item.status === 'Pending';
+                    const isBusy = processingInvitationId === item.invitationId;
+                    return (
+                      <div key={item.invitationId} className="discover-list-item discover-list-item--stacked">
+                        <div>
+                          <div className="discover-item-title">{item.organizationName}</div>
+                          <div className="discover-item-meta">Inviter: {item.inviterName || '-'}</div>
+                          <div className="discover-item-meta">{item.message || '-'}</div>
+                        </div>
+                        <div className="discover-actions discover-actions--full">
+                          {isPending ? (
+                            <>
+                              <button className="app-button app-button--primary discover-btn-half" disabled={isBusy} onClick={() => handleMyInvitationAction(item.invitationId, 'accept')}>{isBusy ? 'Processing...' : 'Accept'}</button>
+                              <button className="app-button app-button--secondary discover-btn-half" disabled={isBusy} onClick={() => handleMyInvitationAction(item.invitationId, 'reject')}>Ignore</button>
+                            </>
+                          ) : (
+                            <button className="app-button app-button--secondary" onClick={() => navigate(`/org/overview?orgId=${item.organizationId}`)}>View organization</button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </aside>
+
+          <main className="discover-col discover-col--main">
+            <div className="app-card discover-panel">
+              <div className="discover-tabbar">
+                <button className={`discover-tab ${activeTab === 'organizations' ? 'active' : ''}`} onClick={() => setActiveTab('organizations')}>Organizations</button>
+                <button className={`discover-tab ${activeTab === 'people' ? 'active' : ''}`} onClick={() => setActiveTab('people')}>Community</button>
+                <button className={`discover-tab ${activeTab === 'events' ? 'active' : ''}`} onClick={() => setActiveTab('events')}>Events</button>
+              </div>
+
+              {activeTab === 'organizations' ? (
+                <>
+                  <div className="discover-org-controls discover-org-controls--top">
+                    <input type="text" className="form-input discover-search" value={orgSearch} onChange={(e) => setOrgSearch(e.target.value)} placeholder="Search organizations by name or description..." />
+                    <select className="form-select discover-filter" value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)}>
+                      <option value="all">All</option>
+                      <option value="joined">Joined</option>
+                      <option value="pending">Pending</option>
+                      <option value="available">Available</option>
+                    </select>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Friend Suggestions</h3>
-          </div>
-
-          {friendSuggestions.length === 0 ? (
-            <EmptyState message="No friend suggestions right now" />
-          ) : (
-            <div className="discover-list">
-              {friendSuggestions.map((user) => {
-                const isSending = sendingFriendRequestToUserId === user.userId;
-                const isSent = sentFriendRequestUserIds.has(user.userId);
-                return (
-                  <div key={user.userId} className="discover-list-item">
-                    <div>
-                      <div className="discover-item-title">{user.fullName}</div>
-                      <div className="discover-item-meta">{user.email || '-'}</div>
+                  {filteredOrganizations.length === 0 ? <EmptyState message="No organizations match your filter" /> : (
+                    <div className="discover-org-grid">
+                      {filteredOrganizations.map((org) => {
+                        const orgName = org.name || org.orgName || org.organizationName || 'Unknown organization';
+                        const isJoined = !!org.isJoined || myOrgIds.includes(org.id);
+                        const isPending = pendingJoinOrgIds.has(org.id);
+                        const isWorking = requestingOrgId === org.id;
+                        return (
+                          <div key={org.id} className="discover-org-card discover-org-card--hero">
+                            <div className="discover-org-cover" />
+                            <div className="discover-org-avatar">{orgName.charAt(0)}</div>
+                            <div className="discover-org-content">
+                              <div className="discover-item-title">{orgName}</div>
+                              <div className="discover-item-meta">Location: {org.location || '-'} • {org.totalMembers ?? '-'} members</div>
+                              <div className="discover-item-meta discover-org-desc">{org.description || '-'}</div>
+                              <div className="discover-actions discover-actions--full">
+                                <button
+                                  onClick={() => {
+                                    if (isJoined) {
+                                      navigate(`/org/overview?orgId=${org.id}`);
+                                      return;
+                                    }
+                                    handleRequestToJoin(org.id, orgName);
+                                  }}
+                                  disabled={isWorking}
+                                  className={`app-button ${isJoined || isPending ? 'app-button--secondary' : 'app-button--primary'} discover-btn-full`}
+                                  title={isJoined ? 'Open organization' : (isPending ? 'Click again to withdraw request' : undefined)}
+                                >
+                                  {isWorking ? 'Processing...' : (isJoined ? 'Joined' : (isPending ? 'Request sent (click to withdraw)' : 'Join organization'))}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div className="discover-actions">
-                      <button
-                        className={`app-button ${isSent ? 'app-button--secondary' : 'app-button--primary'}`}
-                        disabled={isSending || isSent}
-                        onClick={() => handleSendFriendRequest(user.userId)}
-                      >
-                        {isSending ? 'Sending...' : (isSent ? 'Request sent' : 'Add friend')}
-                      </button>
-                    </div>
+                  )}
+                </>
+              ) : null}
+
+              {activeTab === 'people' ? (
+                <div className="discover-community-grid">
+                  <div className="app-card discover-subpanel">
+                    <div className="app-section-header"><h3 className="app-section-title">Suggestions for you</h3></div>
+                    {friendSuggestions.length === 0 ? <EmptyState message="No friend suggestions right now" /> : (
+                      <div className="discover-list">
+                        {friendSuggestions.map((user) => {
+                          const isSending = sendingFriendRequestToUserId === user.userId;
+                          const isSent = sentFriendRequestUserIds.has(user.userId);
+                          return (
+                            <div key={user.userId} className="discover-list-item">
+                              <div>
+                                <div className="discover-item-title">{user.fullName}</div>
+                                <div className="discover-item-meta">{user.email || '-'}</div>
+                              </div>
+                              <div className="discover-actions">
+                                <button className={`app-button ${isSent ? 'app-button--secondary' : 'app-button--primary'}`} disabled={isSending || isSent} onClick={() => handleSendFriendRequest(user.userId)}>{isSending ? 'Sending...' : (isSent ? 'Request sent' : 'Add friend')}</button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Incoming Friend Requests</h3>
-          </div>
+                  <div className="app-card discover-subpanel">
+                    <div className="app-section-header"><h3 className="app-section-title">Invite Friends to Organizations</h3></div>
+                    {friends.length === 0 ? <EmptyState message="No friends available to invite" /> : myOrganizations.length === 0 ? (
+                      <EmptyState message="You need to join at least one organization to invite friends" />
+                    ) : (
+                      <div className="discover-list">
+                        {friends.map((friend) => {
+                          const selectedOrgId = inviteOrgIdByFriendId[friend.userId] || '';
+                          const busyKey = `${friend.userId}:${selectedOrgId}`;
+                          const isBusy = invitingKey === busyKey;
+                          const availableOrgs = myOrganizations.filter((org) => {
+                            const memberSet = orgMemberUserIdsMap[org.id];
+                            return !(memberSet && memberSet.has(friend.userId));
+                          });
 
-          {incomingFriendRequests.length === 0 ? (
-            <EmptyState message="No pending friend requests" />
-          ) : (
-            <div className="discover-list">
-              {incomingFriendRequests.map((item) => {
-                const isBusy = processingFriendRequestId === item.id;
-                return (
-                  <div key={item.id} className="discover-list-item">
-                    <div>
-                      <div className="discover-item-title">{item.senderName}</div>
-                      <div className="discover-item-meta">Requested at: {item.createdAtUtc ? new Date(item.createdAtUtc).toLocaleString() : '-'}</div>
-                    </div>
-                    <div className="discover-actions">
-                      <button
-                        className="app-button app-button--primary"
-                        disabled={isBusy}
-                        onClick={() => handleFriendReview(item.id, 'accept')}
-                      >
-                        {isBusy ? 'Processing...' : 'Accept'}
-                      </button>
-                      <button
-                        className="app-button app-button--danger"
-                        disabled={isBusy}
-                        onClick={() => handleFriendReview(item.id, 'reject')}
-                      >
-                        Reject
-                      </button>
-                    </div>
+                          return (
+                            <div key={friend.userId} className="discover-list-item">
+                              <div>
+                                <div className="discover-item-title">{friend.fullName}</div>
+                                <div className="discover-item-meta">{friend.email || '-'}</div>
+                              </div>
+                              <div className="discover-actions discover-actions--stack">
+                                <select className="form-select discover-filter discover-filter--full" value={selectedOrgId} onChange={(e) => setInviteOrgIdByFriendId((prev) => ({ ...prev, [friend.userId]: e.target.value }))}>
+                                  <option value="">{availableOrgs.length > 0 ? 'Select organization' : 'No eligible organization'}</option>
+                                  {availableOrgs.map((org) => (<option key={org.id} value={org.id}>{org.name || org.orgName || 'Unnamed org'}</option>))}
+                                </select>
+                                <button className="app-button app-button--primary discover-invite-button" disabled={!selectedOrgId || isBusy || availableOrgs.length === 0} onClick={() => handleInviteFriend(friend.userId)}>{isBusy ? 'Inviting...' : 'Invite'}</button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                </div>
+              ) : null}
 
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Invite Friends to Your Organizations</h3>
-          </div>
-
-          {friends.length === 0 ? (
-            <EmptyState message="No friends available to invite" />
-          ) : myOrganizations.length === 0 ? (
-            <EmptyState message="You need to join at least one organization to invite friends" />
-          ) : (
-            <div className="discover-list">
-              {friends.map((friend) => {
-                const selectedOrgId = inviteOrgIdByFriendId[friend.userId] || '';
-                const busyKey = `${friend.userId}:${selectedOrgId}`;
-                const isBusy = invitingKey === busyKey;
-                const availableOrgs = myOrganizations.filter((org) => {
-                  const memberSet = orgMemberUserIdsMap[org.id];
-                  return !(memberSet && memberSet.has(friend.userId));
-                });
-
-                return (
-                  <div key={friend.userId} className="discover-list-item">
-                    <div>
-                      <div className="discover-item-title">{friend.fullName}</div>
-                      <div className="discover-item-meta">{friend.email || '-'}</div>
-                    </div>
-                    <div className="discover-actions">
-                      <select
-                        className="form-select discover-filter"
-                        value={selectedOrgId}
-                        onChange={(e) =>
-                          setInviteOrgIdByFriendId((prev) => ({
-                            ...prev,
-                            [friend.userId]: e.target.value
-                          }))
-                        }
-                      >
-                        <option value="">{availableOrgs.length > 0 ? 'Select organization' : 'No eligible organization'}</option>
-                        {availableOrgs.map((org) => (
-                          <option key={org.id} value={org.id}>
-                            {org.name || org.orgName || 'Unnamed org'}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        className="app-button app-button--primary"
-                        disabled={!selectedOrgId || isBusy || availableOrgs.length === 0}
-                        onClick={() => handleInviteFriend(friend.userId)}
-                      >
-                        {isBusy ? 'Inviting...' : 'Invite'}
-                      </button>
-                    </div>
+              {activeTab === 'events' ? (
+                events.length === 0 ? <EmptyState message="No events available" /> : (
+                  <div className="discover-events-grid">
+                    {events.map((event) => (<EventCard key={event?.id || event?.eventId} event={event} onView={() => handleViewEvent(event)} />))}
                   </div>
-                );
-              })}
+                )
+              ) : null}
             </div>
-          )}
-        </div>
+          </main>
 
-        <div className="app-card">
-          <div className="app-section-header discover-org-header">
-            <h3 className="app-section-title">Organizations</h3>
-            <div className="discover-org-controls">
-              <input
-                type="text"
-                className="form-input discover-search"
-                value={orgSearch}
-                onChange={(e) => setOrgSearch(e.target.value)}
-                placeholder="Search name or description"
-              />
-              <select className="form-select discover-filter" value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)}>
-                <option value="all">All</option>
-                <option value="joined">Joined</option>
-                <option value="pending">Pending</option>
-                <option value="available">Available</option>
-              </select>
-            </div>
-          </div>
-
-          {filteredOrganizations.length === 0 ? (
-            <EmptyState message="No organizations match your filter" />
-          ) : (
-            <div className="discover-org-grid">
-              {filteredOrganizations.map((org) => {
-                const orgName = org.name || org.orgName || org.organizationName || 'Unknown organization';
-                const isJoined = !!org.isJoined || myOrgIds.includes(org.id);
-                const isPending = pendingJoinOrgIds.has(org.id);
-                const isWorking = requestingOrgId === org.id;
-
-                return (
-                  <div key={org.id} className="discover-org-card">
-                    <div className="discover-item-title">{orgName}</div>
-                    <div className="discover-item-meta">{org.description || '-'}</div>
-                    <div className="discover-item-meta">Location: {org.location || '-'}</div>
-                    <div className="discover-item-meta">Members: {org.totalMembers ?? '-'}</div>
-                    <div className="discover-item-meta">Status: {org.status || (org.isActive ? 'Active' : 'Inactive')}</div>
-
-                    <div className="discover-actions">
-                      <button
-                        onClick={() => {
-                          if (isJoined) {
-                            navigate(`/org/overview?orgId=${org.id}`);
-                            return;
-                          }
-                          handleRequestToJoin(org.id, orgName);
-                        }}
-                        disabled={isWorking}
-                        className={`app-button ${isJoined || isPending ? 'app-button--secondary' : 'app-button--primary'}`}
-                        title={isJoined ? 'Open organization' : (isPending ? 'Click again to withdraw request' : undefined)}
-                      >
-                        {isWorking ? 'Processing...' : (isJoined ? 'View details' : (isPending ? 'Request sent (click to withdraw)' : 'Request to join'))}
-                      </button>
+          <aside className="discover-col discover-col--right">
+            <div className="app-card discover-panel">
+              <div className="app-section-header"><h3 className="app-section-title">Featured Events</h3></div>
+              {events.length === 0 ? <EmptyState message="No events available" /> : (
+                <div className="discover-highlight-list">
+                  {events.slice(0, 3).map((event) => (
+                    <div key={event?.id || event?.eventId} className="discover-highlight-item" onClick={() => handleViewEvent(event)}>
+                      <div className="discover-highlight-tag">Coming soon</div>
+                      <div className="discover-item-title">{event?.title || event?.name || 'Untitled event'}</div>
+                      <div className="discover-item-meta">{event?.location || '-'}</div>
                     </div>
-                  </div>
-                );
-              })}
+                  ))}
+                  <button className="app-button app-button--secondary discover-btn-full" onClick={() => setActiveTab('events')}>Explore all events</button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <div className="app-card">
-          <div className="app-section-header">
-            <h3 className="app-section-title">Events</h3>
-          </div>
-          {events.length === 0 ? (
-            <EmptyState message="No events available" />
-          ) : (
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              {events.map((event) => (
-                <EventCard
-                  key={event?.id || event?.eventId}
-                  event={event}
-                  onView={() => handleViewEvent(event)}
-                />
-              ))}
+            <div className="app-card discover-panel">
+              <div className="app-section-header"><h3 className="app-section-title">Your Organizations</h3></div>
+              {myOrganizations.length === 0 ? <EmptyState message="You have not joined any organization yet" /> : (
+                <div className="discover-list">
+                  {myOrganizations.slice(0, 4).map((org) => (
+                    <div key={org.id} className="discover-list-item discover-list-item--compact">
+                      <div className="discover-item-title">{org.name || org.orgName || 'Unnamed org'}</div>
+                      <button className="app-button app-button--secondary" onClick={() => navigate(`/org/overview?orgId=${org.id}`)}>Open</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+
+            <div className="discover-legal">
+              <span>Privacy</span>
+              <span>Terms</span>
+              <span>Ads</span>
+              <span>Cookies</span>
+              <span>© 2026 SocialHub</span>
+            </div>
+          </aside>
         </div>
       </div>
     </div>

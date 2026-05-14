@@ -33,7 +33,6 @@ import RegisterPage from '../pages/auth/RegisterPage';
 // User workspace pages
 import UserOrganizationsPage from '../pages/user/UserOrganizationsPage';
 import UserEventsPage from '../pages/user/UserEventsPage';
-import UserProfilePage from '../pages/user/UserProfilePage';
 import UserSettingsPage from '../pages/user/UserSettingsPage';
 import UserFriendsPage from '../pages/user/UserFriendsPage';
 import UserDiscoverPage from '../pages/user/UserDiscoverPage';
@@ -69,7 +68,6 @@ function AppRouter() {
           <Route element={<AppLayout />}>
             <Route path="/user/organizations" element={<UserOrganizationsPage />} />
             <Route path="/user/events" element={<UserEventsPage />} />
-            <Route path="/user/profile" element={<UserProfilePage />} />
             <Route path="/user/settings" element={<UserSettingsPage />} />
             <Route path="/user/friends" element={<UserFriendsPage />} />
             <Route path="/user/discover" element={<UserDiscoverPage />} />

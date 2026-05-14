@@ -5,7 +5,6 @@
  * 
  * Usage:
  *   <Route element={<AppLayout />}>
- *     <Route path="/user/profile" element={<UserProfilePage />} />
  *     <Route path="/org/members" element={<OrgMembersPage />} />
  *   </Route>
  */
