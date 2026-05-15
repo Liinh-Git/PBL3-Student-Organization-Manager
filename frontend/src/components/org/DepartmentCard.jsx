@@ -1,41 +1,332 @@
-﻿import { useMemo, useState } from "react";
+﻿/**
+ * DepartmentCard.jsx
+ * Collapsed  → overview (name, desc, manager, stats, member avatars)
+ * Expanded   → overview + task list (sorted by status + deadline)
+ * Member btn → popup with member list + add member
+ */
+
+import { useState, useRef, useEffect, useMemo } from "react";
 import { getTaskById } from "../../services/taskService.js";
-function IconShell({ className, children }) {
+import "./DepartmentCard.css";
+
+/* ─── helpers ─────────────────────────────────── */
+const initials = (name = "") => {
+  const p = name.trim().split(/\s+/);
+  if (!p[0]) return "?";
+  return p.length === 1
+    ? p[0].slice(0, 2).toUpperCase()
+    : (p[0][0] + p[p.length - 1][0]).toUpperCase();
+};
+
+const STATUS_META = {
+  Todo: { label: "Todo", cls: "dc-pill--todo" },
+  InProgress: { label: "In Progress", cls: "dc-pill--progress" },
+  Blocked: { label: "Blocked", cls: "dc-pill--blocked" },
+  Done: { label: "Done", cls: "dc-pill--done" },
+  Cancelled: { label: "Cancelled", cls: "dc-pill--cancelled" },
+};
+
+const STATUS_ORDER = ["InProgress", "Todo", "Blocked", "Done", "Cancelled"];
+
+const fmtDate = (iso) => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? null
+    : d.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+};
+
+const getFirstSentence = (text) => {
+  if (!text) return "Không có mô tả";
+  const trimmed = text.trim();
+  const parts = trimmed.split(/(?<=[.!?])\s+/);
+  return parts[0] || trimmed;
+};
+
+const sortByDeadline = (a, b) => {
+  const ad = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+  const bd = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+  return ad - bd;
+};
+
+/* ─── AvatarStack ─────────────────────────────── */
+function AvatarStack({ members, max = 4, onClick }) {
+  const shown = members.slice(0, max);
+  const extra = members.length - max;
   return (
-    <span className={className} aria-hidden="true">
-      {children}
-    </span>
+    <button
+      type="button"
+      className="dc-avatar-stack"
+      onClick={onClick}
+      title="Xem thành viên"
+    >
+      {shown.map((m) => (
+        <span key={m.id} className="dc-avatar" title={m.fullName || m.email}>
+          {initials(m.fullName || m.email)}
+        </span>
+      ))}
+      {extra > 0 && <span className="dc-avatar dc-avatar--more">+{extra}</span>}
+      {members.length === 0 && (
+        <span className="dc-avatar dc-avatar--empty">—</span>
+      )}
+    </button>
   );
 }
 
-function UsersIcon({ className }) { return <IconShell className={className}>👥</IconShell>; }
-function ClipboardListIcon({ className }) { return <IconShell className={className}>▤</IconShell>; }
-function SettingsIcon({ className }) { return <IconShell className={className}>⚙</IconShell>; }
-function TrashIcon({ className }) { return <IconShell className={className}>🗑</IconShell>; }
-function UserPlusIcon({ className }) { return <IconShell className={className}>＋</IconShell>; }
-function PlusIcon({ className }) { return <IconShell className={className}>＋</IconShell>; }
-function SearchIcon({ className }) { return <IconShell className={className}>⌕</IconShell>; }
-function CalendarIcon({ className }) { return <IconShell className={className}>📅</IconShell>; }
-function CheckCircleIcon({ className }) { return <IconShell className={className}>✓</IconShell>; }
-function ClockIcon({ className }) { return <IconShell className={className}>○</IconShell>; }
-function AlertCircleIcon({ className }) { return <IconShell className={className}>!</IconShell>; }
-function XCircleIcon({ className }) { return <IconShell className={className}>×</IconShell>; }
-function MoreVerticalIcon({ className }) { return <IconShell className={className}>⋮</IconShell>; }
-function EyeIcon({ className }) { return <IconShell className={className}>◔</IconShell>; }
+/* ─── MembersPopup ────────────────────────────── */
+function MembersPopup({
+  departmentMembers,
+  assignableMembers,
+  canManageMembers,
+  isSubmitting,
+  onAddMembers,
+  onRemoveMember,
+  deptId,
+  onClose,
+  anchorRef,
+}) {
+  const popupRef = useRef(null);
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState([]);
+  const [showAdd, setShowAdd] = useState(false);
 
-const TASK_STATUS_ORDER = [
-  { key: "Todo", label: "Todo" },
-  { key: "InProgress", label: "InProgress" },
-  { key: "Blocked", label: "Blocked" },
-  { key: "Done", label: "Done" },
-  { key: "Cancelled", label: "Cancelled" },
-];
+  /* close on outside click */
+  useEffect(() => {
+    const handler = (e) => {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(e.target) &&
+        anchorRef.current &&
+        !anchorRef.current.contains(e.target)
+      )
+        onClose();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose, anchorRef]);
 
+  const filteredAdd = assignableMembers.filter((m) =>
+    (m.fullName || m.email || "").toLowerCase().includes(query.toLowerCase()),
+  );
+
+  const toggleSelect = (id) =>
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+
+  const handleAdd = () => {
+    if (selected.length === 0) return;
+    onAddMembers(deptId, selected);
+    setSelected([]);
+    setShowAdd(false);
+    setQuery("");
+  };
+
+  return (
+    <div className="dc-members-popup" ref={popupRef}>
+      {/* header */}
+      <div className="dc-popup-head">
+        <span className="dc-popup-title">
+          Thành viên{" "}
+          <span className="dc-popup-count">{departmentMembers.length}</span>
+        </span>
+        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+          {canManageMembers && (
+            <button
+              type="button"
+              className={`dc-popup-add-btn${showAdd ? " is-active" : ""}`}
+              onClick={() => {
+                setShowAdd((v) => !v);
+                setQuery("");
+                setSelected([]);
+              }}
+            >
+              {showAdd ? "✕" : "+ Thêm"}
+            </button>
+          )}
+          <button type="button" className="dc-popup-close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+      </div>
+
+      {/* add member panel */}
+      {showAdd && (
+        <div className="dc-popup-add-panel">
+          <input
+            className="dc-popup-search"
+            placeholder="Tìm thành viên..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoFocus
+          />
+          <div className="dc-popup-list dc-popup-list--scroll">
+            {filteredAdd.length === 0 ? (
+              <p className="dc-popup-empty">Không có thành viên phù hợp</p>
+            ) : (
+              filteredAdd.map((m) => (
+                <label
+                  key={m.id}
+                  className={`dc-popup-row dc-popup-row--pick${selected.includes(m.id) ? " is-selected" : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    className="dc-popup-checkbox"
+                    checked={selected.includes(m.id)}
+                    onChange={() => toggleSelect(m.id)}
+                  />
+                  <span className="dc-avatar dc-avatar--sm">
+                    {initials(m.fullName || m.email)}
+                  </span>
+                  <span className="dc-popup-row-text">
+                    <strong>{m.fullName || "—"}</strong>
+                    <small>{m.email}</small>
+                  </span>
+                </label>
+              ))
+            )}
+          </div>
+          <button
+            type="button"
+            className="dc-popup-confirm"
+            disabled={selected.length === 0 || isSubmitting}
+            onClick={handleAdd}
+          >
+            {isSubmitting
+              ? "Đang thêm..."
+              : `Thêm ${selected.length > 0 ? `(${selected.length})` : ""}`}
+          </button>
+        </div>
+      )}
+
+      {/* current members list */}
+      {!showAdd && (
+        <div className="dc-popup-list dc-popup-list--scroll">
+          {departmentMembers.length === 0 ? (
+            <p className="dc-popup-empty">Chưa có thành viên nào</p>
+          ) : (
+            departmentMembers.map((m) => (
+              <div key={m.id} className="dc-popup-row">
+                <span className="dc-avatar dc-avatar--sm">
+                  {initials(m.fullName || m.email)}
+                </span>
+                <span className="dc-popup-row-text">
+                  <strong>{m.fullName || "—"}</strong>
+                  <small>{m.roleName || m.role?.roleName || m.email}</small>
+                </span>
+                {canManageMembers && (
+                  <button
+                    type="button"
+                    className="dc-popup-remove"
+                    disabled={isSubmitting}
+                    onClick={() => onRemoveMember(deptId, m.id)}
+                    title="Xóa khỏi phòng ban"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── AddTaskForm ─────────────────────────────── */
+function AddTaskForm({
+  deptId,
+  departmentMembers,
+  isSubmitting,
+  onCreateTask,
+  onClose,
+}) {
+  const [form, setForm] = useState({
+    taskName: "",
+    description: "",
+    deadline: "",
+    status: "Todo",
+    assigneeId: "",
+  });
+  const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.taskName.trim()) return;
+    onCreateTask(deptId, { ...form });
+    onClose();
+  };
+
+  return (
+    <form className="dc-add-task-form" onSubmit={handleSubmit}>
+      <input
+        className="dc-add-input"
+        placeholder="Tên nhiệm vụ *"
+        value={form.taskName}
+        onChange={set("taskName")}
+        required
+        autoFocus
+      />
+      <textarea
+        className="dc-add-input dc-add-textarea"
+        placeholder="Mô tả..."
+        value={form.description}
+        onChange={set("description")}
+      />
+      <div className="dc-add-row">
+        <select
+          className="dc-add-select"
+          value={form.status}
+          onChange={set("status")}
+        >
+          {Object.entries(STATUS_META).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v.label}
+            </option>
+          ))}
+        </select>
+        <input
+          type="date"
+          className="dc-add-select"
+          value={form.deadline}
+          onChange={set("deadline")}
+        />
+        <select
+          className="dc-add-select"
+          value={form.assigneeId}
+          onChange={set("assigneeId")}
+        >
+          <option value="">Giao cho...</option>
+          {departmentMembers.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.fullName || m.email}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="dc-add-footer">
+        <button type="button" className="dc-add-cancel" onClick={onClose}>
+          Hủy
+        </button>
+        <button type="submit" className="dc-add-submit" disabled={isSubmitting}>
+          {isSubmitting ? "Đang lưu..." : "Thêm nhiệm vụ"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/* ─── DepartmentCard (main) ───────────────────── */
 function DepartmentCard({
   department,
   memberCount,
-  departmentMembers = [],
-  assignableMembers = [],
+  departmentMembers,
+  assignableMembers,
   taskCount,
   managerName,
   canManage,
@@ -46,93 +337,54 @@ function DepartmentCard({
   onDelete,
   onAddMembers,
   onRemoveMember,
-  tasks = [],
+  tasks,
   onCreateTask,
   onUpdateTaskStatus,
   onAssignTask,
 }) {
-  const [activeTab, setActiveTab] = useState("overview");
-  const [query, setQuery] = useState("");
-  const [selectedMemberIds, setSelectedMemberIds] = useState([]);
-  const [showTaskForm, setShowTaskForm] = useState(false);
-  const [openTaskStatuses, setOpenTaskStatuses] = useState(() =>
-    TASK_STATUS_ORDER.reduce((acc, status) => {
-      acc[status.key] = true;
-      return acc;
-    }, {}),
-  );
-  const [taskForm, setTaskForm] = useState({
-    taskName: "",
-    description: "",
-    assigneeId: "",
-    deadline: "",
-    status: "Todo",
-  });
+  const [expanded, setExpanded] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [statusFilter, setStatusFilter] = useState(["All"]);
   const [selectedTaskDetail, setSelectedTaskDetail] = useState(null);
   const [taskDetailLoading, setTaskDetailLoading] = useState(false);
   const [taskDetailError, setTaskDetailError] = useState("");
+  const avatarBtnRef = useRef(null);
 
-  const availableMembers = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return assignableMembers.filter((m) => {
-      const fullName = (m.fullName || m.user?.fullName || "").toLowerCase();
-      const email = (m.email || m.user?.email || "").toLowerCase();
-      if (!q) return true;
-      return fullName.includes(q) || email.includes(q);
-    });
-  }, [assignableMembers, query]);
+  const deptId = department.id;
+  const deptName =
+    department.deptName || department.departmentName || "Phòng ban";
+  const deptDesc = department.description || department.function || "";
 
-  const groupedTasks = useMemo(() => {
-    const groups = { Todo: [], InProgress: [], Blocked: [], Done: [], Cancelled: [] };
-    tasks.forEach((t) => {
-      const key = t.status || "Todo";
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(t);
-    });
-    return groups;
-  }, [tasks]);
+  const todoTasks = tasks.filter((t) => t.status === "Todo" || !t.status);
+  const inProgTasks = tasks.filter((t) => t.status === "InProgress");
+  const doneTasks = tasks.filter((t) => t.status === "Done");
 
-  const totalTasks = taskCount || tasks.length;
+  const tasksByStatus = useMemo(
+    () =>
+      STATUS_ORDER.map((status) => {
+        const list = tasks
+          .filter((t) => (t.status || "Todo") === status)
+          .sort(sortByDeadline);
+        return {
+          status,
+          label: STATUS_META[status]?.label || status,
+          cls: STATUS_META[status]?.cls || "dc-pill--todo",
+          tasks: list,
+        };
+      }),
+    [tasks],
+  );
 
-  const getMemberLabel = (member) => member.fullName || member.user?.fullName || member.email || member.user?.email || "Không rõ";
+  const activeFilters = Array.isArray(statusFilter)
+    ? statusFilter
+    : [statusFilter];
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "Todo":
-        return <ClockIcon className="dept-status-icon dept-status-icon--muted" />;
-      case "InProgress":
-        return <ClockIcon className="dept-status-icon dept-status-icon--progress" />;
-      case "Blocked":
-        return <AlertCircleIcon className="dept-status-icon dept-status-icon--blocked" />;
-      case "Done":
-        return <CheckCircleIcon className="dept-status-icon dept-status-icon--done" />;
-      case "Cancelled":
-        return <XCircleIcon className="dept-status-icon dept-status-icon--cancelled" />;
-      default:
-        return null;
-    }
-  };
-
-  const getTaskStatusClass = (status) => {
-    switch (status) {
-      case "InProgress":
-        return "dept-task-pill--progress";
-      case "Blocked":
-        return "dept-task-pill--blocked";
-      case "Done":
-        return "dept-task-pill--done";
-      case "Cancelled":
-        return "dept-task-pill--cancelled";
-      default:
-        return "dept-task-pill--todo";
-    }
-  };
-
-  const getTaskMeta = (status) => TASK_STATUS_ORDER.find((item) => item.key === status) || TASK_STATUS_ORDER[0];
-
-  const toggleTaskGroup = (status) => {
-    setOpenTaskStatuses((prev) => ({ ...prev, [status]: !prev[status] }));
-  };
+  const visibleTasks = activeFilters.includes("All")
+    ? tasksByStatus.flatMap((g) => g.tasks)
+    : tasksByStatus
+        .filter((g) => activeFilters.includes(g.status))
+        .flatMap((g) => g.tasks);
 
   const openTaskDetail = async (task) => {
     setSelectedTaskDetail(task);
@@ -149,475 +401,491 @@ function DepartmentCard({
     }
   };
 
-  const toggleMember = (id) => {
-    setSelectedMemberIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
-
-  const submitAddMembers = (e) => {
-    e.preventDefault();
-    if (!selectedMemberIds.length) return;
-    onAddMembers(department.id, selectedMemberIds);
-    setSelectedMemberIds([]);
-  };
-
-  const submitTask = (e) => {
-    e.preventDefault();
-    if (!canManageTasks) return;
-    onCreateTask(department.id, taskForm);
-    setTaskForm({ taskName: "", description: "", assigneeId: "", deadline: "", status: "Todo" });
-    setShowTaskForm(false);
-  };
-
   return (
-    <div className="dept-card">
-      <div className="dept-card-header">
-        <div className="dept-card-heading">
-          <div className="dept-card-title-row">
-            <h3 className="dept-card-title">{department.departmentName || department.deptName}</h3>
-            <span className="dept-card-chip">{managerName ? "Có quản lý" : "Chưa có quản lý"}</span>
-          </div>
-          <p className="dept-card-desc">{department.description || department.function || "Chưa có mô tả phòng ban."}</p>
+    <div className={`dc-card${expanded ? " dc-card--expanded" : ""}`}>
+      {/* ── Top: name + avatar stack + actions ── */}
+      <div className="dc-card-top">
+        <div className="dc-card-title-area">
+          <h3 className="dc-card-name">{deptName}</h3>
+          {deptDesc && <p className="dc-card-desc">{deptDesc}</p>}
         </div>
 
-        {canManage && (
-          <div className="dept-card-actions-top">
-            <button onClick={() => onEdit(department)} className="dept-icon-button" title="Sửa" type="button">
-              <SettingsIcon className="dept-icon-button__icon" />
-            </button>
-            <button onClick={() => onDelete(department.id)} className="dept-icon-button dept-icon-button--danger" title="Xóa" type="button">
-              <TrashIcon className="dept-icon-button__icon" />
-            </button>
-          </div>
-        )}
+        {/* avatar stack → members popup anchor */}
+        <div className="dc-card-top-right" ref={avatarBtnRef}>
+          <AvatarStack
+            members={departmentMembers}
+            max={3}
+            onClick={() => setShowMembers((v) => !v)}
+          />
+        </div>
       </div>
 
-      <div className="dept-card-tabs">
-        {[
-          { id: "overview", label: "Tổng quan" },
-          { id: "members", label: "Thành viên" },
-          { id: "tasks", label: "Nhiệm vụ" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`dept-card-tab ${activeTab === tab.id ? "is-active" : ""}`}
-            type="button"
+      {/* ── Members popup ── */}
+      {showMembers && (
+        <MembersPopup
+          deptId={deptId}
+          departmentMembers={departmentMembers}
+          assignableMembers={assignableMembers}
+          canManageMembers={canManageMembers}
+          isSubmitting={isSubmitting}
+          onAddMembers={onAddMembers}
+          onRemoveMember={onRemoveMember}
+          onClose={() => setShowMembers(false)}
+          anchorRef={avatarBtnRef}
+        />
+      )}
+
+      {/* ── Stats row ── */}
+      <div className="dc-stats">
+        <div className="dc-stat">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
           >
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="dept-card-panel">
-        {activeTab === "overview" && (
-          <div className="dept-panel-stack">
-            <div className="dept-manager-card">
-              <div className="dept-manager-row">
-                <div className="dept-manager-avatar">{managerName?.charAt(0) || "M"}</div>
-                <div>
-                  <p className="dept-manager-name">{managerName || "Chưa phân công"}</p>
-                  <p className="dept-manager-sub">Người phụ trách chính của phòng ban</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="dept-overview-card">
-              <p className="dept-section-label">Trạng thái nhanh</p>
-              <div className="dept-overview-list">
-                <div className="dept-overview-item">
-                  <span className="dept-overview-key">Thành viên</span>
-                  <strong className="dept-overview-value">{memberCount}</strong>
-                </div>
-                <div className="dept-overview-item">
-                  <span className="dept-overview-key">Nhiệm vụ</span>
-                  <strong className="dept-overview-value">{totalTasks}</strong>
-                </div>
-              </div>
-            </div>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+          </svg>
+          <span>{memberCount} thành viên</span>
+        </div>
+        <div className="dc-stat">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          <span>{taskCount} nhiệm vụ</span>
+        </div>
+        {managerName && managerName !== "-" && (
+          <div className="dc-stat dc-stat--manager">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="12" cy="8" r="4" />
+              <path d="M6 20v-2a4 4 0 0 1 8 0v2" />
+            </svg>
+            <span>{managerName}</span>
           </div>
         )}
+      </div>
 
-        {activeTab === "members" && (
-          <div className="dept-panel-stack">
-            {canManageMembers ? (
-              <>
-                <form onSubmit={submitAddMembers} className="dept-member-picker">
-                  <div className="dept-panel-head">
-                    <div>
-                      <p className="dept-section-label">Thêm thành viên</p>
-                      <h4 className="dept-panel-title">Chọn người có thể thêm vào phòng ban</h4>
-                    </div>
-                    <span className="dept-panel-meta">{selectedMemberIds.length} đã chọn</span>
-                  </div>
+      {/* ── Task progress bar (always visible) ── */}
+      {taskCount > 0 && (
+        <div className="dc-progress-wrap">
+          <div className="dc-progress-bar">
+            <div
+              className="dc-progress-fill"
+              style={{
+                width: `${Math.round((doneTasks.length / taskCount) * 100)}%`,
+              }}
+            />
+          </div>
+          <span className="dc-progress-label">
+            {doneTasks.length}/{taskCount} hoàn thành
+          </span>
+        </div>
+      )}
 
-                  <div className="dept-search-wrap">
-                    <SearchIcon className="dept-search-icon" />
-                    <input
-                      className="dept-member-search"
-                      placeholder="Tìm thành viên mới..."
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="dept-member-list custom-scrollbar">
-                    {availableMembers.length > 0 ? (
-                      availableMembers.map((m) => (
-                        <label key={m.id} className={`dept-member-item ${selectedMemberIds.includes(m.id) ? "is-selected" : ""}`}>
-                          <input
-                            type="checkbox"
-                            className="dept-member-checkbox"
-                            checked={selectedMemberIds.includes(m.id)}
-                            onChange={() => toggleMember(m.id)}
-                          />
-                          <div className="dept-member-text">
-                            <span className="dept-member-name">{getMemberLabel(m)}</span>
-                            <span className="dept-member-email">{m.email || m.user?.email || ""}</span>
-                          </div>
-                        </label>
-                      ))
-                    ) : (
-                      <p className="dept-empty-state">Không tìm thấy ai phù hợp</p>
-                    )}
-                  </div>
-
-                  <button disabled={isSubmitting || !selectedMemberIds.length} className="dept-primary-action" type="submit">
-                    <UserPlusIcon className="dept-primary-action__icon" />
-                    <span>Thêm ({selectedMemberIds.length}) thành viên</span>
-                  </button>
-                </form>
-
-                <div className="dept-member-roster">
-                  <div className="dept-panel-head">
-                    <div>
-                      <p className="dept-section-label">Thành viên hiện tại</p>
-                      <h4 className="dept-panel-title">Danh sách đang thuộc phòng ban</h4>
-                    </div>
-                    <span className="dept-panel-meta">{departmentMembers.length} người</span>
-                  </div>
-
-                  <div className="dept-current-members custom-scrollbar">
-                    {departmentMembers.length > 0 ? (
-                      departmentMembers.map((m) => (
-                        <div key={m.id} className="dept-current-member">
-                          <div className="dept-current-avatar">{getMemberLabel(m).charAt(0) || "U"}</div>
-                          <div className="dept-member-text">
-                            <span className="dept-member-name">{getMemberLabel(m)}</span>
-                            <span className="dept-member-email">{m.email || m.user?.email || ""}</span>
-                          </div>
-                          <button
-                            type="button"
-                            className="dept-icon-button dept-icon-button--danger"
-                            onClick={() => onRemoveMember?.(department.id, m.id)}
-                            disabled={isSubmitting}
-                            title="Xóa khỏi ban"
-                          >
-                            <TrashIcon className="dept-icon-button__icon" />
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="dept-empty-state">Phòng ban chưa có thành viên</p>
-                    )}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="dept-member-roster">
-                <div className="dept-panel-head">
-                  <div>
-                    <p className="dept-section-label">Thành viên hiện tại</p>
-                    <h4 className="dept-panel-title">Danh sách đang thuộc phòng ban</h4>
-                  </div>
-                  <span className="dept-panel-meta">{departmentMembers.length} người</span>
-                </div>
-
-                <div className="dept-current-members custom-scrollbar">
-                  {departmentMembers.length > 0 ? (
-                    departmentMembers.map((m) => (
-                      <div key={m.id} className="dept-current-member">
-                        <div className="dept-current-avatar">{getMemberLabel(m).charAt(0) || "U"}</div>
-                        <div className="dept-member-text">
-                          <span className="dept-member-name">{getMemberLabel(m)}</span>
-                          <span className="dept-member-email">{m.email || m.user?.email || ""}</span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="dept-empty-state">Phòng ban chưa có thành viên</p>
-                  )}
-                </div>
-              </div>
+      {/* ── Expand: task list ── */}
+      {expanded && (
+        <div className="dc-tasks-section">
+          <div className="dc-tasks-header">
+            <span className="dc-tasks-label">Nhiệm vụ</span>
+            <div className="dc-tasks-header-pills">
+              {inProgTasks.length > 0 && (
+                <span className="dc-pill dc-pill--progress">
+                  {inProgTasks.length} đang làm
+                </span>
+              )}
+              {todoTasks.length > 0 && (
+                <span className="dc-pill dc-pill--todo">
+                  {todoTasks.length} todo
+                </span>
+              )}
+            </div>
+            {canManageTasks && !showAddTask && (
+              <button
+                type="button"
+                className="dc-add-task-btn"
+                onClick={() => setShowAddTask(true)}
+              >
+                + Thêm
+              </button>
             )}
           </div>
-        )}
 
-        {activeTab === "tasks" && (
-          <div className="dept-panel-stack">
-            <section className="dept-task-accordion">
-              <div className="dept-task-accordion-header">
-                <div>
-                  <p className="dept-section-label">Danh sách công việc</p>
-                  <h4 className="dept-panel-title">Quản lý nhiệm vụ theo trạng thái</h4>
-                </div>
-                {canManageTasks && (
+          {/* Filters */}
+          <div className="dc-task-filters">
+            <button
+              type="button"
+              className={`dc-task-filter-btn${activeFilters.includes("All") ? " is-active" : ""}`}
+              onClick={() => setStatusFilter(["All"])}
+            >
+              Tất cả ({tasks.length})
+            </button>
+            {tasksByStatus.map((g) => (
+              <button
+                key={g.status}
+                type="button"
+                className={`dc-task-filter-btn${activeFilters.includes(g.status) ? " is-active" : ""}`}
+                onClick={() =>
+                  setStatusFilter((prev) => {
+                    const list = Array.isArray(prev) ? prev : [prev];
+                    if (list.includes("All")) {
+                      return [g.status];
+                    }
+                    if (list.includes(g.status)) {
+                      const next = list.filter((x) => x !== g.status);
+                      return next.length ? next : ["All"];
+                    }
+                    return [...list, g.status];
+                  })
+                }
+              >
+                {g.label} ({g.tasks.length})
+              </button>
+            ))}
+          </div>
+
+          {showAddTask && (
+            <AddTaskForm
+              deptId={deptId}
+              departmentMembers={departmentMembers}
+              isSubmitting={isSubmitting}
+              onCreateTask={onCreateTask}
+              onClose={() => setShowAddTask(false)}
+            />
+          )}
+
+          <div className="dc-task-list">
+            {visibleTasks.length === 0 ? (
+              <p className="dc-task-empty">Chưa có nhiệm vụ nào.</p>
+            ) : (
+              visibleTasks.map((task) => {
+                const meta = STATUS_META[task.status] || STATUS_META.Todo;
+                const assignee = departmentMembers.find(
+                  (m) => m.id === task.assigneeId,
+                );
+                return (
                   <button
-                    onClick={() => setShowTaskForm((prev) => !prev)}
-                    className={`dept-task-toggle dept-task-toggle--wide ${showTaskForm ? "is-active" : ""}`}
+                    key={task.id}
                     type="button"
+                    className="dc-task-item"
+                    onClick={() => openTaskDetail(task)}
                   >
-                    {showTaskForm ? <MoreVerticalIcon className="dept-task-toggle__icon" /> : <PlusIcon className="dept-task-toggle__icon" />}
-                    <span>{showTaskForm ? "Ẩn form tạo task" : "+ Tạo nhiệm vụ mới"}</span>
-                  </button>
-                )}
-              </div>
+                    <div className="dc-task-item-head">
+                      <div>
+                        <h4 className="dc-task-title">
+                          {task.taskName || task.name}
+                        </h4>
+                        <p className="dc-task-desc">
+                          {getFirstSentence(task.description)}
+                        </p>
+                      </div>
+                      <span className={`dc-pill ${meta.cls}`}>
+                        {meta.label}
+                      </span>
+                    </div>
 
-              <div className="dept-task-accordion-body">
-                {showTaskForm && canManageTasks && (
-                    <form onSubmit={submitTask} className="dept-task-form">
-                      <div className="dept-task-form-row">
-                        <input
-                          className="dept-input"
-                          type="date"
-                          value={taskForm.deadline}
-                          onChange={(e) => setTaskForm((prev) => ({ ...prev, deadline: e.target.value }))}
-                        />
-                      </div>
-                      <div className="dept-task-status-row">
-                        {TASK_STATUS_ORDER.map((statusInfo) => (
-                          <button
-                            key={statusInfo.key}
-                            type="button"
-                            className={`dept-task-status-chip ${taskForm.status === statusInfo.key ? "is-active" : ""}`}
-                            onClick={() => setTaskForm((prev) => ({ ...prev, status: statusInfo.key }))}
+                    <div className="dc-task-meta">
+                      {fmtDate(task.deadline) && (
+                        <span className="dc-task-meta-chip">
+                          <svg
+                            className="dc-task-meta-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
                           >
-                            {statusInfo.label}
-                          </button>
-                        ))}
-                      </div>
-                      <input
-                        className="dept-input"
-                        placeholder="Tên nhiệm vụ..."
-                        value={taskForm.taskName}
-                        onChange={(e) => setTaskForm((prev) => ({ ...prev, taskName: e.target.value }))}
-                        required
-                      />
-                      <textarea
-                        className="dept-input dept-input--textarea"
-                        placeholder="Mô tả chi tiết..."
-                        value={taskForm.description}
-                        onChange={(e) => setTaskForm((prev) => ({ ...prev, description: e.target.value }))}
-                      />
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                          </svg>
+                          <span>{fmtDate(task.deadline)}</span>
+                        </span>
+                      )}
+                      {assignee && (
+                        <span className="dc-task-meta-chip">
+                          <svg
+                            className="dc-task-meta-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                          </svg>
+                          <span>{assignee.fullName || assignee.email}</span>
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Footer: expand toggle + manage actions ── */}
+      <div className="dc-card-footer">
+        <button
+          type="button"
+          className="dc-expand-btn"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? (
+            <>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
+              Thu gọn
+            </>
+          ) : (
+            <>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+              Xem nhiệm vụ
+            </>
+          )}
+        </button>
+
+        {canManage && (
+          <div className="dc-manage-actions">
+            <button
+              type="button"
+              className="dc-icon-btn"
+              title="Chỉnh sửa"
+              onClick={() => onEdit(department)}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="dc-icon-btn dc-icon-btn--danger"
+              title="Xóa"
+              onClick={() => onDelete(deptId)}
+              disabled={isSubmitting}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {selectedTaskDetail && (
+        <div
+          className="dc-task-detail-modal"
+          onClick={() => setSelectedTaskDetail(null)}
+        >
+          <div
+            className="dc-task-detail-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dc-task-detail-header">
+              <div>
+                <p className="dc-task-detail-label">Chi tiết task</p>
+                <h4 className="dc-card-name">{selectedTaskDetail.taskName}</h4>
+              </div>
+              <button
+                type="button"
+                className="dc-task-detail-close"
+                onClick={() => setSelectedTaskDetail(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            {taskDetailLoading ? (
+              <p className="dc-task-empty">Đang tải chi tiết...</p>
+            ) : (
+              <div className="dc-task-detail-body">
+                {taskDetailError && (
+                  <p className="dc-task-detail-error">{taskDetailError}</p>
+                )}
+                <div className="dc-task-detail-grid">
+                  <div>
+                    <span className="dc-task-detail-label">Status</span>
+                    {canManageTasks ? (
                       <select
-                        className="dept-select"
-                        value={taskForm.assigneeId}
-                        onChange={(e) => setTaskForm((prev) => ({ ...prev, assigneeId: e.target.value }))}
+                        className="dc-add-select"
+                        value={selectedTaskDetail.status || "Todo"}
+                        onChange={(e) => {
+                          const status = e.target.value;
+                          setSelectedTaskDetail((prev) => ({
+                            ...prev,
+                            status,
+                          }));
+                          onUpdateTaskStatus(selectedTaskDetail.id, status);
+                        }}
                       >
-                        <option value="">-- Chọn người thực hiện --</option>
-                        {departmentMembers.map((m) => (
-                          <option key={m.id} value={m.id}>
-                            {getMemberLabel(m)}
+                        {Object.entries(STATUS_META).map(([k, v]) => (
+                          <option key={k} value={k}>
+                            {v.label}
                           </option>
                         ))}
                       </select>
-                      <button className="dept-primary-action dept-primary-action--full" type="submit" disabled={isSubmitting}>
-                        Tạo nhiệm vụ mới
-                      </button>
-                    </form>
-                  )}
-                <div className="dept-task-groups custom-scrollbar">
-                  {TASK_STATUS_ORDER.map((statusInfo) => {
-                    const list = groupedTasks[statusInfo.key] || [];
-                    if (!list.length) return null;
-                    const isOpen = openTaskStatuses[statusInfo.key] !== false;
-
-                    return (
-                      <section key={statusInfo.key} className="dept-task-group">
-                        <button
-                          type="button"
-                          className={`dept-task-group-header ${isOpen ? "is-open" : "is-closed"}`}
-                          onClick={() => toggleTaskGroup(statusInfo.key)}
-                        >
-                          <div className="dept-task-group-title-wrap">
-                            {getStatusIcon(statusInfo.key)}
-                            <span className="dept-task-group-title">{statusInfo.label}</span>
-                          </div>
-                          <div className="dept-task-group-meta">
-                            <span className="dept-task-group-count">{list.length}</span>
-                            <span className="dept-task-group-toggle">{isOpen ? "^" : "v"}</span>
-                          </div>
-                        </button>
-
-                        {isOpen && (
-                          <div className="dept-task-group-list">
-                            {list.map((task) => {
-                              const assignedMember = departmentMembers.find((member) => member.id === task.assigneeId);
-                              const taskMeta = getTaskMeta(task.status || "Todo");
-
-                              return (
-                                <article key={task.id} className="dept-task-item">
-                                  <div className="dept-task-item-body">
-                                    <div className="dept-task-item-head">
-                                      <h5 className="dept-task-title">{task.taskName}</h5>
-                                      <div className="dept-task-item-actions">
-                                        <button
-                                          type="button"
-                                          className="dept-task-detail-button"
-                                          onClick={() => openTaskDetail(task)}
-                                          title="Xem chi tiết task"
-                                        >
-                                          <EyeIcon className="dept-task-detail-button__icon" />
-                                        </button>
-                                        <span className={`dept-task-pill ${getTaskStatusClass(task.status)}`}>{taskMeta.label}</span>
-                                      </div>
-                                    </div>
-                                    <p className="dept-task-desc">{task.description || "Không có mô tả"}</p>
-                                    <div className="dept-task-meta">
-                                      {task.deadline && (
-                                        <span className="dept-task-meta-chip">
-                                          <CalendarIcon className="dept-task-meta-icon" />
-                                          <span>{task.deadline}</span>
-                                        </span>
-                                      )}
-                                      {assignedMember && (
-                                        <span className="dept-task-meta-chip">
-                                          <UsersIcon className="dept-task-meta-icon" />
-                                          <span>{getMemberLabel(assignedMember)}</span>
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {canManageTasks && (
-                                    <div className="dept-task-controls">
-                                      <div className="dept-task-inline-field">
-                                        <span className="dept-task-inline-label">Status</span>
-                                        <select
-                                          value={task.status}
-                                          onChange={(e) => onUpdateTaskStatus(task.id, e.target.value)}
-                                          className="dept-select dept-select--compact dept-select--compact-chip"
-                                        >
-                                          <option value="Todo">Todo</option>
-                                          <option value="InProgress">InProgress</option>
-                                          <option value="Blocked">Blocked</option>
-                                          <option value="Done">Done</option>
-                                          <option value="Cancelled">Cancelled</option>
-                                        </select>
-                                      </div>
-
-                                      <div className="dept-task-inline-field">
-                                        <span className="dept-task-inline-label">Assignee</span>
-                                        <select
-                                          value={task.assigneeId || ""}
-                                          onChange={(e) => onAssignTask(task.id, e.target.value)}
-                                          className="dept-select dept-select--compact dept-select--compact-chip dept-select--compact-accent"
-                                        >
-                                          <option value="">Gán người</option>
-                                          {departmentMembers.map((m) => (
-                                            <option key={m.id} value={m.id}>
-                                              {getMemberLabel(m)}
-                                            </option>
-                                          ))}
-                                        </select>
-                                      </div>
-                                    </div>
-                                  )}
-                                </article>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </section>
-                    );
-                  })}
-
-                  {tasks.length === 0 && !showTaskForm && (
-                    <div className="dept-empty-card">
-                      <ClipboardListIcon className="dept-empty-icon" />
-                      <p className="dept-empty-state">Chưa có nhiệm vụ nào</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            {selectedTaskDetail && (
-              <div className="dept-task-detail-modal" onClick={() => setSelectedTaskDetail(null)}>
-                <div className="dept-task-detail-card" onClick={(e) => e.stopPropagation()}>
-                  <div className="dept-task-detail-header">
-                    <div>
-                      <p className="dept-section-label">Chi tiết task</p>
-                      <h4 className="dept-panel-title">{selectedTaskDetail.taskName}</h4>
-                    </div>
-                    <button type="button" className="dept-task-detail-close" onClick={() => setSelectedTaskDetail(null)}>
-                      ×
-                    </button>
+                    ) : (
+                      <strong>{selectedTaskDetail.status || "Todo"}</strong>
+                    )}
                   </div>
 
-                  {taskDetailLoading ? (
-                    <p className="dept-empty-state">Đang tải chi tiết...</p>
-                  ) : (
-                    <div className="dept-task-detail-body">
-                      {taskDetailError && <p className="dept-task-detail-error">{taskDetailError}</p>}
-                      <div className="dept-task-detail-grid">
-                        <div>
-                          <span className="dept-task-detail-label">Status</span>
-                          <strong>{selectedTaskDetail.status || "Todo"}</strong>
-                        </div>
-                        <div>
-                          <span className="dept-task-detail-label">Priority</span>
-                          <strong>{selectedTaskDetail.priority || "-"}</strong>
-                        </div>
-                        <div>
-                          <span className="dept-task-detail-label">Assignee</span>
-                          <strong>{selectedTaskDetail.assigneeName || "Chưa gán"}</strong>
-                        </div>
-                        <div>
-                          <span className="dept-task-detail-label">Phòng ban</span>
-                          <strong>{selectedTaskDetail.deptName || "-"}</strong>
-                        </div>
-                        <div>
-                          <span className="dept-task-detail-label">Deadline</span>
-                          <strong>{selectedTaskDetail.deadline ? new Date(selectedTaskDetail.deadline).toLocaleString() : "-"}</strong>
-                        </div>
-                        <div>
-                          <span className="dept-task-detail-label">Completed</span>
-                          <strong>{selectedTaskDetail.completedAt ? new Date(selectedTaskDetail.completedAt).toLocaleString() : "-"}</strong>
-                        </div>
-                      </div>
+                  <div>
+                    <span className="dc-task-detail-label">Priority</span>
+                    <strong>{selectedTaskDetail.priority || "-"}</strong>
+                  </div>
 
-                      <div className="dept-task-detail-block">
-                        <span className="dept-task-detail-label">Mô tả</span>
-                        <p>{selectedTaskDetail.description || "Không có mô tả"}</p>
-                      </div>
+                  <div>
+                    <span className="dc-task-detail-label">Assignee</span>
+                    {canManageTasks ? (
+                      <select
+                        className="dc-add-select"
+                        value={selectedTaskDetail.assigneeId || ""}
+                        onChange={(e) => {
+                          const assigneeId = e.target.value || null;
+                          setSelectedTaskDetail((prev) => ({
+                            ...prev,
+                            assigneeId,
+                          }));
+                          onAssignTask(selectedTaskDetail.id, assigneeId);
+                        }}
+                      >
+                        <option value="">Chưa gán</option>
+                        {departmentMembers.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.fullName || m.email}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <strong>
+                        {selectedTaskDetail.assigneeName || "Chưa gán"}
+                      </strong>
+                    )}
+                  </div>
 
-                      <div className="dept-task-detail-block">
-                        <span className="dept-task-detail-label">Ghi chú</span>
-                        <p>{selectedTaskDetail.note || "-"}</p>
-                      </div>
+                  <div>
+                    <span className="dc-task-detail-label">Phòng ban</span>
+                    <strong>{selectedTaskDetail.deptName || "-"}</strong>
+                  </div>
 
-                      <div className="dept-task-detail-grid dept-task-detail-grid--subtle">
-                        <div>
-                          <span className="dept-task-detail-label">Created by</span>
-                          <strong>{selectedTaskDetail.createdByMemberName || "-"}</strong>
-                        </div>
-                        <div>
-                          <span className="dept-task-detail-label">Created at</span>
-                          <strong>{selectedTaskDetail.createdAtUtc ? new Date(selectedTaskDetail.createdAtUtc).toLocaleString() : "-"}</strong>
-                        </div>
-                        <div>
-                          <span className="dept-task-detail-label">Updated at</span>
-                          <strong>{selectedTaskDetail.updatedAtUtc ? new Date(selectedTaskDetail.updatedAtUtc).toLocaleString() : "-"}</strong>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div>
+                    <span className="dc-task-detail-label">Deadline</span>
+                    <strong>
+                      {selectedTaskDetail.deadline
+                        ? new Date(selectedTaskDetail.deadline).toLocaleString()
+                        : "-"}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span className="dc-task-detail-label">Completed</span>
+                    <strong>
+                      {selectedTaskDetail.completedAt
+                        ? new Date(
+                            selectedTaskDetail.completedAt,
+                          ).toLocaleString()
+                        : "-"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="dc-task-detail-block">
+                  <span className="dc-task-detail-label">Mô tả</span>
+                  <p>{selectedTaskDetail.description || "Không có mô tả"}</p>
+                </div>
+
+                <div className="dc-task-detail-block">
+                  <span className="dc-task-detail-label">Ghi chú</span>
+                  <p>{selectedTaskDetail.note || "-"}</p>
+                </div>
+
+                <div className="dc-task-detail-grid dc-task-detail-grid--subtle">
+                  <div>
+                    <span className="dc-task-detail-label">Created by</span>
+                    <strong>
+                      {selectedTaskDetail.createdByMemberName || "-"}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="dc-task-detail-label">Created at</span>
+                    <strong>
+                      {selectedTaskDetail.createdAtUtc
+                        ? new Date(
+                            selectedTaskDetail.createdAtUtc,
+                          ).toLocaleString()
+                        : "-"}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="dc-task-detail-label">Updated at</span>
+                    <strong>
+                      {selectedTaskDetail.updatedAtUtc
+                        ? new Date(
+                            selectedTaskDetail.updatedAtUtc,
+                          ).toLocaleString()
+                        : "-"}
+                    </strong>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

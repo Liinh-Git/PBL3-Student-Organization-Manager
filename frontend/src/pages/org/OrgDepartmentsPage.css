@@ -59,9 +59,18 @@
 /* ─── 4-Column Grid ───────────────────────────── */
 .dept-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1rem;
-  align-items: start; /* cards stay top-aligned; expanded one grows down */
+  align-items: start;
+  max-width: 1680px;
+  margin-right: auto;
+
+  /* tự lấp chỗ trống khi có card mở rộng */
+  grid-auto-flow: dense;
+}
+
+.dept-grid:has(.dc-card--expanded) {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 /* ─── Department Card — Compact (closed) ─────── */

@@ -45,8 +45,13 @@ function OrgDepartmentsPage() {
   const canManageOrgTasks = permissions.includes("org.events.manage");
   const currentUserId = user?.id || user?.userId || null;
   const myMember = members.find((m) => m.userId === currentUserId) || null;
-  const myRoleName = (myMember?.role?.roleName || myMember?.roleName || "").trim().toLowerCase();
-  const isLeader = myRoleName === "president" || myRoleName === "vice president" || myRoleName === "vicepresident";
+  const myRoleName = (myMember?.role?.roleName || myMember?.roleName || "")
+    .trim()
+    .toLowerCase();
+  const isLeader =
+    myRoleName === "president" ||
+    myRoleName === "vice president" ||
+    myRoleName === "vicepresident";
 
   useEffect(() => {
     if (!orgId || !isMember) return;
@@ -81,7 +86,10 @@ function OrgDepartmentsPage() {
   }, [orgId, isMember]);
 
   if (!orgId) return <ErrorState message="Organization ID is required" />;
-  if (!isMember) return <ForbiddenState message="You are not a member of this organization" />;
+  if (!isMember)
+    return (
+      <ForbiddenState message="You are not a member of this organization" />
+    );
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -94,11 +102,19 @@ function OrgDepartmentsPage() {
 
     setIsSubmitting(true);
     try {
-      const newDept = await createDepartment(orgId, { departmentName, description: description || undefined, managerId });
+      const newDept = await createDepartment(orgId, {
+        departmentName,
+        description: description || undefined,
+        managerId,
+      });
       setDepartments((prev) => [...prev, newDept]);
       if (managerId) {
-        const updatedManager = await updateMemberDepartment(managerId, { departmentId: newDept.id });
-        setMembers((prev) => prev.map((m) => (m.id === updatedManager.id ? updatedManager : m)));
+        const updatedManager = await updateMemberDepartment(managerId, {
+          departmentId: newDept.id,
+        });
+        setMembers((prev) =>
+          prev.map((m) => (m.id === updatedManager.id ? updatedManager : m)),
+        );
       }
       form.reset();
       setShowCreateForm(false);
@@ -120,11 +136,21 @@ function OrgDepartmentsPage() {
 
     setIsSubmitting(true);
     try {
-      const updated = await updateDepartment(editingDept.id, { departmentName, description: description || undefined, managerId });
-      setDepartments((prev) => prev.map((d) => (d.id === editingDept.id ? updated : d)));
+      const updated = await updateDepartment(editingDept.id, {
+        departmentName,
+        description: description || undefined,
+        managerId,
+      });
+      setDepartments((prev) =>
+        prev.map((d) => (d.id === editingDept.id ? updated : d)),
+      );
       if (managerId) {
-        const updatedManager = await updateMemberDepartment(managerId, { departmentId: editingDept.id });
-        setMembers((prev) => prev.map((m) => (m.id === updatedManager.id ? updatedManager : m)));
+        const updatedManager = await updateMemberDepartment(managerId, {
+          departmentId: editingDept.id,
+        });
+        setMembers((prev) =>
+          prev.map((m) => (m.id === updatedManager.id ? updatedManager : m)),
+        );
       }
       setEditingDept(null);
     } catch (err) {
@@ -136,7 +162,8 @@ function OrgDepartmentsPage() {
 
   const handleDelete = async (deptId) => {
     if (!canManage) return;
-    if (!window.confirm("Are you sure you want to delete this department?")) return;
+    if (!window.confirm("Are you sure you want to delete this department?"))
+      return;
     setIsSubmitting(true);
     try {
       await deleteDepartment(deptId);
@@ -157,7 +184,8 @@ function OrgDepartmentsPage() {
     return "-";
   };
 
-  const getDepartmentMembers = (dept) => members.filter((m) => m.departmentId === dept.id);
+  const getDepartmentMembers = (dept) =>
+    members.filter((m) => m.departmentId === dept.id);
 
   const isManagerOfOtherDepartment = (memberId, currentDeptId = null) =>
     departments.some((d) => d.managerId === memberId && d.id !== currentDeptId);
@@ -170,7 +198,8 @@ function OrgDepartmentsPage() {
       const isCurrentManager = m.id === dept.managerId;
       if (isCurrentManager) return true;
 
-      const belongsToOtherDepartment = !!m.departmentId && m.departmentId !== dept.id;
+      const belongsToOtherDepartment =
+        !!m.departmentId && m.departmentId !== dept.id;
       if (belongsToOtherDepartment) return false;
 
       if (isManagerOfOtherDepartment(m.id, dept.id)) return false;
@@ -188,22 +217,37 @@ function OrgDepartmentsPage() {
   };
 
   const handleAddMembersToDepartment = async (deptId, memberIds) => {
-    const isDeptManager = !!myMember && departments.some((d) => d.id === deptId && d.managerId === myMember.id);
+    const isDeptManager =
+      !!myMember &&
+      departments.some((d) => d.id === deptId && d.managerId === myMember.id);
     if (!canManageMembers && !isDeptManager) return;
     setIsSubmitting(true);
     try {
       const selectedMembers = members.filter((m) => memberIds.includes(m.id));
-      const invalid = selectedMembers.find((m) => !!m.departmentId && m.departmentId !== deptId);
+      const invalid = selectedMembers.find(
+        (m) => !!m.departmentId && m.departmentId !== deptId,
+      );
       if (invalid) {
-        throw new Error(`${invalid.fullName || invalid.email || "Member"} already belongs to another department`);
+        throw new Error(
+          `${invalid.fullName || invalid.email || "Member"} already belongs to another department`,
+        );
       }
 
       const selfMember = members.find((m) => m.userId === currentUserId);
-      if (selfMember && selfMember.departmentId && selfMember.departmentId !== deptId && memberIds.includes(selfMember.id)) {
+      if (
+        selfMember &&
+        selfMember.departmentId &&
+        selfMember.departmentId !== deptId &&
+        memberIds.includes(selfMember.id)
+      ) {
         throw new Error("You already belong to another department");
       }
 
-      const updatedMembers = await Promise.all(memberIds.map((memberId) => updateMemberDepartment(memberId, { departmentId: deptId })));
+      const updatedMembers = await Promise.all(
+        memberIds.map((memberId) =>
+          updateMemberDepartment(memberId, { departmentId: deptId }),
+        ),
+      );
       const byId = new Map(updatedMembers.map((m) => [m.id, m]));
       setMembers((prev) => prev.map((m) => byId.get(m.id) || m));
     } catch (err) {
@@ -214,7 +258,9 @@ function OrgDepartmentsPage() {
   };
 
   const handleRemoveMemberFromDepartment = async (deptId, memberId) => {
-    const isDeptManager = !!myMember && departments.some((d) => d.id === deptId && d.managerId === myMember.id);
+    const isDeptManager =
+      !!myMember &&
+      departments.some((d) => d.id === deptId && d.managerId === myMember.id);
     if (!canManageMembers && !isDeptManager) return;
     setIsSubmitting(true);
     try {
@@ -224,8 +270,12 @@ function OrgDepartmentsPage() {
         throw new Error("Member is not in this department");
       }
 
-      const updatedMember = await updateMemberDepartment(memberId, { departmentId: null });
-      setMembers((prev) => prev.map((m) => (m.id === updatedMember.id ? updatedMember : m)));
+      const updatedMember = await updateMemberDepartment(memberId, {
+        departmentId: null,
+      });
+      setMembers((prev) =>
+        prev.map((m) => (m.id === updatedMember.id ? updatedMember : m)),
+      );
     } catch (err) {
       alert(err.message || "Failed to remove member from department");
     } finally {
@@ -242,12 +292,17 @@ function OrgDepartmentsPage() {
           description: taskForm.description || undefined,
           assigneeId: taskForm.assigneeId || undefined,
           deptId: deptId,
-          deadline: taskForm.deadline ? new Date(taskForm.deadline).toISOString() : undefined,
+          deadline: taskForm.deadline
+            ? new Date(taskForm.deadline).toISOString()
+            : undefined,
           status: taskForm.status || "Todo",
         },
       };
       const created = await createDepartmentTask(orgId, deptId, payload);
-      setTasksByDepartment((prev) => ({ ...prev, [deptId]: [created, ...(prev[deptId] || [])] }));
+      setTasksByDepartment((prev) => ({
+        ...prev,
+        [deptId]: [created, ...(prev[deptId] || [])],
+      }));
     } catch (err) {
       alert(err.message || "Failed to create department task");
     } finally {
@@ -262,7 +317,9 @@ function OrgDepartmentsPage() {
       setTasksByDepartment((prev) => {
         const next = { ...prev };
         Object.keys(next).forEach((deptId) => {
-          next[deptId] = (next[deptId] || []).map((t) => (t.id === taskId ? updated : t));
+          next[deptId] = (next[deptId] || []).map((t) =>
+            t.id === taskId ? updated : t,
+          );
         });
         return next;
       });
@@ -276,11 +333,15 @@ function OrgDepartmentsPage() {
   const handleAssignTask = async (taskId, assigneeId) => {
     setIsSubmitting(true);
     try {
-      const updated = await assignTask(taskId, { assigneeId: assigneeId || null });
+      const updated = await assignTask(taskId, {
+        assigneeId: assigneeId || null,
+      });
       setTasksByDepartment((prev) => {
         const next = { ...prev };
         Object.keys(next).forEach((deptId) => {
-          next[deptId] = (next[deptId] || []).map((t) => (t.id === taskId ? updated : t));
+          next[deptId] = (next[deptId] || []).map((t) =>
+            t.id === taskId ? updated : t,
+          );
         });
         return next;
       });
@@ -299,38 +360,134 @@ function OrgDepartmentsPage() {
       <div className="dept-header-section">
         <div>
           <h1 className="dept-page-title">Cơ cấu phòng ban</h1>
-          <p className="dept-page-desc">Quản lý và điều phối các ban chuyên môn trong tổ chức.</p>
+          <p className="dept-page-desc">
+            Quản lý và điều phối các ban chuyên môn trong tổ chức.
+          </p>
         </div>
         {canManage && (
-          <button onClick={() => setShowCreateForm(true)} className="btn-orange-header">
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="btn-orange-header"
+          >
             Tạo phòng ban
           </button>
         )}
       </div>
 
       {showCreateForm && canManage && (
-        <div className="dept-modal-overlay" onClick={() => setShowCreateForm(false)}>
+        <div
+          className="dept-modal-overlay"
+          onClick={() => setShowCreateForm(false)}
+        >
           <div className="dept-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="dept-modal-header"><h3>Tạo phòng ban mới</h3></div>
+            <div className="dept-modal-header">
+              <h3>Tạo phòng ban mới</h3>
+            </div>
             <form onSubmit={handleCreate}>
-              <div className="dept-form-group"><label className="dept-form-label">Tên phòng ban *</label><input name="departmentName" required className="dept-input" /></div>
-              <div className="dept-form-group"><label className="dept-form-label">Mô tả</label><input name="description" className="dept-input" /></div>
-              <div className="dept-form-group"><label className="dept-form-label">Trưởng ban</label><select name="managerId" className="dept-select"><option value="">-- Trống --</option>{getEligibleManagersForCreate().map((member) => <option key={member.id} value={member.id}>{member.fullName || member.email}</option>)}</select></div>
-              <div className="dept-modal-footer"><button type="button" onClick={() => setShowCreateForm(false)} className="dept-btn dept-btn-secondary" disabled={isSubmitting}>Hủy</button><button type="submit" disabled={isSubmitting} className="dept-btn dept-btn-primary">{isSubmitting ? "Đang tạo..." : "Xác nhận tạo"}</button></div>
+              <div className="dept-form-group">
+                <label className="dept-form-label">Tên phòng ban *</label>
+                <input name="departmentName" required className="dept-input" />
+              </div>
+              <div className="dept-form-group">
+                <label className="dept-form-label">Mô tả</label>
+                <input name="description" className="dept-input" />
+              </div>
+              <div className="dept-form-group">
+                <label className="dept-form-label">Trưởng ban</label>
+                <select name="managerId" className="dept-select">
+                  <option value="">-- Trống --</option>
+                  {getEligibleManagersForCreate().map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.fullName || member.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="dept-modal-footer">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateForm(false)}
+                  className="dept-btn dept-btn-secondary"
+                  disabled={isSubmitting}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="dept-btn dept-btn-primary"
+                >
+                  {isSubmitting ? "Đang tạo..." : "Xác nhận tạo"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
 
       {editingDept && canManage && (
-        <div className="dept-modal-overlay" onClick={() => setEditingDept(null)}>
+        <div
+          className="dept-modal-overlay"
+          onClick={() => setEditingDept(null)}
+        >
           <div className="dept-modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="dept-modal-header"><h3>Chỉnh sửa phòng ban</h3></div>
+            <div className="dept-modal-header">
+              <h3>Chỉnh sửa phòng ban</h3>
+            </div>
             <form onSubmit={handleUpdate}>
-              <div className="dept-form-group"><label className="dept-form-label">Tên phòng ban *</label><input name="departmentName" defaultValue={editingDept.deptName || editingDept.departmentName || ""} required className="dept-input" /></div>
-              <div className="dept-form-group"><label className="dept-form-label">Mô tả</label><input name="description" defaultValue={editingDept.description || editingDept.function || ""} className="dept-input" /></div>
-              <div className="dept-form-group"><label className="dept-form-label">Trưởng ban</label><select name="managerId" defaultValue={editingDept.managerId || ""} className="dept-select"><option value="">-- Trống --</option>{getEligibleManagersForEdit(editingDept).map((member) => <option key={member.id} value={member.id}>{member.fullName || member.email}</option>)}</select></div>
-              <div className="dept-modal-footer"><button type="button" onClick={() => setEditingDept(null)} className="dept-btn dept-btn-secondary" disabled={isSubmitting}>Hủy</button><button type="submit" disabled={isSubmitting} className="dept-btn dept-btn-primary">{isSubmitting ? "Đang cập nhật..." : "Lưu thay đổi"}</button></div>
+              <div className="dept-form-group">
+                <label className="dept-form-label">Tên phòng ban *</label>
+                <input
+                  name="departmentName"
+                  defaultValue={
+                    editingDept.deptName || editingDept.departmentName || ""
+                  }
+                  required
+                  className="dept-input"
+                />
+              </div>
+              <div className="dept-form-group">
+                <label className="dept-form-label">Mô tả</label>
+                <input
+                  name="description"
+                  defaultValue={
+                    editingDept.description || editingDept.function || ""
+                  }
+                  className="dept-input"
+                />
+              </div>
+              <div className="dept-form-group">
+                <label className="dept-form-label">Trưởng ban</label>
+                <select
+                  name="managerId"
+                  defaultValue={editingDept.managerId || ""}
+                  className="dept-select"
+                >
+                  <option value="">-- Trống --</option>
+                  {getEligibleManagersForEdit(editingDept).map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.fullName || member.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="dept-modal-footer">
+                <button
+                  type="button"
+                  onClick={() => setEditingDept(null)}
+                  className="dept-btn dept-btn-secondary"
+                  disabled={isSubmitting}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="dept-btn dept-btn-primary"
+                >
+                  {isSubmitting ? "Đang cập nhật..." : "Lưu thay đổi"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -340,37 +497,39 @@ function OrgDepartmentsPage() {
         <EmptyState message="Chưa có phòng ban nào được tạo." />
       ) : (
         <div className="dept-grid">
-          {departments.map((dept) => (
+          {departments.map((dept) =>
             (() => {
-              const isDeptManager = !!myMember && dept.managerId === myMember.id;
+              const isDeptManager =
+                !!myMember && dept.managerId === myMember.id;
               const deptCanManageMembers = canManageMembers || isDeptManager;
               const deptCanManage = canManage || isDeptManager;
-              const deptCanManageTasks = canManageOrgTasks || isLeader || isDeptManager;
+              const deptCanManageTasks =
+                canManageOrgTasks || isLeader || isDeptManager;
               return (
-            <DepartmentCard
-              key={dept.id}
-              department={dept}
-              memberCount={getDepartmentMembers(dept).length}
-              departmentMembers={getDepartmentMembers(dept)}
-              assignableMembers={getAssignableMembers(dept)}
-              taskCount={(tasksByDepartment[dept.id] || []).length}
-              managerName={getManagerName(dept)}
-              canManage={deptCanManage}
-              canManageMembers={deptCanManageMembers}
-              canManageTasks={deptCanManageTasks}
-              isSubmitting={isSubmitting}
-              onEdit={setEditingDept}
-              onDelete={handleDelete}
-              onAddMembers={handleAddMembersToDepartment}
-              onRemoveMember={handleRemoveMemberFromDepartment}
-              tasks={tasksByDepartment[dept.id] || []}
-              onCreateTask={handleCreateTask}
-              onUpdateTaskStatus={handleUpdateTaskStatus}
-              onAssignTask={handleAssignTask}
-            />
+                <DepartmentCard
+                  key={dept.id}
+                  department={dept}
+                  memberCount={getDepartmentMembers(dept).length}
+                  departmentMembers={getDepartmentMembers(dept)}
+                  assignableMembers={getAssignableMembers(dept)}
+                  taskCount={(tasksByDepartment[dept.id] || []).length}
+                  managerName={getManagerName(dept)}
+                  canManage={deptCanManage}
+                  canManageMembers={deptCanManageMembers}
+                  canManageTasks={deptCanManageTasks}
+                  isSubmitting={isSubmitting}
+                  onEdit={setEditingDept}
+                  onDelete={handleDelete}
+                  onAddMembers={handleAddMembersToDepartment}
+                  onRemoveMember={handleRemoveMemberFromDepartment}
+                  tasks={tasksByDepartment[dept.id] || []}
+                  onCreateTask={handleCreateTask}
+                  onUpdateTaskStatus={handleUpdateTaskStatus}
+                  onAssignTask={handleAssignTask}
+                />
               );
-            })()
-          ))}
+            })(),
+          )}
         </div>
       )}
     </div>
@@ -378,6 +537,3 @@ function OrgDepartmentsPage() {
 }
 
 export default OrgDepartmentsPage;
-
-
-
