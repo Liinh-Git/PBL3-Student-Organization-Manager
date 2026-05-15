@@ -1,14 +1,20 @@
 /**
  * TopBar.jsx - Top navigation bar for authenticated pages
- * * Phase 3C-4A: Foundation skeleton only
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuthContext } from "../contexts/AuthContext";
-import { useNotifications } from '../hooks/useNotifications';
+import { useNotifications } from "../hooks/useNotifications";
+import { useSearchParams } from "react-router-dom";
+import { getMyOrganizations } from "../services/userService.js";
 
 function TopBar() {
-  const { user, logout } = useAuthContext();
+  const { user } = useAuthContext();
+  const [searchParams] = useSearchParams();
+  const orgId = searchParams.get("orgId");
+
+  const [orgTitle, setOrgTitle] = useState("Student Organization Manager");
+
   const {
     unreadCount,
     notifications,
@@ -21,11 +27,26 @@ function TopBar() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const panelRef = useRef(null);
 
-  const handleLogout = () => {
-    logout();
-  };
+  const latestNotifications = useMemo(
+    () => notifications.slice(0, 8),
+    [notifications],
+  );
 
-  const latestNotifications = useMemo(() => notifications.slice(0, 8), [notifications]);
+  useEffect(() => {
+    if (orgId) {
+      getMyOrganizations()
+        .then((orgs) => {
+          const current = orgs.find((o) => o.id === orgId);
+          if (current)
+            setOrgTitle(
+              current.name || current.orgName || "Organization Workspace",
+            );
+        })
+        .catch(() => setOrgTitle("Organization Workspace"));
+    } else {
+      setOrgTitle("Student Organization Manager");
+    }
+  }, [orgId]);
 
   useEffect(() => {
     function onClickOutside(event) {
@@ -33,213 +54,169 @@ function TopBar() {
         setIsPanelOpen(false);
       }
     }
-
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
   const togglePanel = async () => {
     const next = !isPanelOpen;
     setIsPanelOpen(next);
-
     if (next) {
       await Promise.allSettled([fetchNotifications(), fetchUnreadCount()]);
     }
   };
 
   const formatTime = (iso) => {
-    if (!iso) return '';
+    if (!iso) return "";
     const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) return '';
-
-    return new Intl.DateTimeFormat('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      day: '2-digit',
-      month: '2-digit',
+    if (Number.isNaN(date.getTime())) return "";
+    return new Intl.DateTimeFormat("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
     }).format(date);
   };
 
   return (
-    <header
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "1rem 2.5rem",
-        backgroundColor: "#ffffff",
-        borderBottom: "1px solid #e2e8f0",
-        width: "100%",
-        boxSizing: "border-box",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center" }}>
+    <header className="topbar">
+      <div className="topbar-left">
         <h1
           style={{
-            fontSize: "1.25rem",
+            fontSize: "1.2rem",
             fontWeight: "800",
             color: "#0f172a",
             margin: 0,
+            letterSpacing: "-0.02em",
           }}
         >
-          Student Organization Manager
+          {orgTitle}
         </h1>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-        <div ref={panelRef} style={{ position: 'relative' }}>
+      <div className="topbar-right">
+        {/* Nút Chuông Thông Báo */}
+        <div
+          ref={panelRef}
+          style={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
           <button
             type="button"
             onClick={togglePanel}
-            style={{
-              position: 'relative',
-              width: '40px',
-              height: '40px',
-              borderRadius: '999px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              cursor: 'pointer',
-              fontSize: '1.2rem',
-            }}
+            className="btn-bell-clean"
             aria-label="Notifications"
           >
-            🔔
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
             {unreadCount > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '-6px',
-                  right: '-6px',
-                  minWidth: '20px',
-                  height: '20px',
-                  padding: '0 4px',
-                  borderRadius: '999px',
-                  backgroundColor: '#dc2626',
-                  color: '#ffffff',
-                  fontSize: '0.75rem',
-                  fontWeight: '700',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '2px solid #ffffff',
-                  boxSizing: 'border-box',
-                }}
-              >
-                {unreadCount > 99 ? '99+' : unreadCount}
+              <span className="topbar-badge">
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
           </button>
 
+          {/* Panel Thông Báo */}
           {isPanelOpen && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '48px',
-                right: 0,
-                width: '360px',
-                maxHeight: '420px',
-                overflowY: 'auto',
-                border: '1px solid #e2e8f0',
-                borderRadius: '12px',
-                backgroundColor: '#ffffff',
-                boxShadow: '0 12px 36px rgba(15, 23, 42, 0.14)',
-                zIndex: 50,
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', borderBottom: '1px solid #f1f5f9' }}>
-                <strong style={{ fontSize: '0.9rem', color: '#0f172a' }}>Thông báo</strong>
+            <div className="notifications-panel">
+              <div className="notifications-header">
+                <strong style={{ fontSize: "0.9rem", color: "#0f172a" }}>
+                  Thông báo
+                </strong>
                 <button
                   type="button"
                   onClick={markAllAsRead}
                   disabled={unreadCount === 0}
                   style={{
-                    border: 'none',
-                    background: 'transparent',
-                    color: unreadCount === 0 ? '#94a3b8' : '#0f766e',
-                    cursor: unreadCount === 0 ? 'default' : 'pointer',
-                    fontSize: '0.8rem',
-                    fontWeight: '700',
+                    border: "none",
+                    background: "transparent",
+                    color: unreadCount === 0 ? "#94a3b8" : "#fb923c",
+                    cursor: unreadCount === 0 ? "default" : "pointer",
+                    fontSize: "0.75rem",
+                    fontWeight: "700",
                   }}
                 >
                   ✓ Đã xem tất cả
                 </button>
               </div>
-
-              {isLoading && <p style={{ margin: 0, padding: '1rem', fontSize: '0.85rem', color: '#64748b' }}>Đang tải...</p>}
+              {isLoading && <p className="notifications-empty">Đang tải...</p>}
               {!isLoading && latestNotifications.length === 0 && (
-                <p style={{ margin: 0, padding: '1rem', fontSize: '0.85rem', color: '#64748b' }}>
-                  Chưa có thông báo.
-                </p>
+                <p className="notifications-empty">Chưa có thông báo mới.</p>
               )}
-
-              {!isLoading && latestNotifications.map((item) => (
-                <div
-                  key={item.id}
-                  style={{
-                    padding: '0.75rem 1rem',
-                    borderBottom: '1px solid #f8fafc',
-                    backgroundColor: item.isRead ? '#ffffff' : '#f8fafc',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem' }}>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>{item.title || 'Thông báo'}</p>
-                      <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: '#475569' }}>{item.message}</p>
-                      <p style={{ margin: '0.35rem 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>{formatTime(item.createdAtUtc)}</p>
+              {!isLoading &&
+                latestNotifications.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`notification-item${!item.isRead ? " is-unread" : ""}`}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "0.75rem",
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <p className="notification-title">
+                          {item.title || "Thông báo"}
+                        </p>
+                        <p className="notification-message">{item.message}</p>
+                        <p className="notification-time">
+                          {formatTime(item.createdAtUtc)}
+                        </p>
+                      </div>
+                      {!item.isRead && (
+                        <button
+                          type="button"
+                          onClick={() => markAsRead(item.id)}
+                          style={{
+                            alignSelf: "flex-start",
+                            border: "none",
+                            background: "transparent",
+                            color: "#fb923c",
+                            cursor: "pointer",
+                            fontSize: "0.75rem",
+                            fontWeight: "700",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          ✓
+                        </button>
+                      )}
                     </div>
-                    {!item.isRead && (
-                      <button
-                        type="button"
-                        onClick={() => markAsRead(item.id)}
-                        style={{
-                          alignSelf: 'flex-start',
-                          border: 'none',
-                          background: 'transparent',
-                          color: '#0f766e',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          fontWeight: '700',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        ✓ Đã xem
-                      </button>
-                    )}
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <span
-            style={{
-              fontSize: "0.875rem",
-              fontWeight: "600",
-              color: "#334155",
-            }}
-          >
-            {user?.fullName || "Dat Quy"}
-          </span>
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: "0.5rem 1rem",
-              fontSize: "0.875rem",
-              fontWeight: "600",
-              backgroundColor: "#f1f5f9",
-              color: "#475569",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              transition: "all 0.2s",
-            }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#e2e8f0")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#f1f5f9")}
-          >
-            Logout
-          </button>
+        {/* Nút Envelope / Tin nhắn */}
+
+        {/* User Profile Box */}
+        <div className="user-profile-badge">
+          <div className="user-meta-info">
+            <strong>{user?.fullName || "User 1"}</strong>
+            <span>{user?.email || "example1@gmail.com"}</span>
+          </div>
+          <div className="user-avatar-sm">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+          </div>
         </div>
       </div>
     </header>
