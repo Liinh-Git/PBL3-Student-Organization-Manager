@@ -27,6 +27,8 @@ public class OrganizationService : IOrganizationService
             .OrderBy(o => o.OrgName)
             .ToListAsync(ct);
 
+        await RefreshMemberCountsAsync(organizations, ct);
+
         return organizations.Select(o => o.ToOrganizationSummaryDto()).ToList();
     }
 
@@ -43,6 +45,8 @@ public class OrganizationService : IOrganizationService
         {
             throw new KeyNotFoundException("No organization found for user");
         }
+
+        await RefreshMemberCountAsync(member.Organization, ct);
 
         return member.Organization.ToOrganizationDto();
     }
@@ -66,6 +70,8 @@ public class OrganizationService : IOrganizationService
             throw new KeyNotFoundException("Organization not found");
         }
 
+        await RefreshMemberCountAsync(organization, ct);
+
         return organization.ToOrganizationDto();
     }
 
@@ -86,6 +92,8 @@ public class OrganizationService : IOrganizationService
         // Count departments
         var departmentsCount = await _context.Departments
             .CountAsync(d => d.OrgId == orgId, ct);
+
+        await RefreshMemberCountAsync(organization, ct);
 
         return organization.ToOrganizationPublicOverviewDto(publicEventsCount, departmentsCount);
     }
@@ -225,7 +233,7 @@ public class OrganizationService : IOrganizationService
         // Verify user is a member with org.overview.write permission
         var member = await _context.Members
             .Include(m => m.Role)
-                .ThenInclude(r => r.RolePermissions)
+                .ThenInclude(r => r!.RolePermissions)
                     .ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
 
@@ -295,7 +303,7 @@ public class OrganizationService : IOrganizationService
         // Verify user is a member with org.overview.write permission
         var member = await _context.Members
             .Include(m => m.Role)
-                .ThenInclude(r => r.RolePermissions)
+                .ThenInclude(r => r!.RolePermissions)
                     .ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
 
@@ -376,7 +384,7 @@ public class OrganizationService : IOrganizationService
             // Verify user is a member with org.delete permission
             var member = await _context.Members
                 .Include(m => m.Role)
-                    .ThenInclude(r => r.RolePermissions)
+                    .ThenInclude(r => r!.RolePermissions)
                         .ThenInclude(rp => rp.Permission)
                 .FirstOrDefaultAsync(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
 
@@ -470,6 +478,27 @@ public class OrganizationService : IOrganizationService
         {
             await transaction.RollbackAsync(ct);
             throw;
+        }
+    }
+
+    private async Task RefreshMemberCountAsync(Organization organization, CancellationToken ct)
+    {
+        organization.TotalMembers = await _context.Members
+            .CountAsync(m => m.OrgId == organization.Id && m.Status == MemberStatus.Active, ct);
+    }
+
+    private async Task RefreshMemberCountsAsync(List<Organization> organizations, CancellationToken ct)
+    {
+        var orgIds = organizations.Select(o => o.Id).ToList();
+        var counts = await _context.Members
+            .Where(m => orgIds.Contains(m.OrgId) && m.Status == MemberStatus.Active)
+            .GroupBy(m => m.OrgId)
+            .Select(g => new { OrgId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.OrgId, x => x.Count, ct);
+
+        foreach (var organization in organizations)
+        {
+            organization.TotalMembers = counts.GetValueOrDefault(organization.Id, 0);
         }
     }
 }

@@ -30,7 +30,9 @@ public static class UserMappings
             Description = member.Organization.Description,
             AvatarUrl = member.Organization.AvatarUrl,
             CoverUrl = member.Organization.CoverUrl,
+            Location = member.Organization.Location,
             FoundingDate = member.Organization.FoundingDate,
+            TotalMembers = member.Organization.TotalMembers,
             CreatedAtUtc = member.Organization.CreatedAt,
             RoleId = member.RoleId ?? Guid.Empty,
             RoleName = member.Role?.RoleName ?? "Member",
@@ -67,6 +69,7 @@ public static class UserMappings
             Description = org.Description,
             AvatarUrl = org.AvatarUrl,
             CoverUrl = org.CoverUrl,
+            Location = org.Location,
             TotalMembers = org.TotalMembers,
             Status = org.Status.ToString()
         };

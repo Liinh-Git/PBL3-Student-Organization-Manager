@@ -40,6 +40,18 @@ public class UserService : IUserService
             .Where(m => m.UserId == userId && m.Status == MemberStatus.Active)
             .ToListAsync(ct);
 
+        var orgIds = members.Select(m => m.OrgId).ToList();
+        var activeMemberCounts = await _context.Members
+            .Where(m => orgIds.Contains(m.OrgId) && m.Status == MemberStatus.Active)
+            .GroupBy(m => m.OrgId)
+            .Select(g => new { OrgId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.OrgId, x => x.Count, ct);
+
+        foreach (var member in members)
+        {
+            member.Organization.TotalMembers = activeMemberCounts.GetValueOrDefault(member.OrgId, 0);
+        }
+
         return members.Select(m => m.ToMyOrganizationDto()).ToList();
     }
 

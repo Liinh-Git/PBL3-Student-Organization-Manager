@@ -119,6 +119,12 @@ public class MemberService : IMemberService
         };
 
         _context.Members.Add(member);
+        var org = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == orgId, ct);
+        if (org != null)
+        {
+            org.TotalMembers++;
+            org.UpdatedAt = DateTime.UtcNow;
+        }
         await _context.SaveChangesAsync(ct);
 
         var createdMember = await _context.Members
@@ -357,6 +363,12 @@ public class MemberService : IMemberService
 
         member.Status = MemberStatus.Removed;
         member.UpdatedAt = DateTime.UtcNow;
+        var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == orgId, ct);
+        if (organization != null)
+        {
+            organization.TotalMembers = Math.Max(0, organization.TotalMembers - 1);
+            organization.UpdatedAt = DateTime.UtcNow;
+        }
         await _context.SaveChangesAsync(ct);
 
         var actionByName = await _context.Users

@@ -30,7 +30,9 @@ public record MyOrganizationDto
     public string? Description { get; init; }
     public string? AvatarUrl { get; init; }
     public string? CoverUrl { get; init; }
+    public string? Location { get; init; }
     public DateTime? FoundingDate { get; init; }
+    public required int TotalMembers { get; init; }
     public required DateTime CreatedAtUtc { get; init; }
     public required Guid RoleId { get; init; }
     public required string RoleName { get; init; }
@@ -67,6 +69,7 @@ public record DiscoverOrganizationDto
     public string? Description { get; init; }
     public string? AvatarUrl { get; init; }
     public string? CoverUrl { get; init; }
+    public string? Location { get; init; }
     public required int TotalMembers { get; init; }
     public required string Status { get; init; }
 }

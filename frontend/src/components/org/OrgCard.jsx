@@ -8,10 +8,11 @@
  * - name: Organization name
  * - description: Organization description
  * - avatarUrl: Organization avatar/image
+ * - coverUrl: Organization cover image
  * - totalMembers: Number of members
+ * - location: Organization location
  * - status: Organization status
  * - foundingDate: Organization founding date (optional)
- * - createdAtUtc: Creation timestamp (optional)
  */
 
 function toAbsoluteMediaUrl(url) {
@@ -33,10 +34,11 @@ function OrgCard({ organization, onClick, onDelete, isDeleting = false }) {
     name,
     description,
     avatarUrl,
+    coverUrl,
     totalMembers,
+    location,
     status,
     foundingDate,
-    createdAtUtc,
   } = organization;
 
   const formatDate = (dateString) => {
@@ -49,13 +51,27 @@ function OrgCard({ organization, onClick, onDelete, isDeleting = false }) {
     });
   };
 
-  const displayDate = formatDate(foundingDate) || formatDate(createdAtUtc);
+  const displayDate = formatDate(foundingDate);
   const avatarSrc = toAbsoluteMediaUrl(avatarUrl);
+  const coverSrc = toAbsoluteMediaUrl(coverUrl);
+  const memberCount = totalMembers ?? 0;
 
   return (
     <div className="org-card" onClick={() => onClick?.(id)}>
-      <div className="org-card-top">
-        <div className="org-card-logo">
+      <div className="org-card-media">
+        {coverSrc ? (
+          <img
+            className="org-card-cover"
+            src={coverSrc}
+            alt={`${name || "Organization"} cover`}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        ) : (
+          <div className="org-card-cover-placeholder" />
+        )}
+        <div className="org-card-logo" aria-label={`${name || "Organization"} avatar`}>
           {avatarSrc ? (
             <img
               src={avatarSrc}
@@ -89,8 +105,15 @@ function OrgCard({ organization, onClick, onDelete, isDeleting = false }) {
       <div className="org-card-stats">
         <div className="org-stat-item">
           <span className="org-stat-label">Thành viên</span>
-          <span className="org-stat-val">{totalMembers || 0}</span>
+          <span className="org-stat-val">{memberCount}</span>
         </div>
+
+        {location && (
+          <div className="org-stat-item org-stat-item--wide">
+            <span className="org-stat-label">Địa điểm</span>
+            <span className="org-stat-val small-text">{location}</span>
+          </div>
+        )}
 
         {status && (
           <div className="org-stat-item">
@@ -102,7 +125,7 @@ function OrgCard({ organization, onClick, onDelete, isDeleting = false }) {
         {displayDate && (
           <div className="org-stat-item">
             <span className="org-stat-label">
-              {foundingDate ? "Thành lập" : "Tạo ngày"}
+              Ngày thành lập
             </span>
             <span className="org-stat-val small-text">{displayDate}</span>
           </div>
