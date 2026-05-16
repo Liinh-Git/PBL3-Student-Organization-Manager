@@ -162,6 +162,25 @@
   gap: 0.95rem;
 }
 
+.discover-org-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.discover-org-item .org-card {
+  cursor: default;
+  height: auto;
+}
+
+.discover-org-item .org-card-action-row {
+  display: none;
+}
+
+.discover-org-actions {
+  padding: 0 0.2rem;
+}
+
 .discover-org-card--hero {
   position: relative;
   overflow: hidden;

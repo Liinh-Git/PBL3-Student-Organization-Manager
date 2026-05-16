@@ -25,6 +25,7 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
 import EventCard from '../../components/event/EventCard.jsx';
+import OrgCard from '../../components/org/OrgCard.jsx';
 import './UserDiscoverPage.css';
 
 function UserDiscoverPage() {
@@ -78,12 +79,26 @@ function UserDiscoverPage() {
     myOrgList.forEach((org) => {
       if (!org?.id) return;
       const existing = mergedById.get(org.id) || {};
+      const mergedAvatarUrl =
+        existing.avatarUrl ??
+        existing.AvatarUrl ??
+        org.avatarUrl ??
+        org.AvatarUrl ??
+        null;
+      const mergedCoverUrl =
+        existing.coverUrl ??
+        existing.CoverUrl ??
+        org.coverUrl ??
+        org.CoverUrl ??
+        null;
       mergedById.set(org.id, {
         ...existing,
         id: org.id,
         name: existing.name || org.name,
         orgName: existing.orgName || org.name,
         description: existing.description || org.description,
+        avatarUrl: mergedAvatarUrl,
+        coverUrl: mergedCoverUrl,
         status: existing.status || 'Active',
         isJoined: true
       });
@@ -256,15 +271,9 @@ function UserDiscoverPage() {
 
   const handleViewEvent = (event) => {
     const eventId = event?.id || event?.eventId;
-    const orgId = event?.organizationId || event?.orgId || event?.organization?.id;
 
     if (!eventId) {
       setError('Event ID is missing');
-      return;
-    }
-
-    if (orgId && myOrgIds.includes(orgId)) {
-      navigate(`/org/events/${eventId}?orgId=${orgId}`);
       return;
     }
 
@@ -477,30 +486,29 @@ function UserDiscoverPage() {
                         const isJoined = !!org.isJoined || myOrgIds.includes(org.id);
                         const isPending = pendingJoinOrgIds.has(org.id);
                         const isWorking = requestingOrgId === org.id;
+                        const orgModel = {
+                          ...org,
+                          name: orgName,
+                          orgName
+                        };
                         return (
-                          <div key={org.id} className="discover-org-card discover-org-card--hero">
-                            <div className="discover-org-cover" />
-                            <div className="discover-org-avatar">{orgName.charAt(0)}</div>
-                            <div className="discover-org-content">
-                              <div className="discover-item-title">{orgName}</div>
-                              <div className="discover-item-meta">Location: {org.location || '-'} • {org.totalMembers ?? '-'} members</div>
-                              <div className="discover-item-meta discover-org-desc">{org.description || '-'}</div>
-                              <div className="discover-actions discover-actions--full">
-                                <button
-                                  onClick={() => {
-                                    if (isJoined) {
-                                      navigate(`/org/overview?orgId=${org.id}`);
-                                      return;
-                                    }
-                                    handleRequestToJoin(org.id, orgName);
-                                  }}
-                                  disabled={isWorking}
-                                  className={`app-button ${isJoined || isPending ? 'app-button--secondary' : 'app-button--primary'} discover-btn-full`}
-                                  title={isJoined ? 'Open organization' : (isPending ? 'Click again to withdraw request' : undefined)}
-                                >
-                                  {isWorking ? 'Processing...' : (isJoined ? 'Joined' : (isPending ? 'Request sent (click to withdraw)' : 'Join organization'))}
-                                </button>
-                              </div>
+                          <div key={org.id} className={`discover-org-item ${isJoined ? 'discover-org-item--joined' : ''}`}>
+                            <OrgCard organization={orgModel} />
+                            <div className="discover-org-actions">
+                              <button
+                                onClick={() => {
+                                  if (isJoined) {
+                                    navigate(`/org/overview?orgId=${org.id}`);
+                                    return;
+                                  }
+                                  handleRequestToJoin(org.id, orgName);
+                                }}
+                                disabled={isWorking}
+                                className={`app-button ${isJoined || isPending ? 'app-button--secondary' : 'app-button--primary'} discover-btn-full`}
+                                title={isJoined ? 'Open organization' : (isPending ? 'Click again to withdraw request' : undefined)}
+                              >
+                                {isWorking ? 'Processing...' : (isJoined ? 'Joined' : (isPending ? 'Request sent (click to withdraw)' : 'Join organization'))}
+                              </button>
                             </div>
                           </div>
                         );
