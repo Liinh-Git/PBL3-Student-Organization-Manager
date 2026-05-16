@@ -154,6 +154,7 @@ Features/Events/Endpoints/
  GetPublicEventByIdEndpoint.cs
  GetPublicEventsEndpoint.cs
  UpdateEventEndpoint.cs
+ UploadEventBannerEndpoint.cs
 Features/Events/
  Mappings/EventMappings.cs
  Services/
@@ -338,6 +339,7 @@ Infrastructure/Persistence/
  Migrations/
   20260507050321_InitialRescueSchema.cs
   20260507050321_InitialRescueSchema.Designer.cs
+  20260516090000_AddEventBannerUrl.cs
   AppDbContextModelSnapshot.cs
  Seed/
   DevDataSeeder.cs

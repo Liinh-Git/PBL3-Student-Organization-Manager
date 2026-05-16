@@ -12,6 +12,17 @@ import {
 import { useAuthContext } from "../contexts/AuthContext";
 import { getMyOrganizations } from "../services/userService.js";
 
+// Hàm hỗ trợ lấy URL ảnh tuyệt đối (để load đúng ảnh từ server)
+function getAbsoluteImageUrl(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  const apiBase =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const origin = apiBase.replace(/\/api\/?$/, "");
+  if (url.startsWith("/")) return `${origin}${url}`;
+  return `${origin}/${url}`;
+}
+
 function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -106,20 +117,48 @@ function Sidebar() {
             overflowY: "auto",
           }}
         >
-          {organizations.map((org) => (
-            <button
-              key={org.id}
-              type="button"
-              onClick={() => handleSelectOrgWorkspace(org.id)}
-              className={`app-rail-icon ${selectedWorkspace === "org" && activeOrgId === org.id ? "app-rail-icon--active" : ""}`}
-              title={org.orgName || org.name || "Organization"}
-            >
-              {getOrgInitials(org)}
-            </button>
-          ))}
+          {organizations.map((org) => {
+            // Lấy URL ảnh tuyệt đối nếu có
+            const avatarUrl = getAbsoluteImageUrl(org.avatarUrl || org.logoUrl);
+
+            return (
+              <button
+                key={org.id}
+                type="button"
+                onClick={() => handleSelectOrgWorkspace(org.id)}
+                className={`app-rail-icon ${selectedWorkspace === "org" && activeOrgId === org.id ? "app-rail-icon--active" : ""}`}
+                title={org.orgName || org.name || "Organization"}
+                // Nếu có ảnh, bỏ padding và background để ảnh tràn viền khít nút
+                style={
+                  avatarUrl
+                    ? {
+                        padding: 0,
+                        overflow: "hidden",
+                        background: "transparent",
+                      }
+                    : {}
+                }
+              >
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={org.name || "Org Avatar"}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: "inherit",
+                    }}
+                  />
+                ) : (
+                  getOrgInitials(org)
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Nút Đăng xuất ở cuối Rail - Đổi SVG đẹp hơn */}
+        {/* Nút Đăng xuất ở cuối Rail */}
         <div style={{ marginTop: "auto", marginBottom: "1.5rem" }}>
           <button
             onClick={logout}
