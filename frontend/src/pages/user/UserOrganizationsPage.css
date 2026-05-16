@@ -207,37 +207,63 @@
   flex: 1;
   line-height: 1.5;
 }
-.org-card-stats {
+
+/* ========================================= */
+/* FIX LAYOUT CHO THỐNG KÊ (STATS) - GỌN GÀNG*/
+/* Dùng .org-layout để không rò rỉ CSS ra    */
+/* các trang khác sử dụng chung OrgCard      */
+/* ========================================= */
+.org-layout .org-card-stats {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 1.25rem;
-  margin: 0 1.5rem 1rem 1.5rem;
+  gap: 0.75rem 1.25rem; /* Tăng khoảng cách ngang dọc cho thoáng */
+  margin: 0 1.5rem 1.25rem 1.5rem;
 }
-.org-stat-item {
+
+.org-layout .org-stat-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 86px;
+  flex-direction: row;
+  align-items: center !important;
+  gap: 0.4rem;
+  background-color: transparent !important; /* Xóa nền xám */
+  padding: 0 !important; /* Xóa khoảng đệm */
+  border: none !important; /* Xóa viền */
+  width: auto !important; /* Chiều rộng tự do để chung dòng */
+  flex: none !important; /* Cấm tự giãn để không ép xuống dòng */
 }
-.org-stat-item--wide {
-  flex: 1 1 100%;
+
+/* Kéo to icon lên một chút vì không còn chữ nhãn */
+.org-layout .org-stat-item svg {
+  width: 14px;
+  height: 14px;
 }
-.org-stat-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
+
+/* Ép Ngày thành lập (luôn là phần tử cuối) xuống dòng bằng cách chiếm 100% width */
+.org-layout .org-stat-item:last-child {
+  width: 100% !important;
 }
-.org-stat-val {
-  font-size: 1rem;
-  font-weight: 800;
-  color: #1e293b;
+
+/* Giấu các nhãn chữ (Thành viên, Địa điểm, Ngày thành lập) */
+.org-layout .org-stat-label {
+  display: none !important;
 }
-.org-stat-val.small-text {
-  font-size: 0.85rem;
-  padding-top: 0.15rem;
-  line-height: 1.35;
+
+.org-layout .org-stat-val {
+  margin-left: 0 !important;
+  text-align: left !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  max-width: none !important;
 }
+
+.org-layout .org-stat-val.small-text {
+  padding-top: 0 !important;
+  line-height: normal !important;
+}
+/* ========================================= */
+
 .org-card-action {
   font-size: 0.875rem;
   font-weight: 700;
