@@ -39,10 +39,9 @@ function UserEventsPage() {
   const getEventName = (evt) => evt?.name || evt?.eventName || 'Untitled Event';
 
   const handleViewEvent = (evt) => {
-    const orgId = evt?.organizationId;
     const eventId = evt?.id;
-    if (orgId && eventId) {
-      navigate(`/org/events/${eventId}?orgId=${orgId}`);
+    if (eventId) {
+      navigate(`/events/${eventId}`);
     }
   };
 
