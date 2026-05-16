@@ -63,6 +63,7 @@ public class EventService : IEventService
         // Get all public events
         var events = await _context.Events
             .Include(e => e.Organization)
+            .Include(e => e.Attendees)
             .Where(e => e.Visibility == EventVisibility.Public && e.Status == EventStatus.Published)
             .OrderByDescending(e => e.StartDate)
             .ToListAsync(ct);
@@ -74,6 +75,7 @@ public class EventService : IEventService
     {
         var evt = await _context.Events
             .Include(e => e.Organization)
+            .Include(e => e.Attendees)
             .FirstOrDefaultAsync(e => e.Id == eventId, ct);
 
         if (evt == null)
@@ -229,6 +231,58 @@ public class EventService : IEventService
         evt.BannerUrl = request.BannerUrl;
         evt.Visibility = visibility;
         evt.TargetParticipants = request.TargetParticipants;
+        evt.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+
+        return evt.ToEventDto();
+    }
+
+    public async Task<EventDto> UpdateEventStatusAsync(Guid eventId, Guid userId, UpdateEventStatusRequest request, CancellationToken ct = default)
+    {
+        var evt = await _context.Events
+            .FirstOrDefaultAsync(e => e.Id == eventId, ct);
+
+        if (evt == null)
+        {
+            throw new KeyNotFoundException("Event not found");
+        }
+
+        var member = await _context.Members
+            .Include(m => m.Role)
+                .ThenInclude(r => r!.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
+            .FirstOrDefaultAsync(m => m.OrgId == evt.OrgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
+
+        if (member == null)
+        {
+            throw new UnauthorizedAccessException("You are not a member of this organization");
+        }
+
+        if (member.Role == null)
+        {
+            throw new UnauthorizedAccessException("You do not have a role assigned");
+        }
+
+        var hasPermission = member.Role.RolePermissions
+            .Any(rp => rp.Permission?.PermissionKey == "org.events.manage");
+
+        if (!hasPermission)
+        {
+            throw new UnauthorizedAccessException("You do not have permission to manage events");
+        }
+
+        if (!Enum.TryParse<EventStatus>(request.Status, true, out var nextStatus) ||
+            (nextStatus != EventStatus.Draft && nextStatus != EventStatus.Published))
+        {
+            throw new InvalidOperationException("Status must be 'Draft' or 'Published'");
+        }
+
+        evt.Status = nextStatus;
+        if (nextStatus == EventStatus.Published)
+        {
+            evt.Visibility = EventVisibility.Public;
+        }
         evt.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);

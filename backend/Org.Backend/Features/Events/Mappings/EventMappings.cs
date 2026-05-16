@@ -1,4 +1,5 @@
 using Org.Backend.Domain.Entities;
+using Org.Backend.Domain.Enums;
 using Org.Shared.Features.Events;
 
 namespace Org.Backend.Features.Events.Mappings;
@@ -59,6 +60,8 @@ public static class EventMappings
             EndDate = evt.EndDate,
             Location = evt.Location,
             BannerUrl = evt.BannerUrl,
+            TargetParticipants = evt.TargetParticipants,
+            RegisteredParticipants = evt.Attendees.Count(a => a.Status != AttendeeStatus.Cancelled),
             Visibility = evt.Visibility.ToString(),
             Status = evt.Status.ToString()
         };

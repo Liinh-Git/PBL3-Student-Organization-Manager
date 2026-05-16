@@ -57,19 +57,40 @@ public class UserService : IUserService
 
     public async Task<List<MyEventDto>> GetMyEventsAsync(Guid userId, CancellationToken ct = default)
     {
-        // Get events from organizations where user is a member
+        // Events from organizations where user is a member, plus public events
+        // where they registered only as an attendee.
         var memberOrgIds = await _context.Members
             .Where(m => m.UserId == userId && m.Status == MemberStatus.Active)
             .Select(m => m.OrgId)
             .ToListAsync(ct);
 
-        var events = await _context.Events
+        var memberEvents = await _context.Events
             .Include(e => e.Organization)
             .Where(e => memberOrgIds.Contains(e.OrgId))
             .OrderBy(e => e.StartDate)
             .ToListAsync(ct);
 
-        return events.Select(e => e.ToMyEventDto()).ToList();
+        var attendeeEvents = await _context.Attendees
+            .Include(a => a.Event)
+                .ThenInclude(e => e.Organization)
+            .Where(a =>
+                a.UserId == userId &&
+                a.Status != AttendeeStatus.Cancelled &&
+                !memberOrgIds.Contains(a.Event.OrgId))
+            .OrderBy(a => a.Event.StartDate)
+            .ToListAsync(ct);
+
+        var results = memberEvents
+            .Select(e => e.ToMyEventDto("OrganizationMember"))
+            .ToList();
+
+        results.AddRange(attendeeEvents.Select(a => a.Event.ToMyEventDto("Attendee", a.Status.ToString())));
+
+        return results
+            .GroupBy(e => e.Id)
+            .Select(g => g.First())
+            .OrderBy(e => e.StartDate)
+            .ToList();
     }
 
     public async Task<List<DiscoverOrganizationDto>> DiscoverOrganizationsAsync(Guid userId, CancellationToken ct = default)

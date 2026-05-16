@@ -55,6 +55,8 @@ public record EventPublicDto
     public required DateTime EndDate { get; init; }
     public string? Location { get; init; }
     public string? BannerUrl { get; init; }
+    public int? TargetParticipants { get; init; }
+    public required int RegisteredParticipants { get; init; }
     public required string Visibility { get; init; }
     public required string Status { get; init; }
 }

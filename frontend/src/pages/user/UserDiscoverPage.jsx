@@ -268,7 +268,7 @@ function UserDiscoverPage() {
       return;
     }
 
-    navigate(`/events/${eventId}`);
+    navigate(`/events/${eventId}`, { state: { returnTo: '/user/discover' } });
   };
 
   const handleInviteFriend = async (friendUserId) => {

@@ -154,6 +154,16 @@ export async function deleteEvent(id) {
   return response.data.data;
 }
 
+export async function updateEventStatus(id, status) {
+  const response = await httpClient.put(`/events/${id}/status`, { status });
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to update event status');
+  }
+
+  return response.data.data;
+}
+
 /**
  * Upload event banner image and return relative media URL.
  *
@@ -234,5 +244,45 @@ export async function getPublicEventById(id) {
     throw new Error(response.data.message || 'Failed to get public event');
   }
   
+  return response.data.data;
+}
+
+export async function getEventAttendees(id) {
+  const response = await httpClient.get(`/events/${id}/attendees`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to get event attendees');
+  }
+
+  return response.data.data;
+}
+
+export async function getMyEventRegistration(id) {
+  const response = await httpClient.get(`/events/${id}/attendees/me`);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to get registration status');
+  }
+
+  return response.data.data;
+}
+
+export async function registerForEvent(id, payload = {}) {
+  const response = await httpClient.post(`/events/${id}/attendees/register`, payload);
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to register for event');
+  }
+
+  return response.data.data;
+}
+
+export async function cancelEventRegistration(id, payload = {}) {
+  const response = await httpClient.delete(`/events/${id}/attendees/me`, { data: payload });
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to cancel registration');
+  }
+
   return response.data.data;
 }

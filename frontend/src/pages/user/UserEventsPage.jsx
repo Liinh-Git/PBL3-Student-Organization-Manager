@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getMyEvents } from '../../services/userService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
@@ -14,7 +14,6 @@ import ErrorState from '../../components/shared/ErrorState';
 import EventCard from '../../components/event/EventCard.jsx';
 
 function UserEventsPage() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +40,13 @@ function UserEventsPage() {
   const handleViewEvent = (evt) => {
     const orgId = evt?.organizationId;
     const eventId = evt?.id;
-    if (orgId && eventId) {
+    const participationRole = evt?.participationRole || evt?.participantRole || evt?.relationType;
+
+    if (!eventId) return;
+
+    if (participationRole === 'Attendee') {
+      navigate(`/events/${eventId}`, { state: { returnTo: '/user/discover' } });
+    } else if (orgId) {
       navigate(`/org/events/${eventId}?orgId=${orgId}`);
     }
   };

@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useOrgContext } from '../../contexts/OrgContext.jsx';
-import { getEventById, updateEvent } from '../../services/eventService.js';
+import { getEventAttendees, getEventById, updateEvent } from '../../services/eventService.js';
 import { getEventMilestones } from '../../services/milestoneService.js';
 import { getMilestoneCategories } from '../../services/categoryService.js';
 import { createTask, updateTask, updateTaskStatus, assignTask, deleteTask } from '../../services/taskService.js';
@@ -31,6 +31,7 @@ function OrgEventDetailPage() {
   const [milestones, setMilestones] = useState([]);
   const [categoriesByMilestone, setCategoriesByMilestone] = useState({});
   const [members, setMembers] = useState([]);
+  const [attendees, setAttendees] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [taskLoading, setTaskLoading] = useState({});
@@ -77,6 +78,9 @@ function OrgEventDetailPage() {
 
         const membersData = await getOrganizationMembers(orgId);
         setMembers(membersData);
+
+        const attendeesData = await getEventAttendees(eventId);
+        setAttendees(Array.isArray(attendeesData) ? attendeesData : []);
       } catch (err) {
         setError(err.message || 'Failed to load event detail');
       } finally {
@@ -682,6 +686,29 @@ function OrgEventDetailPage() {
       </div>
 
       <div className="event-roadmap">
+        <div className="attendee-panel">
+          <div className="roadmap-heading">
+            <span>Người tham gia</span>
+            <span>{attendees.length}</span>
+          </div>
+          {attendees.length === 0 ? (
+            <p className="attendee-empty">Chưa có người đăng ký.</p>
+          ) : (
+            <div className="attendee-list">
+              {attendees.slice(0, 6).map((attendee) => (
+                <div key={attendee.id} className="attendee-row">
+                  <span className="attendee-avatar">{(attendee.fullName || attendee.email || '?').charAt(0).toUpperCase()}</span>
+                  <div>
+                    <strong>{attendee.fullName || attendee.email || 'Attendee'}</strong>
+                    <span>{attendee.status || '-'}</span>
+                  </div>
+                </div>
+              ))}
+              {attendees.length > 6 && <p className="attendee-empty">+{attendees.length - 6} người khác</p>}
+            </div>
+          )}
+        </div>
+
         <div className="roadmap-heading">
           <span>Lộ trình dự án</span>
           {canManage && (
@@ -1197,6 +1224,57 @@ function OrgEventDetailPage() {
           flex: 1;
           overflow-y: auto;
           padding: 24px 16px 28px;
+        }
+
+        .attendee-panel {
+          margin-bottom: 24px;
+          padding-bottom: 18px;
+          border-bottom: 1px solid #E2E8F0;
+        }
+
+        .attendee-list {
+          display: grid;
+          gap: 10px;
+        }
+
+        .attendee-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .attendee-row div {
+          display: grid;
+          min-width: 0;
+        }
+
+        .attendee-row strong {
+          overflow: hidden;
+          color: #0F172A;
+          font-size: 13px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .attendee-row span:last-child,
+        .attendee-empty {
+          margin: 0;
+          color: #64748B;
+          font-size: 12px;
+        }
+
+        .attendee-avatar {
+          display: inline-flex;
+          width: 28px;
+          height: 28px;
+          flex: 0 0 28px;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          background: #FFF1E8;
+          color: #F97316;
+          font-size: 12px;
+          font-weight: 800;
         }
 
         .event-roadmap::-webkit-scrollbar,

@@ -97,3 +97,8 @@ public record UpdateEventRequest
     /// </summary>
     public int? TargetParticipants { get; init; }
 }
+
+public record UpdateEventStatusRequest
+{
+    public required string Status { get; init; }
+}

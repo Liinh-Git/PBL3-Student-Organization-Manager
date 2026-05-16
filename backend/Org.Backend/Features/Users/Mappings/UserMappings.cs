@@ -56,7 +56,18 @@ public static class UserMappings
             BannerUrl = evt.BannerUrl,
             Status = evt.Status.ToString(),
             Visibility = evt.Visibility.ToString(),
-            Location = evt.Location
+            Location = evt.Location,
+            ParticipationRole = null,
+            AttendanceStatus = null
+        };
+    }
+
+    public static MyEventDto ToMyEventDto(this Event evt, string participationRole, string? attendanceStatus = null)
+    {
+        return evt.ToMyEventDto() with
+        {
+            ParticipationRole = participationRole,
+            AttendanceStatus = attendanceStatus
         };
     }
 

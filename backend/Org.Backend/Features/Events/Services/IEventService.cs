@@ -12,5 +12,6 @@ public interface IEventService
     // Write operations
     Task<EventDto> CreateEventAsync(Guid orgId, Guid userId, CreateEventRequest request, CancellationToken ct = default);
     Task<EventDto> UpdateEventAsync(Guid eventId, Guid userId, UpdateEventRequest request, CancellationToken ct = default);
+    Task<EventDto> UpdateEventStatusAsync(Guid eventId, Guid userId, UpdateEventStatusRequest request, CancellationToken ct = default);
     Task<bool> DeleteEventAsync(Guid eventId, Guid userId, CancellationToken ct = default);
 }

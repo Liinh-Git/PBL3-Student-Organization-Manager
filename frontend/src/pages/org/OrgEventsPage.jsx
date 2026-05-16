@@ -7,7 +7,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useOrgContext } from '../../contexts/OrgContext.jsx';
-import { getOrganizationEvents, createEvent, updateEvent, deleteEvent, uploadEventBanner } from '../../services/eventService.js';
+import { getOrganizationEvents, createEvent, updateEvent, updateEventStatus, deleteEvent, uploadEventBanner } from '../../services/eventService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
@@ -190,6 +190,38 @@ function OrgEventsPage() {
       setEvents(prev => prev.filter(ev => getEventId(ev) !== eventId));
     } catch (err) {
       alert(err.message || 'Failed to delete event');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleToggleStatus = async (event) => {
+    if (!canManage) {
+      alert('Bạn không có quyền thực hiện thao tác này');
+      return;
+    }
+
+    const eventId = getEventId(event);
+    if (!eventId) {
+      alert('Event ID is missing');
+      return;
+    }
+
+    const nextStatus = event?.status === 'Published' ? 'Draft' : 'Published';
+    const confirmMessage = nextStatus === 'Published'
+      ? 'Publish this event publicly?'
+      : 'Move this event back to draft?';
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const updated = await updateEventStatus(eventId, nextStatus);
+      setEvents(prev => prev.map(ev => (getEventId(ev) === eventId ? updated : ev)));
+    } catch (err) {
+      alert(err.message || 'Failed to update event status');
     } finally {
       setIsSubmitting(false);
     }
@@ -537,6 +569,24 @@ function OrgEventsPage() {
           color: #DC2626;
         }
 
+        .org-status-toggle-button {
+          width: auto;
+          min-width: 82px;
+          height: 34px;
+          padding: 0 12px;
+          border: 1px solid #FED7AA;
+          border-radius: 8px;
+          background: #FFF7ED;
+          color: #C2410C;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .org-status-toggle-button:hover {
+          background: #FFEDD5;
+          color: #9A3412;
+        }
+
         .org-event-card h2 {
           margin: 0 0 12px;
           color: #0F172A;
@@ -830,6 +880,16 @@ function OrgEventsPage() {
                           aria-label="Sửa sự kiện"
                         >
                           ⚙
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(event)}
+                          disabled={isSubmitting}
+                          className="org-icon-button org-status-toggle-button"
+                          title={event.status === 'Published' ? 'Chuyển về nháp' : 'Publish sự kiện'}
+                          aria-label={event.status === 'Published' ? 'Chuyển về nháp' : 'Publish sự kiện'}
+                        >
+                          {event.status === 'Published' ? 'Draft' : 'Publish'}
                         </button>
                         <button
                           type="button"

@@ -59,7 +59,6 @@ function AppRouter() {
         {/* Public routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/events" element={<PublicEventsPage />} />
-        <Route path="/events/:eventId" element={<PublicEventDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         
@@ -72,6 +71,7 @@ function AppRouter() {
             <Route path="/user/settings" element={<UserSettingsPage />} />
             <Route path="/user/friends" element={<UserFriendsPage />} />
             <Route path="/user/discover" element={<UserDiscoverPage />} />
+            <Route path="/events/:eventId" element={<PublicEventDetailPage />} />
 
             {/* Org workspace routes (requires membership) */}
             <Route element={<OrgMemberRoute />}>
