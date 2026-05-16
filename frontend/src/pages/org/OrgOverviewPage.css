@@ -169,38 +169,83 @@
 /* Stats */
 .org-stats-dashboard {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
   margin: 0 3rem 2.5rem 3rem;
 }
 
 .stat-item-card {
   background: var(--surface-card);
-  padding: 1.25rem 1.5rem;
+  padding: 1.1rem 1.4rem;
   border-radius: 18px;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.1rem;
   border: 1px solid var(--border-soft);
   box-shadow: var(--shadow-subtle);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-item-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%);
+  border-radius: 0 4px 4px 0;
 }
 
 .stat-icon-circle {
-  width: 46px;
-  height: 46px;
-  background: var(--bg-surface);
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1.5px solid #fed7aa;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent-500);
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.stat-label-text {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #f97316;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+  display: block;
 }
 
 .stat-value-text {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--ink-900);
   margin: 0;
+}
+
+/* Founding date special badge */
+.stat-item-card--founding {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 60%, #fff 100%);
+  border-color: #fed7aa;
+}
+
+.stat-founding-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.3rem 0.75rem;
+  border-radius: 99px;
+  margin-top: 2px;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35);
 }
 
 /* Content Layout */

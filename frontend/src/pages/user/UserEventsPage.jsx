@@ -38,16 +38,9 @@ function UserEventsPage() {
   const getEventName = (evt) => evt?.name || evt?.eventName || 'Untitled Event';
 
   const handleViewEvent = (evt) => {
-    const orgId = evt?.organizationId;
     const eventId = evt?.id;
-    const participationRole = evt?.participationRole || evt?.participantRole || evt?.relationType;
-
-    if (!eventId) return;
-
-    if (participationRole === 'Attendee') {
-      navigate(`/events/${eventId}`, { state: { returnTo: '/user/discover' } });
-    } else if (orgId) {
-      navigate(`/org/events/${eventId}?orgId=${orgId}`);
+    if (eventId) {
+      navigate(`/events/${eventId}`);
     }
   };
 

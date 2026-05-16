@@ -1,7 +1,10 @@
 ﻿import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useOrgContext } from "../../contexts/OrgContext.jsx";
-import { updateOrganization, uploadOrganizationImage } from "../../services/organizationService.js";
+import {
+  updateOrganization,
+  uploadOrganizationImage,
+} from "../../services/organizationService.js";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorState from "../../components/shared/ErrorState";
 import ForbiddenState from "../../components/shared/ForbiddenState";
@@ -10,7 +13,8 @@ import "./OrgOverviewPage.css";
 function toAbsoluteMediaUrl(url) {
   if (!url) return "";
   if (/^https?:\/\//i.test(url)) return url;
-  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const apiBase =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
   const origin = apiBase.replace(/\/api\/?$/, "");
   if (url.startsWith("/")) return `${origin}${url}`;
   return `${origin}/${url}`;
@@ -57,7 +61,9 @@ function OrgOverviewPage() {
       location: contextOrg.location || "",
       contactEmail: contextOrg.contactEmail || "",
       contactPhone: contextOrg.contactPhone || "",
-      foundingDate: contextOrg.foundingDate ? new Date(contextOrg.foundingDate).toISOString().slice(0, 10) : "",
+      foundingDate: contextOrg.foundingDate
+        ? new Date(contextOrg.foundingDate).toISOString().slice(0, 10)
+        : "",
     });
     setImageUrls({
       avatarUrl: contextOrg.avatarUrl || "",
@@ -81,7 +87,9 @@ function OrgOverviewPage() {
   }
 
   if (!isMember) {
-    return <ForbiddenState message="You are not a member of this organization" />;
+    return (
+      <ForbiddenState message="You are not a member of this organization" />
+    );
   }
 
   const canEdit = permissions.includes("org.overview.write");
@@ -99,7 +107,9 @@ function OrgOverviewPage() {
       location: contextOrg.location || "",
       contactEmail: contextOrg.contactEmail || "",
       contactPhone: contextOrg.contactPhone || "",
-      foundingDate: contextOrg.foundingDate ? new Date(contextOrg.foundingDate).toISOString().slice(0, 10) : "",
+      foundingDate: contextOrg.foundingDate
+        ? new Date(contextOrg.foundingDate).toISOString().slice(0, 10)
+        : "",
     });
     if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
     if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
@@ -126,7 +136,9 @@ function OrgOverviewPage() {
       location: formState.location || undefined,
       contactEmail: formState.contactEmail || undefined,
       contactPhone: formState.contactPhone || undefined,
-      foundingDate: formState.foundingDate ? new Date(formState.foundingDate).toISOString() : undefined,
+      foundingDate: formState.foundingDate
+        ? new Date(formState.foundingDate).toISOString()
+        : undefined,
       avatarUrl: imageUrls.avatarUrl || undefined,
       coverUrl: imageUrls.coverUrl || undefined,
     };
@@ -191,20 +203,40 @@ function OrgOverviewPage() {
   const coverSrc = coverPreviewUrl || toAbsoluteMediaUrl(imageUrls.coverUrl);
   const initial = (contextOrg?.name || "O").charAt(0).toUpperCase();
 
-  const titleValue = isEditMode ? formState.orgName : (contextOrg?.name || "Organization");
-  const descriptionValue = isEditMode ? formState.description : (contextOrg?.description || "Organization has no description yet.");
-  const locationValue = isEditMode ? formState.location : (contextOrg?.location || "Not specified");
-  const contactEmailValue = isEditMode ? formState.contactEmail : (contextOrg?.contactEmail || "-");
-  const contactPhoneValue = isEditMode ? formState.contactPhone : (contextOrg?.contactPhone || "-");
+  const titleValue = isEditMode
+    ? formState.orgName
+    : contextOrg?.name || "Organization";
+  const descriptionValue = isEditMode
+    ? formState.description
+    : contextOrg?.description || "Organization has no description yet.";
+  const locationValue = isEditMode
+    ? formState.location
+    : contextOrg?.location || "Not specified";
+  const contactEmailValue = isEditMode
+    ? formState.contactEmail
+    : contextOrg?.contactEmail || "-";
+  const contactPhoneValue = isEditMode
+    ? formState.contactPhone
+    : contextOrg?.contactPhone || "-";
 
   return (
     <div className="org-overview-container">
       <div className="org-banner-section">
-        {coverSrc ? <img className="org-banner-image" src={coverSrc} alt="Organization cover" /> : null}
+        {coverSrc ? (
+          <img
+            className="org-banner-image"
+            src={coverSrc}
+            alt="Organization cover"
+          />
+        ) : null}
         {isEditMode && canEdit ? (
           <label className="org-image-edit org-image-edit--cover">
             {isUploadingCover ? "Uploading..." : "Edit cover/banner"}
-            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => handleUploadImage(e, "cover")} />
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => handleUploadImage(e, "cover")}
+            />
           </label>
         ) : null}
       </div>
@@ -213,7 +245,11 @@ function OrgOverviewPage() {
         <div className="org-avatar-wrapper">
           <div className="org-avatar-frame">
             {avatarSrc ? (
-              <img className="org-avatar-image" src={avatarSrc} alt="Organization avatar" />
+              <img
+                className="org-avatar-image"
+                src={avatarSrc}
+                alt="Organization avatar"
+              />
             ) : (
               <span className="org-avatar-fallback">{initial}</span>
             )}
@@ -221,7 +257,11 @@ function OrgOverviewPage() {
           {isEditMode && canEdit ? (
             <label className="org-image-edit org-image-edit--avatar">
               {isUploadingAvatar ? "Uploading..." : "Edit avatar"}
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => handleUploadImage(e, "avatar")} />
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => handleUploadImage(e, "avatar")}
+              />
             </label>
           ) : null}
         </div>
@@ -245,11 +285,28 @@ function OrgOverviewPage() {
         {canEdit ? (
           <div className="org-header-actions">
             {!isEditMode ? (
-              <button onClick={() => setIsEditMode(true)} className="org-btn-header">Edit</button>
+              <button
+                onClick={() => setIsEditMode(true)}
+                className="org-btn-header"
+              >
+                Edit
+              </button>
             ) : (
               <>
-                <button onClick={handleCancel} className="org-btn org-btn-secondary" disabled={isSubmitting}>Cancel</button>
-                <button onClick={handleSave} className="org-btn org-btn-primary" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</button>
+                <button
+                  onClick={handleCancel}
+                  className="org-btn org-btn-secondary"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="org-btn org-btn-primary"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Saving..." : "Save"}
+                </button>
               </>
             )}
           </div>
@@ -259,15 +316,28 @@ function OrgOverviewPage() {
       <div className="org-stats-dashboard">
         <div className="stat-item-card">
           <div className="stat-icon-circle">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
           </div>
           <div>
-            <span className="org-form-label-small">Location</span>
+            <span className="stat-label-text">Location</span>
             {isEditMode ? (
-              <input type="text" name="location" className="org-inline-input" value={formState.location} onChange={handleFormChange} />
+              <input
+                type="text"
+                name="location"
+                className="org-inline-input"
+                value={formState.location}
+                onChange={handleFormChange}
+              />
             ) : (
               <p className="stat-value-text">{locationValue}</p>
             )}
@@ -276,21 +346,37 @@ function OrgOverviewPage() {
 
         <div className="stat-item-card">
           <div className="stat-icon-circle">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
             </svg>
           </div>
           <div>
-            <span className="org-form-label-small">Members</span>
-            <p className="stat-value-text">{contextOrg?.totalMembers || 0} people</p>
+            <span className="stat-label-text">Members</span>
+            <p className="stat-value-text">
+              {contextOrg?.totalMembers || 0} people
+            </p>
           </div>
         </div>
 
-        <div className="stat-item-card">
+        <div className="stat-item-card stat-item-card--founding">
           <div className="stat-icon-circle">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
               <line x1="8" y1="2" x2="8" y2="6" />
@@ -298,11 +384,34 @@ function OrgOverviewPage() {
             </svg>
           </div>
           <div>
-            <span className="org-form-label-small">Founding date</span>
+            <span className="stat-label-text">Founding date</span>
             {isEditMode ? (
-              <input type="date" name="foundingDate" className="org-inline-input" value={formState.foundingDate} onChange={handleFormChange} />
+              <input
+                type="date"
+                name="foundingDate"
+                className="org-inline-input"
+                value={formState.foundingDate}
+                onChange={handleFormChange}
+              />
             ) : (
-              <p className="stat-value-text">{displayFoundingDate}</p>
+              <div className="stat-founding-badge">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                {displayFoundingDate}
+              </div>
             )}
           </div>
         </div>
@@ -332,7 +441,13 @@ function OrgOverviewPage() {
             <div className="contact-row">
               <span className="org-form-label-small">Contact email</span>
               {isEditMode ? (
-                <input type="email" name="contactEmail" className="org-inline-input" value={formState.contactEmail} onChange={handleFormChange} />
+                <input
+                  type="email"
+                  name="contactEmail"
+                  className="org-inline-input"
+                  value={formState.contactEmail}
+                  onChange={handleFormChange}
+                />
               ) : (
                 <p className="contact-val-text">{contactEmailValue}</p>
               )}
@@ -340,7 +455,13 @@ function OrgOverviewPage() {
             <div className="contact-row">
               <span className="org-form-label-small">Phone</span>
               {isEditMode ? (
-                <input type="tel" name="contactPhone" className="org-inline-input" value={formState.contactPhone} onChange={handleFormChange} />
+                <input
+                  type="tel"
+                  name="contactPhone"
+                  className="org-inline-input"
+                  value={formState.contactPhone}
+                  onChange={handleFormChange}
+                />
               ) : (
                 <p className="contact-val-text">{contactPhoneValue}</p>
               )}
@@ -349,7 +470,9 @@ function OrgOverviewPage() {
               <span className="org-form-label-small">Created at</span>
               <p className="contact-val-text">
                 {contextOrg?.createdAtUtc
-                  ? new Date(contextOrg.createdAtUtc).toLocaleDateString("vi-VN")
+                  ? new Date(contextOrg.createdAtUtc).toLocaleDateString(
+                      "vi-VN",
+                    )
                   : "-"}
               </p>
             </div>
@@ -361,4 +484,3 @@ function OrgOverviewPage() {
 }
 
 export default OrgOverviewPage;
-

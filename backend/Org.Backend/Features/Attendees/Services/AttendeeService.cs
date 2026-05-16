@@ -41,43 +41,105 @@ public class AttendeeService : IAttendeeService
         return attendees.Select(a => a.ToAttendeeDto()).ToList();
     }
 
-    public async Task<AttendeeDto?> GetMyRegistrationAsync(Guid eventId, Guid userId, CancellationToken ct = default)
+    public async Task<AttendeeRegistrationDto> GetMyRegistrationAsync(Guid eventId, Guid userId, CancellationToken ct = default)
     {
-        await EnsurePublicEventExists(eventId, ct);
+        var evt = await _context.Events
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == eventId, ct);
+
+        if (evt == null)
+        {
+            throw new KeyNotFoundException("Event not found");
+        }
 
         var attendee = await _context.Attendees
-            .Include(a => a.User)
+            .AsNoTracking()
             .Where(a => a.EventId == eventId && a.UserId == userId)
-            .OrderByDescending(a => a.RegisteredAt)
+            .OrderByDescending(a => a.CreatedAt)
             .FirstOrDefaultAsync(ct);
 
-        return attendee?.ToAttendeeDto();
+        if (attendee == null || attendee.Status == AttendeeStatus.Cancelled)
+        {
+            return new AttendeeRegistrationDto
+            {
+                EventId = eventId,
+                UserId = userId,
+                IsRegistered = false,
+                AttendeeId = attendee?.Id,
+                Status = attendee?.Status.ToString(),
+                RegisteredAtUtc = attendee?.RegisteredAt,
+                CheckedInAtUtc = attendee?.CheckedInAt
+            };
+        }
+
+        return attendee.ToRegistrationDto(userId);
     }
 
     public async Task<AttendeeDto> RegisterAsync(Guid eventId, Guid userId, RegisterEventAttendeeRequest request, CancellationToken ct = default)
     {
-        var evt = await EnsurePublicEventExists(eventId, ct);
+        var attendee = await RegisterInternalAsync(eventId, userId, request.Note, ct);
 
-        if (evt.Status == EventStatus.Cancelled)
+        var savedAttendee = await _context.Attendees
+            .Include(a => a.User)
+            .Where(a => a.Id == attendee.Id)
+            .FirstAsync(ct);
+
+        return savedAttendee.ToAttendeeDto();
+    }
+
+    public async Task<AttendeeRegistrationDto> RegisterMeAsync(Guid eventId, Guid userId, CancellationToken ct = default)
+    {
+        var attendee = await RegisterInternalAsync(eventId, userId, note: null, ct);
+        return attendee.ToRegistrationDto(userId);
+    }
+
+    public async Task<AttendeeDto> CancelRegistrationAsync(Guid eventId, Guid userId, CancelEventRegistrationRequest request, CancellationToken ct = default)
+    {
+        var attendee = await CancelInternalAsync(eventId, userId, request.Note, ct);
+
+        return attendee!.ToAttendeeDto();
+    }
+
+    public async Task<AttendeeRegistrationDto> UnregisterAsync(
+        Guid eventId,
+        Guid userId,
+        AttendeeRegistrationUpdateDto updateDto,
+        CancellationToken ct = default)
+    {
+        var attendee = await CancelInternalAsync(eventId, userId, updateDto?.Note, ct, throwIfMissing: false);
+        return attendee?.ToRegistrationDto(userId) ?? new AttendeeRegistrationDto
         {
-            throw new InvalidOperationException("This event has been cancelled");
+            EventId = eventId,
+            UserId = userId,
+            IsRegistered = false,
+            Status = AttendeeStatus.Cancelled.ToString()
+        };
+    }
+
+    private async Task<Attendee> RegisterInternalAsync(Guid eventId, Guid userId, string? note, CancellationToken ct)
+    {
+        var evt = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId, ct);
+        if (evt == null)
+        {
+            throw new KeyNotFoundException("Event not found");
         }
 
+        await EnsureUserCanRegisterAsync(evt, userId, ct);
+
         var attendee = await _context.Attendees
-            .Include(a => a.User)
             .FirstOrDefaultAsync(a => a.EventId == eventId && a.UserId == userId, ct);
 
         if (attendee != null)
         {
             if (attendee.Status != AttendeeStatus.Cancelled)
             {
-                return attendee.ToAttendeeDto();
+                return attendee;
             }
 
             attendee.Status = AttendeeStatus.Registered;
             attendee.RegisteredAt = DateTime.UtcNow;
             attendee.CheckedInAt = null;
-            attendee.Note = request.Note?.Trim();
+            attendee.Note = note?.Trim();
             attendee.UpdatedAt = DateTime.UtcNow;
         }
         else
@@ -89,43 +151,23 @@ public class AttendeeService : IAttendeeService
                 UserId = userId,
                 Status = AttendeeStatus.Registered,
                 RegisteredAt = DateTime.UtcNow,
-                Note = request.Note?.Trim()
+                Note = note?.Trim(),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
             _context.Attendees.Add(attendee);
         }
 
         await _context.SaveChangesAsync(ct);
-
-        var savedAttendee = await _context.Attendees
-            .Include(a => a.User)
-            .Where(a => a.Id == attendee.Id)
-            .FirstAsync(ct);
-
-        return savedAttendee.ToAttendeeDto();
+        return attendee;
     }
 
-    public async Task<AttendeeDto> CancelRegistrationAsync(Guid eventId, Guid userId, CancelEventRegistrationRequest request, CancellationToken ct = default)
-    {
-        await EnsurePublicEventExists(eventId, ct);
-
-        var attendee = await _context.Attendees
-            .Include(a => a.User)
-            .FirstOrDefaultAsync(a => a.EventId == eventId && a.UserId == userId, ct);
-
-        if (attendee == null || attendee.Status == AttendeeStatus.Cancelled)
-        {
-            throw new KeyNotFoundException("Registration not found");
-        }
-
-        attendee.Status = AttendeeStatus.Cancelled;
-        attendee.Note = request.Note?.Trim() ?? attendee.Note;
-        attendee.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync(ct);
-        return attendee.ToAttendeeDto();
-    }
-
-    private async Task<Event> EnsurePublicEventExists(Guid eventId, CancellationToken ct)
+    private async Task<Attendee?> CancelInternalAsync(
+        Guid eventId,
+        Guid userId,
+        string? note,
+        CancellationToken ct,
+        bool throwIfMissing = true)
     {
         var evt = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId, ct);
         if (evt == null)
@@ -133,11 +175,63 @@ public class AttendeeService : IAttendeeService
             throw new KeyNotFoundException("Event not found");
         }
 
-        if (evt.Visibility != EventVisibility.Public)
+        var attendee = await _context.Attendees
+            .Include(a => a.User)
+            .FirstOrDefaultAsync(a => a.EventId == eventId && a.UserId == userId, ct);
+
+        if (attendee == null || attendee.Status == AttendeeStatus.Cancelled)
         {
-            throw new UnauthorizedAccessException("This event is not public");
+            if (throwIfMissing)
+            {
+                throw new KeyNotFoundException("Registration not found");
+            }
+
+            return attendee;
         }
 
-        return evt;
+        attendee.Status = AttendeeStatus.Cancelled;
+        attendee.Note = note?.Trim() ?? attendee.Note;
+        attendee.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+        return attendee;
+    }
+
+    private async Task EnsureUserCanRegisterAsync(Event evt, Guid userId, CancellationToken ct)
+    {
+        if (evt.Status is EventStatus.Cancelled or EventStatus.Archived or EventStatus.Completed)
+        {
+            throw new InvalidOperationException("This event is not accepting new attendees");
+        }
+
+        if (evt.Visibility == EventVisibility.Public)
+        {
+            return;
+        }
+
+        var isOrgMember = await _context.Members
+            .AnyAsync(m => m.OrgId == evt.OrgId && m.UserId == userId && m.Status == MemberStatus.Active, ct);
+
+        if (!isOrgMember)
+        {
+            throw new UnauthorizedAccessException("Only organization members can join this event");
+        }
+    }
+}
+
+file static class AttendeeServiceMappings
+{
+    public static AttendeeRegistrationDto ToRegistrationDto(this Attendee attendee, Guid fallbackUserId)
+    {
+        return new AttendeeRegistrationDto
+        {
+            EventId = attendee.EventId,
+            UserId = attendee.UserId ?? fallbackUserId,
+            IsRegistered = attendee.Status != AttendeeStatus.Cancelled,
+            AttendeeId = attendee.Id,
+            Status = attendee.Status.ToString(),
+            RegisteredAtUtc = attendee.RegisteredAt,
+            CheckedInAtUtc = attendee.CheckedInAt
+        };
     }
 }

@@ -8,23 +8,24 @@ using Org.Shared.Features.Attendees;
 namespace Org.Backend.Features.Attendees.Endpoints;
 
 /// <summary>
-/// GET /api/events/{eventId}/attendees/me
+/// POST /api/events/{eventId}/attendees/me
 /// </summary>
-public class GetMyEventRegistrationEndpoint : EndpointWithoutRequest<ApiResponse<AttendeeRegistrationDto>>
+public class RegisterMyEventAttendanceEndpoint : EndpointWithoutRequest<ApiResponse<AttendeeRegistrationDto>>
 {
     private readonly IAttendeeService _attendeeService;
 
-    public GetMyEventRegistrationEndpoint(IAttendeeService attendeeService)
+    public RegisterMyEventAttendanceEndpoint(IAttendeeService attendeeService)
     {
         _attendeeService = attendeeService;
     }
 
     public override void Configure()
     {
-        Get("/events/{eventId}/attendees/me");
+        Post("/events/{eventId}/attendees/me");
         Description(b => b
             .Produces<ApiResponse<AttendeeRegistrationDto>>(200, "application/json")
             .Produces<ApiResponse<AttendeeRegistrationDto>>(401, "application/json")
+            .Produces<ApiResponse<AttendeeRegistrationDto>>(403, "application/json")
             .Produces<ApiResponse<AttendeeRegistrationDto>>(404, "application/json")
             .WithTags("Attendees"));
     }
@@ -44,18 +45,28 @@ public class GetMyEventRegistrationEndpoint : EndpointWithoutRequest<ApiResponse
             }
 
             var eventId = Route<Guid>("eventId");
-            var result = await _attendeeService.GetMyRegistrationAsync(eventId, userId, ct);
-            Response = ApiResponse<AttendeeRegistrationDto>.SuccessResponse(result);
+            var result = await _attendeeService.RegisterMeAsync(eventId, userId, ct);
+            Response = ApiResponse<AttendeeRegistrationDto>.SuccessResponse(result, "Joined event successfully");
         }
         catch (KeyNotFoundException ex)
         {
             HttpContext.Response.StatusCode = 404;
             Response = ApiResponse<AttendeeRegistrationDto>.ErrorResponse(ex.Message);
         }
-        catch (Exception ex)
+        catch (UnauthorizedAccessException ex)
+        {
+            HttpContext.Response.StatusCode = 403;
+            Response = ApiResponse<AttendeeRegistrationDto>.ErrorResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
         {
             HttpContext.Response.StatusCode = 400;
-            Response = ApiResponse<AttendeeRegistrationDto>.ErrorResponse("Failed to get registration", new List<string> { ex.Message });
+            Response = ApiResponse<AttendeeRegistrationDto>.ErrorResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            HttpContext.Response.StatusCode = 500;
+            Response = ApiResponse<AttendeeRegistrationDto>.ErrorResponse("Failed to join event", new List<string> { ex.Message });
         }
     }
 }
