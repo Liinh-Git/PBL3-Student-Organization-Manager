@@ -148,14 +148,12 @@ function OrgCard({ organization, onClick, onDelete, isDeleting = false }) {
           </div>
         )}
 
-        {displayDate && (
-          <div className="org-stat-item">
-            <span className="org-stat-label">
-              Ngày thành lập
-            </span>
-            <span className="org-stat-val small-text">{displayDate}</span>
-          </div>
-        )}
+        <div className="org-stat-item">
+          <span className="org-stat-label">
+            Ngày thành lập
+          </span>
+          <span className="org-stat-val small-text">{displayDate || '-'}</span>
+        </div>
       </div>
 
       <div className="org-card-action-row">

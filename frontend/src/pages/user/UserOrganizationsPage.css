@@ -1,5 +1,5 @@
 .org-layout {
-  --org-card-height: 460px;
+  --org-card-height: 410px;
   background-color: #f8fafc;
   min-height: 100vh;
   padding: 2.5rem;
