@@ -2,35 +2,39 @@
  * OrgRequestsPage.jsx - Organization requests page
  */
 
-import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useOrgContext } from '../../contexts/OrgContext.jsx';
-import { useAuth } from '../../hooks/useAuth.js';
-import { getOrganizationMembers } from '../../services/memberService.js';
-import { createOrganizationRequest, getOrganizationRequests, reviewRequest } from '../../services/requestService.js';
-import PageHeader from '../../components/shared/PageHeader';
-import ErrorState from '../../components/shared/ErrorState';
-import EmptyState from '../../components/shared/EmptyState';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import ForbiddenState from '../../components/shared/ForbiddenState';
-import './OrgRequestsPage.css';
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useOrgContext } from "../../contexts/OrgContext.jsx";
+import { useAuth } from "../../hooks/useAuth.js";
+import { getOrganizationMembers } from "../../services/memberService.js";
+import {
+  createOrganizationRequest,
+  getOrganizationRequests,
+  reviewRequest,
+} from "../../services/requestService.js";
+import PageHeader from "../../components/shared/PageHeader";
+import ErrorState from "../../components/shared/ErrorState";
+import EmptyState from "../../components/shared/EmptyState";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import ForbiddenState from "../../components/shared/ForbiddenState";
+import "./OrgRequestsPage.css";
 
 function formatDateTime(value) {
-  if (!value) return '-';
+  if (!value) return "-";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
+  if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleString();
 }
 
 const iconBaseProps = {
   width: 18,
   height: 18,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
   strokeWidth: 2,
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round'
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
 };
 
 const IconClock = () => (
@@ -78,47 +82,49 @@ const IconReply = () => (
 );
 
 const STATUS_OPTIONS = [
-  { value: 'All', label: 'Tất cả yêu cầu' },
-  { value: 'Pending', label: 'Đang chờ xử lý' },
-  { value: 'Approved', label: 'Đã chấp thuận' },
-  { value: 'Rejected', label: 'Đã từ chối' },
-  { value: 'Cancelled', label: 'Đã hủy' },
-  { value: 'Closed', label: 'Đã đóng' }
+  { value: "All", label: "Tất cả yêu cầu" },
+  { value: "Pending", label: "Đang chờ xử lý" },
+  { value: "Approved", label: "Đã chấp thuận" },
+  { value: "Rejected", label: "Đã từ chối" },
+  { value: "Cancelled", label: "Đã hủy" },
+  { value: "Closed", label: "Đã đóng" },
 ];
 
 function getStatusBadgeClass(status) {
-  if (status === 'Approved') {
-    return 'app-badge app-badge--success org-requests-status';
+  if (status === "Approved") {
+    return "kora-status-badge kora-status-success";
   }
-  if (status === 'Pending') {
-    return 'app-badge app-badge--warning org-requests-status';
+  if (status === "Pending") {
+    return "kora-status-badge kora-status-warning";
   }
-  if (status === 'Rejected') {
-    return 'app-badge org-requests-status org-requests-status--rejected';
+  if (status === "Rejected") {
+    return "kora-status-badge kora-status-rejected";
   }
-  return 'app-badge org-requests-status';
+  return "kora-status-badge";
 }
 
 function OrgRequestsPage() {
   const [searchParams] = useSearchParams();
-  const orgId = searchParams.get('orgId');
+  const orgId = searchParams.get("orgId");
   const { permissions, isMember } = useOrgContext();
   const { user } = useAuth();
 
   const [requests, setRequests] = useState([]);
   const [members, setMembers] = useState([]);
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState("All");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const canView = isMember && (
-    permissions.includes('org.requests.view') ||
-    permissions.includes('org.requests.review') ||
-    permissions.includes('org.requests.approve')
-  );
-  const canReview = permissions.includes('org.requests.review') || permissions.includes('org.requests.approve');
+  const canView =
+    isMember &&
+    (permissions.includes("org.requests.view") ||
+      permissions.includes("org.requests.review") ||
+      permissions.includes("org.requests.approve"));
+  const canReview =
+    permissions.includes("org.requests.review") ||
+    permissions.includes("org.requests.approve");
   const canCreateRequest = isMember && !canReview;
 
   useEffect(() => {
@@ -133,7 +139,7 @@ function OrgRequestsPage() {
         const memberData = await getOrganizationMembers(orgId);
         setMembers(memberData);
       } catch (err) {
-        setError(err.message || 'Failed to load requests');
+        setError(err.message || "Failed to load requests");
       } finally {
         setIsLoading(false);
       }
@@ -152,36 +158,36 @@ function OrgRequestsPage() {
     const title = form.title.value;
 
     if (!content) {
-      alert('Content is required');
+      alert("Content is required");
       return;
     }
 
     setIsSubmitting(true);
     try {
       const created = await createOrganizationRequest(orgId, {
-        requestType: requestType || 'Other',
+        requestType: requestType || "Other",
         title: title || undefined,
-        content
+        content,
       });
       setRequests((prev) => [created, ...prev]);
       form.reset();
       setShowCreateForm(false);
     } catch (err) {
-      alert(err.message || 'Failed to create request');
+      alert(err.message || "Failed to create request");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const filteredRequests = useMemo(() => {
-    if (statusFilter === 'All') return requests;
+    if (statusFilter === "All") return requests;
     return requests.filter((item) => item.status === statusFilter);
   }, [requests, statusFilter]);
 
   const summary = useMemo(() => {
-    const pending = requests.filter((r) => r.status === 'Pending').length;
-    const approved = requests.filter((r) => r.status === 'Approved').length;
-    const rejected = requests.filter((r) => r.status === 'Rejected').length;
+    const pending = requests.filter((r) => r.status === "Pending").length;
+    const approved = requests.filter((r) => r.status === "Approved").length;
+    const rejected = requests.filter((r) => r.status === "Rejected").length;
     return { pending, approved, rejected, total: requests.length };
   }, [requests]);
 
@@ -189,8 +195,8 @@ function OrgRequestsPage() {
     if (!canReview) return;
 
     const reviewNote = window.prompt(
-      `${decision} request${decision === 'Rejected' ? ' - nhập lý do (optional)' : ' - ghi chú (optional)'}`,
-      ''
+      `${decision} request${decision === "Rejected" ? " - nhập lý do (optional)" : " - ghi chú (optional)"}`,
+      "",
     );
 
     if (reviewNote === null) {
@@ -200,9 +206,11 @@ function OrgRequestsPage() {
     setIsSubmitting(true);
     try {
       const updated = await reviewRequest(requestId, { decision, reviewNote });
-      setRequests((prev) => prev.map((item) => (item.id === requestId ? updated : item)));
+      setRequests((prev) =>
+        prev.map((item) => (item.id === requestId ? updated : item)),
+      );
     } catch (err) {
-      alert(err.message || 'Failed to review request');
+      alert(err.message || "Failed to review request");
     } finally {
       setIsSubmitting(false);
     }
@@ -214,10 +222,10 @@ function OrgRequestsPage() {
 
   if (!isMember) {
     return (
-      <div className="app-page">
+      <div className="kora-page-wrapper">
         <PageHeader
-          title="Quản lý Yêu cầu"
-          description="Kiểm duyệt và xử lý các kiến nghị từ thành viên"
+          title="Yêu cầu đang chờ duyệt"
+          description="Quản lý và xem xét các yêu cầu tham gia tổ chức cũng như các đề xuất từ thành viên."
         />
         <ForbiddenState message="You are not a member of this organization" />
       </div>
@@ -226,10 +234,10 @@ function OrgRequestsPage() {
 
   if (!canView) {
     return (
-      <div className="app-page">
+      <div className="kora-page-wrapper">
         <PageHeader
-          title="Quản lý Yêu cầu"
-          description="Kiểm duyệt và xử lý các kiến nghị từ thành viên"
+          title="Yêu cầu đang chờ duyệt"
+          description="Quản lý và xem xét các yêu cầu tham gia tổ chức cũng như các đề xuất từ thành viên."
         />
         <ForbiddenState message="You do not have permission to view requests" />
       </div>
@@ -238,10 +246,10 @@ function OrgRequestsPage() {
 
   if (isLoading) {
     return (
-      <div className="app-page">
+      <div className="kora-page-wrapper">
         <PageHeader
-          title="Quản lý Yêu cầu"
-          description="Kiểm duyệt và xử lý các kiến nghị từ thành viên"
+          title="Yêu cầu đang chờ duyệt"
+          description="Quản lý và xem xét các yêu cầu tham gia tổ chức cũng như các đề xuất từ thành viên."
         />
         <LoadingSpinner message="Loading requests..." />
       </div>
@@ -250,10 +258,10 @@ function OrgRequestsPage() {
 
   if (error) {
     return (
-      <div className="app-page">
+      <div className="kora-page-wrapper">
         <PageHeader
-          title="Quản lý Yêu cầu"
-          description="Kiểm duyệt và xử lý các kiến nghị từ thành viên"
+          title="Yêu cầu đang chờ duyệt"
+          description="Quản lý và xem xét các yêu cầu tham gia tổ chức cũng như các đề xuất từ thành viên."
         />
         <ErrorState message={error} />
       </div>
@@ -261,100 +269,120 @@ function OrgRequestsPage() {
   }
 
   const summaryCards = [
-    { key: 'total', label: 'Tất cả đơn', value: summary.total, tone: 'primary', icon: <IconUser /> },
-    { key: 'pending', label: 'Cần xử lý', value: summary.pending, tone: 'warning', icon: <IconClock /> },
-    { key: 'approved', label: 'Đã chấp thuận', value: summary.approved, tone: 'success', icon: <IconCheck /> },
-    { key: 'rejected', label: 'Đã từ chối', value: summary.rejected, tone: 'danger', icon: <IconX /> }
+    {
+      key: "total",
+      label: "Tất cả đơn",
+      value: summary.total,
+      tone: "primary",
+      icon: <IconUser />,
+    },
+    {
+      key: "pending",
+      label: "Cần xử lý",
+      value: summary.pending,
+      tone: "warning",
+      icon: <IconClock />,
+    },
+    {
+      key: "approved",
+      label: "Đã chấp thuận",
+      value: summary.approved,
+      tone: "success",
+      icon: <IconCheck />,
+    },
+    {
+      key: "rejected",
+      label: "Đã từ chối",
+      value: summary.rejected,
+      tone: "danger",
+      icon: <IconX />,
+    },
   ];
 
   return (
-    <div className="app-page org-requests-page">
-      <PageHeader
-        title="Quản lý Yêu cầu"
-        description="Kiểm duyệt và xử lý các kiến nghị từ thành viên"
-        actions={
-          canCreateRequest ? (
-            <button
-              onClick={() => setShowCreateForm((v) => !v)}
-              className={`app-button ${showCreateForm ? 'app-button--ghost' : 'app-button--primary'}`}
-            >
-              {showCreateForm ? <IconX /> : <IconPlus />}
-              {showCreateForm ? 'Đóng form' : 'Tạo yêu cầu'}
-            </button>
-          ) : null
-        }
-      />
-      <div className="app-section org-requests-section">
+    <div className="kora-page-wrapper">
+      <div className="kora-header-section">
+        <div className="kora-header-text">
+          <h1 className="kora-page-title">Yêu cầu đang chờ duyệt</h1>
+          <p className="kora-page-subtitle">
+            Quản lý và xem xét các yêu cầu tham gia tổ chức cũng như các đề xuất
+            từ thành viên.
+          </p>
+        </div>
+        {canCreateRequest && (
+          <button
+            onClick={() => setShowCreateForm((v) => !v)}
+            className="kora-btn-create"
+          >
+            {showCreateForm ? <IconX /> : <IconPlus />}
+            {showCreateForm ? " Đóng form" : " Tạo yêu cầu mới"}
+          </button>
+        )}
+      </div>
+
+      <div className="kora-content-section">
         {showCreateForm && canCreateRequest && (
-          <div className="app-card org-requests-create">
-            <div className="app-section-header">
-              <div>
-                <h3 className="app-section-title">Tạo yêu cầu mới</h3>
-                <p className="app-section-subtitle">Nêu rõ nhu cầu để tổ chức phản hồi nhanh hơn.</p>
-              </div>
-            </div>
-            <form onSubmit={handleCreateRequest} className="auth-form org-requests-form">
-              <div className="org-requests-form-grid">
-                <div className="form-group">
-                  <label className="form-label">Loại yêu cầu</label>
-                  <select name="requestType" className="form-select" defaultValue="Other">
+          <div className="kora-create-form-box">
+            <h3 className="kora-box-title">Tạo yêu cầu mới</h3>
+            <p className="kora-box-subtitle">
+              Nêu rõ nhu cầu để tổ chức phản hồi nhanh hơn.
+            </p>
+
+            <form onSubmit={handleCreateRequest} className="kora-form">
+              <div className="kora-form-grid">
+                <div className="kora-form-group">
+                  <label className="kora-form-label">Loại yêu cầu</label>
+                  <select
+                    name="requestType"
+                    className="kora-form-input"
+                    defaultValue="Other"
+                  >
                     <option value="DepartmentChange">Chuyển phòng ban</option>
                     <option value="RoleChange">Thay đổi vai trò</option>
                     <option value="EventParticipation">Tham gia sự kiện</option>
                     <option value="Other">Khác</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Tiêu đề</label>
-                  <input name="title" className="form-input" placeholder="Tiêu đề (tùy chọn)" />
+                <div className="kora-form-group">
+                  <label className="kora-form-label">Tiêu đề</label>
+                  <input
+                    name="title"
+                    className="kora-form-input"
+                    placeholder="Tiêu đề (tùy chọn)"
+                  />
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Nội dung *</label>
+              <div className="kora-form-group">
+                <label className="kora-form-label">Nội dung *</label>
                 <textarea
                   name="content"
-                  className="form-input"
+                  className="kora-form-input"
                   placeholder="Nội dung yêu cầu"
                   rows={3}
                   required
                 />
               </div>
-              <div className="app-action-row org-requests-form-actions">
-                <button type="submit" disabled={isSubmitting} className="app-button app-button--primary">
-                  {isSubmitting ? 'Đang gửi...' : 'Gửi yêu cầu'}
+              <div className="kora-form-actions">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="kora-btn-submit"
+                >
+                  {isSubmitting ? "Đang gửi..." : "Gửi yêu cầu"}
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        <div className="org-requests-summary-grid">
-          {summaryCards.map((card) => (
-            <div key={card.key} className={`app-card org-requests-summary-card org-requests-summary-card--${card.tone}`}>
-              <div>
-                <div className="org-requests-summary-label">{card.label}</div>
-                <div className="org-requests-summary-value">{card.value}</div>
-              </div>
-              <div className="org-requests-summary-icon">
-                {card.icon}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="app-card org-requests-filter-card">
-          <div className="app-section-header">
-            <div>
-              <h3 className="app-section-title">Bộ lọc trạng thái</h3>
-              <p className="app-section-subtitle">Chọn trạng thái để lọc nhanh danh sách yêu cầu.</p>
-            </div>
-          </div>
-          <div className="org-requests-filters">
+        {/* Filters */}
+        <div className="kora-filter-container">
+          <div className="kora-filter-buttons">
             {STATUS_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
-                className={`app-button org-requests-filter-button ${statusFilter === option.value ? 'org-requests-filter-button--active' : ''}`}
+                className={`kora-filter-btn ${statusFilter === option.value ? "active" : ""}`}
                 onClick={() => setStatusFilter(option.value)}
               >
                 {option.label}
@@ -363,88 +391,104 @@ function OrgRequestsPage() {
           </div>
         </div>
 
-        <div className="app-section-header org-requests-list-header">
-          <div>
-            <h3 className="app-section-title">Danh sách yêu cầu</h3>
-            <p className="app-section-subtitle">Theo dõi chi tiết từng yêu cầu từ thành viên.</p>
-          </div>
-          <span className="app-badge app-badge--info org-requests-count">{filteredRequests.length}</span>
+        {/* Main List Section */}
+        <div className="kora-list-header">
+          <h2 className="kora-section-title">Danh sách yêu cầu</h2>
+          <span className="kora-count-badge">
+            {filteredRequests.length} YÊU CẦU
+          </span>
         </div>
 
         {filteredRequests.length === 0 ? (
-          <EmptyState message="Không có yêu cầu nào" />
+          <EmptyState message="Không có yêu cầu nào phù hợp." />
         ) : (
-          <div className="org-requests-list">
+          <div className="kora-request-grid">
             {filteredRequests.map((item) => {
               const statusClass = getStatusBadgeClass(item.status);
-              const senderInitial = (item.senderName || '?').trim().charAt(0).toUpperCase();
+              const senderInitial = (item.senderName || "?")
+                .trim()
+                .charAt(0)
+                .toUpperCase();
 
               return (
-                <div key={item.id} className="app-card org-requests-card">
-                  <div className="org-requests-card-header">
-                    <div className="org-requests-card-sender">
-                      <div className="org-requests-avatar">{senderInitial}</div>
-                      <div>
-                        <div className="org-requests-sender-name">{item.senderName}</div>
-                        <div className="org-requests-sender-email">{item.senderEmail || '-'}</div>
+                <div key={item.id} className="kora-req-card">
+                  {/* Top: Avatar, Info, Time */}
+                  <div className="kora-req-top">
+                    <div className="kora-req-avatar">
+                      {/* Mock Avatar Gradient, using Initial */}
+                      {senderInitial}
+                    </div>
+                    <div className="kora-req-info">
+                      <h4>{item.senderName}</h4>
+                      <p>{item.senderEmail || "Không có email"}</p>
+                      <div className="kora-req-tags">
+                        <span className="kora-tag kora-tag-blue">
+                          {item.requestType}
+                        </span>
+                        {item.desiredDepartmentName && (
+                          <span className="kora-tag kora-tag-gray">
+                            {item.desiredDepartmentName}
+                          </span>
+                        )}
+                        {item.desiredPosition && (
+                          <span className="kora-tag kora-tag-gray">
+                            {item.desiredPosition}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <span className={statusClass}>{item.status}</span>
-                  </div>
-
-                  <div className="org-requests-chips">
-                    <span className="app-chip org-requests-chip">{item.requestType}</span>
-                    <span className="app-chip org-requests-chip org-requests-chip--accent">Phòng ban: {item.desiredDepartmentName || '-'}</span>
-                    <span className="app-chip org-requests-chip org-requests-chip--accent">Vị trí: {item.desiredPosition || '-'}</span>
-                  </div>
-
-                  <div>
-                    <div className="org-requests-title">{item.title || '-'}</div>
-                    <div className="org-requests-content">{item.content}</div>
-                  </div>
-
-                  <div className="org-requests-meta">
-                    <div className="org-requests-timeline">
-                      <IconCalendar />
-                      <span>Đã tạo: {formatDateTime(item.createdAtUtc)}</span>
+                    <div className="kora-req-time">
+                      {formatDateTime(item.createdAtUtc)}
                     </div>
-                    <div className="org-requests-review-meta">
-                      <span>Đã duyệt: {formatDateTime(item.reviewedAt)}</span>
-                      <span>Người duyệt: {item.reviewedByMemberName || '-'}</span>
+                  </div>
+
+                  {/* Body: Title, Content, Status */}
+                  <div className="kora-req-body">
+                    {item.title && (
+                      <h5 className="kora-req-title">{item.title}</h5>
+                    )}
+                    <p className="kora-req-desc">{item.content}</p>
+
+                    <div className="kora-req-meta">
+                      <span className={statusClass}>{item.status}</span>
+                      {item.reviewedByMemberName && (
+                        <span className="kora-req-reviewer">
+                          | Duyệt bởi: {item.reviewedByMemberName} (
+                          {formatDateTime(item.reviewedAt)})
+                        </span>
+                      )}
                     </div>
-                    {item.reviewNote ? (
-                      <div className="org-requests-review-note">
-                        <div className="org-requests-review-title">
-                          <IconReply />
-                          <span>Ghi chú duyệt</span>
-                        </div>
-                        <div className="org-requests-review-text">{item.reviewNote}</div>
+
+                    {item.reviewNote && (
+                      <div className="kora-req-note">
+                        <strong>Ghi chú:</strong> {item.reviewNote}
                       </div>
-                    ) : null}
+                    )}
                   </div>
 
-                  <div className="org-requests-actions">
-                    {canReview && item.status === 'Pending' ? (
-                      <div className="app-action-row">
+                  {/* Bottom: Actions (Accept/Reject) */}
+                  <div className="kora-req-actions">
+                    {canReview && item.status === "Pending" ? (
+                      <>
                         <button
-                          className="app-button app-button--danger"
+                          className="kora-btn-accept"
                           disabled={isSubmitting}
-                          onClick={() => handleReview(item.id, 'Rejected')}
+                          onClick={() => handleReview(item.id, "Approved")}
                         >
-                          <IconX />
-                          Từ chối
+                          CHẤP NHẬN
                         </button>
                         <button
-                          className="app-button app-button--primary"
+                          className="kora-btn-reject"
                           disabled={isSubmitting}
-                          onClick={() => handleReview(item.id, 'Approved')}
+                          onClick={() => handleReview(item.id, "Rejected")}
                         >
-                          <IconCheck />
-                          Chấp thuận
+                          TỪ CHỐI
                         </button>
-                      </div>
+                      </>
                     ) : (
-                      <span className="org-requests-actions-muted">-</span>
+                      <span className="kora-text-muted">
+                        Không có thao tác khả dụng
+                      </span>
                     )}
                   </div>
                 </div>
