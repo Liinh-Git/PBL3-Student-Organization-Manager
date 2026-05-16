@@ -24,7 +24,6 @@ import OrgMemberRoute from './OrgMemberRoute';
 // Public pages
 import HomePage from '../pages/public/HomePage';
 import PublicEventsPage from '../pages/public/PublicEventsPage';
-import PublicEventDetailPage from '../pages/public/PublicEventDetailPage';
 
 // Auth pages
 import LoginPage from '../pages/auth/LoginPage';
@@ -36,6 +35,7 @@ import UserEventsPage from '../pages/user/UserEventsPage';
 import UserSettingsPage from '../pages/user/UserSettingsPage';
 import UserFriendsPage from '../pages/user/UserFriendsPage';
 import UserDiscoverPage from '../pages/user/UserDiscoverPage';
+import EventDetailPage from '../pages/user/EventDetailPage';
 
 // Org workspace pages
 import OrgOverviewPage from '../pages/org/OrgOverviewPage';
@@ -59,7 +59,7 @@ function AppRouter() {
         {/* Public routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/events" element={<PublicEventsPage />} />
-        <Route path="/events/:eventId" element={<PublicEventDetailPage />} />
+        <Route path="/events/:eventId" element={<EventDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         
