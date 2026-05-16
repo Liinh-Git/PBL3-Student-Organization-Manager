@@ -4,27 +4,41 @@
  * UI refactor: split workspace sidebar + Kanban board, giữ nguyên backend API/handlers.
  */
 
-import { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { useOrgContext } from '../../contexts/OrgContext.jsx';
-import { getEventById, updateEvent } from '../../services/eventService.js';
-import { getEventMilestones } from '../../services/milestoneService.js';
-import { getMilestoneCategories } from '../../services/categoryService.js';
-import { createTask, updateTask, updateTaskStatus, assignTask, deleteTask } from '../../services/taskService.js';
-import { getOrganizationMembers } from '../../services/memberService.js';
-import { createMilestone, updateMilestone, deleteMilestone } from '../../services/milestoneService.js';
-import { createCategory, updateCategory, deleteCategory } from '../../services/categoryService.js';
-import PageHeader from '../../components/shared/PageHeader';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import EmptyState from '../../components/shared/EmptyState';
-import ErrorState from '../../components/shared/ErrorState';
-import ForbiddenState from '../../components/shared/ForbiddenState';
+import { useState, useEffect } from "react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useOrgContext } from "../../contexts/OrgContext.jsx";
+import { getEventById, updateEvent } from "../../services/eventService.js";
+import { getEventMilestones } from "../../services/milestoneService.js";
+import { getMilestoneCategories } from "../../services/categoryService.js";
+import {
+  createTask,
+  updateTask,
+  updateTaskStatus,
+  assignTask,
+  deleteTask,
+} from "../../services/taskService.js";
+import { getOrganizationMembers } from "../../services/memberService.js";
+import {
+  createMilestone,
+  updateMilestone,
+  deleteMilestone,
+} from "../../services/milestoneService.js";
+import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../../services/categoryService.js";
+import PageHeader from "../../components/shared/PageHeader";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import EmptyState from "../../components/shared/EmptyState";
+import ErrorState from "../../components/shared/ErrorState";
+import ForbiddenState from "../../components/shared/ForbiddenState";
 
 function OrgEventDetailPage() {
   const { eventId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const orgId = searchParams.get('orgId');
+  const orgId = searchParams.get("orgId");
   const { permissions, isMember } = useOrgContext();
 
   const [event, setEvent] = useState(null);
@@ -63,13 +77,15 @@ function OrgEventDetailPage() {
         const categoriesMap = {};
         for (const milestone of milestonesData) {
           const categoriesData = await getMilestoneCategories(milestone.id);
-          const categoriesWithTasks = categoriesData.map(cat => ({
+          const categoriesWithTasks = categoriesData.map((cat) => ({
             ...cat,
-            tasks: (cat.tasks || []).filter((task) =>
-              task &&
-              (task.eventCategoryId === cat.id || task.categoryId === cat.id) &&
-              !task.deptId
-            )
+            tasks: (cat.tasks || []).filter(
+              (task) =>
+                task &&
+                (task.eventCategoryId === cat.id ||
+                  task.categoryId === cat.id) &&
+                !task.deptId,
+            ),
           }));
           categoriesMap[milestone.id] = categoriesWithTasks;
         }
@@ -78,7 +94,7 @@ function OrgEventDetailPage() {
         const membersData = await getOrganizationMembers(orgId);
         setMembers(membersData);
       } catch (err) {
-        setError(err.message || 'Failed to load event detail');
+        setError(err.message || "Failed to load event detail");
       } finally {
         setIsLoading(false);
       }
@@ -126,7 +142,7 @@ function OrgEventDetailPage() {
     );
   }
 
-  const canManage = permissions.includes('org.events.manage');
+  const canManage = permissions.includes("org.events.manage");
 
   const getTaskAssigneeId = (task) =>
     task?.assigneeId ||
@@ -134,7 +150,7 @@ function OrgEventDetailPage() {
     task?.assignee?.id ||
     task?.assignee?.memberId ||
     task?.assignee?.userId ||
-    '';
+    "";
 
   const getTaskAssigneeName = (task) => {
     const directName =
@@ -144,58 +160,60 @@ function OrgEventDetailPage() {
     if (directName) return directName;
 
     const assigneeId = getTaskAssigneeId(task);
-    if (!assigneeId) return '-';
+    if (!assigneeId) return "-";
     const matchedMember = members.find((member) => member.id === assigneeId);
-    return matchedMember?.fullName || matchedMember?.email || '-';
+    return matchedMember?.fullName || matchedMember?.email || "-";
   };
 
   const formatDate = (value) => {
-    if (!value) return '-';
+    if (!value) return "-";
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '-';
-    return date.toLocaleDateString('vi-VN');
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString("vi-VN");
   };
 
   const formatShortDate = (value) => {
-    if (!value) return '-';
+    if (!value) return "-";
     const formatted = formatDate(value);
-    return formatted === '-' ? '-' : formatted.slice(0, 5);
+    return formatted === "-" ? "-" : formatted.slice(0, 5);
   };
 
   const formatTime = (value) => {
-    if (!value || !String(value).includes('T')) return '-';
-    return String(value).split('T')[1].substring(0, 5);
+    if (!value || !String(value).includes("T")) return "-";
+    return String(value).split("T")[1].substring(0, 5);
   };
 
   const statusMeta = {
-    Todo: { label: 'Cần làm', className: 'status-todo' },
-    InProgress: { label: 'Đang làm', className: 'status-progress' },
-    Blocked: { label: 'Bị chặn', className: 'status-blocked' },
-    Done: { label: 'Hoàn thành', className: 'status-done' },
-    Cancelled: { label: 'Đã hủy', className: 'status-cancelled' }
+    Todo: { label: "Cần làm", className: "status-todo" },
+    InProgress: { label: "Đang làm", className: "status-progress" },
+    Blocked: { label: "Bị chặn", className: "status-blocked" },
+    Done: { label: "Hoàn thành", className: "status-done" },
+    Cancelled: { label: "Đã hủy", className: "status-cancelled" },
   };
 
-  const getStatusLabel = (status) => statusMeta[status]?.label || status || 'Chưa xác định';
-  const getStatusClass = (status) => statusMeta[status]?.className || 'status-unknown';
+  const getStatusLabel = (status) =>
+    statusMeta[status]?.label || status || "Chưa xác định";
+  const getStatusClass = (status) =>
+    statusMeta[status]?.className || "status-unknown";
 
   const getPriorityLabel = (priority) => {
     const labels = {
-      Low: 'THẤP',
-      Medium: 'TRUNG BÌNH',
-      High: 'CAO',
-      Urgent: 'KHẨN CẤP'
+      Low: "THẤP",
+      Medium: "TRUNG BÌNH",
+      High: "CAO",
+      Urgent: "KHẨN CẤP",
     };
-    return labels[priority] || priority || '-';
+    return labels[priority] || priority || "-";
   };
 
   const getPriorityClass = (priority) => {
-    if (priority === 'Urgent' || priority === 'High') return 'priority-high';
-    if (priority === 'Medium') return 'priority-medium';
-    return 'priority-low';
+    if (priority === "Urgent" || priority === "High") return "priority-high";
+    if (priority === "Medium") return "priority-medium";
+    return "priority-low";
   };
 
   const getMemberInitial = (name) => {
-    if (!name || name === '-') return '?';
+    if (!name || name === "-") return "?";
     return String(name).trim().charAt(0).toUpperCase();
   };
 
@@ -204,28 +222,41 @@ function OrgEventDetailPage() {
       (categoriesByMilestone[milestone.id] || []).map((category) => ({
         ...category,
         milestoneTitle: milestone.title,
-        milestoneId: milestone.id
-      }))
+        milestoneId: milestone.id,
+      })),
     );
 
   const allCategories = getAllCategories();
-  const activeCategory = allCategories.find((category) => category.id === activeCategoryId);
+  const activeCategory = allCategories.find(
+    (category) => category.id === activeCategoryId,
+  );
   const activeMilestone = activeCategory
-    ? milestones.find((milestone) => milestone.id === activeCategory.milestoneId)
+    ? milestones.find(
+        (milestone) => milestone.id === activeCategory.milestoneId,
+      )
     : null;
   const activeTasks = activeCategory?.tasks || [];
 
-  const baseStatusColumns = ['Todo', 'InProgress', 'Blocked', 'Done', 'Cancelled'];
+  const baseStatusColumns = [
+    "Todo",
+    "InProgress",
+    "Blocked",
+    "Done",
+    "Cancelled",
+  ];
   const extraStatusColumns = activeTasks
     .map((task) => task.status)
     .filter((status) => status && !baseStatusColumns.includes(status));
-  const statusColumns = [...baseStatusColumns, ...Array.from(new Set(extraStatusColumns))];
+  const statusColumns = [
+    ...baseStatusColumns,
+    ...Array.from(new Set(extraStatusColumns)),
+  ];
 
   // Task mutation handlers
   const handleCreateTask = async (categoryId, e) => {
     e.preventDefault();
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
@@ -236,28 +267,30 @@ function OrgEventDetailPage() {
     const deadline = form.deadline.value;
 
     if (!taskName) {
-      alert('Task name is required');
+      alert("Task name is required");
       return;
     }
 
-    setTaskLoading(prev => ({ ...prev, [categoryId]: true }));
+    setTaskLoading((prev) => ({ ...prev, [categoryId]: true }));
     try {
       const newTask = await createTask(categoryId, {
         taskName,
         description: description || undefined,
         priority,
-        deadline: deadline || undefined
+        deadline: deadline || undefined,
       });
 
-      setCategoriesByMilestone(prev => {
+      setCategoriesByMilestone((prev) => {
         const updated = { ...prev };
         for (const milestoneId in updated) {
-          const categoryIndex = updated[milestoneId].findIndex(c => c.id === categoryId);
+          const categoryIndex = updated[milestoneId].findIndex(
+            (c) => c.id === categoryId,
+          );
           if (categoryIndex !== -1) {
             updated[milestoneId] = updated[milestoneId].map((cat, idx) =>
               idx === categoryIndex
                 ? { ...cat, tasks: [...(cat.tasks || []), newTask] }
-                : cat
+                : cat,
             );
             break;
           }
@@ -268,101 +301,103 @@ function OrgEventDetailPage() {
       form.reset();
       setShowCreateTask(false);
     } catch (err) {
-      alert(err.message || 'Failed to create task');
+      alert(err.message || "Failed to create task");
     } finally {
-      setTaskLoading(prev => ({ ...prev, [categoryId]: false }));
+      setTaskLoading((prev) => ({ ...prev, [categoryId]: false }));
     }
   };
 
   const handleUpdateStatus = async (taskId, newStatus, categoryId) => {
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
-    setTaskLoading(prev => ({ ...prev, [taskId]: true }));
+    setTaskLoading((prev) => ({ ...prev, [taskId]: true }));
     try {
       const updatedTask = await updateTaskStatus(taskId, { status: newStatus });
 
-      setCategoriesByMilestone(prev => {
+      setCategoriesByMilestone((prev) => {
         const updated = { ...prev };
         for (const milestoneId in updated) {
-          updated[milestoneId] = updated[milestoneId].map(cat => ({
+          updated[milestoneId] = updated[milestoneId].map((cat) => ({
             ...cat,
-            tasks: cat.tasks?.map(task =>
-              task.id === taskId ? updatedTask : task
-            ) || []
+            tasks:
+              cat.tasks?.map((task) =>
+                task.id === taskId ? updatedTask : task,
+              ) || [],
           }));
         }
         return updated;
       });
     } catch (err) {
-      alert(err.message || 'Failed to update task status');
+      alert(err.message || "Failed to update task status");
     } finally {
-      setTaskLoading(prev => ({ ...prev, [taskId]: false }));
+      setTaskLoading((prev) => ({ ...prev, [taskId]: false }));
     }
   };
 
   const handleAssignTask = async (taskId, assigneeId, categoryId) => {
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
-    setTaskLoading(prev => ({ ...prev, [taskId]: true }));
+    setTaskLoading((prev) => ({ ...prev, [taskId]: true }));
     try {
       const updatedTask = await assignTask(taskId, {
         assigneeId: assigneeId || null,
-        deptId: null
+        deptId: null,
       });
 
-      setCategoriesByMilestone(prev => {
+      setCategoriesByMilestone((prev) => {
         const updated = { ...prev };
         for (const milestoneId in updated) {
-          updated[milestoneId] = updated[milestoneId].map(cat => ({
+          updated[milestoneId] = updated[milestoneId].map((cat) => ({
             ...cat,
-            tasks: cat.tasks?.map(task =>
-              task.id === taskId ? updatedTask : task
-            ) || []
+            tasks:
+              cat.tasks?.map((task) =>
+                task.id === taskId ? updatedTask : task,
+              ) || [],
           }));
         }
         return updated;
       });
     } catch (err) {
-      alert(err.message || 'Failed to assign task');
+      alert(err.message || "Failed to assign task");
     } finally {
-      setTaskLoading(prev => ({ ...prev, [taskId]: false }));
+      setTaskLoading((prev) => ({ ...prev, [taskId]: false }));
     }
   };
 
   const handleDeleteTask = async (taskId, categoryId) => {
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
-    if (!window.confirm('Are you sure you want to delete this task?')) {
+    if (!window.confirm("Are you sure you want to delete this task?")) {
       return;
     }
 
-    setTaskLoading(prev => ({ ...prev, [taskId]: true }));
+    setTaskLoading((prev) => ({ ...prev, [taskId]: true }));
     try {
       await deleteTask(taskId);
 
-      setCategoriesByMilestone(prev => {
+      setCategoriesByMilestone((prev) => {
         const updated = { ...prev };
         for (const milestoneId in updated) {
-          updated[milestoneId] = updated[milestoneId].map(cat => ({
+          updated[milestoneId] = updated[milestoneId].map((cat) => ({
             ...cat,
-            tasks: cat.tasks?.filter(task => task.id !== taskId) || []
+            tasks: cat.tasks?.filter((task) => task.id !== taskId) || [],
           }));
         }
         return updated;
       });
     } catch (err) {
-      alert(err.message || 'Failed to delete task');
+      alert(err.message || "Failed to delete task");
     } finally {
-      setTaskLoading(prev => ({ ...prev, [taskId]: false }));
+      setTaskLoading((prev) => ({ ...prev, [taskId]: false }));
     }
   };
 
@@ -370,7 +405,7 @@ function OrgEventDetailPage() {
   const handleCreateMilestone = async (e) => {
     e.preventDefault();
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
@@ -380,61 +415,67 @@ function OrgEventDetailPage() {
     const orderIndex = milestones.length + 1;
 
     if (!title) {
-      alert('Title is required');
+      alert("Title is required");
       return;
     }
 
-    setMilestoneLoading(prev => ({ ...prev, create: true }));
+    setMilestoneLoading((prev) => ({ ...prev, create: true }));
     try {
       const newMilestone = await createMilestone(eventId, {
         title,
         description: description || undefined,
-        orderIndex
+        orderIndex,
       });
 
-      setMilestones(prev => [...prev, newMilestone]);
-      setCategoriesByMilestone(prev => ({
+      setMilestones((prev) => [...prev, newMilestone]);
+      setCategoriesByMilestone((prev) => ({
         ...prev,
-        [newMilestone.id]: []
+        [newMilestone.id]: [],
       }));
 
       form.reset();
       setShowCreateMilestone(false);
     } catch (err) {
-      alert(err.message || 'Failed to create milestone');
+      alert(err.message || "Failed to create milestone");
     } finally {
-      setMilestoneLoading(prev => ({ ...prev, create: false }));
+      setMilestoneLoading((prev) => ({ ...prev, create: false }));
     }
   };
 
   const handleDeleteMilestone = async (milestoneId) => {
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
-    if (!window.confirm('Are you sure you want to delete this milestone? You can only delete it when it has no categories.')) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this milestone? You can only delete it when it has no categories.",
+      )
+    ) {
       return;
     }
 
-    setMilestoneLoading(prev => ({ ...prev, [milestoneId]: true }));
+    setMilestoneLoading((prev) => ({ ...prev, [milestoneId]: true }));
     try {
       await deleteMilestone(milestoneId);
 
       const deletedCategories = categoriesByMilestone[milestoneId] || [];
-      setMilestones(prev => prev.filter(m => m.id !== milestoneId));
-      setCategoriesByMilestone(prev => {
+      setMilestones((prev) => prev.filter((m) => m.id !== milestoneId));
+      setCategoriesByMilestone((prev) => {
         const updated = { ...prev };
         delete updated[milestoneId];
         return updated;
       });
-      if (deletedCategories.some((category) => category.id === activeCategoryId)) {
+      if (
+        deletedCategories.some((category) => category.id === activeCategoryId)
+      ) {
         setActiveCategoryId(null);
       }
     } catch (err) {
-      alert(err.message || 'Failed to delete milestone');
+      alert(err.message || "Failed to delete milestone");
     } finally {
-      setMilestoneLoading(prev => ({ ...prev, [milestoneId]: false }));
+      setMilestoneLoading((prev) => ({ ...prev, [milestoneId]: false }));
     }
   };
 
@@ -442,7 +483,7 @@ function OrgEventDetailPage() {
   const handleCreateCategory = async (milestoneId, e) => {
     e.preventDefault();
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
@@ -452,58 +493,66 @@ function OrgEventDetailPage() {
     const orderIndex = (categoriesByMilestone[milestoneId]?.length || 0) + 1;
 
     if (!categoryName) {
-      alert('Category name is required');
+      alert("Category name is required");
       return;
     }
 
-    setCategoryLoading(prev => ({ ...prev, [milestoneId]: true }));
+    setCategoryLoading((prev) => ({ ...prev, [milestoneId]: true }));
     try {
       const newCategory = await createCategory(milestoneId, {
         categoryName,
         description: description || undefined,
-        orderIndex
+        orderIndex,
       });
 
-      setCategoriesByMilestone(prev => ({
+      setCategoriesByMilestone((prev) => ({
         ...prev,
-        [milestoneId]: [...(prev[milestoneId] || []), { ...newCategory, tasks: [] }]
+        [milestoneId]: [
+          ...(prev[milestoneId] || []),
+          { ...newCategory, tasks: [] },
+        ],
       }));
 
       setActiveCategoryId(newCategory.id);
       form.reset();
-      setShowCreateCategory(prev => ({ ...prev, [milestoneId]: false }));
+      setShowCreateCategory((prev) => ({ ...prev, [milestoneId]: false }));
     } catch (err) {
-      alert(err.message || 'Failed to create category');
+      alert(err.message || "Failed to create category");
     } finally {
-      setCategoryLoading(prev => ({ ...prev, [milestoneId]: false }));
+      setCategoryLoading((prev) => ({ ...prev, [milestoneId]: false }));
     }
   };
 
   const handleDeleteCategory = async (categoryId, milestoneId) => {
     if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
+      alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
-    if (!window.confirm('Are you sure you want to delete this category? You can only delete it when it has no tasks.')) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this category? You can only delete it when it has no tasks.",
+      )
+    ) {
       return;
     }
 
-    setCategoryLoading(prev => ({ ...prev, [categoryId]: true }));
+    setCategoryLoading((prev) => ({ ...prev, [categoryId]: true }));
     try {
       await deleteCategory(categoryId);
 
-      setCategoriesByMilestone(prev => ({
+      setCategoriesByMilestone((prev) => ({
         ...prev,
-        [milestoneId]: prev[milestoneId]?.filter(c => c.id !== categoryId) || []
+        [milestoneId]:
+          prev[milestoneId]?.filter((c) => c.id !== categoryId) || [],
       }));
       if (activeCategoryId === categoryId) {
         setActiveCategoryId(null);
       }
     } catch (err) {
-      alert(err.message || 'Failed to delete category');
+      alert(err.message || "Failed to delete category");
     } finally {
-      setCategoryLoading(prev => ({ ...prev, [categoryId]: false }));
+      setCategoryLoading((prev) => ({ ...prev, [categoryId]: false }));
     }
   };
 
@@ -526,16 +575,18 @@ function OrgEventDetailPage() {
       const updated = await updateEvent(eventId, {
         eventName,
         description: description || undefined,
-        startDate: `${startDate}T${startTime || '00:00'}:00Z`,
+        startDate: `${startDate}T${startTime || "00:00"}:00Z`,
         location: location || undefined,
-        targetParticipants: targetParticipants ? parseInt(targetParticipants, 10) : undefined,
+        targetParticipants: targetParticipants
+          ? parseInt(targetParticipants, 10)
+          : undefined,
         bannerUrl: bannerUrl || undefined,
-        visibility
+        visibility,
       });
       setEvent(updated);
       setEditingEvent(false);
     } catch (err) {
-      alert(err.message || 'Failed to update event');
+      alert(err.message || "Failed to update event");
     } finally {
       setIsEventUpdating(false);
     }
@@ -549,22 +600,28 @@ function OrgEventDetailPage() {
     const title = form.title.value;
     const description = form.description.value;
     const currentMilestone = milestones.find((m) => m.id === milestoneId);
-    const status = currentMilestone?.status || 'Planned';
+    const status = currentMilestone?.status || "Planned";
 
-    setMilestoneLoading(prev => ({ ...prev, [milestoneId]: true }));
+    setMilestoneLoading((prev) => ({ ...prev, [milestoneId]: true }));
     try {
       const updated = await updateMilestone(milestoneId, {
         title,
         description: description || undefined,
-        status
+        status,
       });
 
-      setMilestones(prev => prev.map(m => m.id === milestoneId ? { ...m, title: updated.title, description: updated.description } : m));
+      setMilestones((prev) =>
+        prev.map((m) =>
+          m.id === milestoneId
+            ? { ...m, title: updated.title, description: updated.description }
+            : m,
+        ),
+      );
       setEditingMilestone(null);
     } catch (err) {
-      alert(err.message || 'Failed to update milestone');
+      alert(err.message || "Failed to update milestone");
     } finally {
-      setMilestoneLoading(prev => ({ ...prev, [milestoneId]: false }));
+      setMilestoneLoading((prev) => ({ ...prev, [milestoneId]: false }));
     }
   };
 
@@ -576,22 +633,30 @@ function OrgEventDetailPage() {
     const categoryName = form.categoryName.value;
     const description = form.description.value;
 
-    setCategoryLoading(prev => ({ ...prev, [categoryId]: true }));
+    setCategoryLoading((prev) => ({ ...prev, [categoryId]: true }));
     try {
       const updated = await updateCategory(categoryId, {
         categoryName,
-        description: description || undefined
+        description: description || undefined,
       });
 
-      setCategoriesByMilestone(prev => ({
+      setCategoriesByMilestone((prev) => ({
         ...prev,
-        [milestoneId]: prev[milestoneId].map(c => c.id === categoryId ? { ...c, categoryName: updated.categoryName, description: updated.description } : c)
+        [milestoneId]: prev[milestoneId].map((c) =>
+          c.id === categoryId
+            ? {
+                ...c,
+                categoryName: updated.categoryName,
+                description: updated.description,
+              }
+            : c,
+        ),
       }));
       setEditingCategory(null);
     } catch (err) {
-      alert(err.message || 'Failed to update category');
+      alert(err.message || "Failed to update category");
     } finally {
-      setCategoryLoading(prev => ({ ...prev, [categoryId]: false }));
+      setCategoryLoading((prev) => ({ ...prev, [categoryId]: false }));
     }
   };
 
@@ -605,40 +670,41 @@ function OrgEventDetailPage() {
     const priority = form.priority.value;
     const deadline = form.deadline.value;
 
-    setTaskLoading(prev => ({ ...prev, [taskId]: true }));
+    setTaskLoading((prev) => ({ ...prev, [taskId]: true }));
     try {
       const updatedTask = await updateTask(taskId, {
         taskName,
         description: description || undefined,
         priority,
-        deadline: deadline || undefined
+        deadline: deadline || undefined,
       });
 
-      setCategoriesByMilestone(prev => {
+      setCategoriesByMilestone((prev) => {
         const updated = { ...prev };
         for (const mId in updated) {
-          updated[mId] = updated[mId].map(cat => ({
+          updated[mId] = updated[mId].map((cat) => ({
             ...cat,
-            tasks: cat.tasks?.map(task =>
-              task.id === taskId
-                ? {
-                    ...task,
-                    taskName: updatedTask.taskName,
-                    description: updatedTask.description,
-                    priority: updatedTask.priority,
-                    deadline: updatedTask.deadline
-                  }
-                : task
-            ) || []
+            tasks:
+              cat.tasks?.map((task) =>
+                task.id === taskId
+                  ? {
+                      ...task,
+                      taskName: updatedTask.taskName,
+                      description: updatedTask.description,
+                      priority: updatedTask.priority,
+                      deadline: updatedTask.deadline,
+                    }
+                  : task,
+              ) || [],
           }));
         }
         return updated;
       });
       setEditingTask(null);
     } catch (err) {
-      alert(err.message || 'Failed to update task');
+      alert(err.message || "Failed to update task");
     } finally {
-      setTaskLoading(prev => ({ ...prev, [taskId]: false }));
+      setTaskLoading((prev) => ({ ...prev, [taskId]: false }));
     }
   };
 
@@ -662,7 +728,7 @@ function OrgEventDetailPage() {
           ‹ Bảng điều khiển
         </button>
         <div className="event-title-row">
-          <h1>{getEventName(event) || 'Event Detail'}</h1>
+          <h1>{getEventName(event) || "Event Detail"}</h1>
           {canManage && (
             <button
               type="button"
@@ -698,13 +764,30 @@ function OrgEventDetailPage() {
 
         {showCreateMilestone && canManage && (
           <form onSubmit={handleCreateMilestone} className="sidebar-form">
-            <input name="title" placeholder="Tên giai đoạn *" required className="sidebar-input" />
-            <input name="description" placeholder="Mô tả" className="sidebar-input" />
+            <input
+              name="title"
+              placeholder="Tên giai đoạn *"
+              required
+              className="sidebar-input"
+            />
+            <input
+              name="description"
+              placeholder="Mô tả"
+              className="sidebar-input"
+            />
             <div className="sidebar-form-actions">
-              <button type="submit" disabled={milestoneLoading.create} className="mini-primary-button">
-                {milestoneLoading.create ? 'Đang tạo...' : 'Tạo'}
+              <button
+                type="submit"
+                disabled={milestoneLoading.create}
+                className="mini-primary-button"
+              >
+                {milestoneLoading.create ? "Đang tạo..." : "Tạo"}
               </button>
-              <button type="button" onClick={() => setShowCreateMilestone(false)} className="mini-ghost-button">
+              <button
+                type="button"
+                onClick={() => setShowCreateMilestone(false)}
+                className="mini-ghost-button"
+              >
                 Hủy
               </button>
             </div>
@@ -718,7 +801,8 @@ function OrgEventDetailPage() {
         ) : (
           <div className="milestone-list">
             {milestones.map((milestone) => {
-              const milestoneCategories = categoriesByMilestone[milestone.id] || [];
+              const milestoneCategories =
+                categoriesByMilestone[milestone.id] || [];
               return (
                 <section key={milestone.id} className="milestone-block">
                   <div className="milestone-header">
@@ -726,17 +810,24 @@ function OrgEventDetailPage() {
                       type="button"
                       className="milestone-title-button"
                       onClick={() => {
-                        if (milestoneCategories[0]) setActiveCategoryId(milestoneCategories[0].id);
+                        if (milestoneCategories[0])
+                          setActiveCategoryId(milestoneCategories[0].id);
                       }}
                     >
                       <span className="flag-icon">⚑</span>
-                      <span>{milestone.title || '-'}</span>
+                      <span>{milestone.title || "-"}</span>
                     </button>
                     {canManage && (
                       <div className="milestone-actions">
                         <button
                           type="button"
-                          onClick={() => setEditingMilestone(editingMilestone === milestone.id ? null : milestone.id)}
+                          onClick={() =>
+                            setEditingMilestone(
+                              editingMilestone === milestone.id
+                                ? null
+                                : milestone.id,
+                            )
+                          }
                           className="sidebar-icon-button"
                           title="Sửa giai đoạn"
                         >
@@ -756,26 +847,54 @@ function OrgEventDetailPage() {
                   </div>
 
                   {editingMilestone === milestone.id && canManage && (
-                    <form onSubmit={(e) => handleUpdateMilestone(milestone.id, e)} className="sidebar-form nested-form">
-                      <input name="title" defaultValue={milestone.title} required className="sidebar-input" />
-                      <input name="description" defaultValue={milestone.description || ''} placeholder="Mô tả" className="sidebar-input" />
+                    <form
+                      onSubmit={(e) => handleUpdateMilestone(milestone.id, e)}
+                      className="sidebar-form nested-form"
+                    >
+                      <input
+                        name="title"
+                        defaultValue={milestone.title}
+                        required
+                        className="sidebar-input"
+                      />
+                      <input
+                        name="description"
+                        defaultValue={milestone.description || ""}
+                        placeholder="Mô tả"
+                        className="sidebar-input"
+                      />
                       <div className="sidebar-form-actions">
-                        <button type="submit" disabled={milestoneLoading[milestone.id]} className="mini-primary-button">
-                          {milestoneLoading[milestone.id] ? 'Đang lưu...' : 'Lưu'}
+                        <button
+                          type="submit"
+                          disabled={milestoneLoading[milestone.id]}
+                          className="mini-primary-button"
+                        >
+                          {milestoneLoading[milestone.id]
+                            ? "Đang lưu..."
+                            : "Lưu"}
                         </button>
-                        <button type="button" onClick={() => setEditingMilestone(null)} className="mini-ghost-button">
+                        <button
+                          type="button"
+                          onClick={() => setEditingMilestone(null)}
+                          className="mini-ghost-button"
+                        >
                           Hủy
                         </button>
                       </div>
                     </form>
                   )}
 
-                  {milestone.description && editingMilestone !== milestone.id && (
-                    <p className="milestone-description">{milestone.description}</p>
-                  )}
+                  {milestone.description &&
+                    editingMilestone !== milestone.id && (
+                      <p className="milestone-description">
+                        {milestone.description}
+                      </p>
+                    )}
 
                   <div className="category-tree">
-                    {milestoneCategories.length === 0 && <div className="category-empty">Chưa có hạng mục.</div>}
+                    {milestoneCategories.length === 0 && (
+                      <div className="category-empty">Chưa có hạng mục.</div>
+                    )}
                     {milestoneCategories.map((category) => (
                       <div key={category.id} className="category-row-wrap">
                         <div className="category-row">
@@ -785,15 +904,21 @@ function OrgEventDetailPage() {
                               setActiveCategoryId(category.id);
                               setShowCreateTask(false);
                             }}
-                            className={`category-button ${activeCategoryId === category.id ? 'active' : ''}`}
+                            className={`category-button ${activeCategoryId === category.id ? "active" : ""}`}
                           >
-                            {category.categoryName || '-'}
+                            {category.categoryName || "-"}
                           </button>
                           {canManage && (
                             <div className="category-actions">
                               <button
                                 type="button"
-                                onClick={() => setEditingCategory(editingCategory === category.id ? null : category.id)}
+                                onClick={() =>
+                                  setEditingCategory(
+                                    editingCategory === category.id
+                                      ? null
+                                      : category.id,
+                                  )
+                                }
                                 className="sidebar-icon-button"
                                 title="Sửa hạng mục"
                               >
@@ -801,7 +926,12 @@ function OrgEventDetailPage() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDeleteCategory(category.id, milestone.id)}
+                                onClick={() =>
+                                  handleDeleteCategory(
+                                    category.id,
+                                    milestone.id,
+                                  )
+                                }
                                 disabled={categoryLoading[category.id]}
                                 className="sidebar-icon-button danger"
                                 title="Xóa hạng mục"
@@ -813,14 +943,39 @@ function OrgEventDetailPage() {
                         </div>
 
                         {editingCategory === category.id && canManage && (
-                          <form onSubmit={(e) => handleUpdateCategory(category.id, milestone.id, e)} className="sidebar-form nested-form category-edit-form">
-                            <input name="categoryName" defaultValue={category.categoryName} required className="sidebar-input" />
-                            <input name="description" defaultValue={category.description || ''} placeholder="Mô tả" className="sidebar-input" />
+                          <form
+                            onSubmit={(e) =>
+                              handleUpdateCategory(category.id, milestone.id, e)
+                            }
+                            className="sidebar-form nested-form category-edit-form"
+                          >
+                            <input
+                              name="categoryName"
+                              defaultValue={category.categoryName}
+                              required
+                              className="sidebar-input"
+                            />
+                            <input
+                              name="description"
+                              defaultValue={category.description || ""}
+                              placeholder="Mô tả"
+                              className="sidebar-input"
+                            />
                             <div className="sidebar-form-actions">
-                              <button type="submit" disabled={categoryLoading[category.id]} className="mini-primary-button">
-                                {categoryLoading[category.id] ? 'Đang lưu...' : 'Lưu'}
+                              <button
+                                type="submit"
+                                disabled={categoryLoading[category.id]}
+                                className="mini-primary-button"
+                              >
+                                {categoryLoading[category.id]
+                                  ? "Đang lưu..."
+                                  : "Lưu"}
                               </button>
-                              <button type="button" onClick={() => setEditingCategory(null)} className="mini-ghost-button">
+                              <button
+                                type="button"
+                                onClick={() => setEditingCategory(null)}
+                                className="mini-ghost-button"
+                              >
                                 Hủy
                               </button>
                             </div>
@@ -830,16 +985,39 @@ function OrgEventDetailPage() {
                     ))}
 
                     {showCreateCategory[milestone.id] && canManage ? (
-                      <form onSubmit={(e) => handleCreateCategory(milestone.id, e)} className="sidebar-form category-create-form">
-                        <input name="categoryName" placeholder="Tên hạng mục *" required className="sidebar-input" />
-                        <input name="description" placeholder="Mô tả" className="sidebar-input" />
+                      <form
+                        onSubmit={(e) => handleCreateCategory(milestone.id, e)}
+                        className="sidebar-form category-create-form"
+                      >
+                        <input
+                          name="categoryName"
+                          placeholder="Tên hạng mục *"
+                          required
+                          className="sidebar-input"
+                        />
+                        <input
+                          name="description"
+                          placeholder="Mô tả"
+                          className="sidebar-input"
+                        />
                         <div className="sidebar-form-actions">
-                          <button type="submit" disabled={categoryLoading[milestone.id]} className="mini-primary-button">
-                            {categoryLoading[milestone.id] ? 'Đang tạo...' : 'Tạo'}
+                          <button
+                            type="submit"
+                            disabled={categoryLoading[milestone.id]}
+                            className="mini-primary-button"
+                          >
+                            {categoryLoading[milestone.id]
+                              ? "Đang tạo..."
+                              : "Tạo"}
                           </button>
                           <button
                             type="button"
-                            onClick={() => setShowCreateCategory(prev => ({ ...prev, [milestone.id]: false }))}
+                            onClick={() =>
+                              setShowCreateCategory((prev) => ({
+                                ...prev,
+                                [milestone.id]: false,
+                              }))
+                            }
                             className="mini-ghost-button"
                           >
                             Hủy
@@ -850,7 +1028,12 @@ function OrgEventDetailPage() {
                       canManage && (
                         <button
                           type="button"
-                          onClick={() => setShowCreateCategory(prev => ({ ...prev, [milestone.id]: true }))}
+                          onClick={() =>
+                            setShowCreateCategory((prev) => ({
+                              ...prev,
+                              [milestone.id]: true,
+                            }))
+                          }
                           className="add-category-button"
                         >
                           + Thêm Hạng mục
@@ -871,60 +1054,145 @@ function OrgEventDetailPage() {
     if (!editingEvent) return null;
     return (
       <div className="workspace-modal-backdrop" role="presentation">
-        <div className="workspace-modal" role="dialog" aria-modal="true" aria-label="Sửa sự kiện">
+        <div
+          className="workspace-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Sửa sự kiện"
+        >
           <div className="workspace-modal-header">
             <div>
               <p className="workspace-eyebrow">Thông tin sự kiện</p>
               <h2>Sửa sự kiện</h2>
             </div>
-            <button type="button" onClick={() => setEditingEvent(false)} className="modal-close-button" aria-label="Đóng">
+            <button
+              type="button"
+              onClick={() => setEditingEvent(false)}
+              className="modal-close-button"
+              aria-label="Đóng"
+            >
               ×
             </button>
           </div>
 
           <form onSubmit={handleUpdateEvent} className="event-edit-grid">
             <div className="form-group">
-              <label htmlFor="eventName" className="form-label">Event Name *</label>
-              <input id="eventName" name="eventName" className="form-input" defaultValue={getEventName(event)} required />
+              <label htmlFor="eventName" className="form-label">
+                Event Name *
+              </label>
+              <input
+                id="eventName"
+                name="eventName"
+                className="form-input"
+                defaultValue={getEventName(event)}
+                required
+              />
             </div>
             <div className="form-group">
-              <label htmlFor="description" className="form-label">Description</label>
-              <input id="description" name="description" className="form-input" defaultValue={event?.description || ''} />
+              <label htmlFor="description" className="form-label">
+                Description
+              </label>
+              <input
+                id="description"
+                name="description"
+                className="form-input"
+                defaultValue={event?.description || ""}
+              />
             </div>
             <div className="form-group">
-              <label htmlFor="startDate" className="form-label">Ngày tổ chức *</label>
-              <input id="startDate" name="startDate" type="date" className="form-input" defaultValue={event?.startDate ? String(event.startDate).split('T')[0] : ''} required />
+              <label htmlFor="startDate" className="form-label">
+                Ngày tổ chức *
+              </label>
+              <input
+                id="startDate"
+                name="startDate"
+                type="date"
+                className="form-input"
+                defaultValue={
+                  event?.startDate ? String(event.startDate).split("T")[0] : ""
+                }
+                required
+              />
             </div>
             <div className="form-group">
-              <label htmlFor="startTime" className="form-label">Giờ bắt đầu</label>
-              <input id="startTime" name="startTime" type="time" className="form-input" defaultValue={event?.startDate && String(event.startDate).includes('T') ? String(event.startDate).split('T')[1].substring(0, 5) : '00:00'} />
+              <label htmlFor="startTime" className="form-label">
+                Giờ bắt đầu
+              </label>
+              <input
+                id="startTime"
+                name="startTime"
+                type="time"
+                className="form-input"
+                defaultValue={
+                  event?.startDate && String(event.startDate).includes("T")
+                    ? String(event.startDate).split("T")[1].substring(0, 5)
+                    : "00:00"
+                }
+              />
             </div>
             <div className="form-group">
-              <label htmlFor="targetParticipants" className="form-label">Số lượng tham gia</label>
-              <input id="targetParticipants" name="targetParticipants" type="number" className="form-input" defaultValue={event?.targetParticipants || ''} />
+              <label htmlFor="targetParticipants" className="form-label">
+                Số lượng tham gia
+              </label>
+              <input
+                id="targetParticipants"
+                name="targetParticipants"
+                type="number"
+                className="form-input"
+                defaultValue={event?.targetParticipants || ""}
+              />
             </div>
             <div className="form-group">
-              <label htmlFor="location" className="form-label">Location</label>
-              <input id="location" name="location" className="form-input" defaultValue={event?.location || ''} />
+              <label htmlFor="location" className="form-label">
+                Location
+              </label>
+              <input
+                id="location"
+                name="location"
+                className="form-input"
+                defaultValue={event?.location || ""}
+              />
             </div>
             <div className="form-group">
-              <label htmlFor="bannerUrl" className="form-label">Banner URL</label>
-              <input id="bannerUrl" name="bannerUrl" className="form-input" defaultValue={event?.bannerUrl || ''} />
+              <label htmlFor="bannerUrl" className="form-label">
+                Banner URL
+              </label>
+              <input
+                id="bannerUrl"
+                name="bannerUrl"
+                className="form-input"
+                defaultValue={event?.bannerUrl || ""}
+              />
             </div>
             <div className="form-group">
-              <label htmlFor="visibility" className="form-label">Visibility</label>
-              <select id="visibility" name="visibility" defaultValue={event?.visibility || 'Private'} className="form-select">
+              <label htmlFor="visibility" className="form-label">
+                Visibility
+              </label>
+              <select
+                id="visibility"
+                name="visibility"
+                defaultValue={event?.visibility || "Private"}
+                className="form-select"
+              >
                 <option value="Public">Public</option>
                 <option value="OrganizationOnly">Organization Only</option>
                 <option value="Private">Private</option>
               </select>
             </div>
             <div className="modal-actions">
-              <button type="button" onClick={() => setEditingEvent(false)} className="workspace-button ghost">
+              <button
+                type="button"
+                onClick={() => setEditingEvent(false)}
+                className="workspace-button ghost"
+              >
                 Hủy
               </button>
-              <button type="submit" disabled={isEventUpdating} className="workspace-button primary">
-                {isEventUpdating ? 'Updating...' : 'Save Changes'}
+              <button
+                type="submit"
+                disabled={isEventUpdating}
+                className="workspace-button primary"
+              >
+                {isEventUpdating ? "Updating..." : "Save Changes"}
               </button>
             </div>
           </form>
@@ -936,20 +1204,44 @@ function OrgEventDetailPage() {
   const TaskCreatePanel = () => {
     if (!showCreateTask || !activeCategory || !canManage) return null;
     return (
-      <form onSubmit={(e) => handleCreateTask(activeCategory.id, e)} className="task-create-panel">
-        <input name="taskName" placeholder="Task name *" required className="workspace-input" />
-        <input name="description" placeholder="Description" className="workspace-input" />
-        <select name="priority" defaultValue="Medium" className="workspace-select">
+      <form
+        onSubmit={(e) => handleCreateTask(activeCategory.id, e)}
+        className="task-create-panel"
+      >
+        <input
+          name="taskName"
+          placeholder="Task name *"
+          required
+          className="workspace-input"
+        />
+        <input
+          name="description"
+          placeholder="Description"
+          className="workspace-input"
+        />
+        <select
+          name="priority"
+          defaultValue="Medium"
+          className="workspace-select"
+        >
           <option value="Low">Low</option>
           <option value="Medium">Medium</option>
           <option value="High">High</option>
           <option value="Urgent">Urgent</option>
         </select>
         <input name="deadline" type="date" className="workspace-input" />
-        <button type="submit" disabled={taskLoading[activeCategory.id]} className="workspace-button primary">
-          {taskLoading[activeCategory.id] ? 'Creating...' : 'Add Task'}
+        <button
+          type="submit"
+          disabled={taskLoading[activeCategory.id]}
+          className="workspace-button primary"
+        >
+          {taskLoading[activeCategory.id] ? "Creating..." : "Add Task"}
         </button>
-        <button type="button" onClick={() => setShowCreateTask(false)} className="workspace-button ghost">
+        <button
+          type="button"
+          onClick={() => setShowCreateTask(false)}
+          className="workspace-button ghost"
+        >
           Cancel
         </button>
       </form>
@@ -959,21 +1251,54 @@ function OrgEventDetailPage() {
   const TaskCard = ({ task }) => {
     if (editingTask === task.id) {
       return (
-        <form onSubmit={(e) => handleUpdateTask(task.id, e)} className="task-card task-card-edit">
-          <input name="taskName" defaultValue={task.taskName} required className="workspace-input" placeholder="Task name" />
-          <input name="description" defaultValue={task.description || ''} className="workspace-input" placeholder="Description" />
-          <select name="priority" defaultValue={task.priority || 'Medium'} className="workspace-select">
+        <form
+          onSubmit={(e) => handleUpdateTask(task.id, e)}
+          className="task-card task-card-edit"
+        >
+          <input
+            name="taskName"
+            defaultValue={task.taskName}
+            required
+            className="workspace-input"
+            placeholder="Task name"
+          />
+          <input
+            name="description"
+            defaultValue={task.description || ""}
+            className="workspace-input"
+            placeholder="Description"
+          />
+          <select
+            name="priority"
+            defaultValue={task.priority || "Medium"}
+            className="workspace-select"
+          >
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
             <option value="Urgent">Urgent</option>
           </select>
-          <input name="deadline" type="date" defaultValue={task.deadline ? String(task.deadline).split('T')[0] : ''} className="workspace-input" />
+          <input
+            name="deadline"
+            type="date"
+            defaultValue={
+              task.deadline ? String(task.deadline).split("T")[0] : ""
+            }
+            className="workspace-input"
+          />
           <div className="task-card-actions always-visible">
-            <button type="submit" disabled={taskLoading[task.id]} className="mini-primary-button">
-              {taskLoading[task.id] ? 'Saving...' : 'Save'}
+            <button
+              type="submit"
+              disabled={taskLoading[task.id]}
+              className="mini-primary-button"
+            >
+              {taskLoading[task.id] ? "Saving..." : "Save"}
             </button>
-            <button type="button" onClick={() => setEditingTask(null)} className="mini-ghost-button">
+            <button
+              type="button"
+              onClick={() => setEditingTask(null)}
+              className="mini-ghost-button"
+            >
               Cancel
             </button>
           </div>
@@ -985,33 +1310,50 @@ function OrgEventDetailPage() {
 
     return (
       <article
-        className={`task-card ${taskLoading[task.id] ? 'is-loading' : ''}`}
+        className={`task-card ${taskLoading[task.id] ? "is-loading" : ""}`}
         draggable={canManage && !taskLoading[task.id]}
         onDragStart={() => setDraggedTaskId(task.id)}
         onDragEnd={() => setDraggedTaskId(null)}
       >
         <div className="task-card-top">
-          <span className={`priority-badge ${getPriorityClass(task.priority)}`}>{getPriorityLabel(task.priority)}</span>
+          <span className={`priority-badge ${getPriorityClass(task.priority)}`}>
+            {getPriorityLabel(task.priority)}
+          </span>
           {canManage && (
             <div className="task-card-actions">
-              <button type="button" onClick={() => setEditingTask(task.id)} className="task-icon-button" title="Sửa task">
+              <button
+                type="button"
+                onClick={() => setEditingTask(task.id)}
+                className="task-icon-button"
+                title="Sửa task"
+              >
                 ✎
               </button>
-              <button type="button" onClick={() => handleDeleteTask(task.id, activeCategory.id)} disabled={taskLoading[task.id]} className="task-icon-button danger" title="Xóa task">
+              <button
+                type="button"
+                onClick={() => handleDeleteTask(task.id, activeCategory.id)}
+                disabled={taskLoading[task.id]}
+                className="task-icon-button danger"
+                title="Xóa task"
+              >
                 ×
               </button>
             </div>
           )}
         </div>
 
-        <h3>{task.taskName || '-'}</h3>
-        {task.description && <p className="task-description">{task.description}</p>}
+        <h3>{task.taskName || "-"}</h3>
+        {task.description && (
+          <p className="task-description">{task.description}</p>
+        )}
 
         <div className="task-status-row">
           {canManage ? (
             <select
-              value={task.status || 'Todo'}
-              onChange={(e) => handleUpdateStatus(task.id, e.target.value, activeCategory.id)}
+              value={task.status || "Todo"}
+              onChange={(e) =>
+                handleUpdateStatus(task.id, e.target.value, activeCategory.id)
+              }
               disabled={taskLoading[task.id]}
               className="task-status-select"
             >
@@ -1022,7 +1364,9 @@ function OrgEventDetailPage() {
               <option value="Cancelled">Cancelled</option>
             </select>
           ) : (
-            <span className="task-status-text">{getStatusLabel(task.status)}</span>
+            <span className="task-status-text">
+              {getStatusLabel(task.status)}
+            </span>
           )}
         </div>
 
@@ -1032,12 +1376,14 @@ function OrgEventDetailPage() {
             {canManage ? (
               <select
                 value={getTaskAssigneeId(task)}
-                onChange={(e) => handleAssignTask(task.id, e.target.value, activeCategory.id)}
+                onChange={(e) =>
+                  handleAssignTask(task.id, e.target.value, activeCategory.id)
+                }
                 disabled={taskLoading[task.id]}
                 className="assignee-select"
               >
                 <option value="">Unassigned</option>
-                {members.map(member => (
+                {members.map((member) => (
                   <option key={member.id} value={member.id}>
                     {member.fullName || member.email}
                   </option>
@@ -1047,7 +1393,11 @@ function OrgEventDetailPage() {
               <span className="assignee-name">{assigneeName}</span>
             )}
           </div>
-          {task.deadline && <span className="deadline-text">◷ {formatShortDate(task.deadline)}</span>}
+          {task.deadline && (
+            <span className="deadline-text">
+              ◷ {formatShortDate(task.deadline)}
+            </span>
+          )}
         </div>
       </article>
     );
@@ -1057,7 +1407,10 @@ function OrgEventDetailPage() {
     <div className="workspace-empty-state">
       <div className="workspace-empty-icon">▦</div>
       <h2>Không gian làm việc</h2>
-      <p>Vui lòng chọn một Hạng mục công việc ở thanh bên trái để mở Bảng điều phối (Kanban) hoặc khởi tạo lộ trình mới cho dự án.</p>
+      <p>
+        Vui lòng chọn một Hạng mục công việc ở thanh bên trái để mở Bảng điều
+        phối (Kanban) hoặc khởi tạo lộ trình mới cho dự án.
+      </p>
     </div>
   );
 
@@ -1069,15 +1422,23 @@ function OrgEventDetailPage() {
         <header className="kanban-header">
           <div>
             <div className="breadcrumb-line">
-              <span>{activeMilestone?.title || activeCategory.milestoneTitle || 'Giai đoạn'}</span>
+              <span>
+                {activeMilestone?.title ||
+                  activeCategory.milestoneTitle ||
+                  "Giai đoạn"}
+              </span>
               <span>›</span>
               <span>Hạng mục</span>
             </div>
-            <h2>{activeCategory.categoryName || '-'}</h2>
+            <h2>{activeCategory.categoryName || "-"}</h2>
             {activeCategory.description && <p>{activeCategory.description}</p>}
           </div>
           {canManage && (
-            <button type="button" onClick={() => setShowCreateTask(true)} className="workspace-button primary">
+            <button
+              type="button"
+              onClick={() => setShowCreateTask(true)}
+              className="workspace-button primary"
+            >
               + Thêm tác vụ
             </button>
           )}
@@ -1088,7 +1449,9 @@ function OrgEventDetailPage() {
         <section className="kanban-scroll" aria-label="Bảng Kanban">
           <div className="kanban-board">
             {statusColumns.map((status) => {
-              const columnTasks = activeTasks.filter((task) => (task.status || 'Todo') === status);
+              const columnTasks = activeTasks.filter(
+                (task) => (task.status || "Todo") === status,
+              );
               return (
                 <div
                   key={status}
@@ -1100,7 +1463,9 @@ function OrgEventDetailPage() {
                 >
                   <div className="kanban-column-header">
                     <h3>
-                      <span className={`status-dot ${getStatusClass(status)}`}></span>
+                      <span
+                        className={`status-dot ${getStatusClass(status)}`}
+                      ></span>
                       {getStatusLabel(status)}
                     </h3>
                     <span className="task-count">{columnTasks.length}</span>
@@ -1110,7 +1475,9 @@ function OrgEventDetailPage() {
                     {columnTasks.length === 0 ? (
                       <div className="column-empty">Kéo tác vụ vào đây</div>
                     ) : (
-                      columnTasks.map((task) => <TaskCard key={task.id} task={task} />)
+                      columnTasks.map((task) => (
+                        <TaskCard key={task.id} task={task} />
+                      ))
                     )}
                   </div>
                 </div>
