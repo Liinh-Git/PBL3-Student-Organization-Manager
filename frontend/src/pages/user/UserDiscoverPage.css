@@ -741,3 +741,359 @@
     max-width: none;
   }
 }
+
+/* ═══════════════════════════════════════════════
+   SEARCH BAR WITH BUTTON (icon on right)
+   ═══════════════════════════════════════════════ */
+
+.discover-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+}
+
+.discover-search {
+  flex: 1;
+  background: var(--dsc-slate-50);
+  border: 1.5px solid var(--dsc-slate-200);
+  border-radius: 10px 0 0 10px;
+  padding: 0.55rem 0.9rem;
+  font-family: var(--dsc-font-body);
+  font-size: 0.875rem;
+  color: var(--dsc-slate-900);
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  /* remove old background-image icon */
+  background-image: none;
+}
+
+.discover-search:focus {
+  border-color: var(--dsc-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.discover-search-btn {
+  background: var(--dsc-blue);
+  border: 1.5px solid var(--dsc-blue);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  color: white;
+  padding: 0 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.discover-search-btn:hover {
+  background: var(--dsc-blue-dark);
+}
+
+/* ═══════════════════════════════════════════════
+   DiscoverOrgCard - Join/View buttons INSIDE card
+   ═══════════════════════════════════════════════ */
+
+.dsc-org-card {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 340px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  cursor: default;
+}
+
+.dsc-org-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.11);
+}
+
+.dsc-org-cover {
+  width: 100%;
+  height: 90px;
+  flex: 0 0 90px;
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+}
+
+.dsc-org-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: #e2e8f0;
+  margin: -24px 0 0 1rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #475569;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.15);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.dsc-org-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dsc-org-body {
+  padding: 0.5rem 1rem 0 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.dsc-org-name {
+  font-family: var(--dsc-font-title);
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--dsc-slate-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.2rem;
+}
+
+.dsc-org-meta {
+  font-size: 0.75rem;
+  color: var(--dsc-slate-500);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.dsc-org-desc {
+  font-size: 0.8rem;
+  color: var(--dsc-slate-600);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.dsc-org-actions {
+  padding: 0.65rem 0 0.15rem 0;
+  display: flex;
+  gap: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 0.5rem;
+}
+
+.dsc-org-actions .dsc-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════
+   EventCard standalone styles
+   ═══════════════════════════════════════════════ */
+
+.event-card {
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 380px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.event-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.11);
+}
+
+.event-card-cover-wrap {
+  position: relative;
+  width: 100%;
+  height: 130px;
+  flex: 0 0 130px;
+  overflow: hidden;
+}
+
+.event-card-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.event-card-status-badge {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+}
+
+.event-card-body {
+  padding: 0.85rem 1.1rem 0.5rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.event-card-title {
+  font-family: var(--dsc-font-title, "Sora", sans-serif);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-card-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin: 0 0 0.55rem 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.event-card-meta {
+  display: grid;
+  gap: 0.28rem;
+  flex: 1;
+}
+
+.event-card-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.event-card-meta-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+  min-width: 50px;
+}
+
+.event-card-meta-val {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-card-meta-val--truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.event-card-footer {
+  padding: 0.6rem 1.1rem 0.9rem 1.1rem;
+  border-top: 1px solid #f1f5f9;
+  margin-top: auto;
+}
+
+.event-card-btn {
+  width: 100%;
+  background: var(--dsc-blue, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.55rem 1rem;
+  font-family: var(--dsc-font-body, "Nunito", sans-serif);
+  font-weight: 700;
+  font-size: 0.83rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background 0.15s;
+}
+
+.event-card-btn:hover {
+  background: #1d4ed8;
+}
+
+/* ═══════════════════════════════════════════════
+   Invite friends - improved UI
+   ═══════════════════════════════════════════════ */
+
+.dsc-invite-card {
+  background: white;
+  border: 1px solid var(--dsc-slate-200);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  transition: box-shadow 0.15s;
+}
+
+.dsc-invite-card:hover {
+  box-shadow: var(--dsc-shadow);
+}
+
+.dsc-invite-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.dsc-invite-controls {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.dsc-invite-select {
+  flex: 1;
+  background: var(--dsc-slate-50);
+  border: 1.5px solid var(--dsc-slate-200);
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
+  font-family: var(--dsc-font-body);
+  font-size: 0.8rem;
+  color: var(--dsc-slate-700);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.dsc-invite-select:focus {
+  border-color: var(--dsc-blue);
+}
+
+.dsc-invite-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

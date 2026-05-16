@@ -322,16 +322,17 @@ function DiscoverOrgCard({
         </div>
         <div className="dsc-org-desc">{org.description || ""}</div>
         <div className="dsc-org-actions">
-          {isJoined ? (
+          {/* View button always shown */}
+          <button
+            className="dsc-btn dsc-btn--outline"
+            onClick={() => onOpen(org.id)}
+          >
+            {isJoined ? "Xem tổ chức" : "Xem"} <IconArrow />
+          </button>
+          {/* Join/status button for non-members */}
+          {!isJoined && (
             <button
-              className="dsc-btn dsc-btn--outline dsc-btn--full"
-              onClick={() => onOpen(org.id)}
-            >
-              Xem tổ chức <IconArrow />
-            </button>
-          ) : (
-            <button
-              className={`dsc-btn dsc-btn--full ${isPending ? "dsc-btn--ghost" : "dsc-btn--primary"}`}
+              className={`dsc-btn ${isPending ? "dsc-btn--ghost" : "dsc-btn--primary"}`}
               disabled={isWorking}
               onClick={() => onAction(org.id, orgName)}
             >
@@ -381,6 +382,7 @@ function UserDiscoverPage() {
   const [processingInvitationId, setProcessingInvitationId] = useState(null);
 
   const [orgSearch, setOrgSearch] = useState("");
+  const [orgSearchInput, setOrgSearchInput] = useState("");
   const [orgFilter, setOrgFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("organizations");
   const [popup, setPopup] = useState(null);
@@ -850,13 +852,37 @@ function UserDiscoverPage() {
               {activeTab === "organizations" && (
                 <>
                   <div className="discover-org-controls discover-org-controls--top">
-                    <input
-                      type="text"
-                      className="discover-search"
-                      value={orgSearch}
-                      onChange={(e) => setOrgSearch(e.target.value)}
-                      placeholder="Tìm kiếm tổ chức, câu lạc bộ..."
-                    />
+                    <div className="discover-search-wrap">
+                      <input
+                        type="text"
+                        className="discover-search"
+                        value={orgSearchInput}
+                        onChange={(e) => setOrgSearchInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") setOrgSearch(orgSearchInput);
+                        }}
+                        placeholder="Tìm kiếm tổ chức, câu lạc bộ..."
+                      />
+                      <button
+                        className="discover-search-btn"
+                        onClick={() => setOrgSearch(orgSearchInput)}
+                        title="Tìm kiếm"
+                      >
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <circle cx="11" cy="11" r="8" />
+                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                      </button>
+                    </div>
                     <select
                       className="discover-filter"
                       value={orgFilter}
@@ -882,46 +908,18 @@ function UserDiscoverPage() {
                           org.orgName ||
                           org.organizationName ||
                           "Unknown organization";
-                        const orgModel = {
-                          ...org,
-                          name: orgName,
-                          orgName,
-                        };
                         return (
-                          <div
+                          <DiscoverOrgCard
                             key={org.id}
-                            className={`discover-org-item ${isJoined ? "discover-org-item--joined" : ""}`}
-                          >
-                            <OrgCard organization={orgModel} />
-                            <div className="discover-org-actions">
-                              <button
-                                onClick={() => {
-                                  if (isJoined) {
-                                    navigate(`/org/overview?orgId=${org.id}`);
-                                    return;
-                                  }
-                                  handleRequestToJoin(org.id, orgName);
-                                }}
-                                disabled={isWorking}
-                                className={`app-button ${isJoined || isPending ? "app-button--secondary" : "app-button--primary"} discover-btn-full`}
-                                title={
-                                  isJoined
-                                    ? "Open organization"
-                                    : isPending
-                                      ? "Click again to withdraw request"
-                                      : undefined
-                                }
-                              >
-                                {isWorking
-                                  ? "Processing..."
-                                  : isJoined
-                                    ? "Joined"
-                                    : isPending
-                                      ? "Request sent (click to withdraw)"
-                                      : "Join organization"}
-                              </button>
-                            </div>
-                          </div>
+                            org={{ ...org, name: orgName, orgName }}
+                            isJoined={isJoined}
+                            isPending={isPending}
+                            isWorking={isWorking}
+                            onAction={handleRequestToJoin}
+                            onOpen={(id) =>
+                              navigate(`/org/overview?orgId=${id}`)
+                            }
+                          />
                         );
                       })}
                     </div>
@@ -1044,25 +1042,13 @@ function UserDiscoverPage() {
                           return (
                             <div
                               key={friend.userId}
-                              className="discover-list-item"
-                              style={{
-                                flexDirection: "column",
-                                alignItems: "flex-start",
-                                gap: "0.65rem",
-                              }}
+                              className="dsc-invite-card"
                             >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.65rem",
-                                  width: "100%",
-                                }}
-                              >
+                              <div className="dsc-invite-header">
                                 <div className="dsc-avatar-circle">
                                   {initial}
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
                                   <div className="discover-item-title">
                                     {friend.fullName}
                                   </div>
@@ -1078,17 +1064,11 @@ function UserDiscoverPage() {
                                   </div>
                                 </div>
                               </div>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "0.5rem",
-                                  width: "100%",
-                                }}
-                              >
+                              <div className="dsc-invite-controls">
                                 <select
-                                  className="discover-filter"
-                                  style={{ flex: 1 }}
+                                  className="dsc-invite-select"
                                   value={selectedOrgId}
+                                  disabled={availableOrgs.length === 0}
                                   onChange={(e) =>
                                     setInviteOrgIdByFriendId((prev) => ({
                                       ...prev,
@@ -1098,7 +1078,7 @@ function UserDiscoverPage() {
                                 >
                                   <option value="">
                                     {availableOrgs.length > 0
-                                      ? "Chọn tổ chức"
+                                      ? "Chọn tổ chức…"
                                       : "Không có tổ chức"}
                                   </option>
                                   {availableOrgs.map((org) => (
