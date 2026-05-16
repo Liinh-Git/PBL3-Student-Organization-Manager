@@ -154,7 +154,17 @@ export async function uploadOrganizationImage(id, file, type) {
   formData.append('file', file);
   formData.append('type', type);
 
-  const response = await httpClient.post(`/organizations/${id}/upload-image`, formData);
+  let response;
+  try {
+    response = await httpClient.post(`/organizations/${id}/upload-image`, formData);
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.errors?.[0] ||
+      error.message ||
+      'Failed to upload organization image';
+    throw new Error(message);
+  }
 
   if (!response.data.success) {
     throw new Error(response.data.message || 'Failed to upload organization image');

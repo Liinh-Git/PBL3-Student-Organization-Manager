@@ -14,6 +14,7 @@ public record EventDto
     public required string Status { get; init; }
     public required string Visibility { get; init; }
     public string? Location { get; init; }
+    public string? BannerUrl { get; init; }
     public int? TargetParticipants { get; init; }
     public decimal? Budget { get; init; }
     public double? AverageRating { get; init; }
@@ -36,6 +37,7 @@ public record EventSummaryDto
     public required string Status { get; init; }
     public required string Visibility { get; init; }
     public string? Location { get; init; }
+    public string? BannerUrl { get; init; }
     public int? TargetParticipants { get; init; }
 }
 
@@ -52,6 +54,7 @@ public record EventPublicDto
     public required DateTime StartDate { get; init; }
     public required DateTime EndDate { get; init; }
     public string? Location { get; init; }
+    public string? BannerUrl { get; init; }
     public required string Visibility { get; init; }
     public required string Status { get; init; }
 }

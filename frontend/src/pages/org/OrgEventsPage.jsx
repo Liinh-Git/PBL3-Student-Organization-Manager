@@ -4,10 +4,10 @@
  * UI refactor: card-grid workspace launcher, giữ nguyên API/permission/handler flow.
  */
 
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useOrgContext } from '../../contexts/OrgContext.jsx';
-import { getOrganizationEvents, createEvent, updateEvent, deleteEvent } from '../../services/eventService.js';
+import { getOrganizationEvents, createEvent, updateEvent, deleteEvent, uploadEventBanner } from '../../services/eventService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
@@ -63,6 +63,14 @@ function OrgEventsPage() {
   const canManage = permissions.includes('org.events.manage');
   const getEventId = (event) => event?.id || event?.eventId;
   const getEventName = (event) => event?.name || event?.eventName;
+
+  const toAbsoluteMediaUrl = (url) => {
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    const origin = apiBase.replace(/\/api\/?$/, '');
+    return url.startsWith('/') ? `${origin}${url}` : `${origin}/${url}`;
+  };
 
   const formatDate = (value) => {
     if (!value) return '-';
@@ -203,6 +211,36 @@ function OrgEventsPage() {
 
   const EventForm = ({ mode, event }) => {
     const isEdit = mode === 'edit';
+    const fileInputRef = useRef(null);
+    const [bannerValue, setBannerValue] = useState(isEdit ? event?.bannerUrl || '' : '');
+    const [pendingBannerUrl, setPendingBannerUrl] = useState('');
+    const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+
+    const handleBannerUpload = async (uploadEvent) => {
+      const file = uploadEvent.target.files?.[0];
+      if (!file) return;
+
+      setIsUploadingBanner(true);
+      try {
+        const uploadedUrl = await uploadEventBanner(file);
+        setPendingBannerUrl(uploadedUrl || '');
+      } catch (err) {
+        alert(err.message || 'Failed to upload event banner');
+      } finally {
+        setIsUploadingBanner(false);
+        uploadEvent.target.value = '';
+      }
+    };
+
+    const acceptPendingBanner = () => {
+      setBannerValue(pendingBannerUrl);
+      setPendingBannerUrl('');
+    };
+
+    const rejectPendingBanner = () => {
+      setPendingBannerUrl('');
+    };
+
     return (
       <div className="org-event-form-panel">
         <div className="org-event-form-header">
@@ -285,9 +323,25 @@ function OrgEventsPage() {
               id={isEdit ? 'editBannerUrl' : 'bannerUrl'}
               name="bannerUrl"
               className="form-input"
-              defaultValue={isEdit ? event?.bannerUrl || '' : ''}
+              value={bannerValue}
+              onChange={(e) => setBannerValue(e.target.value)}
               placeholder="Banner URL"
             />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleBannerUpload}
+              hidden
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingBanner}
+              className="org-button org-button-ghost"
+            >
+              {isUploadingBanner ? 'Đang upload...' : 'Upload banner'}
+            </button>
           </div>
           <div className="form-group">
             <label htmlFor={isEdit ? 'editVisibility' : 'visibility'} className="form-label">Visibility</label>
@@ -311,6 +365,24 @@ function OrgEventsPage() {
             </button>
           </div>
         </form>
+
+        {pendingBannerUrl ? (
+          <div className="org-upload-modal-backdrop" role="dialog" aria-modal="true" aria-label="Confirm event banner">
+            <div className="org-upload-modal">
+              <h3>Xác nhận chọn ảnh này?</h3>
+              <img src={toAbsoluteMediaUrl(pendingBannerUrl)} alt="Ảnh banner vừa upload" />
+              <p>{pendingBannerUrl}</p>
+              <div className="org-upload-modal-actions">
+                <button type="button" onClick={rejectPendingBanner} className="org-button org-button-ghost">
+                  Hủy
+                </button>
+                <button type="button" onClick={acceptPendingBanner} className="org-button org-button-primary">
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   };
@@ -400,6 +472,14 @@ function OrgEventsPage() {
           transform: translateY(-2px);
           border-color: #CBD5E1;
           box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        }
+
+        .org-event-banner {
+          width: 100%;
+          max-height: 180px;
+          object-fit: cover;
+          margin-bottom: 16px;
+          border-radius: 10px;
         }
 
         .org-event-card-top {
@@ -615,6 +695,55 @@ function OrgEventsPage() {
           border-radius: 14px;
         }
 
+        .org-upload-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          background: rgba(15, 23, 42, 0.48);
+        }
+
+        .org-upload-modal {
+          width: min(560px, 100%);
+          padding: 20px;
+          background: #FFFFFF;
+          border-radius: 12px;
+          box-shadow: 0 22px 56px rgba(15, 23, 42, 0.24);
+        }
+
+        .org-upload-modal h3 {
+          margin: 0 0 14px;
+          color: #0F172A;
+          font-size: 18px;
+          font-weight: 800;
+        }
+
+        .org-upload-modal img {
+          display: block;
+          width: 100%;
+          max-height: 320px;
+          object-fit: contain;
+          border-radius: 8px;
+          background: #F8FAFC;
+        }
+
+        .org-upload-modal p {
+          margin: 12px 0 0;
+          color: #475569;
+          font-size: 13px;
+          overflow-wrap: anywhere;
+        }
+
+        .org-upload-modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 18px;
+        }
+
         @media (max-width: 720px) {
           .org-events-page {
             padding: 28px 16px;
@@ -671,8 +800,20 @@ function OrgEventsPage() {
           <section className="org-events-grid" aria-label="Danh sách sự kiện">
             {events.map((event) => {
               const eventId = getEventId(event);
+              const bannerSrc = toAbsoluteMediaUrl(event?.bannerUrl || event?.coverUrl || event?.avatarUrl);
               return (
                 <article key={eventId} className="org-event-card">
+                  {bannerSrc ? (
+                    <img
+                      src={bannerSrc}
+                      alt={`${getEventName(event) || 'Event'} banner`}
+                      className="org-event-banner"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : null}
+
                   <div className="org-event-card-top">
                     <span className="org-status-badge">{event.status || 'Chưa xác định'}</span>
                     {canManage && (

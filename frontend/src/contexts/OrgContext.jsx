@@ -41,10 +41,14 @@ export function OrgProvider({ children }) {
 
     setIsLoading(true);
     setError(null);
+    setOrgId(id);
+    setOrganization(null);
+    setPermissions([]);
+    setIsMember(false);
+
     try {
       const org = await getOrganizationById(id);
       setOrganization(org);
-      setOrgId(id);
       
       // Try to load permissions (may 403 if not member)
       try {

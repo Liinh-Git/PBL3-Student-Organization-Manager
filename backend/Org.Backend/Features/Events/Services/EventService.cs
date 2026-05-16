@@ -148,6 +148,7 @@ public class EventService : IEventService
             StartDate = utcStartDate,
             EndDate = utcEndDate,
             Location = request.Location,
+            BannerUrl = request.BannerUrl,
             Visibility = visibility,
             TargetParticipants = request.TargetParticipants,
             Status = EventStatus.Draft,
@@ -225,6 +226,7 @@ public class EventService : IEventService
         evt.StartDate = utcStartDate;
         evt.EndDate = utcEndDate;
         evt.Location = request.Location;
+        evt.BannerUrl = request.BannerUrl;
         evt.Visibility = visibility;
         evt.TargetParticipants = request.TargetParticipants;
         evt.UpdatedAt = DateTime.UtcNow;

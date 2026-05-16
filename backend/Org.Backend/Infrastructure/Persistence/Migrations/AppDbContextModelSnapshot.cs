@@ -275,6 +275,10 @@ namespace Org.Backend.Infrastructure.Persistence.Migrations
                     b.Property<decimal?>("Budget")
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<string>("BannerUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")

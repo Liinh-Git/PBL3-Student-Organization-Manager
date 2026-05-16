@@ -63,32 +63,31 @@ function AppRouter() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         
-        {/* Protected routes (user workspace) */}
+        {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
+            {/* User workspace */}
             <Route path="/user/organizations" element={<UserOrganizationsPage />} />
             <Route path="/user/events" element={<UserEventsPage />} />
             <Route path="/user/settings" element={<UserSettingsPage />} />
             <Route path="/user/friends" element={<UserFriendsPage />} />
             <Route path="/user/discover" element={<UserDiscoverPage />} />
-          </Route>
-        </Route>
-        
-        {/* Org workspace routes (requires membership) */}
-        <Route element={<OrgMemberRoute />}>
-          <Route element={<AppLayout />}>
-            <Route path="/org/overview" element={<OrgOverviewPage />} />
-            <Route path="/org/members" element={<OrgMembersPage />} />
-            <Route path="/org/departments" element={<OrgDepartmentsPage />} />
-            <Route path="/org/events" element={<OrgEventsPage />} />
-            <Route path="/org/events/:eventId" element={<OrgEventDetailPage />} />
-            <Route path="/org/requests" element={<OrgRequestsPage />} />
-            <Route path="/org/roles" element={<OrgRolesPage />} />
-            {/* Prototype-only placeholder routes */}
-            <Route path="/org/tasks" element={<OrgTasksPlaceholderPage />} />
-            <Route path="/org/resources" element={<OrgResourcesPlaceholderPage />} />
-            <Route path="/org/reports" element={<OrgReportsPlaceholderPage />} />
-            <Route path="/org/finance" element={<OrgFinancePlaceholderPage />} />
+
+            {/* Org workspace routes (requires membership) */}
+            <Route element={<OrgMemberRoute />}>
+              <Route path="/org/overview" element={<OrgOverviewPage />} />
+              <Route path="/org/members" element={<OrgMembersPage />} />
+              <Route path="/org/departments" element={<OrgDepartmentsPage />} />
+              <Route path="/org/events" element={<OrgEventsPage />} />
+              <Route path="/org/events/:eventId" element={<OrgEventDetailPage />} />
+              <Route path="/org/requests" element={<OrgRequestsPage />} />
+              <Route path="/org/roles" element={<OrgRolesPage />} />
+              {/* Prototype-only placeholder routes */}
+              <Route path="/org/tasks" element={<OrgTasksPlaceholderPage />} />
+              <Route path="/org/resources" element={<OrgResourcesPlaceholderPage />} />
+              <Route path="/org/reports" element={<OrgReportsPlaceholderPage />} />
+              <Route path="/org/finance" element={<OrgFinancePlaceholderPage />} />
+            </Route>
           </Route>
         </Route>
       </Routes>

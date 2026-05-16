@@ -15,6 +15,7 @@ public class Event : BaseEntity
     public DateTime EndDate { get; set; }
     public decimal? Budget { get; set; }
     public string? Location { get; set; }
+    public string? BannerUrl { get; set; }
     public int? TargetParticipants { get; set; }
     public string? Tags { get; set; }
     public EventStatus Status { get; set; } = EventStatus.Draft;

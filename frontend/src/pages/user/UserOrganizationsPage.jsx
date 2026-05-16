@@ -9,6 +9,7 @@ import { getMyOrganizations } from "../../services/userService.js";
 import {
   createOrganization,
   deleteOrganization,
+  uploadOrganizationImage,
 } from "../../services/organizationService.js";
 import OrgCard from "../../components/org/OrgCard";
 import "./UserOrganizationsPage.css";
@@ -27,12 +28,14 @@ function UserOrganizationsPage() {
   const [formData, setFormData] = useState({
     orgName: "",
     description: "",
-    avatarUrl: "",
-    coverUrl: "",
     foundingDate: "",
     location: "",
     contactEmail: "",
     contactPhone: "",
+  });
+  const [imageFiles, setImageFiles] = useState({
+    avatar: null,
+    cover: null,
   });
 
   useEffect(() => {
@@ -54,6 +57,28 @@ function UserOrganizationsPage() {
     navigate(`/org/overview?orgId=${orgId}`);
   };
 
+  const resetCreateForm = () => {
+    setFormData({
+      orgName: "",
+      description: "",
+      foundingDate: "",
+      location: "",
+      contactEmail: "",
+      contactPhone: "",
+    });
+    setImageFiles({
+      avatar: null,
+      cover: null,
+    });
+    setCreateError(null);
+  };
+
+  const handleCloseCreateModal = () => {
+    if (isCreating) return;
+    setShowCreateModal(false);
+    resetCreateForm();
+  };
+
   const handleCreateOrganization = async (e) => {
     e.preventDefault();
     setIsCreating(true);
@@ -64,14 +89,32 @@ function UserOrganizationsPage() {
       const payload = {};
       if (formData.orgName) payload.orgName = formData.orgName;
       if (formData.description) payload.description = formData.description;
-      if (formData.avatarUrl) payload.avatarUrl = formData.avatarUrl;
-      if (formData.coverUrl) payload.coverUrl = formData.coverUrl;
       if (formData.foundingDate) payload.foundingDate = formData.foundingDate;
       if (formData.location) payload.location = formData.location;
       if (formData.contactEmail) payload.contactEmail = formData.contactEmail;
       if (formData.contactPhone) payload.contactPhone = formData.contactPhone;
 
-      await createOrganization(payload);
+      const createdOrg = await createOrganization(payload);
+
+      const uploadTasks = [];
+      if (createdOrg?.id && imageFiles.avatar) {
+        uploadTasks.push(uploadOrganizationImage(createdOrg.id, imageFiles.avatar, "avatar"));
+      }
+      if (createdOrg?.id && imageFiles.cover) {
+        uploadTasks.push(uploadOrganizationImage(createdOrg.id, imageFiles.cover, "cover"));
+      }
+
+      if (uploadTasks.length > 0) {
+        const uploadResults = await Promise.allSettled(uploadTasks);
+        const failedUpload = uploadResults.find((result) => result.status === "rejected");
+        if (failedUpload) {
+          const message =
+            failedUpload.reason?.response?.data?.message ||
+            failedUpload.reason?.message ||
+            "Upload ảnh thất bại";
+          setError(`Tạo tổ chức thành công nhưng upload ảnh thất bại: ${message}`);
+        }
+      }
 
       // Refresh organizations list
       const updatedOrgs = await getMyOrganizations();
@@ -79,18 +122,9 @@ function UserOrganizationsPage() {
 
       // Close modal and reset form
       setShowCreateModal(false);
-      setFormData({
-        orgName: "",
-        description: "",
-        avatarUrl: "",
-        coverUrl: "",
-        foundingDate: "",
-        location: "",
-        contactEmail: "",
-        contactPhone: "",
-      });
+      resetCreateForm();
     } catch (err) {
-      setCreateError(err.message || "Tạo tổ chức thất bại");
+      setCreateError(err.response?.data?.message || err.message || "Tạo tổ chức thất bại");
     } finally {
       setIsCreating(false);
     }
@@ -101,6 +135,14 @@ function UserOrganizationsPage() {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleImageFileChange = (e) => {
+    const { name, files } = e.target;
+    setImageFiles((prev) => ({
+      ...prev,
+      [name]: files?.[0] || null,
     }));
   };
 
@@ -169,7 +211,10 @@ function UserOrganizationsPage() {
             {/* Create New Card */}
             <button
               className="org-create-card"
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => {
+                resetCreateForm();
+                setShowCreateModal(true);
+              }}
             >
               <div className="org-create-icon">+</div>
               <h3>Tạo tổ chức mới</h3>
@@ -197,7 +242,7 @@ function UserOrganizationsPage() {
       {showCreateModal && (
         <div
           className="org-modal-overlay"
-          onClick={() => setShowCreateModal(false)}
+          onClick={handleCloseCreateModal}
         >
           <div className="org-modal" onClick={(e) => e.stopPropagation()}>
             <div className="org-modal-header">
@@ -280,32 +325,30 @@ function UserOrganizationsPage() {
                   </p>
 
                   <div className="org-form-group">
-                    <label htmlFor="avatarUrl" className="org-form-label">
-                      Link ảnh đại diện
+                    <label htmlFor="avatar" className="org-form-label">
+                      Ảnh đại diện
                     </label>
                     <input
-                      type="url"
-                      id="avatarUrl"
-                      name="avatarUrl"
-                      value={formData.avatarUrl}
-                      onChange={handleInputChange}
+                      type="file"
+                      id="avatar"
+                      name="avatar"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleImageFileChange}
                       className="org-input"
-                      placeholder="https://example.com/avatar.png"
                     />
                   </div>
 
                   <div className="org-form-group">
-                    <label htmlFor="coverUrl" className="org-form-label">
-                      Link ảnh bìa
+                    <label htmlFor="cover" className="org-form-label">
+                      Ảnh bìa
                     </label>
                     <input
-                      type="url"
-                      id="coverUrl"
-                      name="coverUrl"
-                      value={formData.coverUrl}
-                      onChange={handleInputChange}
+                      type="file"
+                      id="cover"
+                      name="cover"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleImageFileChange}
                       className="org-input"
-                      placeholder="https://example.com/cover.png"
                     />
                   </div>
 
@@ -360,7 +403,7 @@ function UserOrganizationsPage() {
             <div className="org-modal-footer">
               <button
                 type="button"
-                onClick={() => setShowCreateModal(false)}
+                onClick={handleCloseCreateModal}
                 className="org-btn org-btn-secondary"
                 disabled={isCreating}
               >

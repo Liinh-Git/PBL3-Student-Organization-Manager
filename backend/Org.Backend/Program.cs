@@ -3,6 +3,7 @@ using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.EntityFrameworkCore;
@@ -15,9 +16,21 @@ using Org.Backend.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
+const long MaxUploadSizeBytes = 50 * 1024 * 1024;
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = MaxUploadSizeBytes;
+});
+
 // Add services to the container
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = MaxUploadSizeBytes;
+});
 
 // Add password hasher for seeding and authentication
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -116,6 +129,8 @@ if (app.Environment.IsDevelopment())
         try
         {
             dbContext.Database.Migrate();
+            await dbContext.Database.ExecuteSqlRawAsync(
+                "ALTER TABLE \"Events\" ADD COLUMN IF NOT EXISTS \"BannerUrl\" character varying(1000);");
             Console.WriteLine("[Migration] Database migrated successfully.");
         }
         catch (Exception ex)

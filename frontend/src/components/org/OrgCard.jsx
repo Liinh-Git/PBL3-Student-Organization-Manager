@@ -14,6 +14,15 @@
  * - createdAtUtc: Creation timestamp (optional)
  */
 
+function toAbsoluteMediaUrl(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const origin = apiBase.replace(/\/api\/?$/, "");
+  return url.startsWith("/") ? `${origin}${url}` : `${origin}/${url}`;
+}
+
 function OrgCard({ organization, onClick, onDelete, isDeleting = false }) {
   if (!organization) {
     return null;
@@ -41,17 +50,18 @@ function OrgCard({ organization, onClick, onDelete, isDeleting = false }) {
   };
 
   const displayDate = formatDate(foundingDate) || formatDate(createdAtUtc);
+  const avatarSrc = toAbsoluteMediaUrl(avatarUrl);
 
   return (
     <div className="org-card" onClick={() => onClick?.(id)}>
       <div className="org-card-top">
         <div className="org-card-logo">
-          {avatarUrl ? (
+          {avatarSrc ? (
             <img
-              src={avatarUrl}
-              alt={`${name} avatar`}
+              src={avatarSrc}
+              alt={`${name || "Organization"} avatar`}
               onError={(e) => {
-                e.target.style.display = "none";
+                e.currentTarget.style.display = "none";
               }}
             />
           ) : (

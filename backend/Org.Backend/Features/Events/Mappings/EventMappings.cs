@@ -18,6 +18,7 @@ public static class EventMappings
             Status = evt.Status.ToString(),
             Visibility = evt.Visibility.ToString(),
             Location = evt.Location,
+            BannerUrl = evt.BannerUrl,
             TargetParticipants = evt.TargetParticipants,
             Budget = evt.Budget,
             AverageRating = evt.AverageRating,
@@ -40,6 +41,7 @@ public static class EventMappings
             Status = evt.Status.ToString(),
             Visibility = evt.Visibility.ToString(),
             Location = evt.Location,
+            BannerUrl = evt.BannerUrl,
             TargetParticipants = evt.TargetParticipants
         };
     }
@@ -56,6 +58,7 @@ public static class EventMappings
             StartDate = evt.StartDate,
             EndDate = evt.EndDate,
             Location = evt.Location,
+            BannerUrl = evt.BannerUrl,
             Visibility = evt.Visibility.ToString(),
             Status = evt.Status.ToString()
         };

@@ -39,6 +39,9 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.Property(e => e.Location)
             .HasMaxLength(500);
 
+        builder.Property(e => e.BannerUrl)
+            .HasMaxLength(1000);
+
         builder.Property(e => e.Tags)
             .HasColumnType("jsonb");
 

@@ -12,6 +12,15 @@
 
 import httpClient from '../api/httpClient.js';
 
+function getApiErrorMessage(error, fallback) {
+  return (
+    error.response?.data?.errors?.[0] ||
+    error.response?.data?.message ||
+    error.message ||
+    fallback
+  );
+}
+
 /**
  * Get organization events
  * 
@@ -28,10 +37,15 @@ import httpClient from '../api/httpClient.js';
  * - Do not use mock fallback
  */
 export async function getOrganizationEvents(orgId) {
-  const response = await httpClient.get(`/organizations/${orgId}/events`);
+  let response;
+  try {
+    response = await httpClient.get(`/organizations/${orgId}/events`);
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to get organization events'));
+  }
   
   if (!response.data.success) {
-    throw new Error(response.data.message || 'Failed to get organization events');
+    throw new Error(response.data.errors?.[0] || response.data.message || 'Failed to get organization events');
   }
   
   return response.data.data; // Direct array, not data.items
@@ -137,6 +151,39 @@ export async function deleteEvent(id) {
     throw new Error(response.data.message || 'Failed to delete event');
   }
   
+  return response.data.data;
+}
+
+/**
+ * Upload event banner image and return relative media URL.
+ *
+ * Backend route: POST /api/event-banners
+ * Frontend path: /event-banners
+ * Input:
+ * - file: File
+ * Response:
+ * - ApiResponse<string> => "/uploads/events/..."
+ */
+export async function uploadEventBanner(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  let response;
+  try {
+    response = await httpClient.post('/event-banners', formData);
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.errors?.[0] ||
+      error.message ||
+      'Failed to upload event banner';
+    throw new Error(message);
+  }
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to upload event banner');
+  }
+
   return response.data.data;
 }
 

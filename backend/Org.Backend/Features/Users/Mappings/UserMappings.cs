@@ -30,6 +30,8 @@ public static class UserMappings
             Description = member.Organization.Description,
             AvatarUrl = member.Organization.AvatarUrl,
             CoverUrl = member.Organization.CoverUrl,
+            FoundingDate = member.Organization.FoundingDate,
+            CreatedAtUtc = member.Organization.CreatedAt,
             RoleId = member.RoleId ?? Guid.Empty,
             RoleName = member.Role?.RoleName ?? "Member",
             MemberId = member.Id,
@@ -49,6 +51,7 @@ public static class UserMappings
             Description = evt.Description,
             StartDate = evt.StartDate,
             EndDate = evt.EndDate,
+            BannerUrl = evt.BannerUrl,
             Status = evt.Status.ToString(),
             Visibility = evt.Visibility.ToString(),
             Location = evt.Location

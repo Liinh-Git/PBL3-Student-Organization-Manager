@@ -7,19 +7,13 @@ using Org.Shared.Features.Organizations;
 
 namespace Org.Backend.Features.Organizations.Endpoints;
 
-public class UploadOrganizationImageRequest
-{
-    public IFormFile? File { get; set; }
-    public string? Type { get; set; }
-}
-
 /// <summary>
 /// POST /api/organizations/{id}/upload-image
 /// multipart/form-data: file, type(avatar|cover)
 /// </summary>
-public class UploadOrganizationImageEndpoint : Endpoint<UploadOrganizationImageRequest, ApiResponse<OrganizationDto>>
+public class UploadOrganizationImageEndpoint : EndpointWithoutRequest<ApiResponse<OrganizationDto>>
 {
-    private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
+    private const long MaxFileSize = 50 * 1024 * 1024; // 50MB
     private readonly IOrganizationService _organizationService;
 
     public UploadOrganizationImageEndpoint(IOrganizationService organizationService)
@@ -33,7 +27,7 @@ public class UploadOrganizationImageEndpoint : Endpoint<UploadOrganizationImageR
         AllowFileUploads();
     }
 
-    public override async Task HandleAsync(UploadOrganizationImageRequest req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
         try
         {
@@ -53,21 +47,24 @@ public class UploadOrganizationImageEndpoint : Endpoint<UploadOrganizationImageR
                 return;
             }
 
-            if (req.File == null || req.File.Length == 0)
+            var form = await HttpContext.Request.ReadFormAsync(ct);
+            var file = form.Files.GetFile("file");
+            var type = form["type"].ToString().Trim().ToLowerInvariant();
+
+            if (file == null || file.Length == 0)
             {
                 HttpContext.Response.StatusCode = 400;
                 Response = ApiResponse<OrganizationDto>.ErrorResponse("File is required");
                 return;
             }
 
-            if (req.File.Length > MaxFileSize)
+            if (file.Length > MaxFileSize)
             {
                 HttpContext.Response.StatusCode = 400;
-                Response = ApiResponse<OrganizationDto>.ErrorResponse("File size must be <= 5MB");
+                Response = ApiResponse<OrganizationDto>.ErrorResponse("File size must be <= 50MB");
                 return;
             }
 
-            var type = (req.Type ?? string.Empty).Trim().ToLowerInvariant();
             if (type != "avatar" && type != "cover")
             {
                 HttpContext.Response.StatusCode = 400;
@@ -75,13 +72,13 @@ public class UploadOrganizationImageEndpoint : Endpoint<UploadOrganizationImageR
                 return;
             }
 
-            await using var stream = req.File.OpenReadStream();
+            await using var stream = file.OpenReadStream();
             var org = await _organizationService.UploadOrganizationImageAsync(
                 orgId,
                 userId,
                 stream,
-                req.File.FileName,
-                req.File.ContentType,
+                file.FileName,
+                file.ContentType,
                 type,
                 ct);
 

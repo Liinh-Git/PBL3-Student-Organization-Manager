@@ -30,6 +30,8 @@ public record MyOrganizationDto
     public string? Description { get; init; }
     public string? AvatarUrl { get; init; }
     public string? CoverUrl { get; init; }
+    public DateTime? FoundingDate { get; init; }
+    public required DateTime CreatedAtUtc { get; init; }
     public required Guid RoleId { get; init; }
     public required string RoleName { get; init; }
     public required Guid MemberId { get; init; }
@@ -49,6 +51,7 @@ public record MyEventDto
     public string? Description { get; init; }
     public required DateTime StartDate { get; init; }
     public required DateTime EndDate { get; init; }
+    public string? BannerUrl { get; init; }
     public required string Status { get; init; }
     public required string Visibility { get; init; }
     public string? Location { get; init; }

@@ -21,13 +21,34 @@
 
 import EventStatusBadge from './EventStatusBadge';
 
+function toAbsoluteMediaUrl(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const origin = apiBase.replace(/\/api\/?$/, "");
+  return url.startsWith("/") ? `${origin}${url}` : `${origin}/${url}`;
+}
+
 function EventCard({ event, onView }) {
   const eventName = event?.name || event?.eventName || 'Untitled Event';
   const organizationName = event?.organizationName || event?.orgName || event?.organization?.orgName || '-';
   const participationLabel = event?.participationRole || event?.participantRole || event?.relationType || null;
+  const bannerSrc = toAbsoluteMediaUrl(event?.bannerUrl || event?.coverUrl || event?.avatarUrl);
 
   return (
     <div className="app-card app-card--interactive">
+      {bannerSrc ? (
+        <img
+          src={bannerSrc}
+          alt={`${eventName} banner`}
+          style={{ width: "100%", maxHeight: 180, objectFit: "cover" }}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      ) : null}
+
       <div className="app-section-header">
         <h4 className="app-section-title">{eventName}</h4>
         <EventStatusBadge status={event?.status} />

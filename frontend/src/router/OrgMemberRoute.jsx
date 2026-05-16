@@ -33,7 +33,8 @@ function OrgMemberRoute() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const orgId = searchParams.get('orgId');
-  const { isMember, isLoading, loadWorkspaceOrg, orgId: currentOrgId } = useOrgContext();
+  const { isMember, isLoading, error, loadWorkspaceOrg, orgId: currentOrgId } = useOrgContext();
+  const isOrgContextPending = !!orgId && orgId !== currentOrgId;
 
   useEffect(() => {
     if (orgId) {
@@ -47,12 +48,16 @@ function OrgMemberRoute() {
     }
   }, [orgId, currentOrgId, loadWorkspaceOrg, navigate]);
 
-  if (isLoading) {
+  if (isLoading || isOrgContextPending) {
     return <LoadingSpinner />;
   }
 
   if (!orgId) {
     return <ErrorState message="Organization ID is required" />;
+  }
+
+  if (error) {
+    return <ErrorState message={error.message || "Failed to load organization"} />;
   }
 
   if (!isMember) {
