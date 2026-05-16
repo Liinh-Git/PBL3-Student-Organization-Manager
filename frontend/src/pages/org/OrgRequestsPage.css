@@ -1,0 +1,317 @@
+.org-requests-page {
+  padding-bottom: 2rem;
+}
+
+.org-requests-section {
+  gap: 1.1rem;
+}
+
+.org-requests-create {
+  border-color: rgba(31, 79, 122, 0.2);
+  background: linear-gradient(180deg, #ffffff 0%, #f5f8fb 100%);
+}
+
+.org-requests-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.org-requests-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.org-requests-form-actions {
+  justify-content: flex-end;
+}
+
+.org-requests-summary-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.org-requests-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-left: 4px solid var(--summary-accent);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.org-requests-summary-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.7) 100%);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.org-requests-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+
+.org-requests-summary-card:hover::after {
+  opacity: 1;
+}
+
+.org-requests-summary-card--primary {
+  --summary-accent: var(--brand-700);
+  --summary-bg: rgba(31, 79, 122, 0.12);
+}
+
+.org-requests-summary-card--warning {
+  --summary-accent: var(--warning-500);
+  --summary-bg: rgba(183, 121, 31, 0.16);
+}
+
+.org-requests-summary-card--success {
+  --summary-accent: var(--success-500);
+  --summary-bg: rgba(22, 133, 87, 0.14);
+}
+
+.org-requests-summary-card--danger {
+  --summary-accent: var(--danger-500);
+  --summary-bg: rgba(180, 35, 24, 0.14);
+}
+
+.org-requests-summary-label {
+  color: var(--ink-500);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.org-requests-summary-value {
+  color: var(--ink-900);
+  font-size: 1.5rem;
+  font-weight: 850;
+  margin-top: 0.25rem;
+}
+
+.org-requests-summary-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--summary-bg);
+  color: var(--summary-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease;
+}
+
+.org-requests-summary-card:hover .org-requests-summary-icon {
+  transform: scale(1.06);
+}
+
+.org-requests-filter-card .app-section-header {
+  margin-bottom: 0.6rem;
+}
+
+.org-requests-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.org-requests-filter-button {
+  border-color: var(--border-soft);
+  background: var(--surface-card);
+  color: var(--ink-700);
+}
+
+.org-requests-filter-button--active {
+  background: var(--brand-700);
+  border-color: var(--brand-700);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(16, 47, 73, 0.2);
+}
+
+.org-requests-list-header {
+  margin-top: 0.35rem;
+}
+
+.org-requests-count {
+  font-weight: 800;
+}
+
+.org-requests-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.org-requests-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.25rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.org-requests-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+  border-color: rgba(255, 155, 81, 0.55);
+}
+
+.org-requests-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.org-requests-card-sender {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.org-requests-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #102f49 0%, #1f4f7a 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  flex-shrink: 0;
+  box-shadow: 0 10px 18px rgba(16, 47, 73, 0.2);
+}
+
+.org-requests-sender-name {
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.org-requests-sender-email {
+  color: var(--ink-600);
+  font-size: 0.82rem;
+}
+
+.org-requests-status {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 800;
+}
+
+.org-requests-status--rejected {
+  border-color: #f1c4bd;
+  background: #fff3f1;
+  color: var(--danger-500);
+}
+
+.org-requests-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.org-requests-chip {
+  background: var(--surface-subtle);
+  border-color: var(--border-soft);
+  color: var(--ink-700);
+}
+
+.org-requests-chip--accent {
+  background: #fff7ed;
+  border-color: rgba(255, 155, 81, 0.35);
+  color: #8a3f00;
+}
+
+.org-requests-title {
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.org-requests-content {
+  margin-top: 0.4rem;
+  color: var(--ink-700);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 0.75rem;
+  line-height: 1.6;
+}
+
+.org-requests-meta {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--ink-600);
+  font-size: 0.82rem;
+}
+
+.org-requests-timeline {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.org-requests-review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.org-requests-review-note {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: var(--bg-muted);
+  padding: 0.7rem;
+  color: var(--ink-700);
+}
+
+.org-requests-review-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+}
+
+.org-requests-review-text {
+  margin-top: 0.35rem;
+}
+
+.org-requests-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.org-requests-actions .app-button--primary {
+  box-shadow: 0 8px 18px rgba(16, 47, 73, 0.18);
+}
+
+.org-requests-actions .app-button--danger {
+  box-shadow: 0 6px 14px rgba(180, 35, 24, 0.12);
+}
+
+.org-requests-actions-muted {
+  color: var(--ink-500);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 720px) {
+  .org-requests-card-header {
+    align-items: flex-start;
+  }
+
+  .org-requests-actions .app-action-row {
+    width: 100%;
+  }
+
+  .org-requests-actions .app-button {
+    flex: 1;
+  }
+}
