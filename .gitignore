@@ -378,3 +378,6 @@ desktop.ini
 *.db
 *.md5
 *.sha1
+
+# Agent skills
+.codex

@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 import {
   discoverMyOrganizations,
   getMyOrganizations,
+  getMyEvents,
 } from "../../services/userService.js";
 import {
+  cancelEventRegistration,
   getOrganizationEvents,
   getPublicEvents,
+  registerForEvent,
 } from "../../services/eventService.js";
 import { getOrganizationMembers } from "../../services/memberService.js";
 import {
@@ -355,6 +358,9 @@ function UserDiscoverPage() {
 
   const [organizations, setOrganizations] = useState([]);
   const [events, setEvents] = useState([]);
+  const [myEventRoleMap, setMyEventRoleMap] = useState({});
+  const [eventRegistrationMap, setEventRegistrationMap] = useState({});
+  const [processingEventId, setProcessingEventId] = useState(null);
   const [myOrgIds, setMyOrgIds] = useState([]);
   const [myOrganizations, setMyOrganizations] = useState([]);
   const [orgMemberUserIdsMap, setOrgMemberUserIdsMap] = useState({});
@@ -451,6 +457,7 @@ function UserDiscoverPage() {
       const [
         orgIds,
         publicEvents,
+        myEvents,
         friendRequestsResult,
         outgoingRequestsResult,
         myFriendsResult,
@@ -459,6 +466,7 @@ function UserDiscoverPage() {
       ] = await Promise.all([
         syncMembershipAndPendingState(),
         getPublicEvents(),
+        getMyEvents(),
         getFriendRequests()
           .then((d) => ({ ok: true, d }))
           .catch((e) => ({ ok: false, e })),
@@ -547,6 +555,20 @@ function UserDiscoverPage() {
           uniqueEventMap.set(eventId, event);
       }
       setEvents(Array.from(uniqueEventMap.values()));
+
+      const roleMap = {};
+      const registrationMap = {};
+      (myEvents || []).forEach((evt) => {
+        if (!evt?.id) return;
+        if (evt?.participationRole) {
+          roleMap[evt.id] = evt.participationRole;
+        }
+        if (evt?.participationRole === "Attendee") {
+          registrationMap[evt.id] = evt?.attendanceStatus !== "Cancelled";
+        }
+      });
+      setMyEventRoleMap(roleMap);
+      setEventRegistrationMap(registrationMap);
     } catch (err) {
       setError(err.message || "Không tải được trang Khám phá");
     } finally {
@@ -602,6 +624,45 @@ function UserDiscoverPage() {
       setError(err.message || "Không xử lý được yêu cầu");
     } finally {
       setRequestingOrgId(null);
+    }
+  };
+
+  const getDiscoverEventRole = useCallback(
+    (event) => {
+      const eventId = event?.id || event?.eventId;
+      const roleFromMyEvents = eventId ? myEventRoleMap[eventId] : null;
+      if (roleFromMyEvents === "OrganizationMember") return "OrganizationMember";
+      if (roleFromMyEvents === "Attendee") return "Attendee";
+      if (event?.organizationId && myOrgIds.includes(event.organizationId)) {
+        return "OrganizationMember";
+      }
+      return "Attendee";
+    },
+    [myEventRoleMap, myOrgIds],
+  );
+
+  const handleToggleDiscoverEventRegistration = async (event) => {
+    const eventId = event?.id || event?.eventId;
+    if (!eventId) return;
+
+    const status = String(event?.status || "").toLowerCase();
+    if (["cancelled", "archived", "completed"].includes(status)) return;
+
+    setProcessingEventId(eventId);
+    setError(null);
+    try {
+      const isRegistered = !!eventRegistrationMap[eventId];
+      if (isRegistered) {
+        await cancelEventRegistration(eventId, {});
+        setEventRegistrationMap((prev) => ({ ...prev, [eventId]: false }));
+      } else {
+        await registerForEvent(eventId, {});
+        setEventRegistrationMap((prev) => ({ ...prev, [eventId]: true }));
+      }
+    } catch (err) {
+      setError(err.message || "Không thể cập nhật trạng thái ghi danh");
+    } finally {
+      setProcessingEventId(null);
     }
   };
 
@@ -1116,13 +1177,61 @@ function UserDiscoverPage() {
                   <EmptyState message="Không có sự kiện nào" />
                 ) : (
                   <div className="discover-events-grid">
-                    {events.map((event) => (
-                      <EventCard
-                        key={event?.id || event?.eventId}
-                        event={event}
-                        onView={() => handleViewEvent(event)}
-                      />
-                    ))}
+                    {events.map((event) => {
+                      const eventId = event?.id || event?.eventId;
+                      const role = getDiscoverEventRole(event);
+                      const isMemberEvent = role === "OrganizationMember";
+                      const isRegistered = !!eventRegistrationMap[eventId];
+                      const isBusy = processingEventId === eventId;
+                      const status = String(event?.status || "").toLowerCase();
+                      const canToggle = !["cancelled", "archived", "completed"].includes(status);
+
+                      return (
+                        <EventCard
+                          key={eventId}
+                          event={event}
+                          showDetailButton={false}
+                          footerActions={
+                            <>
+                              <button
+                                type="button"
+                                className="app-button app-button--ghost"
+                                onClick={() => handleViewEvent(event)}
+                              >
+                                Xem chi tiết
+                              </button>
+                              {isMemberEvent ? (
+                                <button
+                                  type="button"
+                                  className="app-button app-button--primary"
+                                  onClick={() =>
+                                    navigate(
+                                      `/org/events/${eventId}?orgId=${event.organizationId}`,
+                                    )
+                                  }
+                                  disabled={!event?.organizationId}
+                                >
+                                  Vào workspace
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className={`app-button ${isRegistered ? "app-button--secondary" : "app-button--primary"}`}
+                                  onClick={() => handleToggleDiscoverEventRegistration(event)}
+                                  disabled={isBusy || !canToggle}
+                                >
+                                  {isBusy
+                                    ? "Đang xử lý..."
+                                    : isRegistered
+                                      ? "Hủy tham gia"
+                                      : "Tham gia"}
+                                </button>
+                              )}
+                            </>
+                          }
+                        />
+                      );
+                    })}
                   </div>
                 ))}
             </div>
