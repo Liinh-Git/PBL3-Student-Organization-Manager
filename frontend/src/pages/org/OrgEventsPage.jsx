@@ -558,7 +558,7 @@ function OrgEventsPage() {
         }
 
         .org-events-shell {
-          width: min(1120px, 100%);
+          width: 100%;
         }
 
         .org-events-header {

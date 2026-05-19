@@ -3,7 +3,8 @@
 */
 
 .settings-modern-page .settings-wrapper {
-  max-width: 900px;
+  max-width: none;
+  width: 100%;
   margin: 0; /* Lệch trái theo flow gốc */
 }
 

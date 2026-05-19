@@ -41,7 +41,7 @@
   height: 120px;
   background: var(--success-500);
   border: 5px solid var(--bg-muted);
-  border-radius: 20px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
