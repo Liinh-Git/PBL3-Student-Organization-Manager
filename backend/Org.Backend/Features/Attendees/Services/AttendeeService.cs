@@ -122,6 +122,109 @@ public class AttendeeService : IAttendeeService
         };
     }
 
+    public async Task<AttendeeRegistrationDto> RequestMyCheckInAsync(
+        Guid eventId,
+        Guid userId,
+        RequestCheckInRequest request,
+        CancellationToken ct = default)
+    {
+        var evt = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId, ct);
+        if (evt == null)
+        {
+            throw new KeyNotFoundException("Event not found");
+        }
+
+        if (evt.Status is EventStatus.Cancelled or EventStatus.Completed)
+        {
+            throw new InvalidOperationException("This event is no longer accepting check-in requests");
+        }
+
+        var attendee = await _context.Attendees
+            .FirstOrDefaultAsync(a => a.EventId == eventId && a.UserId == userId, ct);
+
+        if (attendee == null || attendee.Status == AttendeeStatus.Cancelled)
+        {
+            throw new InvalidOperationException("You are not registered for this event");
+        }
+
+        if (attendee.Status == AttendeeStatus.CheckedIn)
+        {
+            throw new InvalidOperationException("You have already checked in");
+        }
+
+        if (attendee.Status == AttendeeStatus.CheckInPending)
+        {
+            throw new InvalidOperationException("Your check-in request is already pending approval");
+        }
+
+        var nowUtc = DateTime.UtcNow;
+        var startUtc = evt.StartDate.Kind == DateTimeKind.Utc
+            ? evt.StartDate
+            : DateTime.SpecifyKind(evt.StartDate, DateTimeKind.Utc);
+        var openAtUtc = startUtc.AddHours(-1);
+        var closeAtUtc = startUtc.Date.AddDays(1);
+
+        if (nowUtc < openAtUtc)
+        {
+            throw new InvalidOperationException("Check-in opens 1 hour before the event starts");
+        }
+
+        if (nowUtc >= closeAtUtc)
+        {
+            throw new InvalidOperationException("Check-in is closed for this event");
+        }
+
+        attendee.Status = AttendeeStatus.CheckInPending;
+        attendee.Note = request.Note?.Trim() ?? attendee.Note;
+        attendee.UpdatedAt = nowUtc;
+
+        await _context.SaveChangesAsync(ct);
+
+        var isEventMember = await IsEventOrganizerAsync(evt, userId, ct);
+        return attendee.ToRegistrationDto(userId, isEventMember);
+    }
+
+    public async Task<AttendeeDto> ReviewCheckInAsync(
+        Guid attendeeId,
+        Guid reviewerUserId,
+        ReviewCheckInRequest request,
+        CancellationToken ct = default)
+    {
+        var attendee = await _context.Attendees
+            .Include(a => a.User)
+            .Include(a => a.Event)
+            .FirstOrDefaultAsync(a => a.Id == attendeeId, ct);
+
+        if (attendee == null)
+        {
+            throw new KeyNotFoundException("Attendee not found");
+        }
+
+        var canReview = await IsEventOrganizerAsync(attendee.Event, reviewerUserId, ct);
+        if (!canReview)
+        {
+            throw new UnauthorizedAccessException("Only event organizers can review check-in requests");
+        }
+
+        if (attendee.Status == AttendeeStatus.CheckedIn)
+        {
+            throw new InvalidOperationException("Attendee has already checked in");
+        }
+
+        if (attendee.Status != AttendeeStatus.CheckInPending)
+        {
+            throw new InvalidOperationException("No pending check-in request to review");
+        }
+
+        attendee.Status = request.Approve ? AttendeeStatus.CheckedIn : AttendeeStatus.Registered;
+        attendee.CheckedInAt = request.Approve ? DateTime.UtcNow : null;
+        attendee.Note = request.Note?.Trim() ?? attendee.Note;
+        attendee.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+        return attendee.ToAttendeeDto();
+    }
+
     private async Task<Attendee> RegisterInternalAsync(Guid eventId, Guid userId, string? note, CancellationToken ct)
     {
         var evt = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId, ct);

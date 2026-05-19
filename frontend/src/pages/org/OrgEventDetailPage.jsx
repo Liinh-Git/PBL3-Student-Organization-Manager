@@ -36,6 +36,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "../../services/categoryService.js";
+import { reviewAttendeeCheckIn } from "../../services/attendeeService.js";
 import PageHeader from "../../components/shared/PageHeader";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
@@ -235,6 +236,32 @@ function OrgEventDetailPage() {
   const formatTime = (value) => {
     if (!value || !String(value).includes("T")) return "-";
     return String(value).split("T")[1].substring(0, 5);
+  };
+
+  const getAttendeeCheckInLabel = (status) => {
+    const normalized = String(status || "").toLowerCase();
+    if (normalized === "checkedin") return "Đã check-in";
+    if (normalized === "checkinpending") return "Xác thực check-in";
+    if (normalized === "registered") return "Chưa check-in";
+    return status || "-";
+  };
+
+  const handleReviewCheckIn = async (attendeeId, approve) => {
+    if (!canManageEventMembers) {
+      alert("Bạn không có quyền thực hiện thao tác này");
+      return;
+    }
+    setIsEventMemberSubmitting(true);
+    try {
+      const updated = await reviewAttendeeCheckIn(attendeeId, approve);
+      setAttendees((prev) =>
+        prev.map((item) => (item.id === attendeeId ? { ...item, ...updated } : item)),
+      );
+    } catch (err) {
+      alert(err.message || "Failed to review check-in");
+    } finally {
+      setIsEventMemberSubmitting(false);
+    }
   };
 
   const allowedTaskStatuses = ["Todo", "InProgress", "Done"];
@@ -1743,20 +1770,47 @@ function OrgEventDetailPage() {
             <tr>
               <th>Họ tên</th>
               <th>Email</th>
-              <th>Trạng thái</th>
-              <th>Thời điểm ghi danh</th>
+              <th>Số điện thoại</th>
+              <th>Thời gian đăng ký</th>
+              <th>Trạng thái check-in</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {attendees.length === 0 ? (
-              <tr><td colSpan={4}>Chưa có người tham gia.</td></tr>
+              <tr><td colSpan={6}>Chưa có người tham gia.</td></tr>
             ) : (
               attendees.map((attendee) => (
                 <tr key={attendee.id}>
                   <td>{attendee.fullName || "-"}</td>
                   <td>{attendee.email || "-"}</td>
-                  <td>{attendee.status || "-"}</td>
+                  <td>{attendee.phoneNumber || "-"}</td>
                   <td>{formatDate(attendee.registeredAtUtc || attendee.createdAtUtc)}</td>
+                  <td>{getAttendeeCheckInLabel(attendee.status)}</td>
+                  <td>
+                    {String(attendee.status || "") === "CheckInPending" && canManageEventMembers ? (
+                      <div style={{ display: "inline-flex", gap: "8px" }}>
+                        <button
+                          type="button"
+                          className="mini-primary-button"
+                          onClick={() => handleReviewCheckIn(attendee.id, true)}
+                          disabled={isEventMemberSubmitting}
+                        >
+                          Duyệt
+                        </button>
+                        <button
+                          type="button"
+                          className="mini-ghost-button"
+                          onClick={() => handleReviewCheckIn(attendee.id, false)}
+                          disabled={isEventMemberSubmitting}
+                        >
+                          Từ chối
+                        </button>
+                      </div>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
                 </tr>
               ))
             )}

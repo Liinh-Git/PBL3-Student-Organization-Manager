@@ -5,6 +5,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner.jsx";
 import ErrorState from "../../components/shared/ErrorState.jsx";
 import {
   getEventById,
+  cancelEventRegistration,
   getPublicEventById,
   updateEvent,
 } from "../../services/eventService.js";
@@ -12,6 +13,7 @@ import { getMyPermissions } from "../../services/roleService.js";
 import {
   getMyEventRegistration,
   joinEvent,
+  requestMyCheckIn,
 } from "../../services/attendeeService.js";
 import "./EventDetailPage.css";
 
@@ -116,6 +118,8 @@ function EventDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [joinState, setJoinState] = useState({ isRegistered: false, status: null, isEventMember: false });
   const [isJoining, setIsJoining] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isRequestingCheckIn, setIsRequestingCheckIn] = useState(false);
   const orgId = searchParams.get("orgId");
   const from = searchParams.get("from");
   const startMode = searchParams.get("mode");
@@ -218,6 +222,31 @@ function EventDetailPage() {
   }, [eventData]);
 
   const statusTone = useMemo(() => getStatusTone(eventData?.status), [eventData?.status]);
+
+  const checkInWindow = useMemo(() => {
+    if (!eventData?.startDate) {
+      return { isOpen: false, reason: "Check-in chưa mở" };
+    }
+
+    const startAt = new Date(eventData.startDate);
+    if (Number.isNaN(startAt.getTime())) {
+      return { isOpen: false, reason: "Check-in chưa mở" };
+    }
+
+    const openAt = new Date(startAt.getTime() - 60 * 60 * 1000);
+    const closeAt = new Date(startAt);
+    closeAt.setHours(0, 0, 0, 0);
+    closeAt.setDate(closeAt.getDate() + 1);
+
+    const now = new Date();
+    if (now < openAt) {
+      return { isOpen: false, reason: "Mở trước sự kiện 1 giờ" };
+    }
+    if (now >= closeAt) {
+      return { isOpen: false, reason: "Đã quá thời hạn check-in" };
+    }
+    return { isOpen: true, reason: "" };
+  }, [eventData?.startDate]);
   const participantSummary = useMemo(() => {
     const registered = Number(eventData?.registeredParticipants ?? 0);
     const safeRegistered = Number.isFinite(registered) ? Math.max(0, registered) : 0;
@@ -302,6 +331,40 @@ function EventDetailPage() {
       alert(err.message || "Failed to join event");
     } finally {
       setIsJoining(false);
+    }
+  };
+
+  const handleCancelRegistration = async () => {
+    if (!isAuthenticated || !joinState.isRegistered || joinState.isEventMember) return;
+    setIsCancelling(true);
+    try {
+      const response = await cancelEventRegistration(eventId, {});
+      setJoinState({
+        isRegistered: !!response?.isRegistered,
+        status: response?.status || "Cancelled",
+        isEventMember: !!response?.isEventMember,
+      });
+    } catch (err) {
+      alert(err.message || "Failed to cancel registration");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const handleRequestCheckIn = async () => {
+    if (!isAuthenticated || !joinState.isRegistered || joinState.isEventMember) return;
+    setIsRequestingCheckIn(true);
+    try {
+      const response = await requestMyCheckIn(eventId, {});
+      setJoinState((prev) => ({
+        ...prev,
+        isRegistered: !!response?.isRegistered,
+        status: response?.status || prev.status || "CheckInPending",
+      }));
+    } catch (err) {
+      alert(err.message || "Failed to request check-in");
+    } finally {
+      setIsRequestingCheckIn(false);
     }
   };
 
@@ -506,8 +569,13 @@ function EventDetailPage() {
                   Tham gia với tư cách BTC
                 </button>
               ) : joinState.isRegistered ? (
-                <button type="button" className="event-remix-btn-join" disabled>
-                  Bạn đã đăng ký ({joinState.status || "Registered"})
+                <button
+                  type="button"
+                  className="event-remix-btn-join"
+                  onClick={handleCancelRegistration}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? "Đang hủy..." : "Hủy đăng ký"}
                 </button>
               ) : (
                 <button
@@ -526,6 +594,52 @@ function EventDetailPage() {
                 onClick={() => navigate("/login")}
               >
                 Đăng nhập để tham gia
+              </button>
+            )}
+          </div>
+
+          <div className="event-remix-action-widget">
+            <h3>Check-in sự kiện</h3>
+            <p>Chỉ mở trong cửa sổ thời gian hợp lệ của ngày diễn ra sự kiện.</p>
+            {isAuthenticated ? (
+              joinState.isEventMember ? (
+                <button type="button" className="event-remix-btn-join" disabled>
+                  BTC không check-in attendee
+                </button>
+              ) : !joinState.isRegistered ? (
+                <button type="button" className="event-remix-btn-join" disabled>
+                  Cần đăng ký trước khi check-in
+                </button>
+              ) : joinState.status === "CheckedIn" ? (
+                <button type="button" className="event-remix-btn-join" disabled>
+                  Bạn đã check-in
+                </button>
+              ) : joinState.status === "CheckInPending" ? (
+                <button type="button" className="event-remix-btn-join" disabled>
+                  Đã gửi yêu cầu check-in
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="event-remix-btn-join"
+                  onClick={handleRequestCheckIn}
+                  disabled={isRequestingCheckIn || !checkInWindow.isOpen}
+                  title={checkInWindow.isOpen ? "Gửi yêu cầu check-in" : checkInWindow.reason}
+                >
+                  {isRequestingCheckIn
+                    ? "Đang gửi yêu cầu..."
+                    : checkInWindow.isOpen
+                      ? "Gửi yêu cầu check-in"
+                      : checkInWindow.reason || "Check-in chưa mở"}
+                </button>
+              )
+            ) : (
+              <button
+                type="button"
+                className="event-remix-btn-join"
+                onClick={() => navigate("/login")}
+              >
+                Đăng nhập để check-in
               </button>
             )}
           </div>

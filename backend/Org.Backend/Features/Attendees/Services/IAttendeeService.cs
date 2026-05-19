@@ -10,4 +10,6 @@ public interface IAttendeeService
     Task<AttendeeRegistrationDto> RegisterMeAsync(Guid eventId, Guid userId, CancellationToken ct = default);
     Task<AttendeeDto> CancelRegistrationAsync(Guid eventId, Guid userId, CancelEventRegistrationRequest request, CancellationToken ct = default);
     Task<AttendeeRegistrationDto> UnregisterAsync(Guid eventId, Guid userId, AttendeeRegistrationUpdateDto updateDto, CancellationToken ct = default);
+    Task<AttendeeRegistrationDto> RequestMyCheckInAsync(Guid eventId, Guid userId, RequestCheckInRequest request, CancellationToken ct = default);
+    Task<AttendeeDto> ReviewCheckInAsync(Guid attendeeId, Guid reviewerUserId, ReviewCheckInRequest request, CancellationToken ct = default);
 }

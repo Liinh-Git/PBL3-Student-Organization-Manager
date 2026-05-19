@@ -46,3 +46,14 @@ public record AttendeeRegistrationUpdateDto
 {
     public string? Note { get; init; }
 }
+
+public record RequestCheckInRequest
+{
+    public string? Note { get; init; }
+}
+
+public record ReviewCheckInRequest
+{
+    public required bool Approve { get; init; }
+    public string? Note { get; init; }
+}

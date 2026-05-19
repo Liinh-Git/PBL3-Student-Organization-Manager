@@ -50,3 +50,30 @@ export async function joinEvent(eventId) {
     throw new Error(getApiErrorMessage(error, 'Failed to join event'));
   }
 }
+
+export async function requestMyCheckIn(eventId, payload = {}) {
+  try {
+    const response = await httpClient.post(`/events/${eventId}/attendees/me/check-in-request`, payload);
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to request check-in');
+    }
+    return response.data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to request check-in'));
+  }
+}
+
+export async function reviewAttendeeCheckIn(attendeeId, approve, note) {
+  try {
+    const response = await httpClient.put(`/attendees/${attendeeId}/check-in-review`, {
+      approve: !!approve,
+      note: note || undefined,
+    });
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to review check-in');
+    }
+    return response.data.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to review check-in'));
+  }
+}

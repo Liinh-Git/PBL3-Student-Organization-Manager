@@ -7,8 +7,8 @@ namespace Org.Backend.Domain.Enums;
 public enum AttendeeStatus
 {
     Registered,
+    CheckInPending,
     CheckedIn,
     Cancelled,
-    NoShow,
-    Waitlisted
+    NoShow
 }
