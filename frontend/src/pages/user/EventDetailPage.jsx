@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth.js";
 import LoadingSpinner from "../../components/shared/LoadingSpinner.jsx";
 import ErrorState from "../../components/shared/ErrorState.jsx";
@@ -101,6 +101,7 @@ function getStatusTone(status) {
 
 function EventDetailPage() {
   const { eventId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
@@ -113,8 +114,18 @@ function EventDetailPage() {
   const [draft, setDraft] = useState(null);
   const [editingField, setEditingField] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [joinState, setJoinState] = useState({ isRegistered: false, status: null });
+  const [joinState, setJoinState] = useState({ isRegistered: false, status: null, isEventMember: false });
   const [isJoining, setIsJoining] = useState(false);
+  const orgId = searchParams.get("orgId");
+  const from = searchParams.get("from");
+  const startMode = searchParams.get("mode");
+  const handleBack = () => {
+    if (from === "org-workspace" && orgId) {
+      navigate(`/org/events/${eventId}?orgId=${orgId}`);
+      return;
+    }
+    navigate(-1);
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -160,16 +171,17 @@ function EventDetailPage() {
           }
         }
 
-        let registration = { isRegistered: false, status: null };
+        let registration = { isRegistered: false, status: null, isEventMember: false };
         if (isAuthenticated) {
           try {
             const response = await getMyEventRegistration(eventId);
             registration = {
               isRegistered: !!response?.isRegistered && response?.status !== "Cancelled",
               status: response?.status || null,
+              isEventMember: !!response?.isEventMember,
             };
           } catch {
-            registration = { isRegistered: false, status: null };
+            registration = { isRegistered: false, status: null, isEventMember: false };
           }
         }
 
@@ -226,6 +238,12 @@ function EventDetailPage() {
     }
   }, [canEditEvent, viewMode]);
 
+  useEffect(() => {
+    if (startMode === "edit" && canEditEvent) {
+      setViewMode("edit");
+    }
+  }, [startMode, canEditEvent]);
+
   const handleSave = async () => {
     if (!canEditEvent || !draft) return;
     if (!draft.eventName?.trim()) {
@@ -278,6 +296,7 @@ function EventDetailPage() {
       setJoinState({
         isRegistered: !!response?.isRegistered,
         status: response?.status || "Registered",
+        isEventMember: !!response?.isEventMember,
       });
     } catch (err) {
       alert(err.message || "Failed to join event");
@@ -303,7 +322,7 @@ function EventDetailPage() {
           <button
             type="button"
             className="event-remix-back-btn"
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
           >
             <span>‹</span> Trở về
           </button>
@@ -384,10 +403,36 @@ function EventDetailPage() {
         <button
           type="button"
           className="event-remix-back-btn"
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
         >
           <span>‹</span> Trở về
         </button>
+        {canEditEvent && (
+          <div style={{ display: "inline-flex", gap: "8px", marginLeft: "8px" }}>
+            {viewMode === "edit" ? (
+              <>
+                <button type="button" className="event-remix-back-btn" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? "Đang lưu..." : "Lưu"}
+                </button>
+                <button
+                  type="button"
+                  className="event-remix-back-btn"
+                  onClick={() => {
+                    setDraft(buildDraft(eventData));
+                    setEditingField(null);
+                    setViewMode("preview");
+                  }}
+                >
+                  Hủy sửa
+                </button>
+              </>
+            ) : (
+              <button type="button" className="event-remix-back-btn" onClick={() => setViewMode("edit")}>
+                Chỉnh sửa
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <section className="event-remix-hero">
@@ -456,7 +501,11 @@ function EventDetailPage() {
             <h3>Đăng ký tham gia</h3>
             <p>Giữ chỗ ngay hôm nay để không bỏ lỡ sự kiện hấp dẫn nhất.</p>
             {isAuthenticated ? (
-              joinState.isRegistered ? (
+              joinState.isEventMember ? (
+                <button type="button" className="event-remix-btn-join" disabled>
+                  Tham gia với tư cách BTC
+                </button>
+              ) : joinState.isRegistered ? (
                 <button type="button" className="event-remix-btn-join" disabled>
                   Bạn đã đăng ký ({joinState.status || "Registered"})
                 </button>

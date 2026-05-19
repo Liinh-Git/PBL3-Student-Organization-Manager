@@ -286,3 +286,27 @@ export async function cancelEventRegistration(id, payload = {}) {
 
   return response.data.data;
 }
+
+export async function getEventMembers(id) {
+  const response = await httpClient.get(`/events/${id}/members`);
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to get event members');
+  }
+  return response.data.data;
+}
+
+export async function addEventMembers(id, payload) {
+  const response = await httpClient.post(`/events/${id}/members`, payload);
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to add event members');
+  }
+  return response.data.data;
+}
+
+export async function removeEventMember(eventMemberId) {
+  const response = await httpClient.delete(`/event-members/${eventMemberId}`);
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to remove event member');
+  }
+  return response.data.data;
+}

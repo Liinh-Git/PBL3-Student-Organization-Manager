@@ -103,6 +103,7 @@ builder.Services.AddScoped<Org.Backend.Features.Friends.Services.IFriendService,
 builder.Services.AddScoped<Org.Backend.Features.Discover.Services.IDiscoverService, Org.Backend.Features.Discover.Services.DiscoverService>();
 builder.Services.AddScoped<Org.Backend.Features.Invitations.Services.IInvitationService, Org.Backend.Features.Invitations.Services.InvitationService>();
 builder.Services.AddScoped<Org.Backend.Features.Attendees.Services.IAttendeeService, Org.Backend.Features.Attendees.Services.AttendeeService>();
+builder.Services.AddScoped<Org.Backend.Features.EventMembers.Services.IEventMemberService, Org.Backend.Features.EventMembers.Services.EventMemberService>();
 
 // Add FastEndpoints
 builder.Services.AddFastEndpoints();

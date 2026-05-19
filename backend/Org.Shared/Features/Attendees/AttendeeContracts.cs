@@ -31,6 +31,7 @@ public record AttendeeRegistrationDto
 {
     public required Guid EventId { get; init; }
     public required Guid UserId { get; init; }
+    public bool IsEventMember { get; init; }
     public required bool IsRegistered { get; init; }
     public Guid? AttendeeId { get; init; }
     public string? Status { get; init; }

@@ -49,6 +49,11 @@ public record CreateEventRequest
     /// Target number of participants (optional)
     /// </summary>
     public int? TargetParticipants { get; init; }
+
+    /// <summary>
+    /// Initial organization member IDs who will organize this event.
+    /// </summary>
+    public List<Guid>? InitialMemberIds { get; init; }
 }
 
 /// <summary>

@@ -113,6 +113,7 @@ function PublicEventDetailPage() {
   }, [eventId, isAuthenticated]);
 
   const activeRegistration = registration && registration.status !== 'Cancelled' ? registration : null;
+  const isEventMember = !!registration?.isEventMember;
 
   const handleRegister = async () => {
     if (!isAuthenticated) {
@@ -371,7 +372,19 @@ function PublicEventDetailPage() {
 
           <aside className="public-registration-panel">
             <h3>Registration</h3>
-            {activeRegistration ? (
+            {isEventMember ? (
+              <>
+                <span className="registration-status">EventMember</span>
+                <p>You are participating as an event organizer (BTC).</p>
+                <button
+                  type="button"
+                  className="app-button app-button--secondary"
+                  disabled
+                >
+                  Tham gia với tư cách BTC
+                </button>
+              </>
+            ) : activeRegistration ? (
               <>
                 <span className="registration-status">{activeRegistration.status}</span>
                 <p>You are registered for this event.</p>

@@ -126,10 +126,7 @@ public class TaskService : ITaskService
 
         var orgId = category.Milestone.Event.OrgId;
         await VerifyMembershipAsync(orgId, userId, ct);
-        if (!skipTaskPermissionCheck)
-        {
-            await VerifyTaskManagementPermissionAsync(orgId, userId, request.DeptId, ct);
-        }
+        await EnsureEventManagerAsync(category.Milestone.EventId, userId, ct);
 
         // Get current user's member record
         var currentMember = await _context.Members
@@ -238,7 +235,7 @@ public class TaskService : ITaskService
 
         var orgId = task.EventCategory.Milestone.Event.OrgId;
         await VerifyMembershipAsync(orgId, userId, ct);
-        await VerifyTaskManagementPermissionAsync(orgId, userId, task.DeptId ?? request.DeptId, ct);
+        await EnsureEventManagerAsync(task.EventCategory.Milestone.EventId, userId, ct);
 
         // Verify assignee if provided
         if (request.AssigneeId.HasValue)
@@ -353,7 +350,7 @@ public class TaskService : ITaskService
 
         var orgId = task.EventCategory.Milestone.Event.OrgId;
         await VerifyMembershipAsync(orgId, userId, ct);
-        await VerifyTaskManagementPermissionAsync(orgId, userId, task.DeptId, ct);
+        await EnsureEventManagerAsync(task.EventCategory.Milestone.EventId, userId, ct);
 
         task.IsDeleted = true;
         task.DeletedAt = DateTime.UtcNow;
@@ -376,7 +373,7 @@ public class TaskService : ITaskService
 
         var orgId = task.EventCategory.Milestone.Event.OrgId;
         await VerifyMembershipAsync(orgId, userId, ct);
-        await VerifyTaskManagementPermissionAsync(orgId, userId, task.DeptId, ct);
+        await EnsureEventManagerAsync(task.EventCategory.Milestone.EventId, userId, ct);
 
         // Parse status
         if (!Enum.TryParse<DomainTaskStatus>(request.Status, out var status))
@@ -427,7 +424,7 @@ public class TaskService : ITaskService
 
         var orgId = task.EventCategory.Milestone.Event.OrgId;
         await VerifyMembershipAsync(orgId, userId, ct);
-        await VerifyTaskManagementPermissionAsync(orgId, userId, task.DeptId ?? request.DeptId, ct);
+        await EnsureEventManagerAsync(task.EventCategory.Milestone.EventId, userId, ct);
 
         // Verify assignee if provided
         if (request.AssigneeId.HasValue)
@@ -494,19 +491,18 @@ public class TaskService : ITaskService
         }
     }
 
-    private async Task VerifyPermissionAsync(Guid orgId, Guid userId, string permissionKey, CancellationToken ct)
+    private async Task EnsureEventManagerAsync(Guid eventId, Guid userId, CancellationToken ct)
     {
-        var hasPermission = await _context.Members
-            .Include(m => m.Role)
-                .ThenInclude(r => r!.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
-            .Where(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active)
-            .SelectMany(m => m.Role!.RolePermissions.Select(rp => rp.Permission.PermissionKey))
-            .AnyAsync(key => key == permissionKey, ct);
+        var isEventMember = await _context.EventMembers
+            .AnyAsync(
+                em => em.EventId == eventId &&
+                      em.Member.UserId == userId &&
+                      em.Member.Status == MemberStatus.Active,
+                ct);
 
-        if (!hasPermission)
+        if (!isEventMember)
         {
-            throw new UnauthorizedAccessException($"You do not have permission: {permissionKey}");
+            throw new UnauthorizedAccessException("Only event organizers can manage tasks");
         }
     }
 
@@ -591,40 +587,6 @@ public class TaskService : ITaskService
 
         _context.Notifications.AddRange(notifications);
         await _context.SaveChangesAsync(ct);
-    }
-
-    private async Task VerifyTaskManagementPermissionAsync(Guid orgId, Guid userId, Guid? deptId, CancellationToken ct)
-    {
-        var hasGlobal = await _context.Members
-            .Include(m => m.Role)
-                .ThenInclude(r => r!.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
-            .Where(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active)
-            .SelectMany(m => m.Role!.RolePermissions.Select(rp => rp.Permission.PermissionKey))
-            .AnyAsync(key => key == "org.events.manage", ct);
-
-        if (hasGlobal)
-        {
-            return;
-        }
-
-        if (!deptId.HasValue)
-        {
-            throw new UnauthorizedAccessException("You do not have permission to manage tasks without department scope");
-        }
-
-        var currentMemberId = await _context.Members
-            .Where(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active)
-            .Select(m => m.Id)
-            .FirstOrDefaultAsync(ct);
-
-        var isDeptManager = await _context.Departments
-            .AnyAsync(d => d.Id == deptId.Value && d.OrgId == orgId && d.ManagerId == currentMemberId, ct);
-
-        if (!isDeptManager)
-        {
-            throw new UnauthorizedAccessException("You do not have permission to manage tasks for this department");
-        }
     }
 
     private async Task VerifyDepartmentTaskCreatePermissionAsync(Guid orgId, Guid userId, Guid departmentId, CancellationToken ct)

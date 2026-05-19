@@ -163,6 +163,44 @@ public class EventService : IEventService
         _context.Events.Add(evt);
         await _context.SaveChangesAsync(ct);
 
+        var initialMemberIds = new HashSet<Guid>();
+        initialMemberIds.Add(member.Id);
+        if (request.InitialMemberIds != null)
+        {
+            foreach (var id in request.InitialMemberIds)
+            {
+                if (id != Guid.Empty)
+                {
+                    initialMemberIds.Add(id);
+                }
+            }
+        }
+
+        var validMemberIds = await _context.Members
+            .Where(m => initialMemberIds.Contains(m.Id) && m.OrgId == orgId && m.Status == MemberStatus.Active)
+            .Select(m => m.Id)
+            .ToListAsync(ct);
+
+        if (validMemberIds.Count != initialMemberIds.Count)
+        {
+            throw new InvalidOperationException("Some initial event organizers are invalid or inactive");
+        }
+
+        var now = DateTime.UtcNow;
+        var organizers = validMemberIds.Select(memberId => new EventMember
+        {
+            Id = Guid.NewGuid(),
+            EventId = evt.Id,
+            MemberId = memberId,
+            EventRole = EventRole.Manager,
+            AssignedAt = now,
+            CreatedAt = now,
+            UpdatedAt = now
+        });
+
+        _context.EventMembers.AddRange(organizers);
+        await _context.SaveChangesAsync(ct);
+
         return evt.ToEventDto();
     }
 
@@ -189,19 +227,7 @@ public class EventService : IEventService
             throw new UnauthorizedAccessException("You are not a member of this organization");
         }
 
-        // Verify user has org.events.manage permission
-        if (member.Role == null)
-        {
-            throw new UnauthorizedAccessException("You do not have a role assigned");
-        }
-
-        var hasPermission = member.Role.RolePermissions
-            .Any(rp => rp.Permission?.PermissionKey == "org.events.manage");
-
-        if (!hasPermission)
-        {
-            throw new UnauthorizedAccessException("You do not have permission to manage events");
-        }
+        await EnsureEventManagerAsync(evt.Id, userId, ct);
 
         // Parse visibility
         EventVisibility visibility = evt.Visibility;
@@ -260,18 +286,7 @@ public class EventService : IEventService
             throw new UnauthorizedAccessException("You are not a member of this organization");
         }
 
-        if (member.Role == null)
-        {
-            throw new UnauthorizedAccessException("You do not have a role assigned");
-        }
-
-        var hasPermission = member.Role.RolePermissions
-            .Any(rp => rp.Permission?.PermissionKey == "org.events.manage");
-
-        if (!hasPermission)
-        {
-            throw new UnauthorizedAccessException("You do not have permission to manage events");
-        }
+        await EnsureEventManagerAsync(evt.Id, userId, ct);
 
         if (!Enum.TryParse<EventStatus>(request.Status, true, out var nextStatus) ||
             (nextStatus != EventStatus.Draft && nextStatus != EventStatus.Published))
@@ -314,19 +329,7 @@ public class EventService : IEventService
             throw new UnauthorizedAccessException("You are not a member of this organization");
         }
 
-        // Verify user has org.events.manage permission
-        if (member.Role == null)
-        {
-            throw new UnauthorizedAccessException("You do not have a role assigned");
-        }
-
-        var hasPermission = member.Role.RolePermissions
-            .Any(rp => rp.Permission?.PermissionKey == "org.events.manage");
-
-        if (!hasPermission)
-        {
-            throw new UnauthorizedAccessException("You do not have permission to manage events");
-        }
+        await EnsureEventManagerAsync(evt.Id, userId, ct);
 
         // Soft delete: set status to Cancelled
         evt.Status = EventStatus.Cancelled;
@@ -335,5 +338,20 @@ public class EventService : IEventService
         await _context.SaveChangesAsync(ct);
 
         return true;
+    }
+
+    private async Task EnsureEventManagerAsync(Guid eventId, Guid userId, CancellationToken ct)
+    {
+        var isEventMember = await _context.EventMembers
+            .AnyAsync(
+                em => em.EventId == eventId &&
+                      em.Member.UserId == userId &&
+                      em.Member.Status == MemberStatus.Active,
+                ct);
+
+        if (!isEventMember)
+        {
+            throw new UnauthorizedAccessException("Only event organizers can manage this event");
+        }
     }
 }

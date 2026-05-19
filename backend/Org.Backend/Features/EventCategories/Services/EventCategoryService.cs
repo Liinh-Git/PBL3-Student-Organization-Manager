@@ -87,7 +87,7 @@ public class EventCategoryService : IEventCategoryService
         }
 
         await VerifyMembershipAsync(milestone.Event.OrgId, userId, ct);
-        await VerifyPermissionAsync(milestone.Event.OrgId, userId, "org.events.manage", ct);
+        await EnsureEventManagerAsync(milestone.EventId, userId, ct);
 
         // Verify department belongs to same organization if provided
         if (request.OwnerDepartmentId.HasValue)
@@ -142,7 +142,7 @@ public class EventCategoryService : IEventCategoryService
         }
 
         await VerifyMembershipAsync(category.Milestone.Event.OrgId, userId, ct);
-        await VerifyPermissionAsync(category.Milestone.Event.OrgId, userId, "org.events.manage", ct);
+        await EnsureEventManagerAsync(category.Milestone.EventId, userId, ct);
 
         // Verify department belongs to same organization if provided
         if (request.OwnerDepartmentId.HasValue)
@@ -196,7 +196,7 @@ public class EventCategoryService : IEventCategoryService
         }
 
         await VerifyMembershipAsync(category.Milestone.Event.OrgId, userId, ct);
-        await VerifyPermissionAsync(category.Milestone.Event.OrgId, userId, "org.events.manage", ct);
+        await EnsureEventManagerAsync(category.Milestone.EventId, userId, ct);
 
         // Check if category has tasks
         if (category.Tasks.Any(t => !t.IsDeleted))
@@ -229,19 +229,18 @@ public class EventCategoryService : IEventCategoryService
         }
     }
 
-    private async Task VerifyPermissionAsync(Guid orgId, Guid userId, string permissionKey, CancellationToken ct)
+    private async Task EnsureEventManagerAsync(Guid eventId, Guid userId, CancellationToken ct)
     {
-        var hasPermission = await _context.Members
-            .Include(m => m.Role)
-                .ThenInclude(r => r!.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
-            .Where(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active)
-            .SelectMany(m => m.Role!.RolePermissions.Select(rp => rp.Permission.PermissionKey))
-            .AnyAsync(key => key == permissionKey, ct);
+        var isEventMember = await _context.EventMembers
+            .AnyAsync(
+                em => em.EventId == eventId &&
+                      em.Member.UserId == userId &&
+                      em.Member.Status == MemberStatus.Active,
+                ct);
 
-        if (!hasPermission)
+        if (!isEventMember)
         {
-            throw new UnauthorizedAccessException($"You do not have permission: {permissionKey}");
+            throw new UnauthorizedAccessException("Only event organizers can manage event categories");
         }
     }
 }

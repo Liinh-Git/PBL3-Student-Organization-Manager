@@ -8,6 +8,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useOrgContext } from '../../contexts/OrgContext.jsx';
 import { getOrganizationEvents, createEvent, updateEvent, updateEventStatus, deleteEvent, uploadEventBanner } from '../../services/eventService.js';
+import { getOrganizationMembers } from '../../services/memberService.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
@@ -26,6 +27,7 @@ function OrgEventsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [orgMembers, setOrgMembers] = useState([]);
 
   useEffect(() => {
     if (!orgId || !isMember) return;
@@ -34,6 +36,8 @@ function OrgEventsPage() {
       try {
         const data = await getOrganizationEvents(orgId);
         setEvents(data);
+        const membersData = await getOrganizationMembers(orgId);
+        setOrgMembers(Array.isArray(membersData) ? membersData : []);
       } catch (err) {
         setError(err.message || 'Failed to load events');
       } finally {
@@ -100,6 +104,9 @@ function OrgEventsPage() {
     const targetParticipants = form.targetParticipants.value;
     const bannerUrl = form.bannerUrl.value;
     const visibility = form.visibility.value;
+    const initialMemberIds = Array.from(form.initialMemberIds?.selectedOptions || [])
+      .map((opt) => opt.value)
+      .filter(Boolean);
 
     if (!eventName || !startDate) {
       alert('Event name and start date are required');
@@ -115,7 +122,8 @@ function OrgEventsPage() {
         location: location || undefined,
         targetParticipants: targetParticipants ? parseInt(targetParticipants, 10) : undefined,
         bannerUrl: bannerUrl || undefined,
-        visibility
+        visibility,
+        initialMemberIds
       });
       setEvents(prev => [...prev, newEvent]);
       form.reset();
@@ -349,6 +357,25 @@ function OrgEventsPage() {
               placeholder="Location"
             />
           </div>
+          {!isEdit && (
+            <div className="form-group">
+              <label htmlFor="initialMemberIds" className="form-label">Thành viên BTC ban đầu</label>
+              <select
+                id="initialMemberIds"
+                name="initialMemberIds"
+                className="form-select"
+                multiple
+                size={6}
+              >
+                {orgMembers.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {(member.fullName || member.email || member.id)}{member.email ? ` (${member.email})` : ''}
+                  </option>
+                ))}
+              </select>
+              <small className="form-helper-text">Giữ Ctrl/Command để chọn nhiều thành viên.</small>
+            </div>
+          )}
           <div className="form-group">
             <label htmlFor={isEdit ? 'editBannerUrl' : 'bannerUrl'} className="form-label">Banner URL</label>
             <input

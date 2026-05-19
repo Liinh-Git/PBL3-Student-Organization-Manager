@@ -62,7 +62,7 @@ public class MilestoneService : IMilestoneService
         }
 
         await VerifyMembershipAsync(evt.OrgId, userId, ct);
-        await VerifyPermissionAsync(evt.OrgId, userId, "org.events.manage", ct);
+        await EnsureEventManagerAsync(eventId, userId, ct);
 
         // Auto-increment OrderIndex if not provided
         var orderIndex = request.OrderIndex ?? await GetNextOrderIndexAsync(eventId, ct);
@@ -102,7 +102,7 @@ public class MilestoneService : IMilestoneService
         }
 
         await VerifyMembershipAsync(milestone.Event.OrgId, userId, ct);
-        await VerifyPermissionAsync(milestone.Event.OrgId, userId, "org.events.manage", ct);
+        await EnsureEventManagerAsync(milestone.EventId, userId, ct);
 
         // Parse status
         if (!Enum.TryParse<MilestoneStatus>(request.Status, out var status))
@@ -140,7 +140,7 @@ public class MilestoneService : IMilestoneService
         }
 
         await VerifyMembershipAsync(milestone.Event.OrgId, userId, ct);
-        await VerifyPermissionAsync(milestone.Event.OrgId, userId, "org.events.manage", ct);
+        await EnsureEventManagerAsync(milestone.EventId, userId, ct);
 
         // Check if milestone has categories
         if (milestone.Categories.Any(c => !c.IsDeleted))
@@ -173,19 +173,18 @@ public class MilestoneService : IMilestoneService
         }
     }
 
-    private async Task VerifyPermissionAsync(Guid orgId, Guid userId, string permissionKey, CancellationToken ct)
+    private async Task EnsureEventManagerAsync(Guid eventId, Guid userId, CancellationToken ct)
     {
-        var hasPermission = await _context.Members
-            .Include(m => m.Role)
-                .ThenInclude(r => r!.RolePermissions)
-                    .ThenInclude(rp => rp.Permission)
-            .Where(m => m.OrgId == orgId && m.UserId == userId && m.Status == MemberStatus.Active)
-            .SelectMany(m => m.Role!.RolePermissions.Select(rp => rp.Permission.PermissionKey))
-            .AnyAsync(key => key == permissionKey, ct);
+        var isEventMember = await _context.EventMembers
+            .AnyAsync(
+                em => em.EventId == eventId &&
+                      em.Member.UserId == userId &&
+                      em.Member.Status == MemberStatus.Active,
+                ct);
 
-        if (!hasPermission)
+        if (!isEventMember)
         {
-            throw new UnauthorizedAccessException($"You do not have permission: {permissionKey}");
+            throw new UnauthorizedAccessException("Only event organizers can manage milestones");
         }
     }
 }

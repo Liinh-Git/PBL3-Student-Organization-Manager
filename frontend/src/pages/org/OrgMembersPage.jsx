@@ -32,6 +32,24 @@ function OrgMembersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
 
+  const normalizeDepartments = (deptData) => {
+    const list = Array.isArray(deptData) ? deptData : deptData?.items || [];
+    return list
+      .map((dept) => {
+        if (!dept) return null;
+        const id = dept.id || dept.departmentId || dept.deptId || null;
+        const departmentName =
+          dept.departmentName || dept.deptName || dept.name || "";
+        return {
+          ...dept,
+          id,
+          departmentName,
+          deptName: departmentName,
+        };
+      })
+      .filter((dept) => dept && dept.id);
+  };
+
   useEffect(() => {
     if (!orgId || !isMember) return;
     async function loadData() {
@@ -43,7 +61,7 @@ function OrgMembersPage() {
           getOrganizationRoles(orgId),
         ]);
         setMembers(memberData);
-        setDepartments(deptData);
+        setDepartments(normalizeDepartments(deptData));
         setRoles(roleData);
       } catch (err) {
         setError(err.message || "Failed to load members");

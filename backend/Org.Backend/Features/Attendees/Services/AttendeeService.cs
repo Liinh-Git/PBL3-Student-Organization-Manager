@@ -52,6 +52,8 @@ public class AttendeeService : IAttendeeService
             throw new KeyNotFoundException("Event not found");
         }
 
+        var isEventMember = await IsEventOrganizerAsync(evt, userId, ct);
+
         var attendee = await _context.Attendees
             .AsNoTracking()
             .Where(a => a.EventId == eventId && a.UserId == userId)
@@ -64,6 +66,7 @@ public class AttendeeService : IAttendeeService
             {
                 EventId = eventId,
                 UserId = userId,
+                IsEventMember = isEventMember,
                 IsRegistered = false,
                 AttendeeId = attendee?.Id,
                 Status = attendee?.Status.ToString(),
@@ -72,7 +75,7 @@ public class AttendeeService : IAttendeeService
             };
         }
 
-        return attendee.ToRegistrationDto(userId);
+        return attendee.ToRegistrationDto(userId, isEventMember);
     }
 
     public async Task<AttendeeDto> RegisterAsync(Guid eventId, Guid userId, RegisterEventAttendeeRequest request, CancellationToken ct = default)
@@ -90,7 +93,7 @@ public class AttendeeService : IAttendeeService
     public async Task<AttendeeRegistrationDto> RegisterMeAsync(Guid eventId, Guid userId, CancellationToken ct = default)
     {
         var attendee = await RegisterInternalAsync(eventId, userId, note: null, ct);
-        return attendee.ToRegistrationDto(userId);
+        return attendee.ToRegistrationDto(userId, isEventMember: false);
     }
 
     public async Task<AttendeeDto> CancelRegistrationAsync(Guid eventId, Guid userId, CancelEventRegistrationRequest request, CancellationToken ct = default)
@@ -107,10 +110,13 @@ public class AttendeeService : IAttendeeService
         CancellationToken ct = default)
     {
         var attendee = await CancelInternalAsync(eventId, userId, updateDto?.Note, ct, throwIfMissing: false);
+        var evt = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId, ct);
+        var isEventMember = evt != null && await IsEventOrganizerAsync(evt, userId, ct);
         return attendee?.ToRegistrationDto(userId) ?? new AttendeeRegistrationDto
         {
             EventId = eventId,
             UserId = userId,
+            IsEventMember = isEventMember,
             IsRegistered = false,
             Status = AttendeeStatus.Cancelled.ToString()
         };
@@ -207,6 +213,12 @@ public class AttendeeService : IAttendeeService
             throw new InvalidOperationException("This event is not accepting new attendees");
         }
 
+        var isEventMember = await IsEventOrganizerAsync(evt, userId, ct);
+        if (isEventMember)
+        {
+            throw new InvalidOperationException("Event organizers join as BTC and cannot register as attendee");
+        }
+
         if (evt.Visibility == EventVisibility.Public)
         {
             EnsureCapacity(evt);
@@ -224,6 +236,32 @@ public class AttendeeService : IAttendeeService
         EnsureCapacity(evt);
     }
 
+    private async Task<bool> IsEventOrganizerAsync(Event evt, Guid userId, CancellationToken ct)
+    {
+        var isEventMember = await _context.EventMembers
+            .AnyAsync(
+                em => em.EventId == evt.Id &&
+                      em.Member.UserId == userId &&
+                      em.Member.Status == MemberStatus.Active,
+                ct);
+
+        if (isEventMember)
+        {
+            return true;
+        }
+
+        if (!evt.CreatedByMemberId.HasValue)
+        {
+            return false;
+        }
+
+        return await _context.Members.AnyAsync(
+            m => m.Id == evt.CreatedByMemberId.Value &&
+                 m.UserId == userId &&
+                 m.Status == MemberStatus.Active,
+            ct);
+    }
+
     private static void EnsureCapacity(Event evt)
     {
         if (evt.TargetParticipants.HasValue && evt.TargetParticipants.Value > 0)
@@ -238,12 +276,13 @@ public class AttendeeService : IAttendeeService
 
 file static class AttendeeServiceMappings
 {
-    public static AttendeeRegistrationDto ToRegistrationDto(this Attendee attendee, Guid fallbackUserId)
+    public static AttendeeRegistrationDto ToRegistrationDto(this Attendee attendee, Guid fallbackUserId, bool isEventMember = false)
     {
         return new AttendeeRegistrationDto
         {
             EventId = attendee.EventId,
             UserId = attendee.UserId ?? fallbackUserId,
+            IsEventMember = isEventMember,
             IsRegistered = attendee.Status != AttendeeStatus.Cancelled,
             AttendeeId = attendee.Id,
             Status = attendee.Status.ToString(),

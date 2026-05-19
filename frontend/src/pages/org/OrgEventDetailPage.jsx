@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OrgEventDetailPage.jsx - Organization event detail page (EventDetail tree root)
  *
  * UI refactor: split workspace sidebar + Kanban board, giữ nguyên backend API/handlers.
@@ -7,9 +7,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useOrgContext } from "../../contexts/OrgContext.jsx";
-import { getEventAttendees, getEventById, updateEvent } from "../../services/eventService.js";
+import {
+  addEventMembers,
+  getEventAttendees,
+  getEventById,
+  getEventMembers,
+  removeEventMember,
+  updateEvent,
+} from "../../services/eventService.js";
 import { getEventMilestones } from "../../services/milestoneService.js";
 import { getMilestoneCategories } from "../../services/categoryService.js";
+import { getMyPermissions } from "../../services/roleService.js";
 import {
   createTask,
   updateTask,
@@ -33,6 +41,7 @@ import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import ErrorState from "../../components/shared/ErrorState";
 import ForbiddenState from "../../components/shared/ForbiddenState";
+import EventWorkspacePreview from "../../components/event/EventWorkspacePreview.jsx";
 
 function OrgEventDetailPage() {
   const { eventId } = useParams();
@@ -46,6 +55,14 @@ function OrgEventDetailPage() {
   const [categoriesByMilestone, setCategoriesByMilestone] = useState({});
   const [members, setMembers] = useState([]);
   const [attendees, setAttendees] = useState([]);
+  const [eventMembers, setEventMembers] = useState([]);
+  const [isEventMemberSubmitting, setIsEventMemberSubmitting] = useState(false);
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [memberSearchKeyword, setMemberSearchKeyword] = useState("");
+  const [pendingMemberIds, setPendingMemberIds] = useState([]);
+  const [workspaceTab, setWorkspaceTab] = useState("kanban");
+  const [myRoleName, setMyRoleName] = useState("");
+  const [myOrgMemberId, setMyOrgMemberId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [taskLoading, setTaskLoading] = useState({});
@@ -53,7 +70,6 @@ function OrgEventDetailPage() {
   const [categoryLoading, setCategoryLoading] = useState({});
   const [showCreateMilestone, setShowCreateMilestone] = useState(false);
   const [showCreateCategory, setShowCreateCategory] = useState({});
-  const [editingEvent, setEditingEvent] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
@@ -61,6 +77,7 @@ function OrgEventDetailPage() {
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [draggedTaskId, setDraggedTaskId] = useState(null);
+  const [isRoadmapExpanded, setIsRoadmapExpanded] = useState(true);
 
   const getEventName = (eventData) => eventData?.name || eventData?.eventName;
 
@@ -97,6 +114,13 @@ function OrgEventDetailPage() {
 
         const attendeesData = await getEventAttendees(eventId);
         setAttendees(Array.isArray(attendeesData) ? attendeesData : []);
+
+        const eventMembersData = await getEventMembers(eventId);
+        setEventMembers(Array.isArray(eventMembersData) ? eventMembersData : []);
+
+        const myPermData = await getMyPermissions(orgId);
+        setMyRoleName(myPermData?.roleName || "");
+        setMyOrgMemberId(myPermData?.memberId || null);
       } catch (err) {
         setError(err.message || "Failed to load event detail");
       } finally {
@@ -105,6 +129,15 @@ function OrgEventDetailPage() {
     }
     loadEventDetail();
   }, [eventId, orgId, isMember]);
+
+  const refreshEventMemberBoard = async () => {
+    const [membersData, eventMembersData] = await Promise.all([
+      getOrganizationMembers(orgId),
+      getEventMembers(eventId),
+    ]);
+    setMembers(membersData);
+    setEventMembers(Array.isArray(eventMembersData) ? eventMembersData : []);
+  };
 
   if (!eventId || !orgId) {
     return <ErrorState message="Event ID and Organization ID are required" />;
@@ -147,6 +180,15 @@ function OrgEventDetailPage() {
   }
 
   const canManage = permissions.includes("org.events.manage");
+  const canEditPreviewByRole = ["president", "vice president"].includes(
+    String(myRoleName || "").trim().toLowerCase(),
+  );
+  const isCurrentUserEventOrganizer = eventMembers.some((item) => {
+    const memberId = item.memberId || item.organizationMemberId || item.member?.id;
+    return !!myOrgMemberId && memberId === myOrgMemberId;
+  });
+  const canEditPreview = canEditPreviewByRole && isCurrentUserEventOrganizer;
+  const canManageEventMembers = isCurrentUserEventOrganizer;
 
   const getTaskAssigneeId = (task) =>
     task?.assigneeId ||
@@ -560,37 +602,76 @@ function OrgEventDetailPage() {
     }
   };
 
-  const handleUpdateEvent = async (e) => {
-    e.preventDefault();
-    if (!canManage) return;
+  const toIsoUtcFromLocalInput = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toISOString();
+  };
 
-    const form = e.target;
-    const eventName = form.eventName.value;
-    const description = form.description.value;
-    const startDate = form.startDate.value;
-    const startTime = form.startTime.value;
-    const location = form.location.value;
-    const targetParticipants = form.targetParticipants.value;
-    const bannerUrl = form.bannerUrl.value;
-    const visibility = form.visibility.value;
-
+  const handleUpdateEventPreview = async (partialDraft) => {
+    if (!canEditPreview || !event) {
+      alert("Bạn không có quyền sửa sự kiện trong preview. Chỉ BTC của sự kiện mới được sửa.");
+      return;
+    }
     setIsEventUpdating(true);
     try {
+      const nextStartDate =
+        partialDraft.startDate !== undefined
+          ? toIsoUtcFromLocalInput(partialDraft.startDate)
+          : event.startDate;
+      const nextEndDate =
+        partialDraft.endDate !== undefined
+          ? toIsoUtcFromLocalInput(partialDraft.endDate)
+          : event.endDate;
+
+      if (partialDraft.startDate !== undefined && !nextStartDate) {
+        throw new Error("Start date is invalid");
+      }
+      if (partialDraft.endDate !== undefined && !nextEndDate) {
+        throw new Error("End date is invalid");
+      }
+
+      const nextTargetRaw =
+        partialDraft.targetParticipants !== undefined
+          ? partialDraft.targetParticipants
+          : event.targetParticipants;
+
+      const nextTarget =
+        nextTargetRaw === "" || nextTargetRaw === null || nextTargetRaw === undefined
+          ? undefined
+          : Number(nextTargetRaw);
+
+      if (nextTarget !== undefined && Number.isNaN(nextTarget)) {
+        throw new Error("Target participants is invalid");
+      }
+
       const updated = await updateEvent(eventId, {
-        eventName,
-        description: description || undefined,
-        startDate: `${startDate}T${startTime || "00:00"}:00Z`,
-        location: location || undefined,
-        targetParticipants: targetParticipants
-          ? parseInt(targetParticipants, 10)
-          : undefined,
-        bannerUrl: bannerUrl || undefined,
-        visibility,
+        eventName: partialDraft.eventName ?? getEventName(event),
+        description:
+          partialDraft.description !== undefined
+            ? partialDraft.description || undefined
+            : event.description || undefined,
+        startDate: nextStartDate || event.startDate,
+        endDate: nextEndDate || event.endDate || nextStartDate || event.startDate,
+        location:
+          partialDraft.location !== undefined
+            ? partialDraft.location || undefined
+            : event.location || undefined,
+        targetParticipants: nextTarget,
+        bannerUrl:
+          partialDraft.bannerUrl !== undefined
+            ? partialDraft.bannerUrl || undefined
+            : event.bannerUrl || undefined,
+        visibility: partialDraft.visibility ?? event.visibility ?? "Private",
       });
       setEvent(updated);
-      setEditingEvent(false);
     } catch (err) {
-      alert(err.message || "Failed to update event");
+      if (err?.response?.status === 403 || String(err.message || "").includes("403")) {
+        alert("Không đủ quyền cập nhật sự kiện (403). Chỉ thành viên BTC của sự kiện mới được sửa.");
+      } else {
+        alert(err.message || "Failed to update event");
+      }
     } finally {
       setIsEventUpdating(false);
     }
@@ -721,6 +802,49 @@ function OrgEventDetailPage() {
     setDraggedTaskId(null);
   };
 
+  const handleConfirmAddEventMembers = async () => {
+    if (!canManageEventMembers) {
+      alert("Chỉ thành viên BTC của sự kiện mới có thể thêm người vào BTC.");
+      return;
+    }
+    if (pendingMemberIds.length === 0) {
+      alert("Vui lòng chọn ít nhất 1 thành viên.");
+      return;
+    }
+
+    setIsEventMemberSubmitting(true);
+    try {
+      await addEventMembers(eventId, { memberIds: pendingMemberIds });
+      setPendingMemberIds([]);
+      setMemberSearchKeyword("");
+      setIsAddMemberModalOpen(false);
+      await refreshEventMemberBoard();
+    } catch (err) {
+      alert(err.message || "Không thể thêm thành viên BTC");
+    } finally {
+      setIsEventMemberSubmitting(false);
+    }
+  };
+
+  const handleRemoveEventMember = async (eventMemberId) => {
+    if (!canManageEventMembers) {
+      alert("Chỉ thành viên BTC của sự kiện mới có thể xóa thành viên BTC.");
+      return;
+    }
+    if (!window.confirm("Xóa thành viên này khỏi BTC sự kiện?")) return;
+
+    setIsEventMemberSubmitting(true);
+    try {
+      await removeEventMember(eventMemberId);
+      setEventMembers((prev) => prev.filter((item) => item.id !== eventMemberId));
+      await refreshEventMemberBoard();
+    } catch (err) {
+      alert(err.message || "Không thể xóa thành viên BTC");
+    } finally {
+      setIsEventMemberSubmitting(false);
+    }
+  };
+
   const Sidebar = () => (
     <aside className="event-sidebar">
       <div className="event-sidebar-header">
@@ -733,63 +857,75 @@ function OrgEventDetailPage() {
         </button>
         <div className="event-title-row">
           <h1>{getEventName(event) || "Event Detail"}</h1>
-          {canManage && (
-            <button
-              type="button"
-              onClick={() => setEditingEvent(true)}
-              className="sidebar-icon-button"
-              title="Sửa sự kiện"
-              aria-label="Sửa sự kiện"
-            >
-              ⚙
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setWorkspaceTab("preview")}
+            className="sidebar-icon-button"
+            title="Preview & Sửa sự kiện"
+            aria-label="Preview & Sửa sự kiện"
+          >
+            ⧉
+          </button>
         </div>
         <div className="event-date-row">
           <span>□</span>
           <span>{formatDate(event?.startDate)}</span>
         </div>
+        <div className="workspace-tab-list">
+          <button
+            type="button"
+            className={`workspace-tab-btn ${workspaceTab === "preview" ? "active" : ""}`}
+            onClick={() => setWorkspaceTab("preview")}
+          >
+            Preview & Sửa sự kiện
+          </button>
+          <button
+            type="button"
+            className={`workspace-tab-btn ${workspaceTab === "event-members" ? "active" : ""}`}
+            onClick={() => setWorkspaceTab("event-members")}
+          >
+            Ban tổ chức
+          </button>
+          <button
+            type="button"
+            className={`workspace-tab-btn ${workspaceTab === "attendees" ? "active" : ""}`}
+            onClick={() => setWorkspaceTab("attendees")}
+          >
+            Danh sách người tham gia
+          </button>
+        </div>
       </div>
 
       <div className="event-roadmap">
-        <div className="attendee-panel">
-          <div className="roadmap-heading">
-            <span>Người tham gia</span>
-            <span>{attendees.length}</span>
-          </div>
-          {attendees.length === 0 ? (
-            <p className="attendee-empty">Chưa có người đăng ký.</p>
-          ) : (
-            <div className="attendee-list">
-              {attendees.slice(0, 6).map((attendee) => (
-                <div key={attendee.id} className="attendee-row">
-                  <span className="attendee-avatar">{(attendee.fullName || attendee.email || '?').charAt(0).toUpperCase()}</span>
-                  <div>
-                    <strong>{attendee.fullName || attendee.email || 'Attendee'}</strong>
-                    <span>{attendee.status || '-'}</span>
-                  </div>
-                </div>
-              ))}
-              {attendees.length > 6 && <p className="attendee-empty">+{attendees.length - 6} người khác</p>}
-            </div>
-          )}
-        </div>
-
-        <div className="roadmap-heading">
+        <div className="roadmap-heading roadmap-heading-clickable" onClick={() => setWorkspaceTab("kanban")}>
           <span>Lộ trình dự án</span>
-          {canManage && (
+          <div className="roadmap-heading-actions">
             <button
               type="button"
-              onClick={() => setShowCreateMilestone(true)}
-              className="roadmap-add-button"
-              title="Thêm lộ trình"
+              className="roadmap-toggle"
+              onClick={(e) => {
+                e.stopPropagation();
+                setWorkspaceTab("kanban");
+                setIsRoadmapExpanded((prev) => !prev);
+              }}
+              title={isRoadmapExpanded ? "Thu gọn lộ trình" : "Mở rộng lộ trình"}
             >
-              +
+              {isRoadmapExpanded ? "▾" : "▸"}
             </button>
-          )}
+            {canManage && (
+              <button
+                type="button"
+                onClick={() => setShowCreateMilestone(true)}
+                className="roadmap-add-button"
+                title="Thêm lộ trình"
+              >
+                +
+              </button>
+            )}
+          </div>
         </div>
 
-        {showCreateMilestone && canManage && (
+        {isRoadmapExpanded && showCreateMilestone && canManage && (
           <form onSubmit={handleCreateMilestone} className="sidebar-form">
             <input
               name="title"
@@ -821,7 +957,7 @@ function OrgEventDetailPage() {
           </form>
         )}
 
-        {milestones.length === 0 ? (
+        {!isRoadmapExpanded ? null : milestones.length === 0 ? (
           <div className="sidebar-empty">
             <EmptyState message="No milestones found" />
           </div>
@@ -837,6 +973,7 @@ function OrgEventDetailPage() {
                       type="button"
                       className="milestone-title-button"
                       onClick={() => {
+                        setWorkspaceTab("kanban");
                         if (milestoneCategories[0])
                           setActiveCategoryId(milestoneCategories[0].id);
                       }}
@@ -928,6 +1065,7 @@ function OrgEventDetailPage() {
                           <button
                             type="button"
                             onClick={() => {
+                              setWorkspaceTab("kanban");
                               setActiveCategoryId(category.id);
                               setShowCreateTask(false);
                             }}
@@ -1076,157 +1214,6 @@ function OrgEventDetailPage() {
       </div>
     </aside>
   );
-
-  const EventEditModal = () => {
-    if (!editingEvent) return null;
-    return (
-      <div className="workspace-modal-backdrop" role="presentation">
-        <div
-          className="workspace-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Sửa sự kiện"
-        >
-          <div className="workspace-modal-header">
-            <div>
-              <p className="workspace-eyebrow">Thông tin sự kiện</p>
-              <h2>Sửa sự kiện</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setEditingEvent(false)}
-              className="modal-close-button"
-              aria-label="Đóng"
-            >
-              ×
-            </button>
-          </div>
-
-          <form onSubmit={handleUpdateEvent} className="event-edit-grid">
-            <div className="form-group">
-              <label htmlFor="eventName" className="form-label">
-                Event Name *
-              </label>
-              <input
-                id="eventName"
-                name="eventName"
-                className="form-input"
-                defaultValue={getEventName(event)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="description" className="form-label">
-                Description
-              </label>
-              <input
-                id="description"
-                name="description"
-                className="form-input"
-                defaultValue={event?.description || ""}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="startDate" className="form-label">
-                Ngày tổ chức *
-              </label>
-              <input
-                id="startDate"
-                name="startDate"
-                type="date"
-                className="form-input"
-                defaultValue={
-                  event?.startDate ? String(event.startDate).split("T")[0] : ""
-                }
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="startTime" className="form-label">
-                Giờ bắt đầu
-              </label>
-              <input
-                id="startTime"
-                name="startTime"
-                type="time"
-                className="form-input"
-                defaultValue={
-                  event?.startDate && String(event.startDate).includes("T")
-                    ? String(event.startDate).split("T")[1].substring(0, 5)
-                    : "00:00"
-                }
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="targetParticipants" className="form-label">
-                Số lượng tham gia
-              </label>
-              <input
-                id="targetParticipants"
-                name="targetParticipants"
-                type="number"
-                className="form-input"
-                defaultValue={event?.targetParticipants || ""}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="location" className="form-label">
-                Location
-              </label>
-              <input
-                id="location"
-                name="location"
-                className="form-input"
-                defaultValue={event?.location || ""}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="bannerUrl" className="form-label">
-                Banner URL
-              </label>
-              <input
-                id="bannerUrl"
-                name="bannerUrl"
-                className="form-input"
-                defaultValue={event?.bannerUrl || ""}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="visibility" className="form-label">
-                Visibility
-              </label>
-              <select
-                id="visibility"
-                name="visibility"
-                defaultValue={event?.visibility || "Private"}
-                className="form-select"
-              >
-                <option value="Public">Public</option>
-                <option value="OrganizationOnly">Organization Only</option>
-                <option value="Private">Private</option>
-              </select>
-            </div>
-            <div className="modal-actions">
-              <button
-                type="button"
-                onClick={() => setEditingEvent(false)}
-                className="workspace-button ghost"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                disabled={isEventUpdating}
-                className="workspace-button primary"
-              >
-                {isEventUpdating ? "Updating..." : "Save Changes"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
 
   const TaskCreatePanel = () => {
     if (!showCreateTask || !activeCategory || !canManage) return null;
@@ -1516,6 +1503,275 @@ function OrgEventDetailPage() {
     );
   };
 
+  const EventPreviewBoard = () => (
+    <div className="workspace-main-content preview-mode">
+      <header className="kanban-header">
+        <div>
+          <div className="breadcrumb-line">
+            <span>Event</span>
+            <span>›</span>
+            <span>Preview</span>
+          </div>
+          <h2>{getEventName(event) || "-"}</h2>
+          <p>
+            {canEditPreview
+              ? "Bạn có quyền chỉnh sửa trực tiếp trong preview."
+              : "Bạn có quyền xem preview. Chỉ Vice President/President thuộc BTC sự kiện mới được sửa."}
+          </p>
+        </div>
+      </header>
+      <EventWorkspacePreview
+        eventData={event}
+        canEdit={canEditPreview}
+        isSaving={isEventUpdating}
+        onSave={handleUpdateEventPreview}
+      />
+    </div>
+  );
+
+  const EventMembersBoard = () => {
+    const existingMemberIds = new Set(
+      eventMembers.map((item) => item.memberId || item.organizationMemberId || item.userId),
+    );
+    const memberMap = new Map(members.map((m) => [m.id, m]));
+    const selectableMembers = members.filter((m) => !existingMemberIds.has(m.id));
+    const normalizedKeyword = memberSearchKeyword.trim().toLowerCase();
+    const filteredSelectableMembers = selectableMembers.filter((m) => {
+      if (!normalizedKeyword) return true;
+      const fullName = String(m.fullName || m.user?.fullName || "").toLowerCase();
+      const email = String(m.email || m.user?.email || "").toLowerCase();
+      const dept = String(m.department?.departmentName || m.department?.deptName || "").toLowerCase();
+      return fullName.includes(normalizedKeyword) || email.includes(normalizedKeyword) || dept.includes(normalizedKeyword);
+    });
+    const pendingMembers = pendingMemberIds
+      .map((id) => members.find((m) => m.id === id))
+      .filter(Boolean);
+    const addPendingMember = (memberId) => {
+      setPendingMemberIds((prev) => (prev.includes(memberId) ? prev : [...prev, memberId]));
+    };
+    const removePendingMember = (memberId) => {
+      setPendingMemberIds((prev) => prev.filter((id) => id !== memberId));
+    };
+
+    return (
+      <div className="workspace-main-content">
+        <header className="kanban-header">
+          <div>
+            <h2>Ban tổ chức sự kiện</h2>
+            <p>Danh sách thành viên tổ chức sự kiện trong workspace.</p>
+          </div>
+          <button
+            type="button"
+            className="workspace-button primary"
+            onClick={() => setIsAddMemberModalOpen(true)}
+            disabled={!canManageEventMembers || isEventMemberSubmitting}
+          >
+            Thêm thành viên BTC
+          </button>
+        </header>
+        <div className="workspace-table-wrap">
+          <table className="workspace-table">
+            <thead>
+              <tr>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Số điện thoại</th>
+                <th>Phòng ban</th>
+                <th>Tham gia từ</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {eventMembers.length === 0 ? (
+                <tr><td colSpan={6}>Chưa có thành viên BTC.</td></tr>
+              ) : (
+                eventMembers.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.fullName || "-"}</td>
+                    <td>{item.email || "-"}</td>
+                    <td>
+                      {memberMap.get(item.memberId)?.phoneNumber ||
+                        memberMap.get(item.memberId)?.phone ||
+                        memberMap.get(item.memberId)?.user?.phoneNumber ||
+                        "-"}
+                    </td>
+                    <td>
+                      {memberMap.get(item.memberId)?.department?.departmentName ||
+                        memberMap.get(item.memberId)?.department?.deptName ||
+                        "-"}
+                    </td>
+                    <td>{formatDate(item.assignedAtUtc || item.createdAtUtc)}</td>
+                    <td>
+                      {canManageEventMembers && (
+                        <button
+                          type="button"
+                          className="mini-ghost-button"
+                          onClick={() => handleRemoveEventMember(item.id)}
+                          disabled={isEventMemberSubmitting}
+                        >
+                          Xóa
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        {isAddMemberModalOpen && (
+          <div className="workspace-modal-backdrop" role="presentation">
+            <div
+              className="workspace-modal workspace-member-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Thêm thành viên BTC"
+              onKeyDown={(e) => e.stopPropagation()}
+              onKeyUp={(e) => e.stopPropagation()}
+            >
+              <div className="workspace-modal-header">
+                <div>
+                  <p className="workspace-eyebrow">Event Organizers</p>
+                  <h2>Thêm thành viên vào BTC</h2>
+                </div>
+                <button
+                  type="button"
+                  className="modal-close-button"
+                  onClick={() => {
+                    setIsAddMemberModalOpen(false);
+                    setPendingMemberIds([]);
+                    setMemberSearchKeyword("");
+                  }}
+                  aria-label="Đóng"
+                >
+                  ×
+                </button>
+              </div>
+
+              <input
+                type="text"
+                className="workspace-input"
+                placeholder="Tìm theo tên, email, phòng ban..."
+                value={memberSearchKeyword}
+                onChange={(e) => setMemberSearchKeyword(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => e.stopPropagation()}
+                onKeyUp={(e) => e.stopPropagation()}
+              />
+
+              {pendingMembers.length > 0 && (
+                <div className="member-chip-list">
+                  {pendingMembers.map((member) => (
+                    <span key={member.id} className="member-chip">
+                      <span className="member-chip-avatar">
+                        {(member.fullName || member.email || "?").charAt(0).toUpperCase()}
+                      </span>
+                      <span>{member.fullName || member.email || "-"}</span>
+                      <button type="button" onClick={() => removePendingMember(member.id)} aria-label="Bỏ chọn">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="member-pick-list">
+                {filteredSelectableMembers.length === 0 ? (
+                  <p className="member-pick-empty">Không có thành viên khả dụng.</p>
+                ) : (
+                  filteredSelectableMembers.map((member) => {
+                    const dept =
+                      member.department?.departmentName ||
+                      member.department?.deptName ||
+                      "Chưa có phòng ban";
+                    return (
+                      <div key={member.id} className="member-pick-item">
+                        <div className="member-pick-main">
+                          <span className="member-pick-avatar">
+                            {(member.fullName || member.email || "?").charAt(0).toUpperCase()}
+                          </span>
+                          <div>
+                            <strong>{member.fullName || member.email || "-"}</strong>
+                            <span>{dept}</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="member-pick-add"
+                          onClick={() => addPendingMember(member.id)}
+                          disabled={pendingMemberIds.includes(member.id)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="workspace-button ghost"
+                  onClick={() => {
+                    setIsAddMemberModalOpen(false);
+                    setPendingMemberIds([]);
+                    setMemberSearchKeyword("");
+                  }}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  className="workspace-button primary"
+                  onClick={handleConfirmAddEventMembers}
+                  disabled={isEventMemberSubmitting || pendingMemberIds.length === 0}
+                >
+                  {isEventMemberSubmitting ? "Đang thêm..." : "Add"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const AttendeesBoard = () => (
+    <div className="workspace-main-content">
+      <header className="kanban-header">
+        <div>
+          <h2>Danh sách người tham gia</h2>
+          <p>Danh sách attendee đã ghi danh sự kiện.</p>
+        </div>
+      </header>
+      <div className="workspace-table-wrap">
+        <table className="workspace-table">
+          <thead>
+            <tr>
+              <th>Họ tên</th>
+              <th>Email</th>
+              <th>Trạng thái</th>
+              <th>Thời điểm ghi danh</th>
+            </tr>
+          </thead>
+          <tbody>
+            {attendees.length === 0 ? (
+              <tr><td colSpan={4}>Chưa có người tham gia.</td></tr>
+            ) : (
+              attendees.map((attendee) => (
+                <tr key={attendee.id}>
+                  <td>{attendee.fullName || "-"}</td>
+                  <td>{attendee.email || "-"}</td>
+                  <td>{attendee.status || "-"}</td>
+                  <td>{formatDate(attendee.registeredAtUtc || attendee.createdAtUtc)}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   return (
     <div className="event-workspace">
       <style>{`
@@ -1529,18 +1785,18 @@ function OrgEventDetailPage() {
         }
 
         .event-sidebar {
-          width: 296px;
-          flex: 0 0 296px;
+          width: 260px;
+          flex: 0 0 260px;
           display: flex;
           flex-direction: column;
           min-height: 100%;
-          background: #F8FAFC;
-          border-right: 1px solid #E2E8F0;
+          background: #F9FBFF;
+          border-right: 1px solid #E6EDF5;
         }
 
         .event-sidebar-header {
-          padding: 20px 16px 18px;
-          border-bottom: 1px solid #E2E8F0;
+          padding: 18px 14px 14px;
+          border-bottom: 1px solid #E6EDF5;
         }
 
         .event-back-button {
@@ -1587,61 +1843,41 @@ function OrgEventDetailPage() {
           font-weight: 600;
         }
 
+        .workspace-tab-list {
+          display: grid;
+          gap: 7px;
+          margin-top: 12px;
+        }
+
+        .workspace-tab-btn {
+          border: 1px solid #E2E8F0;
+          background: #FDFEFF;
+          color: #334155;
+          border-radius: 9px;
+          text-align: left;
+          padding: 9px 10px;
+          font-size: 12.5px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 140ms ease;
+        }
+
+        .workspace-tab-btn:hover {
+          border-color: #CBD5E1;
+          background: #F8FAFC;
+        }
+
+        .workspace-tab-btn.active {
+          border-color: #FDBA74;
+          background: #FFF3E8;
+          color: #C2410C;
+          box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.12);
+        }
+
         .event-roadmap {
           flex: 1;
           overflow-y: auto;
-          padding: 24px 16px 28px;
-        }
-
-        .attendee-panel {
-          margin-bottom: 24px;
-          padding-bottom: 18px;
-          border-bottom: 1px solid #E2E8F0;
-        }
-
-        .attendee-list {
-          display: grid;
-          gap: 10px;
-        }
-
-        .attendee-row {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .attendee-row div {
-          display: grid;
-          min-width: 0;
-        }
-
-        .attendee-row strong {
-          overflow: hidden;
-          color: #0F172A;
-          font-size: 13px;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .attendee-row span:last-child,
-        .attendee-empty {
-          margin: 0;
-          color: #64748B;
-          font-size: 12px;
-        }
-
-        .attendee-avatar {
-          display: inline-flex;
-          width: 28px;
-          height: 28px;
-          flex: 0 0 28px;
-          align-items: center;
-          justify-content: center;
-          border-radius: 999px;
-          background: #FFF1E8;
-          color: #F97316;
-          font-size: 12px;
-          font-weight: 800;
+          padding: 14px 14px 20px;
         }
 
         .event-roadmap::-webkit-scrollbar,
@@ -1668,12 +1904,50 @@ function OrgEventDetailPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 16px;
+          margin-bottom: 10px;
           color: #94A3B8;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 800;
           letter-spacing: 0.07em;
           text-transform: uppercase;
+        }
+
+        .roadmap-heading-clickable {
+          padding: 8px 10px;
+          border: 1px solid #E2E8F0;
+          border-radius: 10px;
+          background: #FFFFFF;
+          cursor: pointer;
+          transition: all 140ms ease;
+        }
+
+        .roadmap-heading-clickable:hover {
+          border-color: #CBD5E1;
+          background: #F8FAFC;
+        }
+
+        .roadmap-heading-actions {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .roadmap-toggle {
+          width: 24px;
+          height: 24px;
+          border: 0;
+          border-radius: 8px;
+          background: transparent;
+          color: #94A3B8;
+          font-size: 15px;
+          font-weight: 800;
+          cursor: pointer;
+          line-height: 1;
+        }
+
+        .roadmap-toggle:hover {
+          background: #EEF2F7;
+          color: #F97316;
         }
 
         .roadmap-add-button,
@@ -1710,7 +1984,7 @@ function OrgEventDetailPage() {
 
         .milestone-list {
           display: grid;
-          gap: 26px;
+          gap: 18px;
         }
 
         .milestone-header {
@@ -1718,7 +1992,7 @@ function OrgEventDetailPage() {
           align-items: center;
           justify-content: space-between;
           gap: 8px;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
         }
 
         .milestone-title-button {
@@ -1730,7 +2004,7 @@ function OrgEventDetailPage() {
           border: 0;
           background: transparent;
           color: #0F172A;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 800;
           text-align: left;
           cursor: pointer;
@@ -1788,8 +2062,8 @@ function OrgEventDetailPage() {
         .category-tree {
           display: grid;
           gap: 4px;
-          margin-left: 8px;
-          padding-left: 16px;
+          margin-left: 6px;
+          padding-left: 12px;
           border-left: 1px solid #DDE7F2;
         }
 
@@ -1802,7 +2076,7 @@ function OrgEventDetailPage() {
         .category-button {
           flex: 1;
           min-width: 0;
-          padding: 9px 12px;
+          padding: 8px 10px;
           border: 0;
           border-radius: 8px;
           background: transparent;
@@ -1974,6 +2248,191 @@ function OrgEventDetailPage() {
           flex-direction: column;
         }
 
+        .workspace-main-content.preview-mode {
+          overflow: auto;
+          padding-bottom: 60px;
+        }
+
+        .workspace-preview-shell {
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          background: #fff;
+          overflow: hidden;
+          margin: 16px 20px 20px;
+          min-height: 0;
+          flex: 1;
+        }
+
+        .workspace-preview-iframe {
+          width: 128%;
+          height: 128%;
+          min-height: 720px;
+          border: 0;
+          display: block;
+          transform: scale(0.78);
+          transform-origin: top left;
+        }
+
+        .workspace-table-wrap {
+          margin: 16px 20px 20px;
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          background: #fff;
+          overflow: auto;
+        }
+
+        .workspace-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 14px;
+        }
+
+        .workspace-table th,
+        .workspace-table td {
+          text-align: left;
+          padding: 12px;
+          border-bottom: 1px solid #F1F5F9;
+        }
+
+        .workspace-table th {
+          background: #F8FAFC;
+          color: #475569;
+          font-weight: 800;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .workspace-member-modal {
+          width: min(760px, 100%);
+        }
+
+        .member-chip-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 12px;
+        }
+
+        .member-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          border: 1px solid #FDBA74;
+          background: #FFF7ED;
+          color: #9A3412;
+          border-radius: 999px;
+          padding: 4px 8px 4px 6px;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .member-chip-avatar,
+        .member-pick-avatar {
+          width: 24px;
+          height: 24px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: #FFEDD5;
+          color: #C2410C;
+          font-size: 12px;
+          font-weight: 800;
+          flex: 0 0 24px;
+        }
+
+        .member-chip button {
+          width: 20px;
+          height: 20px;
+          border: 0;
+          border-radius: 999px;
+          background: #FED7AA;
+          color: #9A3412;
+          cursor: pointer;
+          font-weight: 800;
+          line-height: 1;
+        }
+
+        .member-pick-list {
+          margin-top: 12px;
+          border: 1px solid #E2E8F0;
+          border-radius: 12px;
+          max-height: 320px;
+          overflow: auto;
+          background: #fff;
+        }
+
+        .member-pick-empty {
+          margin: 0;
+          padding: 16px;
+          color: #64748B;
+          font-size: 13px;
+        }
+
+        .member-pick-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 10px 12px;
+          border-bottom: 1px solid #F1F5F9;
+        }
+
+        .member-pick-item:last-child {
+          border-bottom: none;
+        }
+
+        .member-pick-main {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+        }
+
+        .member-pick-main div {
+          display: grid;
+          min-width: 0;
+        }
+
+        .member-pick-main strong {
+          color: #0F172A;
+          font-size: 14px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .member-pick-main span {
+          color: #64748B;
+          font-size: 12px;
+        }
+
+        .member-pick-add {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          border: 1px solid #FDBA74;
+          background: #FFF7ED;
+          color: #C2410C;
+          font-size: 18px;
+          font-weight: 800;
+          cursor: pointer;
+          line-height: 1;
+        }
+
+        .member-pick-add:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .workspace-member-actions {
+          display: grid;
+          gap: 10px;
+          margin: 0 20px 20px;
+          max-width: 420px;
+        }
+
         .kanban-header {
           display: flex;
           min-height: 80px;
@@ -2030,20 +2489,20 @@ function OrgEventDetailPage() {
           flex: 1;
           min-height: 0;
           overflow: auto;
-          padding: 32px;
+          padding: 24px;
           background: #F8FAFC;
         }
 
         .kanban-board {
           display: flex;
           align-items: stretch;
-          gap: 24px;
+          gap: 16px;
           min-width: max-content;
           height: 100%;
         }
 
         .kanban-column {
-          width: 320px;
+          width: 300px;
           display: flex;
           min-height: 420px;
           max-height: 100%;
@@ -2456,9 +2915,11 @@ function OrgEventDetailPage() {
 
       <Sidebar />
       <main className="workspace-main">
-        <KanbanBoard />
+        {workspaceTab === "kanban" && <KanbanBoard />}
+        {workspaceTab === "preview" && <EventPreviewBoard />}
+        {workspaceTab === "event-members" && <EventMembersBoard />}
+        {workspaceTab === "attendees" && <AttendeesBoard />}
       </main>
-      <EventEditModal />
     </div>
   );
 }

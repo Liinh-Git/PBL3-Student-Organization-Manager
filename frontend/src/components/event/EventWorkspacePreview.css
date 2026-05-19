@@ -1,0 +1,80 @@
+.event-workspace-preview-root {
+  padding-bottom: 90px;
+}
+
+.preview-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.preview-inline-editor {
+  display: grid;
+  gap: 8px;
+}
+
+.preview-inline-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.preview-hidden-file-input {
+  display: none;
+}
+
+.preview-edit-icon-btn {
+  border: 1px solid rgba(253, 186, 116, 0.55);
+  background: rgba(249, 115, 22, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 0 0 30px;
+}
+
+.preview-edit-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.preview-edit-icon-btn.dark {
+  background: #fff7ed;
+  color: #ea580c;
+  border-color: #fdba74;
+}
+
+.preview-edit-icon-btn:hover {
+  background: rgba(249, 115, 22, 0.35);
+}
+
+.preview-edit-icon-btn.dark:hover {
+  background: #ffedd5;
+}
+
+.preview-banner-edit {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.preview-banner-editor {
+  padding: 12px;
+}
+
+.event-workspace-preview-root .event-remix-page {
+  min-height: auto;
+  padding-bottom: 90px;
+}
+
+.event-workspace-preview-root .event-remix-hero {
+  min-height: 460px;
+}
+
+.event-workspace-preview-root .event-remix-sidebar-col {
+  position: static;
+}
