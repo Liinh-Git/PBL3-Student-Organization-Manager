@@ -58,16 +58,18 @@ public static class UserMappings
             Visibility = evt.Visibility.ToString(),
             Location = evt.Location,
             ParticipationRole = null,
-            AttendanceStatus = null
+            AttendanceStatus = null,
+            EventRelation = null
         };
     }
 
-    public static MyEventDto ToMyEventDto(this Event evt, string participationRole, string? attendanceStatus = null)
+    public static MyEventDto ToMyEventDto(this Event evt, string participationRole, string? attendanceStatus = null, string? eventRelation = null)
     {
         return evt.ToMyEventDto() with
         {
             ParticipationRole = participationRole,
-            AttendanceStatus = attendanceStatus
+            AttendanceStatus = attendanceStatus,
+            EventRelation = eventRelation
         };
     }
 

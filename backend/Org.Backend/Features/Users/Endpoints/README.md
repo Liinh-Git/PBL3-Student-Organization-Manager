@@ -47,6 +47,13 @@ This folder will contain FastEndpoints endpoint implementations for user profile
 - **Response**: `List<OrganizationDto>`
 - **Permission**: Valid JWT token
 
+### 7. GetMyTasksEndpoint.cs
+- **Route**: `GET /api/users/me/tasks`
+- **Purpose**: Get tasks assigned to current user with event/milestone/category context
+- **Request**: Query `fromUtc`, `toUtc` (optional)
+- **Response**: `List<MyTaskDto>`
+- **Permission**: Valid JWT token
+
 ## Implementation Notes
 - All endpoints require JWT authentication
 - Extract UserId from JWT claims

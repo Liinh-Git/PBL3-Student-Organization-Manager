@@ -5,6 +5,7 @@ using Org.Backend.Domain.Enums;
 using Org.Backend.Features.Users.Mappings;
 using Org.Backend.Infrastructure.Persistence;
 using Org.Shared.Features.Users;
+using DomainTaskStatus = Org.Backend.Domain.Enums.TaskStatus;
 
 namespace Org.Backend.Features.Users.Services;
 
@@ -57,11 +58,17 @@ public class UserService : IUserService
 
     public async Task<List<MyEventDto>> GetMyEventsAsync(Guid userId, CancellationToken ct = default)
     {
-        // Events from organizations where user is a member, plus public events
-        // where they registered only as an attendee.
+        // Events from organizations where user is a member (role-aware),
+        // plus outside-org events where user registered as attendee.
         var memberOrgIds = await _context.Members
             .Where(m => m.UserId == userId && m.Status == MemberStatus.Active)
             .Select(m => m.OrgId)
+            .ToListAsync(ct);
+
+        var organizerEventIds = await _context.EventMembers
+            .Where(em => em.Member.UserId == userId && em.Member.Status == MemberStatus.Active)
+            .Select(em => em.EventId)
+            .Distinct()
             .ToListAsync(ct);
 
         var memberEvents = await _context.Events
@@ -81,16 +88,93 @@ public class UserService : IUserService
             .ToListAsync(ct);
 
         var results = memberEvents
-            .Select(e => e.ToMyEventDto("OrganizationMember"))
+            .Select(e => e.ToMyEventDto(
+                participationRole: "OrganizationMember",
+                attendanceStatus: null,
+                eventRelation: organizerEventIds.Contains(e.Id) ? "EventMember" : "OrgViewer"))
             .ToList();
 
-        results.AddRange(attendeeEvents.Select(a => a.Event.ToMyEventDto("Attendee", a.Status.ToString())));
+        results.AddRange(
+            attendeeEvents.Select(a =>
+                a.Event.ToMyEventDto(
+                    participationRole: "Attendee",
+                    attendanceStatus: a.Status.ToString(),
+                    eventRelation: "Attendee")));
 
         return results
             .GroupBy(e => e.Id)
             .Select(g => g.First())
             .OrderBy(e => e.StartDate)
             .ToList();
+    }
+
+    public async Task<List<MyTaskDto>> GetMyTasksAsync(
+        Guid userId,
+        DateTime? fromUtc = null,
+        DateTime? toUtc = null,
+        CancellationToken ct = default)
+    {
+        var from = fromUtc.HasValue
+            ? DateTime.SpecifyKind(fromUtc.Value, DateTimeKind.Utc)
+            : (DateTime?)null;
+        var to = toUtc.HasValue
+            ? DateTime.SpecifyKind(toUtc.Value, DateTimeKind.Utc)
+            : (DateTime?)null;
+
+        var query = _context.OrgTasks
+            .Include(t => t.EventCategory)
+                .ThenInclude(c => c.Milestone)
+                    .ThenInclude(m => m.Event)
+                        .ThenInclude(e => e.Organization)
+            .Include(t => t.Assignee)
+                .ThenInclude(a => a!.User)
+            .Where(t =>
+                !t.IsDeleted &&
+                !t.EventCategory.IsDeleted &&
+                !t.EventCategory.Milestone.IsDeleted &&
+                !t.EventCategory.Milestone.Event.IsDeleted &&
+                t.AssigneeId.HasValue &&
+                t.Assignee != null &&
+                t.Assignee.UserId == userId &&
+                t.Assignee.Status == MemberStatus.Active);
+
+        if (from.HasValue)
+        {
+            query = query.Where(t => t.Deadline.HasValue && t.Deadline.Value >= from.Value);
+        }
+
+        if (to.HasValue)
+        {
+            query = query.Where(t => t.Deadline.HasValue && t.Deadline.Value <= to.Value);
+        }
+
+        var tasks = await query
+            .OrderBy(t => t.Deadline == null)
+            .ThenBy(t => t.Deadline)
+            .ThenByDescending(t => t.CreatedAt)
+            .ToListAsync(ct);
+
+        var nowUtc = DateTime.UtcNow;
+
+        return tasks.Select(t => new MyTaskDto
+        {
+            Id = t.Id,
+            TaskName = t.TaskName,
+            Description = t.Description,
+            Priority = t.Priority.ToString(),
+            Status = t.Status.ToString(),
+            Deadline = t.Deadline,
+            CompletedAt = t.CompletedAt,
+            IsOverdue = t.Deadline.HasValue && t.Deadline.Value < nowUtc && t.Status != DomainTaskStatus.Done,
+            OrganizationId = t.EventCategory.Milestone.Event.OrgId,
+            OrganizationName = t.EventCategory.Milestone.Event.Organization.OrgName,
+            EventId = t.EventCategory.Milestone.EventId,
+            EventName = t.EventCategory.Milestone.Event.EventName,
+            MilestoneId = t.EventCategory.MilestoneId,
+            MilestoneTitle = t.EventCategory.Milestone.Title,
+            CategoryId = t.EventCategoryId,
+            CategoryName = t.EventCategory.CategoryName
+        }).ToList();
     }
 
     public async Task<List<DiscoverOrganizationDto>> DiscoverOrganizationsAsync(Guid userId, CancellationToken ct = default)

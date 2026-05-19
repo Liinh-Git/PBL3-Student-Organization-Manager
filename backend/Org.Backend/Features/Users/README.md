@@ -22,6 +22,7 @@ User profile management, settings, and user-specific data retrieval.
 | PUT | `/api/users/me/change-password` | Change user password |
 | GET | `/api/users/me/organizations` | Get user's organizations |
 | GET | `/api/users/me/events` | Get user's events |
+| GET | `/api/users/me/tasks` | Get user's assigned tasks (with event context) |
 | GET | `/api/users/me/discover/organizations` | Get discoverable organizations for user |
 
 ## Required Contracts (Later - Phase 3C-3)

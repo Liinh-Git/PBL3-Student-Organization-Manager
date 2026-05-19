@@ -120,10 +120,6 @@ function UserEventsPage() {
               <strong>{memberEvents.length}</strong>
             </article>
             <article className="user-events-metric">
-              <p>Event attendee</p>
-              <strong>{attendeeEvents.length}</strong>
-            </article>
-            <article className="user-events-metric">
               <p>Đang ghi danh</p>
               <strong>{totalJoinedAsAttendee}</strong>
             </article>

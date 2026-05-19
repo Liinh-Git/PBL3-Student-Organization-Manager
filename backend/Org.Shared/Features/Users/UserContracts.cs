@@ -59,6 +59,31 @@ public record MyEventDto
     public string? Location { get; init; }
     public string? ParticipationRole { get; init; }
     public string? AttendanceStatus { get; init; }
+    public string? EventRelation { get; init; }
+}
+
+/// <summary>
+/// My task DTO for user dashboard/task timeline
+/// </summary>
+public record MyTaskDto
+{
+    public required Guid Id { get; init; }
+    public required string TaskName { get; init; }
+    public string? Description { get; init; }
+    public required string Priority { get; init; }
+    public required string Status { get; init; }
+    public DateTime? Deadline { get; init; }
+    public DateTime? CompletedAt { get; init; }
+    public bool IsOverdue { get; init; }
+
+    public required Guid OrganizationId { get; init; }
+    public required string OrganizationName { get; init; }
+    public required Guid EventId { get; init; }
+    public required string EventName { get; init; }
+    public required Guid MilestoneId { get; init; }
+    public required string MilestoneTitle { get; init; }
+    public required Guid CategoryId { get; init; }
+    public required string CategoryName { get; init; }
 }
 
 /// <summary>

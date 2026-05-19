@@ -30,6 +30,11 @@ User module endpoints are user-scoped and require valid JWT token but no specifi
 - **Authorization**: Authenticated user
 - **Notes**: User can view their own events
 
+### GET /api/users/me/tasks
+- **Permission**: Valid JWT token only
+- **Authorization**: Authenticated user
+- **Notes**: User can view tasks assigned to themselves
+
 ### GET /api/users/me/discover/organizations
 - **Permission**: Valid JWT token only
 - **Authorization**: Authenticated user

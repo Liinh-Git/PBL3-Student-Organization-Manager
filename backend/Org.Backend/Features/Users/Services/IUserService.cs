@@ -8,6 +8,7 @@ public interface IUserService
     Task<UserProfileDto> GetMeAsync(Guid userId, CancellationToken ct = default);
     Task<List<MyOrganizationDto>> GetMyOrganizationsAsync(Guid userId, CancellationToken ct = default);
     Task<List<MyEventDto>> GetMyEventsAsync(Guid userId, CancellationToken ct = default);
+    Task<List<MyTaskDto>> GetMyTasksAsync(Guid userId, DateTime? fromUtc = null, DateTime? toUtc = null, CancellationToken ct = default);
     Task<List<DiscoverOrganizationDto>> DiscoverOrganizationsAsync(Guid userId, CancellationToken ct = default);
     
     // Write operations

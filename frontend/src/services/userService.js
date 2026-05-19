@@ -155,3 +155,36 @@ export async function discoverMyOrganizations() {
   
   return response.data.data; // Direct array, not data.items
 }
+
+/**
+ * Get my assigned tasks (with full event context)
+ *
+ * Backend route: GET /api/users/me/tasks
+ * Frontend path: /users/me/tasks
+ * Input:
+ * - fromUtc?: ISO string (optional date range start)
+ * - toUtc?: ISO string (optional date range end)
+ * Response:
+ * - ApiResponse<List<MyTaskDto>>
+ * Permission:
+ * - JWT token required
+ * Rules:
+ * - Returns only tasks assigned to current user, not deleted
+ * - MyTaskDto includes: id, taskName, description, priority, status, deadline, isOverdue,
+ *   organizationId, organizationName, eventId, eventName,
+ *   milestoneId, milestoneTitle, categoryId, categoryName
+ * - Filter Done tasks on frontend when showing "upcoming deadlines"
+ */
+export async function getMyTasks(fromUtc = null, toUtc = null) {
+  const params = {};
+  if (fromUtc) params.fromUtc = fromUtc;
+  if (toUtc) params.toUtc = toUtc;
+
+  const response = await httpClient.get('/users/me/tasks', { params });
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to get my tasks');
+  }
+
+  return response.data.data; // Direct array
+}
