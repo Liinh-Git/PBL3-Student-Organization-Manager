@@ -361,13 +361,38 @@ public class MemberService : IMemberService
             }
         }
 
+        var now = DateTime.UtcNow;
         member.Status = MemberStatus.Removed;
-        member.UpdatedAt = DateTime.UtcNow;
+        member.UpdatedAt = now;
+
+        var assignedTasks = await _context.OrgTasks
+            .Where(t =>
+                t.AssigneeId == member.Id &&
+                t.EventCategory.Milestone.Event.OrgId == orgId)
+            .ToListAsync(ct);
+
+        foreach (var task in assignedTasks)
+        {
+            task.AssigneeId = null;
+            task.UpdatedAt = now;
+        }
+
+        var eventMemberships = await _context.EventMembers
+            .Where(em => em.MemberId == member.Id)
+            .ToListAsync(ct);
+
+        foreach (var eventMembership in eventMemberships)
+        {
+            eventMembership.IsDeleted = true;
+            eventMembership.DeletedAt = now;
+            eventMembership.UpdatedAt = now;
+        }
+
         var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == orgId, ct);
         if (organization != null)
         {
             organization.TotalMembers = Math.Max(0, organization.TotalMembers - 1);
-            organization.UpdatedAt = DateTime.UtcNow;
+            organization.UpdatedAt = now;
         }
         await _context.SaveChangesAsync(ct);
 

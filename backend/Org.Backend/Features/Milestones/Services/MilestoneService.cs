@@ -132,6 +132,7 @@ public class MilestoneService : IMilestoneService
         var milestone = await _context.Milestones
             .Include(m => m.Event)
             .Include(m => m.Categories)
+                .ThenInclude(c => c.Tasks)
             .FirstOrDefaultAsync(m => m.Id == milestoneId, ct);
 
         if (milestone == null)
@@ -142,14 +143,24 @@ public class MilestoneService : IMilestoneService
         await VerifyMembershipAsync(milestone.Event.OrgId, userId, ct);
         await EnsureEventManagerAsync(milestone.EventId, userId, ct);
 
-        // Check if milestone has categories
-        if (milestone.Categories.Any(c => !c.IsDeleted))
+        var now = DateTime.UtcNow;
+        foreach (var category in milestone.Categories)
         {
-            throw new InvalidOperationException("Cannot delete milestone with existing categories");
+            foreach (var task in category.Tasks)
+            {
+                task.IsDeleted = true;
+                task.DeletedAt = now;
+                task.UpdatedAt = now;
+            }
+
+            category.IsDeleted = true;
+            category.DeletedAt = now;
+            category.UpdatedAt = now;
         }
 
         milestone.IsDeleted = true;
-        milestone.DeletedAt = DateTime.UtcNow;
+        milestone.DeletedAt = now;
+        milestone.UpdatedAt = now;
         await _context.SaveChangesAsync(ct);
     }
 

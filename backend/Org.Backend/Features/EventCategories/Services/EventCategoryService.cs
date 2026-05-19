@@ -198,14 +198,17 @@ public class EventCategoryService : IEventCategoryService
         await VerifyMembershipAsync(category.Milestone.Event.OrgId, userId, ct);
         await EnsureEventManagerAsync(category.Milestone.EventId, userId, ct);
 
-        // Check if category has tasks
-        if (category.Tasks.Any(t => !t.IsDeleted))
+        var now = DateTime.UtcNow;
+        foreach (var task in category.Tasks)
         {
-            throw new InvalidOperationException("Cannot delete category with existing tasks");
+            task.IsDeleted = true;
+            task.DeletedAt = now;
+            task.UpdatedAt = now;
         }
 
         category.IsDeleted = true;
-        category.DeletedAt = DateTime.UtcNow;
+        category.DeletedAt = now;
+        category.UpdatedAt = now;
         await _context.SaveChangesAsync(ct);
     }
 

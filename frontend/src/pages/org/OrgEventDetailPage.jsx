@@ -530,7 +530,7 @@ function OrgEventDetailPage() {
 
     if (
       !window.confirm(
-        "Are you sure you want to delete this milestone? You can only delete it when it has no categories.",
+        "Xóa milestone này? Tất cả category và task bên trong sẽ bị xóa.",
       )
     ) {
       return;
@@ -611,7 +611,7 @@ function OrgEventDetailPage() {
 
     if (
       !window.confirm(
-        "Are you sure you want to delete this category? You can only delete it when it has no tasks.",
+        "Xóa category này? Tất cả task bên trong sẽ bị xóa.",
       )
     ) {
       return;

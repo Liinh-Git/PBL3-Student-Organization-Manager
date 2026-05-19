@@ -369,18 +369,44 @@ public class DepartmentService : IDepartmentService
             throw new UnauthorizedAccessException("You do not have permission to manage departments");
         }
 
-        // Check if department has active members
-        var activeMemberCount = await _context.Members
-            .CountAsync(m => m.DepartmentId == departmentId && m.Status == MemberStatus.Active, ct);
+        var now = DateTime.UtcNow;
+        var linkedMembers = await _context.Members
+            .Where(m => m.DepartmentId == departmentId)
+            .ToListAsync(ct);
 
-        if (activeMemberCount > 0)
+        foreach (var linkedMember in linkedMembers)
         {
-            throw new InvalidOperationException($"Cannot delete department with {activeMemberCount} active member(s) assigned");
+            linkedMember.DepartmentId = null;
+            linkedMember.UpdatedAt = now;
         }
 
-        // Soft delete: set status to Archived
+        var linkedCategories = await _context.EventCategories
+            .Where(c => c.OwnerDepartmentId == departmentId)
+            .ToListAsync(ct);
+
+        foreach (var category in linkedCategories)
+        {
+            category.OwnerDepartmentId = null;
+            category.UpdatedAt = now;
+        }
+
+        var linkedTasks = await _context.OrgTasks
+            .Where(t => t.DeptId == departmentId)
+            .ToListAsync(ct);
+
+        foreach (var task in linkedTasks)
+        {
+            task.IsDeleted = true;
+            task.DeletedAt = now;
+            task.UpdatedAt = now;
+        }
+
+        // Soft delete department + archive status
+        department.ManagerId = null;
         department.Status = DepartmentStatus.Archived;
-        department.UpdatedAt = DateTime.UtcNow;
+        department.IsDeleted = true;
+        department.DeletedAt = now;
+        department.UpdatedAt = now;
 
         await _context.SaveChangesAsync(ct);
 

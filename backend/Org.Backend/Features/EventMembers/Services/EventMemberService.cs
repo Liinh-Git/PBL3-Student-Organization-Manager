@@ -115,6 +115,19 @@ public class EventMemberService : IEventMemberService
             throw new InvalidOperationException("Event must have at least one organizer");
         }
 
+        var now = DateTime.UtcNow;
+        var assignedTasks = await _context.OrgTasks
+            .Where(t =>
+                t.AssigneeId == eventMember.MemberId &&
+                t.EventCategory.Milestone.EventId == eventMember.EventId)
+            .ToListAsync(ct);
+
+        foreach (var task in assignedTasks)
+        {
+            task.AssigneeId = null;
+            task.UpdatedAt = now;
+        }
+
         _context.EventMembers.Remove(eventMember);
         await _context.SaveChangesAsync(ct);
         return true;
