@@ -1,25 +1,32 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth.js';
-import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
-import ErrorState from '../../components/shared/ErrorState.jsx';
-import { getEventById, getPublicEventById, updateEvent } from '../../services/eventService.js';
-import { getMyPermissions } from '../../services/roleService.js';
-import { getMyEventRegistration, joinEvent } from '../../services/attendeeService.js';
-import './EventDetailPage.css';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth.js";
+import LoadingSpinner from "../../components/shared/LoadingSpinner.jsx";
+import ErrorState from "../../components/shared/ErrorState.jsx";
+import {
+  getEventById,
+  getPublicEventById,
+  updateEvent,
+} from "../../services/eventService.js";
+import { getMyPermissions } from "../../services/roleService.js";
+import {
+  getMyEventRegistration,
+  joinEvent,
+} from "../../services/attendeeService.js";
+import "./EventDetailPage.css";
 
 function toAbsoluteMediaUrl(url) {
-  if (!url) return '';
+  if (!url) return "";
   if (/^https?:\/\//i.test(url)) return url;
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-  const origin = apiBase.replace(/\/api\/?$/, '');
-  return url.startsWith('/') ? `${origin}${url}` : `${origin}/${url}`;
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const origin = apiBase.replace(/\/api\/?$/, "");
+  return url.startsWith("/") ? `${origin}${url}` : `${origin}/${url}`;
 }
 
 function toDateTimeLocalInput(value) {
-  if (!value) return '';
+  if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  if (Number.isNaN(date.getTime())) return "";
   const offsetMs = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }
@@ -32,28 +39,64 @@ function toIsoUtcFromLocalInput(value) {
 }
 
 function formatDateTime(value) {
-  if (!value) return '-';
+  if (!value) return "-";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
-  return date.toLocaleString();
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString("vi-VN");
+}
+
+function formatDateOnly(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatTimeOnly(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
 }
 
 function formatMaybe(value) {
-  if (value === null || value === undefined || value === '') return '-';
+  if (value === null || value === undefined || value === "") return "-";
   return String(value);
 }
 
 function buildDraft(eventData) {
   return {
-    eventName: eventData?.name || eventData?.eventName || '',
-    description: eventData?.description || '',
+    eventName: eventData?.name || eventData?.eventName || "",
+    description: eventData?.description || "",
     startDate: toDateTimeLocalInput(eventData?.startDate),
     endDate: toDateTimeLocalInput(eventData?.endDate),
-    location: eventData?.location || '',
-    bannerUrl: eventData?.bannerUrl || '',
-    visibility: eventData?.visibility || 'Private',
-    targetParticipants: eventData?.targetParticipants ?? ''
+    location: eventData?.location || "",
+    bannerUrl: eventData?.bannerUrl || "",
+    visibility: eventData?.visibility || "Private",
+    targetParticipants: eventData?.targetParticipants ?? "",
   };
+}
+
+function getStatusLabel(status) {
+  const normalized = String(status || "").toLowerCase();
+  if (["published", "active", "ongoing"].includes(normalized)) return "Đang diễn ra";
+  if (["draft", "planned"].includes(normalized)) return "Bản nháp";
+  if (["completed", "archived"].includes(normalized)) return "Đã kết thúc";
+  if (["cancelled"].includes(normalized)) return "Đã hủy";
+  return status || "Không rõ";
+}
+
+function getStatusTone(status) {
+  const normalized = String(status || "").toLowerCase();
+  if (["published", "active", "ongoing"].includes(normalized)) return "live";
+  if (["draft", "planned"].includes(normalized)) return "draft";
+  if (["cancelled"].includes(normalized)) return "danger";
+  return "neutral";
 }
 
 function EventDetailPage() {
@@ -62,11 +105,11 @@ function EventDetailPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [eventData, setEventData] = useState(null);
-  const [sourceMode, setSourceMode] = useState('public');
+  const [sourceMode, setSourceMode] = useState("public");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [permissions, setPermissions] = useState([]);
-  const [viewMode, setViewMode] = useState('preview');
+  const [viewMode, setViewMode] = useState("preview");
   const [draft, setDraft] = useState(null);
   const [editingField, setEditingField] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -76,7 +119,7 @@ function EventDetailPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!eventId) {
-      setError('Event ID is missing');
+      setError("Event ID is missing");
       setIsLoading(false);
       return;
     }
@@ -89,23 +132,20 @@ function EventDetailPage() {
 
       try {
         let loadedEvent = null;
-        let mode = 'public';
+        let mode = "public";
 
         if (isAuthenticated) {
           try {
             loadedEvent = await getEventById(eventId);
-            mode = 'workspace';
-          } catch (workspaceError) {
-            const status = workspaceError?.response?.status;
-            if (status !== 403 && status !== 404) {
-              // ignore here and try public route next
-            }
+            mode = "workspace";
+          } catch {
+            // fallback to public read route
           }
         }
 
         if (!loadedEvent) {
           loadedEvent = await getPublicEventById(eventId);
-          mode = 'public';
+          mode = "public";
         }
 
         const nextPermissions = [];
@@ -116,7 +156,7 @@ function EventDetailPage() {
               nextPermissions.push(...permissionData.permissionKeys);
             }
           } catch {
-            // Non-member or no permission endpoint access => keep empty list.
+            // keep as empty for non-member
           }
         }
 
@@ -125,8 +165,8 @@ function EventDetailPage() {
           try {
             const response = await getMyEventRegistration(eventId);
             registration = {
-              isRegistered: !!response?.isRegistered && response?.status !== 'Cancelled',
-              status: response?.status || null
+              isRegistered: !!response?.isRegistered && response?.status !== "Cancelled",
+              status: response?.status || null,
             };
           } catch {
             registration = { isRegistered: false, status: null };
@@ -141,7 +181,7 @@ function EventDetailPage() {
         setSourceMode(mode);
       } catch (err) {
         if (!isMounted) return;
-        setError(err.message || 'Failed to load event detail');
+        setError(err.message || "Failed to load event detail");
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -154,19 +194,22 @@ function EventDetailPage() {
     };
   }, [authLoading, eventId, isAuthenticated]);
 
-  const canEditEvent = useMemo(() => {
-    return permissions.includes('org.events.create') && permissions.includes('org.events.manage');
-  }, [permissions]);
+  const canEditEvent = useMemo(
+    () => permissions.includes("org.events.create") && permissions.includes("org.events.manage"),
+    [permissions],
+  );
 
   const canJoin = useMemo(() => {
     if (!eventData) return false;
-    const status = String(eventData.status || '');
-    return !['Cancelled', 'Archived', 'Completed'].includes(status);
+    const status = String(eventData.status || "");
+    return !["Cancelled", "Archived", "Completed"].includes(status);
   }, [eventData]);
 
+  const statusTone = useMemo(() => getStatusTone(eventData?.status), [eventData?.status]);
+
   useEffect(() => {
-    if (!canEditEvent && viewMode === 'edit') {
-      setViewMode('preview');
+    if (!canEditEvent && viewMode === "edit") {
+      setViewMode("preview");
       setEditingField(null);
     }
   }, [canEditEvent, viewMode]);
@@ -174,14 +217,14 @@ function EventDetailPage() {
   const handleSave = async () => {
     if (!canEditEvent || !draft) return;
     if (!draft.eventName?.trim()) {
-      alert('Event name is required.');
+      alert("Event name is required.");
       return;
     }
 
     const startDateIso = toIsoUtcFromLocalInput(draft.startDate);
     const endDateIso = toIsoUtcFromLocalInput(draft.endDate) || startDateIso;
     if (!startDateIso || !endDateIso) {
-      alert('Start date and end date are required.');
+      alert("Start date and end date are required.");
       return;
     }
 
@@ -194,20 +237,22 @@ function EventDetailPage() {
         endDate: endDateIso,
         location: draft.location || null,
         bannerUrl: draft.bannerUrl || null,
-        visibility: draft.visibility || 'Private',
+        visibility: draft.visibility || "Private",
         targetParticipants:
-          draft.targetParticipants === '' || draft.targetParticipants === null || draft.targetParticipants === undefined
+          draft.targetParticipants === "" ||
+          draft.targetParticipants === null ||
+          draft.targetParticipants === undefined
             ? null
-            : Number(draft.targetParticipants)
+            : Number(draft.targetParticipants),
       });
 
       setEventData(updated);
       setDraft(buildDraft(updated));
-      setViewMode('preview');
+      setViewMode("preview");
       setEditingField(null);
-      setSourceMode('workspace');
+      setSourceMode("workspace");
     } catch (err) {
-      alert(err.message || 'Failed to update event');
+      alert(err.message || "Failed to update event");
     } finally {
       setIsSaving(false);
     }
@@ -220,10 +265,10 @@ function EventDetailPage() {
       const response = await joinEvent(eventId);
       setJoinState({
         isRegistered: !!response?.isRegistered,
-        status: response?.status || 'Registered'
+        status: response?.status || "Registered",
       });
     } catch (err) {
-      alert(err.message || 'Failed to join event');
+      alert(err.message || "Failed to join event");
     } finally {
       setIsJoining(false);
     }
@@ -233,7 +278,7 @@ function EventDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="event-detail-page">
+      <div className="event-remix-page">
         <LoadingSpinner message="Loading event detail..." />
       </div>
     );
@@ -241,10 +286,16 @@ function EventDetailPage() {
 
   if (error) {
     return (
-      <div className="event-detail-page">
-        <button type="button" onClick={() => navigate(-1)} className="app-button app-button--ghost event-detail-back-btn">
-          ← Back
-        </button>
+      <div className="event-remix-page app-page">
+        <div className="event-remix-top-nav">
+          <button
+            type="button"
+            className="event-remix-back-btn"
+            onClick={() => navigate(-1)}
+          >
+            <span>‹</span> Trở về
+          </button>
+        </div>
         <ErrorState message={error} />
       </div>
     );
@@ -252,33 +303,33 @@ function EventDetailPage() {
 
   if (!eventData || !draft) {
     return (
-      <div className="event-detail-page">
+      <div className="event-remix-page app-page">
         <ErrorState message="Event not found" />
       </div>
     );
   }
 
-  const renderEditableField = ({ keyName, label, type = 'text', options = [] }) => {
-    const isEditing = viewMode === 'edit' && canEditEvent && editingField === keyName;
-    const value = draft[keyName] ?? '';
-    const isClickable = viewMode === 'edit' && canEditEvent;
+  const renderEditableField = ({ keyName, label, type = "text", options = [] }) => {
+    const isEditing = viewMode === "edit" && canEditEvent && editingField === keyName;
+    const value = draft[keyName] ?? "";
+    const isClickable = viewMode === "edit" && canEditEvent;
 
     return (
-      <div className="event-detail-field" key={keyName}>
-        <div className="event-detail-label">{label}</div>
+      <div className="event-remix-field" key={keyName}>
+        <div className="event-remix-label">{label}</div>
         {isEditing ? (
-          type === 'textarea' ? (
+          type === "textarea" ? (
             <textarea
-              className="form-input event-detail-input"
+              className="form-input event-remix-input"
               value={value}
               autoFocus
               rows={4}
               onChange={(e) => setDraft((prev) => ({ ...prev, [keyName]: e.target.value }))}
               onBlur={() => setEditingField(null)}
             />
-          ) : type === 'select' ? (
+          ) : type === "select" ? (
             <select
-              className="form-select event-detail-input"
+              className="form-select event-remix-input"
               value={value}
               autoFocus
               onChange={(e) => setDraft((prev) => ({ ...prev, [keyName]: e.target.value }))}
@@ -292,7 +343,7 @@ function EventDetailPage() {
             </select>
           ) : (
             <input
-              className="form-input event-detail-input"
+              className="form-input event-remix-input"
               type={type}
               value={value}
               autoFocus
@@ -303,12 +354,12 @@ function EventDetailPage() {
         ) : (
           <button
             type="button"
-            className={`event-detail-value ${isClickable ? 'event-detail-value--editable' : ''}`}
+            className={`event-remix-value ${isClickable ? "event-remix-value--editable" : ""}`}
             onClick={() => {
               if (isClickable) setEditingField(keyName);
             }}
           >
-            {type === 'datetime-local' ? formatDateTime(toIsoUtcFromLocalInput(value)) : formatMaybe(value)}
+            {type === "datetime-local" ? formatDateTime(toIsoUtcFromLocalInput(value)) : formatMaybe(value)}
           </button>
         )}
       </div>
@@ -316,152 +367,142 @@ function EventDetailPage() {
   };
 
   return (
-    <div className="event-detail-page app-page">
-      <button type="button" onClick={() => navigate(-1)} className="app-button app-button--ghost event-detail-back-btn">
-        ← Back
-      </button>
+    <div className="event-remix-page">
+      <div className="event-remix-top-nav">
+        <button
+          type="button"
+          className="event-remix-back-btn"
+          onClick={() => navigate(-1)}
+        >
+          <span>‹</span> Trở về
+        </button>
+      </div>
 
-      <section className="app-card event-detail-hero">
-        <div className="event-detail-hero-header">
-          <div>
-            <h1 className="app-page-title">{eventData.name || 'Event Detail'}</h1>
-            <p className="app-page-subtitle">
-              Mode source: {sourceMode} | Status: {eventData.status || '-'} | Visibility: {eventData.visibility || '-'}
-            </p>
+      <section className="event-remix-hero">
+        <div className="event-remix-glow" />
+        <div className="event-remix-hero-container">
+          <div className="event-remix-hero-content">
+            <div className="event-remix-tag-group">
+              <span className={`event-remix-chip event-remix-chip--accent event-remix-chip--${statusTone}`}>
+                {getStatusLabel(eventData.status)}
+              </span>
+              <span className="event-remix-chip event-remix-chip--outline">
+                {sourceMode === "workspace" ? "Workspace Event" : "Public Event"}
+              </span>
+            </div>
+
+            <h1 className="event-remix-hero-title">
+              {eventData.name || "Event Detail"}
+            </h1>
           </div>
-          <div className="app-action-row">
-            {canEditEvent ? (
-              <>
-                <button
-                  type="button"
-                  className={`app-button ${viewMode === 'preview' ? 'app-button--secondary' : 'app-button--ghost'}`}
-                  onClick={() => {
-                    setViewMode('preview');
-                    setEditingField(null);
-                    setDraft(buildDraft(eventData));
-                  }}
-                >
-                  Preview
-                </button>
-                <button
-                  type="button"
-                  className={`app-button ${viewMode === 'edit' ? 'app-button--secondary' : 'app-button--ghost'}`}
-                  onClick={() => setViewMode('edit')}
-                >
-                  Edit
-                </button>
-                {viewMode === 'edit' ? (
-                  <button type="button" className="app-button app-button--primary" onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? 'Saving...' : 'Save changes'}
-                  </button>
-                ) : null}
-              </>
-            ) : null}
 
-            {isAuthenticated ? (
-              joinState.isRegistered ? (
-                <span className="app-badge app-badge--success">Joined ({joinState.status || 'Registered'})</span>
-              ) : (
-                <button type="button" className="app-button app-button--primary" onClick={handleJoin} disabled={isJoining || !canJoin}>
-                  {isJoining ? 'Joining...' : 'Join event'}
-                </button>
-              )
+          <div className="event-remix-hero-visual">
+            {bannerSrc ? (
+              <img
+                src={bannerSrc}
+                alt={`${eventData.name || "Event"} banner`}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
             ) : (
-              <button type="button" className="app-button app-button--primary" onClick={() => navigate('/login')}>
-                Login to join
-              </button>
+              <div className="event-remix-hero-placeholder">Event Banner</div>
             )}
           </div>
         </div>
-
-        {bannerSrc ? (
-          <img
-            src={bannerSrc}
-            alt={`${eventData.name || 'Event'} banner`}
-            className="event-detail-banner"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        ) : null}
       </section>
 
-      <section className="app-card app-section">
-        <div className="app-section-header">
-          <h2 className="app-section-title">Editable Fields</h2>
-          <p className="app-section-subtitle">
-            {canEditEvent
-              ? 'In edit mode, click any field below to edit directly on this page.'
-              : 'You are in preview mode only.'}
-          </p>
+      <div className="event-remix-stats-wrapper">
+        <div className="event-remix-stats">
+          <div className="event-remix-stat-item">
+            <span className="event-remix-stat-label">Sức chứa</span>
+            <span className="event-remix-stat-val">{formatMaybe(eventData.targetParticipants)} Người</span>
+          </div>
+          <div className="event-remix-stat-item">
+            <span className="event-remix-stat-label">Đánh giá trung bình</span>
+            <span className="event-remix-stat-val">{formatMaybe(eventData.averageRating)}</span>
+          </div>
+          <div className="event-remix-stat-item">
+            <span className="event-remix-stat-label">Đơn vị tổ chức</span>
+            <span className="event-remix-stat-val">{eventData.organizationName || "-"}</span>
+          </div>
         </div>
-        <div className="event-detail-grid">
-          {renderEditableField({ keyName: 'eventName', label: 'Event Name' })}
-          {renderEditableField({ keyName: 'description', label: 'Description', type: 'textarea' })}
-          {renderEditableField({ keyName: 'startDate', label: 'Start Date', type: 'datetime-local' })}
-          {renderEditableField({ keyName: 'endDate', label: 'End Date', type: 'datetime-local' })}
-          {renderEditableField({ keyName: 'location', label: 'Location' })}
-          {renderEditableField({ keyName: 'bannerUrl', label: 'Banner URL' })}
-          {renderEditableField({
-            keyName: 'visibility',
-            label: 'Visibility',
-            type: 'select',
-            options: ['Public', 'OrganizationOnly', 'Private']
-          })}
-          {renderEditableField({ keyName: 'targetParticipants', label: 'Target Participants', type: 'number' })}
-        </div>
-      </section>
+      </div>
 
-      <section className="app-card app-section">
-        <div className="app-section-header">
-          <h2 className="app-section-title">Read-Only Metadata</h2>
+      <main className="event-remix-main-layout">
+        <div className="event-remix-details-col">
+          <section className="event-remix-section">
+            <h2 className="event-remix-section-title">Về sự kiện này</h2>
+            <p className="event-remix-text-content">
+              {eventData.description || "Sự kiện chưa có mô tả chi tiết."}
+            </p>
+          </section>
         </div>
-        <div className="event-detail-grid">
-          <div className="event-detail-field">
-            <div className="event-detail-label">Event ID</div>
-            <div className="event-detail-value event-detail-value--readonly">{formatMaybe(eventData.id || eventId)}</div>
-          </div>
-          <div className="event-detail-field">
-            <div className="event-detail-label">Organization ID</div>
-            <div className="event-detail-value event-detail-value--readonly">{formatMaybe(eventData.organizationId)}</div>
-          </div>
-          <div className="event-detail-field">
-            <div className="event-detail-label">Organization Name</div>
-            <div className="event-detail-value event-detail-value--readonly">{formatMaybe(eventData.organizationName)}</div>
-          </div>
-          <div className="event-detail-field">
-            <div className="event-detail-label">Status</div>
-            <div className="event-detail-value event-detail-value--readonly">{formatMaybe(eventData.status)}</div>
-          </div>
-          <div className="event-detail-field">
-            <div className="event-detail-label">Average Rating</div>
-            <div className="event-detail-value event-detail-value--readonly">{formatMaybe(eventData.averageRating)}</div>
-          </div>
-          <div className="event-detail-field">
-            <div className="event-detail-label">Budget</div>
-            <div className="event-detail-value event-detail-value--readonly">{formatMaybe(eventData.budget)}</div>
-          </div>
-          <div className="event-detail-field">
-            <div className="event-detail-label">Tags</div>
-            <div className="event-detail-value event-detail-value--readonly">{formatMaybe(eventData.tags)}</div>
-          </div>
-          <div className="event-detail-field">
-            <div className="event-detail-label">Created At (UTC)</div>
-            <div className="event-detail-value event-detail-value--readonly">{formatDateTime(eventData.createdAtUtc)}</div>
-          </div>
-          <div className="event-detail-field">
-            <div className="event-detail-label">Updated At (UTC)</div>
-            <div className="event-detail-value event-detail-value--readonly">{formatDateTime(eventData.updatedAtUtc)}</div>
-          </div>
-        </div>
-      </section>
 
-      <section className="app-card app-section">
-        <div className="app-section-header">
-          <h2 className="app-section-title">Debug Snapshot</h2>
+        <div className="event-remix-sidebar-col">
+          <div className="event-remix-action-widget">
+            <h3>Đăng ký tham gia</h3>
+            <p>Giữ chỗ ngay hôm nay để không bỏ lỡ sự kiện hấp dẫn nhất.</p>
+            {isAuthenticated ? (
+              joinState.isRegistered ? (
+                <button type="button" className="event-remix-btn-join" disabled>
+                  Bạn đã đăng ký ({joinState.status || "Registered"})
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="event-remix-btn-join"
+                  onClick={handleJoin}
+                  disabled={isJoining || !canJoin}
+                >
+                  {isJoining ? "Đang xử lý..." : "Xác nhận tham gia"}
+                </button>
+              )
+            ) : (
+              <button
+                type="button"
+                className="event-remix-btn-join"
+                onClick={() => navigate("/login")}
+              >
+                Đăng nhập để tham gia
+              </button>
+            )}
+          </div>
+
+          <div className="event-remix-logistics-card">
+            <div className="event-remix-logistic-row">
+              <div className="event-remix-log-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="18" height="18" x="3" y="4" rx="2" />
+                  <line x1="16" x2="16" y1="2" y2="6" />
+                  <line x1="8" x2="8" y1="2" y2="6" />
+                  <line x1="3" x2="21" y1="10" y2="10" />
+                </svg>
+              </div>
+              <div className="event-remix-log-info">
+                <h4>Thời gian tổ chức</h4>
+                <p>
+                  {formatTimeOnly(eventData.startDate)} - {formatTimeOnly(eventData.endDate)}
+                  <br />
+                  {formatDateOnly(eventData.startDate)}
+                </p>
+              </div>
+            </div>
+            <div className="event-remix-logistic-row">
+              <div className="event-remix-log-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </div>
+              <div className="event-remix-log-info">
+                <h4>Địa điểm</h4>
+                <p>{eventData.location || "-"}</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <pre className="event-detail-json">{JSON.stringify(eventData, null, 2)}</pre>
-      </section>
+      </main>
     </div>
   );
 }
