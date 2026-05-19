@@ -10,7 +10,7 @@ public class UpdateTaskStatusRequestValidator : Validator<UpdateTaskStatusReques
     {
         RuleFor(x => x.Status)
             .NotEmpty().WithMessage("Status is required")
-            .Must(s => new[] { "Todo", "InProgress", "Blocked", "Done", "Cancelled" }.Contains(s))
-            .WithMessage("Status must be one of: Todo, InProgress, Blocked, Done, Cancelled");
+            .Must(s => new[] { "Todo", "InProgress", "Done" }.Contains(s))
+            .WithMessage("Status must be one of: Todo, InProgress, Done");
     }
 }

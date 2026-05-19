@@ -189,6 +189,14 @@ function OrgEventDetailPage() {
   });
   const canEditPreview = canEditPreviewByRole && isCurrentUserEventOrganizer;
   const canManageEventMembers = isCurrentUserEventOrganizer;
+  const eventOrganizerMemberIds = new Set(
+    eventMembers
+      .map((item) => item.memberId || item.organizationMemberId || item.member?.id)
+      .filter(Boolean),
+  );
+  const assignableEventMembers = members.filter((member) =>
+    eventOrganizerMemberIds.has(member.id),
+  );
 
   const getTaskAssigneeId = (task) =>
     task?.assigneeId ||
@@ -221,7 +229,7 @@ function OrgEventDetailPage() {
   const formatShortDate = (value) => {
     if (!value) return "-";
     const formatted = formatDate(value);
-    return formatted === "-" ? "-" : formatted.slice(0, 5);
+    return formatted;
   };
 
   const formatTime = (value) => {
@@ -229,18 +237,19 @@ function OrgEventDetailPage() {
     return String(value).split("T")[1].substring(0, 5);
   };
 
+  const allowedTaskStatuses = ["Todo", "InProgress", "Done"];
+  const normalizeTaskStatus = (status) =>
+    allowedTaskStatuses.includes(status) ? status : "Todo";
   const statusMeta = {
     Todo: { label: "Cần làm", className: "status-todo" },
     InProgress: { label: "Đang làm", className: "status-progress" },
-    Blocked: { label: "Bị chặn", className: "status-blocked" },
     Done: { label: "Hoàn thành", className: "status-done" },
-    Cancelled: { label: "Đã hủy", className: "status-cancelled" },
   };
 
   const getStatusLabel = (status) =>
-    statusMeta[status]?.label || status || "Chưa xác định";
+    statusMeta[normalizeTaskStatus(status)]?.label || "Chưa xác định";
   const getStatusClass = (status) =>
-    statusMeta[status]?.className || "status-unknown";
+    statusMeta[normalizeTaskStatus(status)]?.className || "status-unknown";
 
   const getPriorityLabel = (priority) => {
     const labels = {
@@ -283,20 +292,13 @@ function OrgEventDetailPage() {
     : null;
   const activeTasks = activeCategory?.tasks || [];
 
-  const baseStatusColumns = [
-    "Todo",
-    "InProgress",
-    "Blocked",
-    "Done",
-    "Cancelled",
-  ];
-  const extraStatusColumns = activeTasks
-    .map((task) => task.status)
-    .filter((status) => status && !baseStatusColumns.includes(status));
-  const statusColumns = [
-    ...baseStatusColumns,
-    ...Array.from(new Set(extraStatusColumns)),
-  ];
+  const statusColumns = [...allowedTaskStatuses];
+
+  const canUpdateTaskStatusByRole = (task) => {
+    if (canManage) return true;
+    if (!myOrgMemberId) return false;
+    return String(getTaskAssigneeId(task)) === String(myOrgMemberId);
+  };
 
   // Task mutation handlers
   const handleCreateTask = async (categoryId, e) => {
@@ -354,14 +356,19 @@ function OrgEventDetailPage() {
   };
 
   const handleUpdateStatus = async (taskId, newStatus, categoryId) => {
-    if (!canManage) {
+    const targetTask = allCategories
+      .flatMap((cat) => cat.tasks || [])
+      .find((task) => task.id === taskId);
+    if (!targetTask || !canUpdateTaskStatusByRole(targetTask)) {
       alert("Bạn không có quyền thực hiện thao tác này");
       return;
     }
 
     setTaskLoading((prev) => ({ ...prev, [taskId]: true }));
     try {
-      const updatedTask = await updateTaskStatus(taskId, { status: newStatus });
+      const updatedTask = await updateTaskStatus(taskId, {
+        status: normalizeTaskStatus(newStatus),
+      });
 
       setCategoriesByMilestone((prev) => {
         const updated = { ...prev };
@@ -796,7 +803,11 @@ function OrgEventDetailPage() {
   const handleTaskDrop = (status) => {
     if (!draggedTaskId || !activeCategory) return;
     const draggedTask = activeTasks.find((task) => task.id === draggedTaskId);
-    if (draggedTask?.status !== status) {
+    if (!draggedTask || !canUpdateTaskStatusByRole(draggedTask)) {
+      setDraggedTaskId(null);
+      return;
+    }
+    if (normalizeTaskStatus(draggedTask?.status) !== normalizeTaskStatus(status)) {
       handleUpdateStatus(draggedTaskId, status, activeCategory.id);
     }
     setDraggedTaskId(null);
@@ -1322,10 +1333,11 @@ function OrgEventDetailPage() {
 
     const assigneeName = getTaskAssigneeName(task);
 
+    const canUpdateStatus = canUpdateTaskStatusByRole(task);
     return (
       <article
         className={`task-card ${taskLoading[task.id] ? "is-loading" : ""}`}
-        draggable={canManage && !taskLoading[task.id]}
+        draggable={canUpdateStatus && !taskLoading[task.id]}
         onDragStart={() => setDraggedTaskId(task.id)}
         onDragEnd={() => setDraggedTaskId(null)}
       >
@@ -1362,26 +1374,7 @@ function OrgEventDetailPage() {
         )}
 
         <div className="task-status-row">
-          {canManage ? (
-            <select
-              value={task.status || "Todo"}
-              onChange={(e) =>
-                handleUpdateStatus(task.id, e.target.value, activeCategory.id)
-              }
-              disabled={taskLoading[task.id]}
-              className="task-status-select"
-            >
-              <option value="Todo">Todo</option>
-              <option value="InProgress">In Progress</option>
-              <option value="Blocked">Blocked</option>
-              <option value="Done">Done</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
-          ) : (
-            <span className="task-status-text">
-              {getStatusLabel(task.status)}
-            </span>
-          )}
+          <span className="task-status-text">{getStatusLabel(task.status)}</span>
         </div>
 
         <div className="task-footer">
@@ -1397,7 +1390,7 @@ function OrgEventDetailPage() {
                 className="assignee-select"
               >
                 <option value="">Unassigned</option>
-                {members.map((member) => (
+                {assignableEventMembers.map((member) => (
                   <option key={member.id} value={member.id}>
                     {member.fullName || member.email}
                   </option>
@@ -1464,14 +1457,15 @@ function OrgEventDetailPage() {
           <div className="kanban-board">
             {statusColumns.map((status) => {
               const columnTasks = activeTasks.filter(
-                (task) => (task.status || "Todo") === status,
+                (task) => normalizeTaskStatus(task.status) === status,
               );
               return (
                 <div
                   key={status}
                   className="kanban-column"
                   onDragOver={(e) => {
-                    if (canManage) e.preventDefault();
+                    const draggedTask = activeTasks.find((task) => task.id === draggedTaskId);
+                    if (draggedTask && canUpdateTaskStatusByRole(draggedTask)) e.preventDefault();
                   }}
                   onDrop={() => handleTaskDrop(status)}
                 >
@@ -2494,15 +2488,18 @@ function OrgEventDetailPage() {
         }
 
         .kanban-board {
-          display: flex;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           align-items: stretch;
           gap: 16px;
-          min-width: max-content;
+          width: 100%;
+          min-width: 0;
           height: 100%;
         }
 
         .kanban-column {
-          width: 300px;
+          width: auto;
+          min-width: 0;
           display: flex;
           min-height: 420px;
           max-height: 100%;
@@ -2711,7 +2708,7 @@ function OrgEventDetailPage() {
           min-width: 0;
           align-items: center;
           gap: 8px;
-          flex: 1;
+          flex: 0 1 132px;
         }
 
         .avatar-dot {
@@ -2730,7 +2727,9 @@ function OrgEventDetailPage() {
         }
 
         .assignee-select {
+          width: 100%;
           min-width: 0;
+          max-width: 100px;
           height: 30px;
           padding: 4px 6px;
           color: #64748B;
@@ -2757,8 +2756,9 @@ function OrgEventDetailPage() {
         .deadline-text {
           flex: 0 0 auto;
           color: #94A3B8;
-          font-size: 11px;
-          font-weight: 700;
+          font-size: 12px;
+          font-weight: 800;
+          white-space: nowrap;
         }
 
         .workspace-empty-state {

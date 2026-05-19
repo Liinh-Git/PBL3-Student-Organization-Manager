@@ -128,7 +128,7 @@ export async function deleteTask(taskId) {
  * Permission:
  * - org.events.manage
  * Rules:
- * - status values: Todo, InProgress, Blocked, Done, Cancelled
+ * - status values: Todo, InProgress, Done
  * - On success, mutate task in local category.tasks[] in EventDetail tree state
  */
 export async function updateTaskStatus(taskId, payload) {

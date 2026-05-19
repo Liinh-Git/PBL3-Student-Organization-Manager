@@ -137,33 +137,6 @@ public class TaskService : ITaskService
             throw new UnauthorizedAccessException("You are not a member of this organization");
         }
 
-        // Verify assignee if provided
-        if (request.AssigneeId.HasValue)
-        {
-            var assignee = await _context.Members
-                .FirstOrDefaultAsync(m => m.Id == request.AssigneeId.Value, ct);
-
-            if (assignee == null)
-            {
-                throw new KeyNotFoundException("Assignee not found");
-            }
-
-            if (assignee.OrgId != orgId)
-            {
-                throw new InvalidOperationException("Assignee must belong to the same organization");
-            }
-
-            if (assignee.Status != MemberStatus.Active)
-            {
-                throw new InvalidOperationException("Assignee must be an active member");
-            }
-
-            if (request.DeptId.HasValue && assignee.DepartmentId != request.DeptId.Value)
-            {
-                throw new InvalidOperationException("Assignee must belong to the same department");
-            }
-        }
-
         // Verify department if provided
         if (request.DeptId.HasValue)
         {
@@ -176,6 +149,17 @@ public class TaskService : ITaskService
             {
                 throw new InvalidOperationException("Department must belong to the same organization");
             }
+        }
+
+        // Verify assignee if provided: must be active org member and event organizer member
+        if (request.AssigneeId.HasValue)
+        {
+            await EnsureAssigneeIsEligibleForEventTaskAsync(
+                category.Milestone.EventId,
+                orgId,
+                request.AssigneeId.Value,
+                request.DeptId,
+                ct);
         }
 
         // Parse priority
@@ -237,34 +221,6 @@ public class TaskService : ITaskService
         await VerifyMembershipAsync(orgId, userId, ct);
         await EnsureEventManagerAsync(task.EventCategory.Milestone.EventId, userId, ct);
 
-        // Verify assignee if provided
-        if (request.AssigneeId.HasValue)
-        {
-            var assignee = await _context.Members
-                .FirstOrDefaultAsync(m => m.Id == request.AssigneeId.Value, ct);
-
-            if (assignee == null)
-            {
-                throw new KeyNotFoundException("Assignee not found");
-            }
-
-            if (assignee.OrgId != orgId)
-            {
-                throw new InvalidOperationException("Assignee must belong to the same organization");
-            }
-
-            if (assignee.Status != MemberStatus.Active)
-            {
-                throw new InvalidOperationException("Assignee must be an active member");
-            }
-
-            var effectiveDeptId = request.DeptId ?? task.DeptId;
-            if (effectiveDeptId.HasValue && assignee.DepartmentId != effectiveDeptId.Value)
-            {
-                throw new InvalidOperationException("Assignee must belong to the same department");
-            }
-        }
-
         // Verify department if provided
         if (request.DeptId.HasValue)
         {
@@ -278,6 +234,20 @@ public class TaskService : ITaskService
                 throw new InvalidOperationException("Department must belong to the same organization");
             }
         }
+
+        // Verify assignee if provided: must be active org member and event organizer member
+        if (request.AssigneeId.HasValue)
+        {
+            var effectiveDeptId = request.DeptId ?? task.DeptId;
+            await EnsureAssigneeIsEligibleForEventTaskAsync(
+                task.EventCategory.Milestone.EventId,
+                orgId,
+                request.AssigneeId.Value,
+                effectiveDeptId,
+                ct);
+        }
+
+        var previousAssigneeId = task.AssigneeId;
 
         // Parse priority
         if (!string.IsNullOrEmpty(request.Priority))
@@ -321,7 +291,10 @@ public class TaskService : ITaskService
         task.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
-        await NotifyTaskAssignmentAsync(task, userId, isNewTask: false, ct);
+        if (task.AssigneeId.HasValue && task.AssigneeId != previousAssigneeId)
+        {
+            await NotifyTaskAssignmentAsync(task, userId, isNewTask: false, ct);
+        }
 
         // Reload with navigation properties
         task = await _context.OrgTasks
@@ -355,7 +328,6 @@ public class TaskService : ITaskService
         task.IsDeleted = true;
         task.DeletedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(ct);
-        await NotifyTaskStatusChangedAsync(task, userId, ct);
     }
 
     public async Task<TaskDto> UpdateTaskStatusAsync(Guid taskId, UpdateTaskStatusRequest request, Guid userId, CancellationToken ct = default)
@@ -371,9 +343,10 @@ public class TaskService : ITaskService
             throw new KeyNotFoundException("Task not found");
         }
 
+        var eventId = task.EventCategory.Milestone.EventId;
         var orgId = task.EventCategory.Milestone.Event.OrgId;
         await VerifyMembershipAsync(orgId, userId, ct);
-        await EnsureEventManagerAsync(task.EventCategory.Milestone.EventId, userId, ct);
+        await EnsureTaskStatusUpdatePermissionAsync(task, userId, ct);
 
         // Parse status
         if (!Enum.TryParse<DomainTaskStatus>(request.Status, out var status))
@@ -381,6 +354,7 @@ public class TaskService : ITaskService
             throw new ArgumentException($"Invalid status: {request.Status}");
         }
 
+        var previousStatus = task.Status;
         task.Status = status;
         task.UpdatedAt = DateTime.UtcNow;
 
@@ -395,7 +369,10 @@ public class TaskService : ITaskService
         }
 
         await _context.SaveChangesAsync(ct);
-        await NotifyTaskAssignmentAsync(task, userId, isNewTask: false, ct);
+        if (previousStatus != DomainTaskStatus.Done && status == DomainTaskStatus.Done)
+        {
+            await NotifyTaskCompletedAsync(task, eventId, userId, ct);
+        }
 
         // Reload with navigation properties
         task = await _context.OrgTasks
@@ -426,28 +403,6 @@ public class TaskService : ITaskService
         await VerifyMembershipAsync(orgId, userId, ct);
         await EnsureEventManagerAsync(task.EventCategory.Milestone.EventId, userId, ct);
 
-        // Verify assignee if provided
-        if (request.AssigneeId.HasValue)
-        {
-            var assignee = await _context.Members
-                .FirstOrDefaultAsync(m => m.Id == request.AssigneeId.Value, ct);
-
-            if (assignee == null)
-            {
-                throw new KeyNotFoundException("Assignee not found");
-            }
-
-            if (assignee.OrgId != orgId)
-            {
-                throw new InvalidOperationException("Assignee must belong to the same organization");
-            }
-
-            if (assignee.Status != MemberStatus.Active)
-            {
-                throw new InvalidOperationException("Assignee must be an active member");
-            }
-        }
-
         // Verify department if provided
         if (request.DeptId.HasValue)
         {
@@ -462,11 +417,27 @@ public class TaskService : ITaskService
             }
         }
 
+        // Verify assignee if provided: must be active org member and event organizer member
+        if (request.AssigneeId.HasValue)
+        {
+            await EnsureAssigneeIsEligibleForEventTaskAsync(
+                task.EventCategory.Milestone.EventId,
+                orgId,
+                request.AssigneeId.Value,
+                request.DeptId ?? task.DeptId,
+                ct);
+        }
+
+        var previousAssigneeId = task.AssigneeId;
         task.AssigneeId = request.AssigneeId;
         task.DeptId = request.DeptId;
         task.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
+        if (task.AssigneeId.HasValue && task.AssigneeId != previousAssigneeId)
+        {
+            await NotifyTaskAssignmentAsync(task, userId, isNewTask: false, ct);
+        }
 
         // Reload with navigation properties
         task = await _context.OrgTasks
@@ -493,16 +464,85 @@ public class TaskService : ITaskService
 
     private async Task EnsureEventManagerAsync(Guid eventId, Guid userId, CancellationToken ct)
     {
-        var isEventMember = await _context.EventMembers
-            .AnyAsync(
-                em => em.EventId == eventId &&
-                      em.Member.UserId == userId &&
-                      em.Member.Status == MemberStatus.Active,
-                ct);
+        if (!await IsEventManagerAsync(eventId, userId, ct))
+        {
+            throw new UnauthorizedAccessException("Only event organizers can manage tasks");
+        }
+    }
+
+    private async Task<bool> IsEventManagerAsync(Guid eventId, Guid userId, CancellationToken ct)
+    {
+        return await _context.EventMembers.AnyAsync(
+            em => em.EventId == eventId &&
+                  em.Member.UserId == userId &&
+                  em.Member.Status == MemberStatus.Active,
+            ct);
+    }
+
+    private async Task EnsureTaskStatusUpdatePermissionAsync(OrgTask task, Guid userId, CancellationToken ct)
+    {
+        var eventId = task.EventCategory.Milestone.EventId;
+
+        if (await IsEventManagerAsync(eventId, userId, ct))
+        {
+            return;
+        }
+
+        if (!task.AssigneeId.HasValue)
+        {
+            throw new UnauthorizedAccessException("Only event organizers or assigned event members can update task status");
+        }
+
+        var isAssignedUser = await _context.EventMembers.AnyAsync(
+            em => em.EventId == eventId &&
+                  em.MemberId == task.AssigneeId.Value &&
+                  em.Member.UserId == userId &&
+                  em.Member.Status == MemberStatus.Active,
+            ct);
+
+        if (!isAssignedUser)
+        {
+            throw new UnauthorizedAccessException("Only event organizers or assigned event members can update task status");
+        }
+    }
+
+    private async Task EnsureAssigneeIsEligibleForEventTaskAsync(
+        Guid eventId,
+        Guid orgId,
+        Guid assigneeMemberId,
+        Guid? deptId,
+        CancellationToken ct)
+    {
+        var assignee = await _context.Members
+            .FirstOrDefaultAsync(m => m.Id == assigneeMemberId, ct);
+
+        if (assignee == null)
+        {
+            throw new KeyNotFoundException("Assignee not found");
+        }
+
+        if (assignee.OrgId != orgId)
+        {
+            throw new InvalidOperationException("Assignee must belong to the same organization");
+        }
+
+        if (assignee.Status != MemberStatus.Active)
+        {
+            throw new InvalidOperationException("Assignee must be an active member");
+        }
+
+        if (deptId.HasValue && assignee.DepartmentId != deptId.Value)
+        {
+            throw new InvalidOperationException("Assignee must belong to the same department");
+        }
+
+        var isEventMember = await _context.EventMembers.AnyAsync(
+            em => em.EventId == eventId && em.MemberId == assigneeMemberId,
+            ct);
 
         if (!isEventMember)
         {
-            throw new UnauthorizedAccessException("Only event organizers can manage tasks");
+            throw new InvalidOperationException("Assignee must be an event organizer member of this event");
         }
     }
 
@@ -540,32 +580,18 @@ public class TaskService : ITaskService
         await _context.SaveChangesAsync(ct);
     }
 
-    private async Task NotifyTaskStatusChangedAsync(OrgTask task, Guid actorUserId, CancellationToken ct)
+    private async Task NotifyTaskCompletedAsync(OrgTask task, Guid eventId, Guid actorUserId, CancellationToken ct)
     {
         var taskWithOrg = await _context.OrgTasks
             .Include(t => t.EventCategory).ThenInclude(c => c.Milestone).ThenInclude(m => m.Event)
             .FirstAsync(t => t.Id == task.Id, ct);
         var orgId = taskWithOrg.EventCategory.Milestone.Event.OrgId;
-
-        var members = await _context.Members
-            .Include(m => m.Role)
-            .Where(m => m.OrgId == orgId && m.Status == MemberStatus.Active)
-            .ToListAsync(ct);
-
-        var receivers = members
-            .Where(m =>
-            {
-                var roleName = (m.Role?.RoleName ?? string.Empty).Trim().ToLowerInvariant();
-                if (roleName == "president" || roleName == "vice president" || roleName == "vicepresident")
-                {
-                    return true;
-                }
-
-                return task.DeptId.HasValue && m.DepartmentId == task.DeptId.Value;
-            })
-            .Select(m => m.UserId)
+        var receivers = await _context.EventMembers
+            .Where(em => em.EventId == eventId && em.Member.Status == MemberStatus.Active)
+            .Select(em => em.Member.UserId)
             .Distinct()
-            .ToList();
+            .Where(userId => userId != actorUserId)
+            .ToListAsync(ct);
 
         if (receivers.Count == 0)
         {
@@ -576,12 +602,12 @@ public class TaskService : ITaskService
         {
             ReceiverId = userId,
             ActorId = actorUserId,
-            Title = "Task status updated",
-            Message = $"Task '{task.TaskName}' is now '{task.Status}'.",
+            Title = "Task completed",
+            Message = $"Task '{task.TaskName}' has been moved to Done.",
             Type = NotificationType.System,
             RelatedEntityType = nameof(OrgTask),
             RelatedEntityId = task.Id,
-            ActionUrl = $"/org/departments?orgId={orgId}",
+            ActionUrl = $"/org/events/{eventId}?orgId={orgId}",
             IsRead = false
         });
 
