@@ -21,6 +21,7 @@ public static class EventMappings
             Location = evt.Location,
             BannerUrl = evt.BannerUrl,
             TargetParticipants = evt.TargetParticipants,
+            RegisteredParticipants = evt.RegisteredParticipants,
             Budget = evt.Budget,
             AverageRating = evt.AverageRating,
             Tags = evt.Tags,
@@ -61,7 +62,7 @@ public static class EventMappings
             Location = evt.Location,
             BannerUrl = evt.BannerUrl,
             TargetParticipants = evt.TargetParticipants,
-            RegisteredParticipants = evt.Attendees.Count(a => a.Status != AttendeeStatus.Cancelled),
+            RegisteredParticipants = evt.RegisteredParticipants,
             Visibility = evt.Visibility.ToString(),
             Status = evt.Status.ToString()
         };

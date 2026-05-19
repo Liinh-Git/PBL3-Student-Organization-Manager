@@ -206,6 +206,18 @@ function EventDetailPage() {
   }, [eventData]);
 
   const statusTone = useMemo(() => getStatusTone(eventData?.status), [eventData?.status]);
+  const participantSummary = useMemo(() => {
+    const registered = Number(eventData?.registeredParticipants ?? 0);
+    const safeRegistered = Number.isFinite(registered) ? Math.max(0, registered) : 0;
+    if (
+      eventData?.targetParticipants === null ||
+      eventData?.targetParticipants === undefined ||
+      eventData?.targetParticipants === null
+    ) {
+      return `${safeRegistered}/-`;
+    }
+    return `${safeRegistered}/${eventData.targetParticipants}`;
+  }, [eventData?.registeredParticipants, eventData?.targetParticipants]);
 
   useEffect(() => {
     if (!canEditEvent && viewMode === "edit") {
@@ -415,8 +427,8 @@ function EventDetailPage() {
       <div className="event-remix-stats-wrapper">
         <div className="event-remix-stats">
           <div className="event-remix-stat-item">
-            <span className="event-remix-stat-label">Sức chứa</span>
-            <span className="event-remix-stat-val">{formatMaybe(eventData.targetParticipants)} Người</span>
+            <span className="event-remix-stat-label">Người tham gia</span>
+            <span className="event-remix-stat-val">{participantSummary}</span>
           </div>
           <div className="event-remix-stat-item">
             <span className="event-remix-stat-label">Đánh giá trung bình</span>

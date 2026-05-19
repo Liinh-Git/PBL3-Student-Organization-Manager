@@ -314,6 +314,11 @@ namespace Org.Backend.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("OrgId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("RegisteredParticipants")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 

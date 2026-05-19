@@ -153,6 +153,7 @@ public class EventService : IEventService
             BannerUrl = request.BannerUrl,
             Visibility = visibility,
             TargetParticipants = request.TargetParticipants,
+            RegisteredParticipants = 0,
             Status = EventStatus.Draft,
             CreatedByMemberId = member.Id,
             CreatedAt = DateTime.UtcNow,

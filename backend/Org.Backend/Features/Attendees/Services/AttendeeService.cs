@@ -141,6 +141,7 @@ public class AttendeeService : IAttendeeService
             attendee.CheckedInAt = null;
             attendee.Note = note?.Trim();
             attendee.UpdatedAt = DateTime.UtcNow;
+            evt.RegisteredParticipants += 1;
         }
         else
         {
@@ -156,6 +157,7 @@ public class AttendeeService : IAttendeeService
                 UpdatedAt = DateTime.UtcNow
             };
             _context.Attendees.Add(attendee);
+            evt.RegisteredParticipants += 1;
         }
 
         await _context.SaveChangesAsync(ct);
@@ -192,6 +194,7 @@ public class AttendeeService : IAttendeeService
         attendee.Status = AttendeeStatus.Cancelled;
         attendee.Note = note?.Trim() ?? attendee.Note;
         attendee.UpdatedAt = DateTime.UtcNow;
+        evt.RegisteredParticipants = Math.Max(0, evt.RegisteredParticipants - 1);
 
         await _context.SaveChangesAsync(ct);
         return attendee;
@@ -206,6 +209,7 @@ public class AttendeeService : IAttendeeService
 
         if (evt.Visibility == EventVisibility.Public)
         {
+            EnsureCapacity(evt);
             return;
         }
 
@@ -215,6 +219,19 @@ public class AttendeeService : IAttendeeService
         if (!isOrgMember)
         {
             throw new UnauthorizedAccessException("Only organization members can join this event");
+        }
+
+        EnsureCapacity(evt);
+    }
+
+    private static void EnsureCapacity(Event evt)
+    {
+        if (evt.TargetParticipants.HasValue && evt.TargetParticipants.Value > 0)
+        {
+            if (evt.RegisteredParticipants >= evt.TargetParticipants.Value)
+            {
+                throw new InvalidOperationException("This event has reached participant capacity");
+            }
         }
     }
 }

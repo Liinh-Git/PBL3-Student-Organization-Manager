@@ -16,6 +16,7 @@ public record EventDto
     public string? Location { get; init; }
     public string? BannerUrl { get; init; }
     public int? TargetParticipants { get; init; }
+    public required int RegisteredParticipants { get; init; }
     public decimal? Budget { get; init; }
     public double? AverageRating { get; init; }
     public string? Tags { get; init; }

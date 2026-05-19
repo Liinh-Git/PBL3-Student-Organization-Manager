@@ -17,6 +17,7 @@ public class Event : BaseEntity
     public string? Location { get; set; }
     public string? BannerUrl { get; set; }
     public int? TargetParticipants { get; set; }
+    public int RegisteredParticipants { get; set; } = 0;
     public string? Tags { get; set; }
     public EventStatus Status { get; set; } = EventStatus.Draft;
     public EventVisibility Visibility { get; set; } = EventVisibility.Private;
