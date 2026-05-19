@@ -65,7 +65,7 @@ export async function getOrganizationEvents(orgId) {
  * - org.events.create
  * Rules:
  * - startDate must be before endDate if both provided
- * - visibility defaults to "Private" if not provided (Public, OrganizationOnly, Private)
+ * - visibility defaults to "Private" if not provided (Public, Private)
  */
 export async function createEvent(orgId, payload) {
   const response = await httpClient.post(`/organizations/${orgId}/events`, payload);
@@ -117,7 +117,7 @@ export async function getEventById(id) {
  * - org.events.manage
  * Rules:
  * - startDate must be before endDate if both provided
- * - visibility must be Public, OrganizationOnly, or Private
+ * - visibility must be Public or Private
  */
 export async function updateEvent(id, payload) {
   const response = await httpClient.put(`/events/${id}`, payload);
@@ -144,8 +144,10 @@ export async function updateEvent(id, payload) {
  * - Soft-delete event record (sets status to Cancelled)
  * - Cascade soft-delete to milestones/categories/tasks
  */
-export async function deleteEvent(id) {
-  const response = await httpClient.delete(`/events/${id}`);
+export async function deleteEvent(id, hardDelete = false) {
+  const response = await httpClient.delete(`/events/${id}`, {
+    params: hardDelete ? { hardDelete: true } : undefined,
+  });
   
   if (!response.data.success) {
     throw new Error(response.data.message || 'Failed to delete event');

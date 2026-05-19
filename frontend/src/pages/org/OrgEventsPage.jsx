@@ -67,6 +67,25 @@ function OrgEventsPage() {
   const canManage = permissions.includes('org.events.manage');
   const getEventId = (event) => event?.id || event?.eventId;
   const getEventName = (event) => event?.name || event?.eventName;
+  const normalizeVisibility = (visibility) =>
+    visibility === 'OrganizationOnly' ? 'Private' : (visibility || 'Private');
+
+  const getVisibilityDescription = (visibility) => {
+    const normalized = normalizeVisibility(visibility);
+    return normalized === 'Public'
+      ? 'Public (người ngoài cũng xem được, hiển thị ở Discover)'
+      : 'Private (chỉ thành viên trong tổ chức xem được)';
+  };
+
+  const getStatusMeta = (status) => {
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'published') return { icon: '🟢', label: 'Published' };
+    if (normalized === 'draft') return { icon: '📝', label: 'Draft' };
+    if (normalized === 'completed') return { icon: '✅', label: 'Completed' };
+    if (normalized === 'cancelled') return { icon: '⛔', label: 'Cancelled' };
+    if (normalized === 'ongoing') return { icon: '🟠', label: 'Ongoing' };
+    return { icon: '•', label: status || 'Unknown' };
+  };
 
   const toAbsoluteMediaUrl = (url) => {
     if (!url) return '';
@@ -103,7 +122,7 @@ function OrgEventsPage() {
     const location = form.location.value;
     const targetParticipants = form.targetParticipants.value;
     const bannerUrl = form.bannerUrl.value;
-    const visibility = form.visibility.value;
+    const visibility = normalizeVisibility(form.visibility.value);
     const initialMemberIds = Array.from(form.initialMemberIds?.selectedOptions || [])
       .map((opt) => opt.value)
       .filter(Boolean);
@@ -150,7 +169,7 @@ function OrgEventsPage() {
     const location = form.location.value;
     const targetParticipants = form.targetParticipants.value;
     const bannerUrl = form.bannerUrl.value;
-    const visibility = form.visibility.value;
+    const visibility = normalizeVisibility(form.visibility.value);
 
     if (!eventName || !startDate) {
       alert('Event name and start date are required');
@@ -182,28 +201,7 @@ function OrgEventsPage() {
     }
   };
 
-  const handleDelete = async (eventId) => {
-    if (!canManage) {
-      alert('Bạn không có quyền thực hiện thao tác này');
-      return;
-    }
-
-    if (!window.confirm('Are you sure you want to delete this event? This will also delete all milestones, categories, and tasks within it.')) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await deleteEvent(eventId);
-      setEvents(prev => prev.filter(ev => getEventId(ev) !== eventId));
-    } catch (err) {
-      alert(err.message || 'Failed to delete event');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleToggleStatus = async (event) => {
+  const handlePublishEvent = async (event) => {
     if (!canManage) {
       alert('Bạn không có quyền thực hiện thao tác này');
       return;
@@ -215,10 +213,20 @@ function OrgEventsPage() {
       return;
     }
 
-    const nextStatus = event?.status === 'Published' ? 'Draft' : 'Published';
-    const confirmMessage = nextStatus === 'Published'
-      ? 'Publish this event publicly?'
-      : 'Move this event back to draft?';
+    if (event?.status !== 'Draft') {
+      alert('Chỉ event Draft mới được publish.');
+      return;
+    }
+
+    const confirmMessage = [
+      `Hiện tại sự kiện đang ở mức ${getVisibilityDescription(event?.visibility)}.`,
+      'Nếu Publish, trạng thái sẽ chuyển từ Draft sang Published.',
+      normalizeVisibility(event?.visibility) === 'Public'
+        ? 'Sự kiện sẽ hiển thị ở trang Discover cho người ngoài tổ chức.'
+        : 'Sự kiện vẫn chỉ hiển thị cho thành viên trong tổ chức.',
+      '',
+      'Xác nhận Publish?',
+    ].join('\n');
 
     if (!window.confirm(confirmMessage)) {
       return;
@@ -226,12 +234,80 @@ function OrgEventsPage() {
 
     setIsSubmitting(true);
     try {
-      const updated = await updateEventStatus(eventId, nextStatus);
+      const updated = await updateEventStatus(eventId, 'Published');
       setEvents(prev => prev.map(ev => (getEventId(ev) === eventId ? updated : ev)));
     } catch (err) {
-      alert(err.message || 'Failed to update event status');
+      alert(err.message || 'Failed to publish event');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleManageEventFromClose = async (event) => {
+    if (!canManage) {
+      alert('Bạn không có quyền thực hiện thao tác này');
+      return;
+    }
+
+    const eventId = getEventId(event);
+    if (!eventId) {
+      alert('Event ID is missing');
+      return;
+    }
+
+    const visibility = normalizeVisibility(event?.visibility);
+    const status = event?.status;
+
+    if (status === 'Published' && visibility !== 'Public') {
+      const backToDraft = window.confirm(
+        'Sự kiện đang Published nhưng chưa Public.\nBạn có muốn đưa sự kiện trở lại Draft không?',
+      );
+      if (backToDraft) {
+        setIsSubmitting(true);
+        try {
+          const updated = await updateEventStatus(eventId, 'Draft');
+          setEvents(prev => prev.map(ev => (getEventId(ev) === eventId ? updated : ev)));
+        } catch (err) {
+          alert(err.message || 'Failed to move event back to draft');
+        } finally {
+          setIsSubmitting(false);
+        }
+        return;
+      }
+    }
+
+    const action = window.prompt(
+      'Chọn hành động:\n1 - Hủy sự kiện (Cancelled)\n2 - Xóa hoàn toàn khỏi hệ thống\nNhập 1 hoặc 2:',
+      '1',
+    );
+
+    if (!action) return;
+
+    if (action === '1') {
+      if (!window.confirm('Xác nhận hủy sự kiện này?')) return;
+      setIsSubmitting(true);
+      try {
+        const updated = await updateEventStatus(eventId, 'Cancelled');
+        setEvents(prev => prev.map(ev => (getEventId(ev) === eventId ? updated : ev)));
+      } catch (err) {
+        alert(err.message || 'Failed to cancel event');
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    if (action === '2') {
+      if (!window.confirm('Xóa hoàn toàn sự kiện? Dữ liệu liên quan sẽ bị ẩn khỏi hệ thống.')) return;
+      setIsSubmitting(true);
+      try {
+        await deleteEvent(eventId, true);
+        setEvents(prev => prev.filter(ev => getEventId(ev) !== eventId));
+      } catch (err) {
+        alert(err.message || 'Failed to permanently delete event');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -407,12 +483,11 @@ function OrgEventsPage() {
             <select
               id={isEdit ? 'editVisibility' : 'visibility'}
               name="visibility"
-              defaultValue={isEdit ? event?.visibility || 'Private' : 'Private'}
+              defaultValue={isEdit ? normalizeVisibility(event?.visibility || 'Private') : 'Private'}
               className="form-select"
             >
               <option value="Public">Public</option>
-              <option value="OrganizationOnly">Organization Only</option>
-              <option value="Private">Private</option>
+              <option value="Private">Private (Org members only)</option>
             </select>
           </div>
           <div className="org-form-actions">
@@ -552,6 +627,7 @@ function OrgEventsPage() {
         .org-status-badge {
           display: inline-flex;
           align-items: center;
+          gap: 6px;
           min-height: 24px;
           padding: 5px 9px;
           border-radius: 4px;
@@ -878,6 +954,8 @@ function OrgEventsPage() {
             {events.map((event) => {
               const eventId = getEventId(event);
               const bannerSrc = toAbsoluteMediaUrl(event?.bannerUrl || event?.coverUrl || event?.avatarUrl);
+              const statusMeta = getStatusMeta(event?.status);
+              const isDraft = event?.status === 'Draft';
               return (
                 <article key={eventId} className="org-event-card">
                   {bannerSrc ? (
@@ -892,7 +970,10 @@ function OrgEventsPage() {
                   ) : null}
 
                   <div className="org-event-card-top">
-                    <span className="org-status-badge">{event.status || 'Chưa xác định'}</span>
+                    <span className="org-status-badge">
+                      <span>{statusMeta.icon}</span>
+                      <span>{statusMeta.label}</span>
+                    </span>
                     {canManage && (
                       <div className="org-event-card-actions">
                         <button
@@ -908,23 +989,25 @@ function OrgEventsPage() {
                         >
                           ⚙
                         </button>
+                        {isDraft && (
+                          <button
+                            type="button"
+                            onClick={() => handlePublishEvent(event)}
+                            disabled={isSubmitting}
+                            className="org-icon-button org-status-toggle-button"
+                            title="Publish sự kiện"
+                            aria-label="Publish sự kiện"
+                          >
+                            Publish
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => handleToggleStatus(event)}
-                          disabled={isSubmitting}
-                          className="org-icon-button org-status-toggle-button"
-                          title={event.status === 'Published' ? 'Chuyển về nháp' : 'Publish sự kiện'}
-                          aria-label={event.status === 'Published' ? 'Chuyển về nháp' : 'Publish sự kiện'}
-                        >
-                          {event.status === 'Published' ? 'Draft' : 'Publish'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(eventId)}
+                          onClick={() => handleManageEventFromClose(event)}
                           disabled={isSubmitting}
                           className="org-icon-button org-icon-button-danger"
-                          title="Xóa sự kiện"
-                          aria-label="Xóa sự kiện"
+                          title="Quản lý trạng thái / xóa sự kiện"
+                          aria-label="Quản lý trạng thái / xóa sự kiện"
                         >
                           ×
                         </button>

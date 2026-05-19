@@ -33,9 +33,12 @@ public class DeleteEventEndpoint : EndpointWithoutRequest<ApiResponse<bool>>
 
             var eventId = Route<Guid>("id");
 
-            var result = await _eventService.DeleteEventAsync(eventId, userId, ct);
+            var hardDelete = Query<bool?>("hardDelete") ?? false;
+            var result = await _eventService.DeleteEventAsync(eventId, userId, hardDelete, ct);
 
-            Response = ApiResponse<bool>.SuccessResponse(result, "Event deleted successfully");
+            Response = ApiResponse<bool>.SuccessResponse(
+                result,
+                hardDelete ? "Event deleted permanently" : "Event cancelled successfully");
         }
         catch (KeyNotFoundException)
         {

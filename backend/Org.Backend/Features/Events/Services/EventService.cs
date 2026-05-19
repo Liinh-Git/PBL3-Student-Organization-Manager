@@ -303,6 +303,27 @@ public class EventService : IEventService
             throw new InvalidOperationException("Completed events cannot change to another status");
         }
 
+        if (nextStatus == EventStatus.Draft)
+        {
+            if (evt.Status != EventStatus.Published)
+            {
+                throw new InvalidOperationException("Only published events can move back to draft");
+            }
+
+            if (evt.Visibility == EventVisibility.Public)
+            {
+                throw new InvalidOperationException("Public published events cannot move back to draft");
+            }
+        }
+
+        if (nextStatus == EventStatus.Published)
+        {
+            if (evt.Status != EventStatus.Draft)
+            {
+                throw new InvalidOperationException("Only draft events can be published");
+            }
+        }
+
         if (nextStatus == EventStatus.Completed)
         {
             var eventEndUtc = evt.EndDate.Kind == DateTimeKind.Utc
@@ -312,6 +333,19 @@ public class EventService : IEventService
             if (eventEndUtc > DateTime.UtcNow)
             {
                 throw new InvalidOperationException("Can only mark event as Completed after event end time");
+            }
+
+            if (evt.Status != EventStatus.Published && evt.Status != EventStatus.Ongoing)
+            {
+                throw new InvalidOperationException("Only published/ongoing events can be marked as completed");
+            }
+        }
+
+        if (nextStatus == EventStatus.Ongoing)
+        {
+            if (evt.Status != EventStatus.Published)
+            {
+                throw new InvalidOperationException("Only published events can move to ongoing");
             }
         }
 
@@ -323,7 +357,7 @@ public class EventService : IEventService
         return evt.ToEventDto();
     }
 
-    public async Task<bool> DeleteEventAsync(Guid eventId, Guid userId, CancellationToken ct = default)
+    public async Task<bool> DeleteEventAsync(Guid eventId, Guid userId, bool hardDelete = false, CancellationToken ct = default)
     {
         // Find event
         var evt = await _context.Events
@@ -348,12 +382,103 @@ public class EventService : IEventService
 
         await EnsureEventManagerAsync(evt.Id, userId, ct);
 
-        // Soft delete: set status to Cancelled
+        if (!hardDelete)
+        {
+            evt.Status = EventStatus.Cancelled;
+            evt.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(ct);
+            return true;
+        }
+
+        var now = DateTime.UtcNow;
+
         evt.Status = EventStatus.Cancelled;
-        evt.UpdatedAt = DateTime.UtcNow;
+        evt.IsDeleted = true;
+        evt.UpdatedAt = now;
+
+        var milestones = await _context.Milestones
+            .Where(m => m.EventId == eventId)
+            .ToListAsync(ct);
+        var milestoneIds = milestones.Select(m => m.Id).ToList();
+        foreach (var milestone in milestones)
+        {
+            milestone.IsDeleted = true;
+            milestone.UpdatedAt = now;
+        }
+
+        var categories = await _context.EventCategories
+            .Where(c => milestoneIds.Contains(c.MilestoneId))
+            .ToListAsync(ct);
+        var categoryIds = categories.Select(c => c.Id).ToList();
+        foreach (var category in categories)
+        {
+            category.IsDeleted = true;
+            category.UpdatedAt = now;
+        }
+
+        var tasks = await _context.OrgTasks
+            .Where(t => categoryIds.Contains(t.EventCategoryId))
+            .ToListAsync(ct);
+        foreach (var task in tasks)
+        {
+            task.IsDeleted = true;
+            task.UpdatedAt = now;
+        }
+
+        var eventMembers = await _context.EventMembers
+            .Where(em => em.EventId == eventId)
+            .ToListAsync(ct);
+        foreach (var eventMember in eventMembers)
+        {
+            eventMember.IsDeleted = true;
+            eventMember.UpdatedAt = now;
+        }
+
+        var attendees = await _context.Attendees
+            .Where(a => a.EventId == eventId)
+            .ToListAsync(ct);
+        foreach (var attendee in attendees)
+        {
+            attendee.IsDeleted = true;
+            attendee.UpdatedAt = now;
+        }
+
+        var digitalAssets = await _context.DigitalAssets
+            .Where(a => a.EventId == eventId)
+            .ToListAsync(ct);
+        foreach (var asset in digitalAssets)
+        {
+            asset.IsDeleted = true;
+            asset.UpdatedAt = now;
+        }
+
+        var ratings = await _context.EventRatings
+            .Where(r => r.EventId == eventId)
+            .ToListAsync(ct);
+        foreach (var rating in ratings)
+        {
+            rating.IsDeleted = true;
+            rating.UpdatedAt = now;
+        }
+
+        var report = await _context.EventReports
+            .FirstOrDefaultAsync(r => r.EventId == eventId, ct);
+        if (report != null)
+        {
+            report.IsDeleted = true;
+            report.UpdatedAt = now;
+        }
+
+        var resources = await _context.Resources
+            .Where(r => r.EventId == eventId)
+            .ToListAsync(ct);
+        foreach (var resource in resources)
+        {
+            resource.IsDeleted = true;
+            resource.UpdatedAt = now;
+        }
 
         await _context.SaveChangesAsync(ct);
-
         return true;
     }
 
