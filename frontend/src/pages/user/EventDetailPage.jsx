@@ -539,10 +539,6 @@ function EventDetailPage() {
             <span className="event-remix-stat-val">{participantSummary}</span>
           </div>
           <div className="event-remix-stat-item">
-            <span className="event-remix-stat-label">Đánh giá trung bình</span>
-            <span className="event-remix-stat-val">{formatMaybe(eventData.averageRating)}</span>
-          </div>
-          <div className="event-remix-stat-item">
             <span className="event-remix-stat-label">Đơn vị tổ chức</span>
             <span className="event-remix-stat-val">{eventData.organizationName || "-"}</span>
           </div>

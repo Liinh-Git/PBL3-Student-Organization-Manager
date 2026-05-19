@@ -42,11 +42,16 @@ function Popup({ info, onClose, navigate }) {
           </div>
           <div className="dash-popup-context">
             <div className="dash-popup-context-row"><IcoOrg s={12}/><strong style={{fontSize:'0.74rem'}}>{item.organizationName}</strong></div>
-            {!isEvent && (
+            {!isEvent && item.taskSource !== 'Department' && (
               <div className="dash-popup-breadcrumb">
                 <IcoCal s={10}/><span style={{fontWeight:600}}>{item.eventName}</span>
                 <IcoChev/><IcoFlag s={10}/><span>{item.milestoneTitle}</span>
                 <IcoChev/><IcoFolder s={10}/><span>{item.categoryName}</span>
+              </div>
+            )}
+            {!isEvent && item.taskSource === 'Department' && (
+              <div className="dash-popup-breadcrumb">
+                <IcoFolder s={10}/><span style={{fontWeight:600}}>{item.departmentName ? `Phòng ban: ${item.departmentName}` : 'Task phòng ban'}</span>
               </div>
             )}
           </div>
@@ -54,7 +59,9 @@ function Popup({ info, onClose, navigate }) {
             {isEvent ? (<>
               <button className="dash-popup-btn" onClick={() => { navigate(`/events/${item.id}`); onClose(); }}>Xem chi tiết</button>
               {item.organizationId && <button className="dash-popup-btn dash-popup-btn--primary" onClick={() => { navigate(`/org/events/${item.id}?orgId=${item.organizationId}`); onClose(); }}>Workspace</button>}
-            </>) : (
+            </>) : item.taskSource === 'Department' ? (
+              <button className="dash-popup-btn dash-popup-btn--primary" onClick={() => { navigate(`/org/departments?orgId=${item.organizationId}`); onClose(); }}>Mở phòng ban</button>
+            ) : (
               <button className="dash-popup-btn dash-popup-btn--primary" onClick={() => { navigate(`/org/events/${item.eventId}?orgId=${item.organizationId}`); onClose(); }}>Mở workspace</button>
             )}
           </div>
@@ -234,7 +241,11 @@ function RightPanel({ tasks, events, navigate, onChipClick }) {
                 <p className="dash-task-card-name">{t.taskName}</p>
                 <DueBadge deadline={t.deadline} isOverdue={t.isOverdue} />
               </div>
-              <div className="dash-task-card-context"><IcoFolder s={10}/> {t.eventName} · {t.categoryName}</div>
+              <div className="dash-task-card-context">
+                {t.taskSource === 'Department'
+                  ? <>Phòng ban{t.departmentName ? `: ${t.departmentName}` : ''}</>
+                  : <><IcoFolder s={10}/> {t.eventName} · {t.categoryName}</>}
+              </div>
             </div>
           ))
         }
@@ -312,12 +323,14 @@ function UserDashboardPage() {
 
   const filteredEvents = useMemo(() => {
     if (!showEvents) return [];
-    return events.filter(e => selOrgIds.includes(e.organizationId));
+    const selectedOrgSet = new Set((selOrgIds || []).map(id => String(id).toLowerCase()));
+    return events.filter(e => selectedOrgSet.has(String(e.organizationId || e.orgId || '').toLowerCase()));
   }, [events, showEvents, selOrgIds]);
 
   const filteredTasks = useMemo(() => {
     if (!showTasks) return [];
-    return tasks.filter(t => selOrgIds.includes(t.organizationId));
+    const selectedOrgSet = new Set((selOrgIds || []).map(id => String(id).toLowerCase()));
+    return tasks.filter(t => selectedOrgSet.has(String(t.organizationId || t.orgId || '').toLowerCase()));
   }, [tasks, showTasks, selOrgIds]);
 
   const itemsByDate = useMemo(() => {

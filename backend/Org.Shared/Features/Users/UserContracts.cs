@@ -84,6 +84,9 @@ public record MyTaskDto
     public required string MilestoneTitle { get; init; }
     public required Guid CategoryId { get; init; }
     public required string CategoryName { get; init; }
+    public Guid? DepartmentId { get; init; }
+    public string? DepartmentName { get; init; }
+    public required string TaskSource { get; init; } // Event | Department
 }
 
 /// <summary>

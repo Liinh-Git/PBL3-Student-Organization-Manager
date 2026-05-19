@@ -126,6 +126,7 @@ public class UserService : IUserService
                 .ThenInclude(c => c.Milestone)
                     .ThenInclude(m => m.Event)
                         .ThenInclude(e => e.Organization)
+            .Include(t => t.Department)
             .Include(t => t.Assignee)
                 .ThenInclude(a => a!.User)
             .Where(t =>
@@ -173,7 +174,10 @@ public class UserService : IUserService
             MilestoneId = t.EventCategory.MilestoneId,
             MilestoneTitle = t.EventCategory.Milestone.Title,
             CategoryId = t.EventCategoryId,
-            CategoryName = t.EventCategory.CategoryName
+            CategoryName = t.EventCategory.CategoryName,
+            DepartmentId = t.DeptId,
+            DepartmentName = t.Department != null ? t.Department.DeptName : null,
+            TaskSource = t.DeptId.HasValue ? "Department" : "Event"
         }).ToList();
     }
 

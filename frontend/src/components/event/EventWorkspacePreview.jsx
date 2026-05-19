@@ -63,11 +63,11 @@ function buildDraft(eventData) {
 
 function getStatusLabel(status) {
   const normalized = String(status || "").toLowerCase();
-  if (["published", "active", "ongoing"].includes(normalized)) return "Äang diá»…n ra";
-  if (["draft", "planned"].includes(normalized)) return "Báº£n nhÃ¡p";
-  if (["completed", "archived"].includes(normalized)) return "ÄÃ£ káº¿t thÃºc";
-  if (["cancelled"].includes(normalized)) return "ÄÃ£ há»§y";
-  return status || "KhÃ´ng rÃµ";
+  if (["published", "active", "ongoing"].includes(normalized)) return "Đang diễn ra";
+  if (["draft", "planned"].includes(normalized)) return "Bản nháp";
+  if (["completed", "archived"].includes(normalized)) return "Đã kết thúc";
+  if (["cancelled"].includes(normalized)) return "Đã hủy";
+  return status || "Không rõ";
 }
 
 function getStatusTone(status) {
@@ -151,9 +151,9 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
                   type="button"
                   className="preview-edit-icon-btn"
                   onClick={() => setEditingField("visibility")}
-                  title="Sá»­a hiá»ƒn thá»‹"
+                  title="Sửa hiển thị"
                 >
-                  âœŽ
+                  ✎
                 </button>
               )}
             </div>
@@ -166,16 +166,16 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
                   onChange={(e) => setDraft((prev) => ({ ...prev, eventName: e.target.value }))}
                 />
                 <div className="preview-inline-actions">
-                  <button type="button" className="event-remix-back-btn" onClick={() => saveField(["eventName"])} disabled={isSaving}>LÆ°u</button>
-                  <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Há»§y</button>
+                  <button type="button" className="event-remix-back-btn" onClick={() => saveField(["eventName"])} disabled={isSaving}>Lưu</button>
+                  <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Hủy</button>
                 </div>
               </div>
             ) : (
               <div className="preview-row">
                 <h1 className="event-remix-hero-title">{draft.eventName || "-"}</h1>
                 {canEdit && (
-                  <button type="button" className="preview-edit-icon-btn" onClick={() => setEditingField("eventName")} title="Sá»­a tÃªn sá»± kiá»‡n">
-                    âœŽ
+                  <button type="button" className="preview-edit-icon-btn" onClick={() => setEditingField("eventName")} title="Sửa tên sự kiện">
+                    ✎
                   </button>
                 )}
               </div>
@@ -201,8 +201,8 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
                   placeholder="Banner URL"
                 />
                 <div className="preview-inline-actions">
-                  <button type="button" className="event-remix-back-btn" onClick={() => saveField(["bannerUrl"])} disabled={isSaving}>LÆ°u</button>
-                  <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Há»§y</button>
+                  <button type="button" className="event-remix-back-btn" onClick={() => saveField(["bannerUrl"])} disabled={isSaving}>Lưu</button>
+                  <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Hủy</button>
                 </div>
               </div>
             ) : bannerSrc ? (
@@ -215,10 +215,10 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
                 type="button"
                 className="preview-edit-icon-btn preview-banner-edit"
                 onClick={handlePickBanner}
-                title="Chá»n áº£nh banner tá»« mÃ¡y"
+                title="Chọn ảnh banner từ máy"
                 disabled={isUploadingBanner || isSaving}
               >
-                {isUploadingBanner ? "â€¦" : "âœŽ"}
+                {isUploadingBanner ? "…" : "✎"}
               </button>
             )}
           </div>
@@ -228,15 +228,11 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
       <div className="event-remix-stats-wrapper">
         <div className="event-remix-stats">
           <div className="event-remix-stat-item">
-            <span className="event-remix-stat-label">NgÆ°á»i tham gia</span>
+            <span className="event-remix-stat-label">Người tham gia</span>
             <span className="event-remix-stat-val">{participantSummary}</span>
           </div>
           <div className="event-remix-stat-item">
-            <span className="event-remix-stat-label">ÄÃ¡nh giÃ¡ trung bÃ¬nh</span>
-            <span className="event-remix-stat-val">{eventData?.averageRating ?? "-"}</span>
-          </div>
-          <div className="event-remix-stat-item">
-            <span className="event-remix-stat-label">ÄÆ¡n vá»‹ tá»• chá»©c</span>
+            <span className="event-remix-stat-label">Đơn vị tổ chức</span>
             <span className="event-remix-stat-val">{eventData?.organizationName || "Student Organization"}</span>
           </div>
         </div>
@@ -246,15 +242,15 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
         <div className="event-remix-details-col">
           <section className="event-remix-section">
             <div className="preview-row">
-              <h2 className="event-remix-section-title">Vá» sá»± kiá»‡n nÃ y</h2>
+              <h2 className="event-remix-section-title">Về sự kiện này</h2>
               {canEdit && editingField !== "description" && (
                 <button
                   type="button"
                   className="preview-edit-icon-btn dark"
                   onClick={() => setEditingField("description")}
-                  title="Sá»­a mÃ´ táº£"
+                  title="Sửa mô tả"
                 >
-                  âœŽ
+                  ✎
                 </button>
               )}
             </div>
@@ -267,13 +263,13 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
                   onChange={(e) => setDraft((prev) => ({ ...prev, description: e.target.value }))}
                 />
                 <div className="preview-inline-actions">
-                  <button type="button" className="event-remix-back-btn" onClick={() => saveField(["description"])} disabled={isSaving}>LÆ°u</button>
-                  <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Há»§y</button>
+                  <button type="button" className="event-remix-back-btn" onClick={() => saveField(["description"])} disabled={isSaving}>Lưu</button>
+                  <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Hủy</button>
                 </div>
               </div>
             ) : (
               <p className="event-remix-text-content">
-                {draft.description || "Sá»± kiá»‡n chÆ°a cÃ³ mÃ´ táº£ chi tiáº¿t."}
+                {draft.description || "Sự kiện chưa có mô tả chi tiết."}
               </p>
             )}
           </section>
@@ -281,10 +277,10 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
 
         <div className="event-remix-sidebar-col">
           <div className="event-remix-action-widget">
-            <h3>ÄÄƒng kÃ½ tham gia</h3>
-            <p>ÄÃ¢y lÃ  preview giao diá»‡n attendee nhÃ¬n tháº¥y.</p>
+            <h3>Đăng ký tham gia</h3>
+            <p>Đây là preview giao diện attendee nhìn thấy.</p>
             <button type="button" className="event-remix-btn-join" disabled>
-              Báº¡n Ä‘Ã£ Ä‘Äƒng kÃ½ (Registered)
+              Bạn đã đăng ký (Registered)
             </button>
           </div>
 
@@ -298,9 +294,9 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
           </div>
           <div className="event-remix-logistics-card">
             <div className="event-remix-logistic-row">
-              <div className="event-remix-log-icon">â—·</div>
+              <div className="event-remix-log-icon">▷</div>
               <div className="event-remix-log-info">
-                <h4>Thá»i gian tá»• chá»©c</h4>
+                <h4>Thời gian tổ chức</h4>
                 {editingField === "startDate" || editingField === "endDate" ? (
                   <div className="preview-inline-editor">
                     <input
@@ -309,15 +305,9 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
                       value={draft.startDate}
                       onChange={(e) => setDraft((prev) => ({ ...prev, startDate: e.target.value }))}
                     />
-                    <input
-                      type="datetime-local"
-                      className="form-input event-remix-input"
-                      value={draft.endDate}
-                      onChange={(e) => setDraft((prev) => ({ ...prev, endDate: e.target.value }))}
-                    />
                     <div className="preview-inline-actions">
-                      <button type="button" className="event-remix-back-btn" onClick={() => saveField(["startDate", "endDate"])} disabled={isSaving}>LÆ°u</button>
-                      <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Há»§y</button>
+                      <button type="button" className="event-remix-back-btn" onClick={() => saveField(["startDate", "endDate"])} disabled={isSaving}>Lưu</button>
+                      <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Hủy</button>
                     </div>
                   </div>
                 ) : (
@@ -328,8 +318,8 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
                       {formatDateOnly(eventData?.startDate)}
                     </p>
                     {canEdit && (
-                      <button type="button" className="preview-edit-icon-btn dark" onClick={() => setEditingField("startDate")} title="Sá»­a thá»i gian">
-                        âœŽ
+                      <button type="button" className="preview-edit-icon-btn dark" onClick={() => setEditingField("startDate")} title="Sửa thời gian">
+                        ✎
                       </button>
                     )}
                   </div>
@@ -338,9 +328,9 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
             </div>
 
             <div className="event-remix-logistic-row">
-              <div className="event-remix-log-icon">â—Ž</div>
+              <div className="event-remix-log-icon">◎</div>
               <div className="event-remix-log-info">
-                <h4>Äá»‹a Ä‘iá»ƒm</h4>
+                <h4>Địa điểm</h4>
                 {editingField === "location" ? (
                   <div className="preview-inline-editor">
                     <input
@@ -349,16 +339,16 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
                       onChange={(e) => setDraft((prev) => ({ ...prev, location: e.target.value }))}
                     />
                     <div className="preview-inline-actions">
-                      <button type="button" className="event-remix-back-btn" onClick={() => saveField(["location"])} disabled={isSaving}>LÆ°u</button>
-                      <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Há»§y</button>
+                      <button type="button" className="event-remix-back-btn" onClick={() => saveField(["location"])} disabled={isSaving}>Lưu</button>
+                      <button type="button" className="event-remix-back-btn" onClick={() => setEditingField(null)} disabled={isSaving}>Hủy</button>
                     </div>
                   </div>
                 ) : (
                   <div className="preview-row">
                     <p>{draft.location || "-"}</p>
                     {canEdit && (
-                      <button type="button" className="preview-edit-icon-btn dark" onClick={() => setEditingField("location")} title="Sá»­a Ä‘á»‹a Ä‘iá»ƒm">
-                        âœŽ
+                      <button type="button" className="preview-edit-icon-btn dark" onClick={() => setEditingField("location")} title="Sửa địa điểm">
+                        ✎
                       </button>
                     )}
                   </div>
