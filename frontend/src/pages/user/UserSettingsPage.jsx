@@ -45,7 +45,7 @@ function UserSettingsPage() {
           bio: data?.bio || "",
         });
       } catch (err) {
-        setError(err.message || "Failed to load profile");
+        setError(err.message || "Không thể tải hồ sơ");
       } finally {
         setIsLoading(false);
       }
@@ -76,9 +76,9 @@ function UserSettingsPage() {
         address: updated?.address || prev.address,
         bio: updated?.bio || prev.bio,
       }));
-      alert("Profile updated successfully");
+      alert("Cập nhật hồ sơ thành công");
     } catch (err) {
-      alert(err.message || "Failed to update profile");
+      alert(err.message || "Không thể cập nhật hồ sơ");
     } finally {
       setIsSubmittingProfile(false);
     }
@@ -111,7 +111,7 @@ function UserSettingsPage() {
       alert("Password changed successfully");
       form.reset();
     } catch (err) {
-      alert(err.message || "Failed to change password");
+      alert(err.message || "Không thể đổi mật khẩu");
     } finally {
       setIsSubmittingPassword(false);
     }
@@ -251,7 +251,7 @@ function UserSettingsPage() {
                     disabled={isSubmittingProfile}
                     className="app-button app-button--primary btn-orange"
                   >
-                    {isSubmittingProfile ? "Updating..." : "Lưu thay đổi"}
+                    {isSubmittingProfile ? "Đang cập nhật..." : "Lưu thay đổi"}
                   </button>
                 </div>
               </form>
@@ -294,12 +294,12 @@ function UserSettingsPage() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Confirm New Password</label>
+                  <label className="form-label">Xác nhận mật khẩu mới</label>
                   <input
                     type="password"
                     id="confirmPassword"
                     name="confirmPassword"
-                    placeholder="Confirm new password"
+                    placeholder="Nhập lại mật khẩu mới"
                     required
                     className="form-input"
                   />

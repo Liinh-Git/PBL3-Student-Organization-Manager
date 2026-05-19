@@ -1,67 +1,26 @@
-/**
+﻿/**
  * CategoryFormModal.jsx - Category form modal component (EventDetail tree)
- * 
- * Phase 3C-4C: Component skeleton only
- * 
- * This component provides a modal form to create or edit a category.
- * 
- * Props:
- * - isOpen: Boolean indicating if modal is open
- * - onClose: Callback to close modal
- * - onSubmit: Callback to submit form
- * - category: Category data object (for edit mode, null for create mode)
- * 
- * TODO Phase 3C-5+ Implementation:
- * - Render modal with form fields (name, description)
- * - Handle form submission
- * - Call onSubmit callback with form data
- * - Validate form fields
- * 
- * IMPORTANT:
- * - No real API calls in Phase 3C
- * - No fake data
  */
 
-function CategoryFormModal({
-  isOpen = false,
-  onClose,
-  onSubmit,
-  category = null
-}) {
-  // TODO Phase 3C-5+: Add form state
-  // const [formData, setFormData] = useState({
-  //   name: category?.name || '',
-  //   description: category?.description || ''
-  // });
-
-  // TODO Phase 3C-5+: Handle form submission
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   onSubmit(formData);
-  //   onClose();
-  // };
-
+function CategoryFormModal({ isOpen = false, onClose, category = null }) {
   if (!isOpen) return null;
 
   return (
     <div className="category-form-modal">
       <div className="modal-content">
-        <h3>{category ? 'Edit Category' : 'Create Category'}</h3>
+        <h3>{category ? "Sửa hạng mục" : "Tạo hạng mục"}</h3>
         <form>
-          {/* TODO Phase 3C-5+: Form fields */}
           <div className="form-field">
-            <label>Name</label>
-            <input type="text" disabled placeholder="Category name" />
+            <label>Tên hạng mục</label>
+            <input type="text" disabled placeholder="Tên hạng mục" />
           </div>
-
           <div className="form-field">
-            <label>Description</label>
-            <textarea disabled placeholder="Category description" />
+            <label>Mô tả</label>
+            <textarea disabled placeholder="Mô tả hạng mục" />
           </div>
-
           <div className="modal-actions">
-            <button type="button" onClick={onClose}>Cancel</button>
-            <button type="submit" disabled>Save (TODO Phase 3C-5+)</button>
+            <button type="button" onClick={onClose}>Hủy</button>
+            <button type="submit" disabled>Lưu</button>
           </div>
         </form>
       </div>

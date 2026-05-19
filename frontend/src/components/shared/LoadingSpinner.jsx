@@ -10,10 +10,10 @@
  *   <LoadingSpinner message="Loading data..." />
  */
 
-function LoadingSpinner({ message = 'Loading...' }) {
+function LoadingSpinner({ message = 'Đang tải...' }) {
   return (
     <div className="app-loading">
-      <h3>Loading...</h3>
+      <h3>Đang tải...</h3>
       {message && <p>{message}</p>}
     </div>
   );

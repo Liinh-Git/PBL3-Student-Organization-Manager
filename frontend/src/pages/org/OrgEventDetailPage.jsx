@@ -123,7 +123,7 @@ function OrgEventDetailPage() {
         setMyRoleName(myPermData?.roleName || "");
         setMyOrgMemberId(myPermData?.memberId || null);
       } catch (err) {
-        setError(err.message || "Failed to load event detail");
+        setError(err.message || "Không thể tải chi tiết sự kiện");
       } finally {
         setIsLoading(false);
       }
@@ -148,8 +148,8 @@ function OrgEventDetailPage() {
     return (
       <div className="app-page">
         <PageHeader
-          title="Event Detail"
-          description="Manage event milestones, categories, and tasks"
+          title="Chi tiết sự kiện"
+          description="Quản lý mốc tiến độ, hạng mục và công việc của sự kiện"
         />
         <ForbiddenState message="You are not a member of this organization" />
       </div>
@@ -160,8 +160,8 @@ function OrgEventDetailPage() {
     return (
       <div className="app-page">
         <PageHeader
-          title="Event Detail"
-          description="Manage event milestones, categories, and tasks"
+          title="Chi tiết sự kiện"
+          description="Quản lý mốc tiến độ, hạng mục và công việc của sự kiện"
         />
         <LoadingSpinner />
       </div>
@@ -172,8 +172,8 @@ function OrgEventDetailPage() {
     return (
       <div className="app-page">
         <PageHeader
-          title="Event Detail"
-          description="Manage event milestones, categories, and tasks"
+          title="Chi tiết sự kiện"
+          description="Quản lý mốc tiến độ, hạng mục và công việc của sự kiện"
         />
         <ErrorState message={error} />
       </div>
@@ -258,7 +258,7 @@ function OrgEventDetailPage() {
         prev.map((item) => (item.id === attendeeId ? { ...item, ...updated } : item)),
       );
     } catch (err) {
-      alert(err.message || "Failed to review check-in");
+      alert(err.message || "Không thể duyệt check-in");
     } finally {
       setIsEventMemberSubmitting(false);
     }
@@ -376,7 +376,7 @@ function OrgEventDetailPage() {
       form.reset();
       setShowCreateTask(false);
     } catch (err) {
-      alert(err.message || "Failed to create task");
+      alert(err.message || "Không thể tạo công việc");
     } finally {
       setTaskLoading((prev) => ({ ...prev, [categoryId]: false }));
     }
@@ -411,7 +411,7 @@ function OrgEventDetailPage() {
         return updated;
       });
     } catch (err) {
-      alert(err.message || "Failed to update task status");
+      alert(err.message || "Không thể cập nhật trạng thái công việc");
     } finally {
       setTaskLoading((prev) => ({ ...prev, [taskId]: false }));
     }
@@ -444,7 +444,7 @@ function OrgEventDetailPage() {
         return updated;
       });
     } catch (err) {
-      alert(err.message || "Failed to assign task");
+      alert(err.message || "Không thể phân công công việc");
     } finally {
       setTaskLoading((prev) => ({ ...prev, [taskId]: false }));
     }
@@ -456,7 +456,7 @@ function OrgEventDetailPage() {
       return;
     }
 
-    if (!window.confirm("Are you sure you want to delete this task?")) {
+    if (!window.confirm("Bạn có chắc muốn xóa nhiệm vụ này?")) {
       return;
     }
 
@@ -475,7 +475,7 @@ function OrgEventDetailPage() {
         return updated;
       });
     } catch (err) {
-      alert(err.message || "Failed to delete task");
+      alert(err.message || "Không thể xóa công việc");
     } finally {
       setTaskLoading((prev) => ({ ...prev, [taskId]: false }));
     }
@@ -516,7 +516,7 @@ function OrgEventDetailPage() {
       form.reset();
       setShowCreateMilestone(false);
     } catch (err) {
-      alert(err.message || "Failed to create milestone");
+      alert(err.message || "Không thể tạo mốc tiến độ");
     } finally {
       setMilestoneLoading((prev) => ({ ...prev, create: false }));
     }
@@ -553,7 +553,7 @@ function OrgEventDetailPage() {
         setActiveCategoryId(null);
       }
     } catch (err) {
-      alert(err.message || "Failed to delete milestone");
+      alert(err.message || "Không thể xóa mốc tiến độ");
     } finally {
       setMilestoneLoading((prev) => ({ ...prev, [milestoneId]: false }));
     }
@@ -597,7 +597,7 @@ function OrgEventDetailPage() {
       form.reset();
       setShowCreateCategory((prev) => ({ ...prev, [milestoneId]: false }));
     } catch (err) {
-      alert(err.message || "Failed to create category");
+      alert(err.message || "Không thể tạo hạng mục");
     } finally {
       setCategoryLoading((prev) => ({ ...prev, [milestoneId]: false }));
     }
@@ -630,7 +630,7 @@ function OrgEventDetailPage() {
         setActiveCategoryId(null);
       }
     } catch (err) {
-      alert(err.message || "Failed to delete category");
+      alert(err.message || "Không thể xóa hạng mục");
     } finally {
       setCategoryLoading((prev) => ({ ...prev, [categoryId]: false }));
     }
@@ -660,10 +660,10 @@ function OrgEventDetailPage() {
           : event.endDate;
 
       if (partialDraft.startDate !== undefined && !nextStartDate) {
-        throw new Error("Start date is invalid");
+        throw new Error("Ngày bắt đầu không hợp lệ");
       }
       if (partialDraft.endDate !== undefined && !nextEndDate) {
-        throw new Error("End date is invalid");
+        throw new Error("Ngày kết thúc không hợp lệ");
       }
 
       const nextTargetRaw =
@@ -677,7 +677,7 @@ function OrgEventDetailPage() {
           : Number(nextTargetRaw);
 
       if (nextTarget !== undefined && Number.isNaN(nextTarget)) {
-        throw new Error("Target participants is invalid");
+        throw new Error("Số lượng người tham gia không hợp lệ");
       }
 
       const updated = await updateEvent(eventId, {
@@ -704,7 +704,7 @@ function OrgEventDetailPage() {
       if (err?.response?.status === 403 || String(err.message || "").includes("403")) {
         alert("Không đủ quyền cập nhật sự kiện (403). Chỉ thành viên BTC của sự kiện mới được sửa.");
       } else {
-        alert(err.message || "Failed to update event");
+        alert(err.message || "Không thể cập nhật sự kiện");
       }
     } finally {
       setIsEventUpdating(false);
@@ -738,7 +738,7 @@ function OrgEventDetailPage() {
       );
       setEditingMilestone(null);
     } catch (err) {
-      alert(err.message || "Failed to update milestone");
+      alert(err.message || "Không thể cập nhật mốc tiến độ");
     } finally {
       setMilestoneLoading((prev) => ({ ...prev, [milestoneId]: false }));
     }
@@ -773,7 +773,7 @@ function OrgEventDetailPage() {
       }));
       setEditingCategory(null);
     } catch (err) {
-      alert(err.message || "Failed to update category");
+      alert(err.message || "Không thể cập nhật hạng mục");
     } finally {
       setCategoryLoading((prev) => ({ ...prev, [categoryId]: false }));
     }
@@ -821,7 +821,7 @@ function OrgEventDetailPage() {
       });
       setEditingTask(null);
     } catch (err) {
-      alert(err.message || "Failed to update task");
+      alert(err.message || "Không thể cập nhật công việc");
     } finally {
       setTaskLoading((prev) => ({ ...prev, [taskId]: false }));
     }
@@ -894,13 +894,13 @@ function OrgEventDetailPage() {
           ‹ Bảng điều khiển
         </button>
         <div className="event-title-row">
-          <h1>{getEventName(event) || "Event Detail"}</h1>
+          <h1>{getEventName(event) || "Chi tiết sự kiện"}</h1>
           <button
             type="button"
             onClick={() => setWorkspaceTab("preview")}
             className="sidebar-icon-button"
-            title="Preview & Sửa sự kiện"
-            aria-label="Preview & Sửa sự kiện"
+            title="Xem trước & sửa sự kiện"
+            aria-label="Xem trước & sửa sự kiện"
           >
             ⧉
           </button>
@@ -915,7 +915,7 @@ function OrgEventDetailPage() {
             className={`workspace-tab-btn ${workspaceTab === "preview" ? "active" : ""}`}
             onClick={() => setWorkspaceTab("preview")}
           >
-            Preview & Sửa sự kiện
+            Xem trước & sửa sự kiện
           </button>
           <button
             type="button"
@@ -997,7 +997,7 @@ function OrgEventDetailPage() {
 
         {!isRoadmapExpanded ? null : milestones.length === 0 ? (
           <div className="sidebar-empty">
-            <EmptyState message="No milestones found" />
+            <EmptyState message="Chưa có mốc tiến độ nào" />
           </div>
         ) : (
           <div className="milestone-list">
@@ -1268,7 +1268,7 @@ function OrgEventDetailPage() {
         />
         <input
           name="description"
-          placeholder="Description"
+          placeholder="Mô tả"
           className="workspace-input"
         />
         <select
@@ -1287,14 +1287,14 @@ function OrgEventDetailPage() {
           disabled={taskLoading[activeCategory.id]}
           className="workspace-button primary"
         >
-          {taskLoading[activeCategory.id] ? "Creating..." : "Add Task"}
+          {taskLoading[activeCategory.id] ? "Đang tạo..." : "Thêm nhiệm vụ"}
         </button>
         <button
           type="button"
           onClick={() => setShowCreateTask(false)}
           className="workspace-button ghost"
         >
-          Cancel
+          Hủy
         </button>
       </form>
     );
@@ -1318,7 +1318,7 @@ function OrgEventDetailPage() {
             name="description"
             defaultValue={task.description || ""}
             className="workspace-input"
-            placeholder="Description"
+            placeholder="Mô tả"
           />
           <select
             name="priority"
@@ -1344,14 +1344,14 @@ function OrgEventDetailPage() {
               disabled={taskLoading[task.id]}
               className="mini-primary-button"
             >
-              {taskLoading[task.id] ? "Saving..." : "Save"}
+              {taskLoading[task.id] ? "Đang lưu..." : "Lưu"}
             </button>
             <button
               type="button"
               onClick={() => setEditingTask(null)}
               className="mini-ghost-button"
             >
-              Cancel
+              Hủy
             </button>
           </div>
         </form>
@@ -1531,7 +1531,7 @@ function OrgEventDetailPage() {
           <div className="breadcrumb-line">
             <span>Event</span>
             <span>›</span>
-            <span>Preview</span>
+            <span>Xem trước</span>
           </div>
           <h2>{getEventName(event) || "-"}</h2>
           <p>
@@ -1746,7 +1746,7 @@ function OrgEventDetailPage() {
                   onClick={handleConfirmAddEventMembers}
                   disabled={isEventMemberSubmitting || pendingMemberIds.length === 0}
                 >
-                  {isEventMemberSubmitting ? "Đang thêm..." : "Add"}
+                  {isEventMemberSubmitting ? "Đang thêm..." : "Thêm"}
                 </button>
               </div>
             </div>

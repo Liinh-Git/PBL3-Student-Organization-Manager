@@ -34,7 +34,7 @@ function UserEventsPage() {
         });
         setRegistrationMap(attendeeRegistration);
       } catch (err) {
-        setError(err.message || 'Failed to load events');
+        setError(err.message || 'Không thể tải danh sách sự kiện');
       } finally {
         setIsLoading(false);
       }
@@ -92,7 +92,7 @@ function UserEventsPage() {
         setRegistrationMap((prev) => ({ ...prev, [eventId]: true }));
       }
     } catch (err) {
-      setError(err.message || 'Failed to update registration');
+      setError(err.message || 'Không thể cập nhật đăng ký');
     } finally {
       setProcessingEventId(null);
     }
@@ -101,11 +101,11 @@ function UserEventsPage() {
   return (
     <div className="app-page user-events-page">
       <PageHeader
-        title="My Events"
+        title="Sự kiện của tôi"
         description="Hiển thị các sự kiện bạn tham gia với vai trò thành viên tổ chức hoặc attendee."
       />
 
-      {isLoading && <LoadingSpinner message="Loading events..." />}
+      {isLoading && <LoadingSpinner message="Đang tải danh sách sự kiện..." />}
       {error && <ErrorState message={error} />}
 
       {!isLoading && !error && memberEvents.length === 0 && attendeeEvents.length === 0 && (
@@ -116,7 +116,7 @@ function UserEventsPage() {
         <>
           <section className="user-events-overview">
             <article className="user-events-metric">
-              <p>Event tổ chức</p>
+              <p>Sự kiện tổ chức</p>
               <strong>{memberEvents.length}</strong>
             </article>
             <article className="user-events-metric">
@@ -154,7 +154,7 @@ function UserEventsPage() {
                             className="app-button app-button--primary"
                             onClick={() => handleOpenWorkspace(evt)}
                           >
-                            Vào workspace
+                            Vào không gian làm việc
                           </button>
                         </>
                       }

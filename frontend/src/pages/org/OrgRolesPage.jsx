@@ -39,7 +39,7 @@ function OrgRolesPage() {
         setRoles(roleData);
         setMembers(memberData);
       } catch (err) {
-        setError(err.message || 'Failed to load roles');
+        setError(err.message || 'Không thể tải danh sách vai trò');
       } finally {
         setIsLoading(false);
       }
@@ -48,17 +48,17 @@ function OrgRolesPage() {
   }, [orgId, isMember]);
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   if (!isMember) {
     return (
       <div className="app-page">
         <PageHeader
-          title="Roles & Permissions"
-          description="Manage organization roles and permissions"
+          title="Vai trò & Quyền hạn"
+          description="Quản lý vai trò và quyền hạn trong tổ chức"
         />
-        <ForbiddenState message="You are not a member of this organization" />
+        <ForbiddenState message="Bạn không phải thành viên của tổ chức này" />
       </div>
     );
   }
@@ -81,7 +81,7 @@ function OrgRolesPage() {
     const permissionKeys = form.permissionKeys.value.split(',').map(p => p.trim()).filter(p => p);
     
     if (!roleName) {
-      alert('Role name is required');
+      alert('Tên vai trò là bắt buộc');
       return;
     }
 
@@ -96,7 +96,7 @@ function OrgRolesPage() {
       form.reset();
       setShowCreateForm(false);
     } catch (err) {
-      alert(err.message || 'Failed to create role');
+      alert(err.message || 'Không thể tạo vai trò');
     } finally {
       setIsSubmitting(false);
     }
@@ -115,7 +115,7 @@ function OrgRolesPage() {
     const permissionKeys = form.permissionKeys.value.split(',').map(p => p.trim()).filter(p => p);
     
     if (!roleName) {
-      alert('Role name is required');
+      alert('Tên vai trò là bắt buộc');
       return;
     }
 
@@ -129,7 +129,7 @@ function OrgRolesPage() {
       setRoles(prev => prev.map(r => r.id === editingRole.id ? updated : r));
       setEditingRole(null);
     } catch (err) {
-      alert(err.message || 'Failed to update role');
+      alert(err.message || 'Không thể cập nhật vai trò');
     } finally {
       setIsSubmitting(false);
     }
@@ -141,7 +141,7 @@ function OrgRolesPage() {
       return;
     }
 
-    if (!window.confirm('Are you sure you want to delete this role?')) {
+    if (!window.confirm('Bạn có chắc muốn xóa vai trò này?')) {
       return;
     }
 
@@ -150,7 +150,7 @@ function OrgRolesPage() {
       await deleteRole(roleId);
       setRoles(prev => prev.filter(r => r.id !== roleId));
     } catch (err) {
-      alert(err.message || 'Failed to delete role');
+      alert(err.message || 'Không thể xóa vai trò');
     } finally {
       setIsSubmitting(false);
     }
@@ -167,7 +167,7 @@ function OrgRolesPage() {
       const updatedMember = await assignRoleToMember(orgId, memberId, { roleId });
       setMembers(prev => prev.map(m => m.id === memberId ? updatedMember : m));
     } catch (err) {
-      alert(err.message || 'Failed to assign role');
+      alert(err.message || 'Không thể gán vai trò');
     } finally {
       setIsSubmitting(false);
     }
@@ -177,8 +177,8 @@ function OrgRolesPage() {
     return (
       <div className="app-page">
         <PageHeader
-          title="Roles & Permissions"
-          description="Manage organization roles and permissions"
+          title="Vai trò & Quyền hạn"
+          description="Quản lý vai trò và quyền hạn trong tổ chức"
         />
         <LoadingSpinner />
       </div>
@@ -189,8 +189,8 @@ function OrgRolesPage() {
     return (
       <div className="app-page">
         <PageHeader
-          title="Roles & Permissions"
-          description="Manage organization roles and permissions"
+          title="Vai trò & Quyền hạn"
+          description="Quản lý vai trò và quyền hạn trong tổ chức"
         />
         <ErrorState message={error} />
       </div>
@@ -200,12 +200,12 @@ function OrgRolesPage() {
   return (
     <div className="app-page">
       <PageHeader
-        title="Roles & Permissions"
-        description="Manage organization roles and permissions"
+        title="Vai trò & Quyền hạn"
+        description="Quản lý vai trò và quyền hạn trong tổ chức"
         actions={
           canCreate && (
             <button onClick={() => setShowCreateForm(true)} className="app-button app-button--primary">
-              Create Role
+              Tạo vai trò
             </button>
           )
         }
@@ -215,40 +215,40 @@ function OrgRolesPage() {
         {showCreateForm && canCreate && (
           <div className="app-card">
             <div className="app-section-header">
-              <h3 className="app-section-title">Create Role</h3>
+              <h3 className="app-section-title">Tạo vai trò</h3>
             </div>
             <form onSubmit={handleCreate} className="auth-form">
               <div className="form-group">
-                <label className="form-label">Role Name *</label>
+                <label className="form-label">Tên vai trò *</label>
                 <input
                   name="roleName"
-                  placeholder="Role name"
+                  placeholder="Tên vai trò"
                   required
                   className="form-input"
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Description</label>
+                <label className="form-label">Mô tả</label>
                 <input
                   name="description"
-                  placeholder="Description"
+                  placeholder="Mô tả"
                   className="form-input"
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Permission Keys (comma-separated)</label>
+                <label className="form-label">Danh sách quyền (phân tách bằng dấu phẩy)</label>
                 <input
                   name="permissionKeys"
-                  placeholder="e.g., org.overview.write, org.events.manage"
+                  placeholder="Ví dụ: org.overview.write, org.events.manage"
                   className="form-input"
                 />
               </div>
               <div className="app-action-row">
                 <button type="submit" disabled={isSubmitting} className="app-button app-button--primary">
-                  {isSubmitting ? 'Creating...' : 'Create'}
+                  {isSubmitting ? 'Đang tạo...' : 'Tạo'}
                 </button>
                 <button type="button" onClick={() => setShowCreateForm(false)} className="app-button app-button--ghost">
-                  Cancel
+                  Hủy
                 </button>
               </div>
             </form>
@@ -258,43 +258,43 @@ function OrgRolesPage() {
         {editingRole && canUpdate && (
           <div className="app-card">
             <div className="app-section-header">
-              <h3 className="app-section-title">Edit Role</h3>
+              <h3 className="app-section-title">Sửa vai trò</h3>
             </div>
             <form onSubmit={handleUpdate} className="auth-form">
               <div className="form-group">
-                <label className="form-label">Role Name *</label>
+                <label className="form-label">Tên vai trò *</label>
                 <input
                   name="roleName"
                   defaultValue={editingRole.roleName}
-                  placeholder="Role name"
+                  placeholder="Tên vai trò"
                   required
                   className="form-input"
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Description</label>
+                <label className="form-label">Mô tả</label>
                 <input
                   name="description"
                   defaultValue={editingRole.description || ''}
-                  placeholder="Description"
+                  placeholder="Mô tả"
                   className="form-input"
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Permission Keys (comma-separated)</label>
+                <label className="form-label">Danh sách quyền (phân tách bằng dấu phẩy)</label>
                 <input
                   name="permissionKeys"
                   defaultValue={(editingRole.permissionKeys || []).join(', ')}
-                  placeholder="e.g., org.overview.write, org.events.manage"
+                  placeholder="Ví dụ: org.overview.write, org.events.manage"
                   className="form-input"
                 />
               </div>
               <div className="app-action-row">
                 <button type="submit" disabled={isSubmitting} className="app-button app-button--primary">
-                  {isSubmitting ? 'Updating...' : 'Update'}
+                  {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật'}
                 </button>
                 <button type="button" onClick={() => setEditingRole(null)} className="app-button app-button--ghost">
-                  Cancel
+                  Hủy
                 </button>
               </div>
             </form>
@@ -303,18 +303,18 @@ function OrgRolesPage() {
 
         <div className="app-card">
           <div className="app-section-header">
-            <h3 className="app-section-title">Roles</h3>
+            <h3 className="app-section-title">Vai trò</h3>
           </div>
           {roles.length === 0 ? (
-            <EmptyState message="No roles found" />
+            <EmptyState message="Chưa có vai trò nào" />
           ) : (
             <table>
               <thead>
                 <tr>
-                  <th>Role Name</th>
-                  <th>Description</th>
-                  <th>Permissions</th>
-                  <th>Actions</th>
+                  <th>Tên vai trò</th>
+                  <th>Mô tả</th>
+                  <th>Quyền</th>
+                  <th>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -337,7 +337,7 @@ function OrgRolesPage() {
                             disabled={isSubmitting}
                             className="app-button app-button--secondary"
                           >
-                            Edit
+                            Sửa
                           </button>
                         )}
                         {canDelete && (
@@ -346,7 +346,7 @@ function OrgRolesPage() {
                             disabled={isSubmitting}
                             className="app-button app-button--danger"
                           >
-                            Delete
+                            Xóa
                           </button>
                         )}
                       </div>
@@ -361,18 +361,18 @@ function OrgRolesPage() {
         {canAssign && (
           <div className="app-card">
             <div className="app-section-header">
-              <h3 className="app-section-title">Assign Roles to Members</h3>
+              <h3 className="app-section-title">Gán vai trò cho thành viên</h3>
             </div>
             {members.length === 0 ? (
-              <EmptyState message="No members found" />
+              <EmptyState message="Chưa có thành viên nào" />
             ) : (
               <table>
                 <thead>
                   <tr>
-                    <th>Member</th>
+                    <th>Thành viên</th>
                     <th>Email</th>
-                    <th>Current Role</th>
-                    <th>Assign Role</th>
+                    <th>Vai trò hiện tại</th>
+                    <th>Gán vai trò</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -389,7 +389,7 @@ function OrgRolesPage() {
                           className="form-select"
                           style={{ minWidth: '150px' }}
                         >
-                          <option value="">No Role</option>
+                          <option value="">Không có vai trò</option>
                           {roles.map(role => (
                             <option key={role.id} value={role.id}>
                               {role.roleName}

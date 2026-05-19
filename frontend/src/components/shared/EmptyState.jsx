@@ -10,10 +10,10 @@
  *   <EmptyState message="No members yet" action={<button>Add Member</button>} />
  */
 
-function EmptyState({ message = "No data available", action = null }) {
+function EmptyState({ message = "Chưa có dữ liệu", action = null }) {
   return (
     <div className="app-empty">
-      <h3>No Data</h3>
+      <h3>Không có dữ liệu</h3>
       <p>{message}</p>
       {action && <div className="app-action-row">{action}</div>}
     </div>

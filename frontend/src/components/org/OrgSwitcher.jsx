@@ -30,9 +30,9 @@ function OrgSwitcher({ currentOrgId, organizations = [], onSwitch }) {
 
   return (
     <div className="org-switcher">
-      <label>Organization:</label>
+      <label>Tổ chức:</label>
       <select value={currentOrgId || ''} disabled={organizations.length === 0}>
-        <option value="">Select Organization</option>
+        <option value="">Chọn tổ chức</option>
         {organizations.map(org => (
           <option key={org.id} value={org.id}>
             {org.name}

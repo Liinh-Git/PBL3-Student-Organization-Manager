@@ -20,7 +20,7 @@ const initials = (name = "") => {
 
 const STATUS_META = {
   Todo: { label: "Todo", cls: "dc-pill--todo" },
-  InProgress: { label: "In Progress", cls: "dc-pill--progress" },
+  InProgress: { label: "Đang làm", cls: "dc-pill--progress" },
   Done: { label: "Done", cls: "dc-pill--done" },
 };
 
@@ -392,7 +392,7 @@ function DepartmentCard({
       const detail = await getTaskById(task.id);
       setSelectedTaskDetail(detail);
     } catch (error) {
-      setTaskDetailError(error?.message || "Failed to load task details");
+      setTaskDetailError(error?.message || "Không thể tải chi tiết công việc");
       setSelectedTaskDetail(task);
     } finally {
       setTaskDetailLoading(false);
@@ -756,7 +756,7 @@ function DepartmentCard({
                 )}
                 <div className="dc-task-detail-grid">
                   <div>
-                    <span className="dc-task-detail-label">Status</span>
+                    <span className="dc-task-detail-label">Trạng thái</span>
                     {canManageTasks ? (
                       <select
                         className="dc-add-select"
@@ -782,7 +782,7 @@ function DepartmentCard({
                   </div>
 
                   <div>
-                    <span className="dc-task-detail-label">Priority</span>
+                    <span className="dc-task-detail-label">Độ ưu tiên</span>
                     <strong>{selectedTaskDetail.priority || "-"}</strong>
                   </div>
 
@@ -830,7 +830,7 @@ function DepartmentCard({
                   </div>
 
                   <div>
-                    <span className="dc-task-detail-label">Completed</span>
+                    <span className="dc-task-detail-label">Hoàn thành</span>
                     <strong>
                       {selectedTaskDetail.completedAt
                         ? new Date(
@@ -859,7 +859,7 @@ function DepartmentCard({
                     </strong>
                   </div>
                   <div>
-                    <span className="dc-task-detail-label">Created at</span>
+                    <span className="dc-task-detail-label">Ngày tạo</span>
                     <strong>
                       {selectedTaskDetail.createdAtUtc
                         ? new Date(

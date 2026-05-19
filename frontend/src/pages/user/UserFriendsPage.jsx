@@ -98,8 +98,8 @@ function UserFriendsPage() {
   return (
     <div className="user-friends-page">
       <PageHeader
-        title="Friends"
-        description="Manage your friends and friend requests"
+        title="Bạn bè"
+        description="Quản lý bạn bè và lời mời kết bạn"
       />
 
       {/* TODO Phase 3C-5+: Show LoadingSpinner when isLoading */}
@@ -107,7 +107,7 @@ function UserFriendsPage() {
 
       {/* TODO Phase 3C-5+: Friend requests section */}
       <section className="friend-requests-section">
-        <h2>Friend Requests</h2>
+        <h2>Lời mời kết bạn</h2>
         <div className="friend-requests-list">
           {/* TODO: Show EmptyState when no requests */}
           {/* TODO: Render friend request cards with accept/reject buttons */}
@@ -116,7 +116,7 @@ function UserFriendsPage() {
 
       {/* TODO Phase 3C-5+: Friends list section */}
       <section className="friends-section">
-        <h2>My Friends</h2>
+        <h2>Bạn bè của tôi</h2>
         <div className="friends-list">
           {/* TODO: Show EmptyState when no friends */}
           {/* TODO: Render friend cards */}

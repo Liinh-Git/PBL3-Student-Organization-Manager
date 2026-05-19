@@ -27,11 +27,11 @@
 function EventStatusBadge({ status = 'Draft' }) {
   // TODO Phase 3C-5+: Map status to display text and color
   const statusMap = {
-    Draft: { text: 'Draft', className: 'status-draft' },
-    Published: { text: 'Published', className: 'status-published' },
-    InProgress: { text: 'In Progress', className: 'status-in-progress' },
-    Completed: { text: 'Completed', className: 'status-completed' },
-    Cancelled: { text: 'Cancelled', className: 'status-cancelled' }
+    Draft: { text: 'Nháp', className: 'status-draft' },
+    Published: { text: 'Đã công khai', className: 'status-published' },
+    InProgress: { text: 'Đang diễn ra', className: 'status-in-progress' },
+    Completed: { text: 'Hoàn thành', className: 'status-completed' },
+    Cancelled: { text: 'Đã hủy', className: 'status-cancelled' }
   };
 
   const statusInfo = statusMap[status] || statusMap.Draft;

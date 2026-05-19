@@ -127,7 +127,7 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
       setDraft((prev) => ({ ...prev, bannerUrl: uploadedUrl }));
       await onSave({ bannerUrl: uploadedUrl });
     } catch (err) {
-      alert(err.message || "Failed to upload event banner");
+      alert(err.message || "Không thể tải banner sự kiện");
     } finally {
       setIsUploadingBanner(false);
     }
@@ -208,7 +208,7 @@ export default function EventWorkspacePreview({ eventData, canEdit, isSaving, on
             ) : bannerSrc ? (
               <img src={bannerSrc} alt="Event banner" />
             ) : (
-              <div className="event-remix-hero-placeholder">Event Banner</div>
+              <div className="event-remix-hero-placeholder">Banner sự kiện</div>
             )}
             {canEdit && editingField !== "bannerUrl" && (
               <button

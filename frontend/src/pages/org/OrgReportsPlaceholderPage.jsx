@@ -1,11 +1,5 @@
-/**
+﻿/**
  * OrgReportsPlaceholderPage.jsx - Reports placeholder
- * 
- * Phase 3C-4C: Page skeleton only
- * 
- * PROTOTYPE_ONLY: EventReports entity exists in DB foundation but Reports page is not working.
- * 
- * Route: /org/reports?orgId=
  */
 
 import { useSearchParams } from 'react-router-dom';
@@ -18,21 +12,21 @@ function OrgReportsPlaceholderPage() {
   const orgId = searchParams.get('orgId');
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   return (
     <div className="org-reports-placeholder-page">
       <PageHeader
-        title="Reports"
-        description="View organization and event reports"
+        title="Báo cáo"
+        description="Xem báo cáo của tổ chức và sự kiện"
       />
 
       <PrototypePlaceholder
-        title="Reports & Analytics"
-        description="This feature provides reports and analytics for organization events"
+        title="Báo cáo & Phân tích"
+        description="Tính năng này cung cấp báo cáo và phân tích cho các sự kiện của tổ chức"
         status="PROTOTYPE_ONLY"
-        notes="EventReports entity exists in database foundation but no working UI/API in base prototype."
+        notes="Nền tảng dữ liệu báo cáo đã có, nhưng giao diện/API báo cáo chưa được triển khai trong bản cơ sở."
       />
     </div>
   );

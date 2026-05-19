@@ -21,10 +21,10 @@
 
 function ConfirmDialog({ 
   isOpen = false,
-  title = 'Confirm',
-  message = 'Are you sure?',
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  title = 'Xác nhận',
+  message = 'Bạn có chắc chắn không?',
+  confirmText = 'Xác nhận',
+  cancelText = 'Hủy',
   onConfirm,
   onCancel
 }) {

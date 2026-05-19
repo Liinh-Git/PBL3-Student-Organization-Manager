@@ -14,7 +14,7 @@
  */
 
 function PageHeader({ 
-  title = 'Page Title',
+  title = 'Tiêu đề trang',
   description = null,
   actions = null,
   kicker = null

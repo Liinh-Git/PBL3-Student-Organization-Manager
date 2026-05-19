@@ -24,7 +24,7 @@
 
 function FormModal({ 
   isOpen = false,
-  title = 'Form',
+  title = 'Biểu mẫu',
   onClose,
   children
 }) {

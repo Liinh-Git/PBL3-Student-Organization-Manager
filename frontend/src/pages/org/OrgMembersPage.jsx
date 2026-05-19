@@ -64,7 +64,7 @@ function OrgMembersPage() {
         setDepartments(normalizeDepartments(deptData));
         setRoles(roleData);
       } catch (err) {
-        setError(err.message || "Failed to load members");
+        setError(err.message || "Không thể tải danh sách thành viên");
       } finally {
         setIsLoading(false);
       }
@@ -73,7 +73,7 @@ function OrgMembersPage() {
   }, [orgId, isMember]);
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   if (!isMember) {
@@ -114,7 +114,7 @@ function OrgMembersPage() {
       form.reset();
       setShowAddForm(false);
     } catch (err) {
-      alert(err.message || "Failed to add member");
+      alert(err.message || "Không thể thêm thành viên");
     } finally {
       setIsSubmitting(false);
     }
@@ -133,7 +133,7 @@ function OrgMembersPage() {
       });
       setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
     } catch (err) {
-      alert(err.message || "Failed to update department");
+      alert(err.message || "Không thể cập nhật phòng ban");
     } finally {
       setIsSubmitting(false);
     }
@@ -154,7 +154,7 @@ function OrgMembersPage() {
       await removeMember(memberId);
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
     } catch (err) {
-      alert(err.message || "Failed to remove member");
+      alert(err.message || "Không thể xóa thành viên");
     } finally {
       setIsSubmitting(false);
     }

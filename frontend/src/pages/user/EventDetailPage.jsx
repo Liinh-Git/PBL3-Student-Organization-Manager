@@ -134,7 +134,7 @@ function EventDetailPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!eventId) {
-      setError("Event ID is missing");
+      setError("Thiếu mã sự kiện");
       setIsLoading(false);
       return;
     }
@@ -197,7 +197,7 @@ function EventDetailPage() {
         setSourceMode(mode);
       } catch (err) {
         if (!isMounted) return;
-        setError(err.message || "Failed to load event detail");
+        setError(err.message || "Không thể tải chi tiết sự kiện");
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -276,14 +276,14 @@ function EventDetailPage() {
   const handleSave = async () => {
     if (!canEditEvent || !draft) return;
     if (!draft.eventName?.trim()) {
-      alert("Event name is required.");
+      alert("Tên sự kiện là bắt buộc.");
       return;
     }
 
     const startDateIso = toIsoUtcFromLocalInput(draft.startDate);
     const endDateIso = toIsoUtcFromLocalInput(draft.endDate) || startDateIso;
     if (!startDateIso || !endDateIso) {
-      alert("Start date and end date are required.");
+      alert("Ngày bắt đầu và ngày kết thúc là bắt buộc.");
       return;
     }
 
@@ -311,7 +311,7 @@ function EventDetailPage() {
       setEditingField(null);
       setSourceMode("workspace");
     } catch (err) {
-      alert(err.message || "Failed to update event");
+      alert(err.message || "Không thể cập nhật sự kiện");
     } finally {
       setIsSaving(false);
     }
@@ -328,7 +328,7 @@ function EventDetailPage() {
         isEventMember: !!response?.isEventMember,
       });
     } catch (err) {
-      alert(err.message || "Failed to join event");
+      alert(err.message || "Không thể tham gia sự kiện");
     } finally {
       setIsJoining(false);
     }
@@ -345,7 +345,7 @@ function EventDetailPage() {
         isEventMember: !!response?.isEventMember,
       });
     } catch (err) {
-      alert(err.message || "Failed to cancel registration");
+      alert(err.message || "Không thể hủy đăng ký");
     } finally {
       setIsCancelling(false);
     }
@@ -362,7 +362,7 @@ function EventDetailPage() {
         status: response?.status || prev.status || "CheckInPending",
       }));
     } catch (err) {
-      alert(err.message || "Failed to request check-in");
+      alert(err.message || "Không thể gửi yêu cầu check-in");
     } finally {
       setIsRequestingCheckIn(false);
     }
@@ -373,7 +373,7 @@ function EventDetailPage() {
   if (isLoading) {
     return (
       <div className="event-remix-page">
-        <LoadingSpinner message="Loading event detail..." />
+        <LoadingSpinner message="Đang tải chi tiết sự kiện..." />
       </div>
     );
   }
@@ -398,7 +398,7 @@ function EventDetailPage() {
   if (!eventData || !draft) {
     return (
       <div className="event-remix-page app-page">
-        <ErrorState message="Event not found" />
+        <ErrorState message="Không tìm thấy sự kiện" />
       </div>
     );
   }
@@ -507,12 +507,12 @@ function EventDetailPage() {
                 {getStatusLabel(eventData.status)}
               </span>
               <span className="event-remix-chip event-remix-chip--outline">
-                {sourceMode === "workspace" ? "Workspace Event" : "Public Event"}
+                {sourceMode === "workspace" ? "Sự kiện trong workspace" : "Sự kiện công khai"}
               </span>
             </div>
 
             <h1 className="event-remix-hero-title">
-              {eventData.name || "Event Detail"}
+              {eventData.name || "Chi tiết sự kiện"}
             </h1>
           </div>
 
@@ -526,7 +526,7 @@ function EventDetailPage() {
                 }}
               />
             ) : (
-              <div className="event-remix-hero-placeholder">Event Banner</div>
+              <div className="event-remix-hero-placeholder">Banner sự kiện</div>
             )}
           </div>
         </div>

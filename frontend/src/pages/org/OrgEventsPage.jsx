@@ -1,4 +1,4 @@
-/**
+﻿/**
  * OrgEventsPage.jsx - Organization events page
  *
  * UI refactor: card-grid workspace launcher, giữ nguyên API/permission/handler flow.
@@ -39,7 +39,7 @@ function OrgEventsPage() {
         const membersData = await getOrganizationMembers(orgId);
         setOrgMembers(Array.isArray(membersData) ? membersData : []);
       } catch (err) {
-        setError(err.message || 'Failed to load events');
+        setError(err.message || 'Không thể tải danh sách sự kiện');
       } finally {
         setIsLoading(false);
       }
@@ -48,17 +48,17 @@ function OrgEventsPage() {
   }, [orgId, isMember]);
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   if (!isMember) {
     return (
       <div className="app-page">
         <PageHeader
-          title="Events"
-          description="Manage organization events"
+          title="Sự kiện"
+          description="Quản lý sự kiện của tổ chức"
         />
-        <ForbiddenState message="You are not a member of this organization" />
+        <ForbiddenState message="Bạn không phải thành viên của tổ chức này" />
       </div>
     );
   }
@@ -73,18 +73,18 @@ function OrgEventsPage() {
   const getVisibilityDescription = (visibility) => {
     const normalized = normalizeVisibility(visibility);
     return normalized === 'Public'
-      ? 'Public (người ngoài cũng xem được, hiển thị ở Discover)'
-      : 'Private (chỉ thành viên trong tổ chức xem được)';
+      ? 'Công khai: mọi người đều có thể xem'
+      : 'Riêng tư: chỉ thành viên tổ chức có thể xem';
   };
 
   const getStatusMeta = (status) => {
     const normalized = String(status || '').toLowerCase();
-    if (normalized === 'published') return { icon: '🟢', label: 'Published' };
-    if (normalized === 'draft') return { icon: '📝', label: 'Draft' };
-    if (normalized === 'completed') return { icon: '✅', label: 'Completed' };
-    if (normalized === 'cancelled') return { icon: '⛔', label: 'Cancelled' };
-    if (normalized === 'ongoing') return { icon: '🟠', label: 'Ongoing' };
-    return { icon: '•', label: status || 'Unknown' };
+    if (normalized === 'published') return { icon: '🟢', label: 'Đã công khai' };
+    if (normalized === 'draft') return { icon: '📝', label: 'Nháp' };
+    if (normalized === 'completed') return { icon: '✅', label: 'Hoàn thành' };
+    if (normalized === 'cancelled') return { icon: '⛔', label: 'Đã hủy' };
+    if (normalized === 'ongoing') return { icon: '🟠', label: 'Đang diễn ra' };
+    return { icon: '•', label: status || 'Không rõ' };
   };
 
   const toAbsoluteMediaUrl = (url) => {
@@ -128,7 +128,7 @@ function OrgEventsPage() {
       .filter(Boolean);
 
     if (!eventName || !startDate) {
-      alert('Event name and start date are required');
+      alert('Vui lòng nhập tên sự kiện và ngày tổ chức');
       return;
     }
 
@@ -148,7 +148,7 @@ function OrgEventsPage() {
       form.reset();
       setShowCreateForm(false);
     } catch (err) {
-      alert(err.message || 'Failed to create event');
+      alert(err.message || 'Không thể tạo sự kiện');
     } finally {
       setIsSubmitting(false);
     }
@@ -172,7 +172,7 @@ function OrgEventsPage() {
     const visibility = normalizeVisibility(form.visibility.value);
 
     if (!eventName || !startDate) {
-      alert('Event name and start date are required');
+      alert('Vui lòng nhập tên sự kiện và ngày tổ chức');
       return;
     }
 
@@ -180,7 +180,7 @@ function OrgEventsPage() {
     try {
       const editingEventId = getEventId(editingEvent);
       if (!editingEventId) {
-        alert('Event ID is missing');
+        alert('Thiếu mã sự kiện');
         return;
       }
       const updated = await updateEvent(editingEventId, {
@@ -195,7 +195,7 @@ function OrgEventsPage() {
       setEvents(prev => prev.map(ev => (getEventId(ev) === editingEventId ? updated : ev)));
       setEditingEvent(null);
     } catch (err) {
-      alert(err.message || 'Failed to update event');
+      alert(err.message || 'Không thể cập nhật sự kiện');
     } finally {
       setIsSubmitting(false);
     }
@@ -209,23 +209,23 @@ function OrgEventsPage() {
 
     const eventId = getEventId(event);
     if (!eventId) {
-      alert('Event ID is missing');
+      alert('Thiếu mã sự kiện');
       return;
     }
 
     if (event?.status !== 'Draft') {
-      alert('Chỉ event Draft mới được publish.');
+      alert('Chỉ sự kiện ở trạng thái Nháp mới có thể công khai.');
       return;
     }
 
     const confirmMessage = [
       `Hiện tại sự kiện đang ở mức ${getVisibilityDescription(event?.visibility)}.`,
-      'Nếu Publish, trạng thái sẽ chuyển từ Draft sang Published.',
+      'Nếu công khai, trạng thái sẽ chuyển từ Nháp sang Đã công khai.',
       normalizeVisibility(event?.visibility) === 'Public'
-        ? 'Sự kiện sẽ hiển thị ở trang Discover cho người ngoài tổ chức.'
+        ? 'Sự kiện sẽ hiển thị ở trang Khám phá cho người ngoài tổ chức.'
         : 'Sự kiện vẫn chỉ hiển thị cho thành viên trong tổ chức.',
       '',
-      'Xác nhận Publish?',
+      'Xác nhận công khai?',
     ].join('\n');
 
     if (!window.confirm(confirmMessage)) {
@@ -237,7 +237,7 @@ function OrgEventsPage() {
       const updated = await updateEventStatus(eventId, 'Published');
       setEvents(prev => prev.map(ev => (getEventId(ev) === eventId ? updated : ev)));
     } catch (err) {
-      alert(err.message || 'Failed to publish event');
+      alert(err.message || 'Không thể công khai sự kiện');
     } finally {
       setIsSubmitting(false);
     }
@@ -251,7 +251,7 @@ function OrgEventsPage() {
 
     const eventId = getEventId(event);
     if (!eventId) {
-      alert('Event ID is missing');
+      alert('Thiếu mã sự kiện');
       return;
     }
 
@@ -260,7 +260,7 @@ function OrgEventsPage() {
 
     if (status === 'Published' && visibility !== 'Public') {
       const backToDraft = window.confirm(
-        'Sự kiện đang Published nhưng chưa Public.\nBạn có muốn đưa sự kiện trở lại Draft không?',
+        'Sự kiện đang ở trạng thái Đã công khai nhưng chưa đặt Công khai hiển thị.\nBạn có muốn đưa sự kiện về Nháp không?',
       );
       if (backToDraft) {
         setIsSubmitting(true);
@@ -268,7 +268,7 @@ function OrgEventsPage() {
           const updated = await updateEventStatus(eventId, 'Draft');
           setEvents(prev => prev.map(ev => (getEventId(ev) === eventId ? updated : ev)));
         } catch (err) {
-          alert(err.message || 'Failed to move event back to draft');
+          alert(err.message || 'Không thể chuyển sự kiện về nháp');
         } finally {
           setIsSubmitting(false);
         }
@@ -277,7 +277,7 @@ function OrgEventsPage() {
     }
 
     const action = window.prompt(
-      'Chọn hành động:\n1 - Hủy sự kiện (Cancelled)\n2 - Xóa hoàn toàn khỏi hệ thống\nNhập 1 hoặc 2:',
+      'Chọn hành động:\n1 - Hủy sự kiện\n2 - Xóa hoàn toàn khỏi hệ thống\nNhập 1 hoặc 2:',
       '1',
     );
 
@@ -290,7 +290,7 @@ function OrgEventsPage() {
         const updated = await updateEventStatus(eventId, 'Cancelled');
         setEvents(prev => prev.map(ev => (getEventId(ev) === eventId ? updated : ev)));
       } catch (err) {
-        alert(err.message || 'Failed to cancel event');
+        alert(err.message || 'Không thể hủy sự kiện');
       } finally {
         setIsSubmitting(false);
       }
@@ -304,7 +304,7 @@ function OrgEventsPage() {
         await deleteEvent(eventId, true);
         setEvents(prev => prev.filter(ev => getEventId(ev) !== eventId));
       } catch (err) {
-        alert(err.message || 'Failed to permanently delete event');
+        alert(err.message || 'Không thể xóa vĩnh viễn sự kiện');
       } finally {
         setIsSubmitting(false);
       }
@@ -319,7 +319,7 @@ function OrgEventsPage() {
   const openWorkspace = (event) => {
     const selectedEventId = getEventId(event);
     if (!selectedEventId) {
-      alert('Event ID is missing');
+      alert('Thiếu mã sự kiện');
       return;
     }
     navigate(`/org/events/${selectedEventId}?orgId=${orgId}`);
@@ -331,6 +331,8 @@ function OrgEventsPage() {
     const [bannerValue, setBannerValue] = useState(isEdit ? event?.bannerUrl || '' : '');
     const [pendingBannerUrl, setPendingBannerUrl] = useState('');
     const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+    const [memberSearch, setMemberSearch] = useState('');
+    const [selectedInitialMembers, setSelectedInitialMembers] = useState([]);
 
     const handleBannerUpload = async (uploadEvent) => {
       const file = uploadEvent.target.files?.[0];
@@ -341,7 +343,7 @@ function OrgEventsPage() {
         const uploadedUrl = await uploadEventBanner(file);
         setPendingBannerUrl(uploadedUrl || '');
       } catch (err) {
-        alert(err.message || 'Failed to upload event banner');
+        alert(err.message || 'Không thể tải ảnh banner');
       } finally {
         setIsUploadingBanner(false);
         uploadEvent.target.value = '';
@@ -357,8 +359,31 @@ function OrgEventsPage() {
       setPendingBannerUrl('');
     };
 
+    const normalizedSearch = memberSearch.trim().toLowerCase();
+    const filteredMembers = orgMembers.filter((member) => {
+      if (!normalizedSearch) return true;
+      const fullName = String(member?.fullName || '').toLowerCase();
+      const email = String(member?.email || '').toLowerCase();
+      const deptName = String(member?.department?.departmentName || member?.department?.deptName || '').toLowerCase();
+      return fullName.includes(normalizedSearch) || email.includes(normalizedSearch) || deptName.includes(normalizedSearch);
+    });
+
+    const addInitialMember = (member) => {
+      if (!member?.id) return;
+      setSelectedInitialMembers((prev) => {
+        if (prev.some((m) => m.id === member.id)) return prev;
+        return [...prev, member];
+      });
+    };
+
+    const removeInitialMember = (memberId) => {
+      setSelectedInitialMembers((prev) => prev.filter((m) => m.id !== memberId));
+    };
+
     return (
-      <div className="org-event-form-panel">
+      <div className={isEdit ? 'org-event-form-panel' : 'org-event-form-modal-backdrop'} role={isEdit ? undefined : 'dialog'} aria-modal={isEdit ? undefined : 'true'}>
+        <div className={isEdit ? '' : 'org-event-form-modal'}>
+          <div className="org-event-form-panel">
         <div className="org-event-form-header">
           <div>
             <p className="org-eyebrow">{isEdit ? 'Cập nhật dự án' : 'Tạo dự án'}</p>
@@ -371,24 +396,24 @@ function OrgEventsPage() {
 
         <form onSubmit={isEdit ? handleUpdate : handleCreate} className="org-event-form-grid">
           <div className="form-group">
-            <label htmlFor={isEdit ? 'editEventName' : 'eventName'} className="form-label">Event Name *</label>
+            <label htmlFor={isEdit ? 'editEventName' : 'eventName'} className="form-label">Tên sự kiện *</label>
             <input
               id={isEdit ? 'editEventName' : 'eventName'}
               name="eventName"
               className="form-input"
               defaultValue={isEdit ? getEventName(event) : ''}
-              placeholder="Event name"
+              placeholder="Nhập tên sự kiện"
               required
             />
           </div>
           <div className="form-group">
-            <label htmlFor={isEdit ? 'editDescription' : 'description'} className="form-label">Description</label>
+            <label htmlFor={isEdit ? 'editDescription' : 'description'} className="form-label">Mô tả</label>
             <input
               id={isEdit ? 'editDescription' : 'description'}
               name="description"
               className="form-input"
               defaultValue={isEdit ? event?.description || '' : ''}
-              placeholder="Description"
+              placeholder="Nhập mô tả ngắn"
             />
           </div>
           <div className="form-group">
@@ -424,43 +449,97 @@ function OrgEventsPage() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor={isEdit ? 'editLocation' : 'location'} className="form-label">Location</label>
+            <label htmlFor={isEdit ? 'editLocation' : 'location'} className="form-label">Địa điểm</label>
             <input
               id={isEdit ? 'editLocation' : 'location'}
               name="location"
               className="form-input"
               defaultValue={isEdit ? event?.location || '' : ''}
-              placeholder="Location"
+              placeholder="Nhập địa điểm"
             />
           </div>
           {!isEdit && (
-            <div className="form-group">
-              <label htmlFor="initialMemberIds" className="form-label">Thành viên BTC ban đầu</label>
-              <select
-                id="initialMemberIds"
-                name="initialMemberIds"
-                className="form-select"
-                multiple
-                size={6}
-              >
-                {orgMembers.map((member) => (
+            <div className="form-group form-group-full">
+              <label htmlFor="memberSearch" className="form-label">Thành viên BTC ban đầu</label>
+              <input
+                id="memberSearch"
+                type="text"
+                className="form-input"
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                placeholder="Tìm theo tên, email hoặc phòng ban"
+              />
+
+              <select id="initialMemberIds" name="initialMemberIds" multiple hidden value={selectedInitialMembers.map((m) => m.id)} readOnly>
+                {selectedInitialMembers.map((member) => (
                   <option key={member.id} value={member.id}>
-                    {(member.fullName || member.email || member.id)}{member.email ? ` (${member.email})` : ''}
+                    {member.fullName || member.email || member.id}
                   </option>
                 ))}
               </select>
-              <small className="form-helper-text">Giữ Ctrl/Command để chọn nhiều thành viên.</small>
+
+              {selectedInitialMembers.length > 0 && (
+                <div className="org-selected-members">
+                  {selectedInitialMembers.map((member) => (
+                    <span key={member.id} className="org-selected-member-chip">
+                      <span>{member.fullName || member.email || member.id}</span>
+                      <button type="button" onClick={() => removeInitialMember(member.id)} aria-label="Xóa thành viên đã chọn">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="org-member-picker-table-wrap">
+                <table className="org-member-picker-table">
+                  <thead>
+                    <tr>
+                      <th>Họ tên</th>
+                      <th>Email</th>
+                      <th>Phòng ban</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredMembers.map((member) => {
+                      const isPicked = selectedInitialMembers.some((m) => m.id === member.id);
+                      return (
+                        <tr key={member.id}>
+                          <td>{member.fullName || '-'}</td>
+                          <td>{member.email || '-'}</td>
+                          <td>{member.department?.departmentName || member.department?.deptName || '-'}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="org-icon-button"
+                              disabled={isPicked}
+                              onClick={() => addInitialMember(member)}
+                              title={isPicked ? 'Đã chọn' : 'Thêm vào BTC'}
+                            >
+                              {isPicked ? 'Đã chọn' : '+'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {filteredMembers.length === 0 && (
+                      <tr>
+                        <td className="org-member-picker-empty" colSpan={4}>Không có thành viên phù hợp.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
           <div className="form-group">
-            <label htmlFor={isEdit ? 'editBannerUrl' : 'bannerUrl'} className="form-label">Banner URL</label>
+            <label htmlFor={isEdit ? 'editBannerUrl' : 'bannerUrl'} className="form-label">Liên kết banner</label>
             <input
               id={isEdit ? 'editBannerUrl' : 'bannerUrl'}
               name="bannerUrl"
               className="form-input"
               value={bannerValue}
               onChange={(e) => setBannerValue(e.target.value)}
-              placeholder="Banner URL"
+              placeholder="Dán liên kết ảnh banner"
             />
             <input
               ref={fileInputRef}
@@ -475,19 +554,19 @@ function OrgEventsPage() {
               disabled={isUploadingBanner}
               className="org-button org-button-ghost"
             >
-              {isUploadingBanner ? 'Đang upload...' : 'Upload banner'}
+              {isUploadingBanner ? 'Đang tải ảnh...' : 'Tải ảnh banner'}
             </button>
           </div>
           <div className="form-group">
-            <label htmlFor={isEdit ? 'editVisibility' : 'visibility'} className="form-label">Visibility</label>
+            <label htmlFor={isEdit ? 'editVisibility' : 'visibility'} className="form-label">Phạm vi hiển thị</label>
             <select
               id={isEdit ? 'editVisibility' : 'visibility'}
               name="visibility"
               defaultValue={isEdit ? normalizeVisibility(event?.visibility || 'Private') : 'Private'}
               className="form-select"
             >
-              <option value="Public">Public</option>
-              <option value="Private">Private (Org members only)</option>
+              <option value="Public">Công khai</option>
+              <option value="Private">Riêng tư</option>
             </select>
           </div>
           <div className="org-form-actions">
@@ -501,7 +580,7 @@ function OrgEventsPage() {
         </form>
 
         {pendingBannerUrl ? (
-          <div className="org-upload-modal-backdrop" role="dialog" aria-modal="true" aria-label="Confirm event banner">
+          <div className="org-upload-modal-backdrop" role="dialog" aria-modal="true" aria-label="Xác nhận banner sự kiện">
             <div className="org-upload-modal">
               <h3>Xác nhận chọn ảnh này?</h3>
               <img src={toAbsoluteMediaUrl(pendingBannerUrl)} alt="Ảnh banner vừa upload" />
@@ -517,6 +596,8 @@ function OrgEventsPage() {
             </div>
           </div>
         ) : null}
+          </div>
+        </div>
       </div>
     );
   };
@@ -529,7 +610,7 @@ function OrgEventsPage() {
           description="Quản lý tổng quan các sự kiện và dự án của tổ chức."
           actions={canCreate && <button disabled className="app-button app-button--primary">Tạo sự kiện mới</button>}
         />
-        <LoadingSpinner message="Loading events..." />
+        <LoadingSpinner message="Đang tải danh sách sự kiện..." />
       </div>
     );
   }
@@ -833,6 +914,83 @@ function OrgEventsPage() {
           gap: 16px;
         }
 
+        .form-group-full {
+          grid-column: 1 / -1;
+        }
+
+        .org-selected-members {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 10px;
+        }
+
+        .org-selected-member-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 10px;
+          border: 1px solid #E2E8F0;
+          border-radius: 999px;
+          background: #F8FAFC;
+          font-size: 12px;
+          color: #334155;
+        }
+
+        .org-selected-member-chip button {
+          border: none;
+          background: transparent;
+          color: #64748B;
+          font-size: 14px;
+          cursor: pointer;
+          padding: 0;
+        }
+
+        .org-member-picker-table-wrap {
+          margin-top: 10px;
+          border: 1px solid #E2E8F0;
+          border-radius: 10px;
+          max-height: 240px;
+          overflow: auto;
+          background: #FFFFFF;
+        }
+
+        .org-member-picker-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 13px;
+        }
+
+        .org-member-picker-table th,
+        .org-member-picker-table td {
+          padding: 10px 12px;
+          text-align: left;
+          border-bottom: 1px solid #F1F5F9;
+          color: #334155;
+        }
+
+        .org-member-picker-table th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background: #F8FAFC;
+          font-size: 12px;
+          color: #64748B;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .org-member-picker-table td:last-child,
+        .org-member-picker-table th:last-child {
+          width: 64px;
+          text-align: right;
+        }
+
+        .org-member-picker-empty {
+          text-align: center;
+          color: #94A3B8;
+        }
+
         .org-form-actions {
           grid-column: 1 / -1;
           display: flex;
@@ -865,6 +1023,24 @@ function OrgEventsPage() {
           background: #FFFFFF;
           border-radius: 12px;
           box-shadow: 0 22px 56px rgba(15, 23, 42, 0.24);
+        }
+
+        .org-event-form-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 950;
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(15, 23, 42, 0.46);
+          overflow: auto;
+        }
+
+        .org-event-form-modal {
+          width: min(980px, 100%);
+          max-height: calc(100vh - 40px);
+          overflow: auto;
         }
 
         .org-upload-modal h3 {
@@ -947,7 +1123,7 @@ function OrgEventsPage() {
 
         {events.length === 0 ? (
           <div className="org-empty-card">
-            <EmptyState message="No events found" />
+            <EmptyState message="Chưa có sự kiện nào" />
           </div>
         ) : (
           <section className="org-events-grid" aria-label="Danh sách sự kiện">
@@ -961,7 +1137,7 @@ function OrgEventsPage() {
                   {bannerSrc ? (
                     <img
                       src={bannerSrc}
-                      alt={`${getEventName(event) || 'Event'} banner`}
+                      alt={`Banner sự kiện ${getEventName(event) || ''}`}
                       className="org-event-banner"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
@@ -995,10 +1171,10 @@ function OrgEventsPage() {
                             onClick={() => handlePublishEvent(event)}
                             disabled={isSubmitting}
                             className="org-icon-button org-status-toggle-button"
-                            title="Publish sự kiện"
-                            aria-label="Publish sự kiện"
+                            title="Công khai sự kiện"
+                            aria-label="Công khai sự kiện"
                           >
-                            Publish
+                            Công khai
                           </button>
                         )}
                         <button

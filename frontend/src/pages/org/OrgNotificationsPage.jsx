@@ -29,18 +29,18 @@ function OrgNotificationsPage() {
   const orgId = searchParams.get('orgId');
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   return (
     <div className="app-page">
       <PageHeader
-        title="Notifications"
-        description="View organization notifications"
+        title="Thông báo"
+        description="Xem thông báo của tổ chức"
       />
       <div className="app-section">
         <div className="app-card">
-          <EmptyState message="Notifications feature not implemented yet" />
+          <EmptyState message="Tính năng thông báo chưa được triển khai" />
         </div>
       </div>
     </div>

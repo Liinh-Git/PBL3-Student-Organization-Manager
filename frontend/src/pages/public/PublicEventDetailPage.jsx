@@ -87,7 +87,7 @@ function PublicEventDetailPage() {
 
   useEffect(() => {
     if (!eventId) {
-      setError('Event ID is required');
+      setError('Thiếu mã sự kiện');
       return;
     }
 
@@ -103,7 +103,7 @@ function PublicEventDetailPage() {
           setRegistration(myRegistration);
         }
       } catch (err) {
-        setError(err.message || 'Failed to load public event');
+        setError(err.message || 'Không thể tải chi tiết sự kiện công khai');
       } finally {
         setIsLoading(false);
       }
@@ -126,14 +126,14 @@ function PublicEventDetailPage() {
       const result = await registerForEvent(eventId);
       setRegistration(result);
     } catch (err) {
-      alert(err.message || 'Failed to register for event');
+      alert(err.message || 'Không thể đăng ký sự kiện');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancelRegistration = async () => {
-    if (!window.confirm('Cancel your registration for this event?')) {
+    if (!window.confirm('Bạn có chắc muốn hủy đăng ký sự kiện này?')) {
       return;
     }
 
@@ -142,7 +142,7 @@ function PublicEventDetailPage() {
       const result = await cancelEventRegistration(eventId);
       setRegistration(result);
     } catch (err) {
-      alert(err.message || 'Failed to cancel registration');
+      alert(err.message || 'Không thể hủy đăng ký');
     } finally {
       setIsSubmitting(false);
     }
@@ -298,8 +298,8 @@ function PublicEventDetailPage() {
       {error && <ErrorState message={error} />}
 
       <PageHeader
-        title={event?.eventName || event?.name || 'Event Details'}
-        description={event?.organizationName || 'Public event information'}
+        title={event?.eventName || event?.name || 'Chi tiết sự kiện'}
+        description={event?.organizationName || 'Thông tin sự kiện công khai'}
         actions={
           <button type="button" className="app-button app-button--secondary" onClick={handleBack}>
             Quay lại
@@ -322,33 +322,33 @@ function PublicEventDetailPage() {
             ) : null}
             <div className="public-event-body">
               <h2>{event.eventName || event.name || '-'}</h2>
-              <p>{event.description || 'No description yet.'}</p>
+              <p>{event.description || 'Chưa có mô tả.'}</p>
               <div className="public-event-meta">
                 <div className="public-info-card">
                   <span className="public-info-icon">⌖</span>
                   <div>
-                    <span>Location</span>
+                    <span>Địa điểm</span>
                     <strong>{event.location || '-'}</strong>
                   </div>
                 </div>
                 <div className="public-info-card">
                   <span className="public-info-icon">◷</span>
                   <div>
-                    <span>Start time</span>
+                    <span>Giờ bắt đầu</span>
                     <strong>{formatTime(event.startDate)}</strong>
                   </div>
                 </div>
                 <div className="public-info-card">
                   <span className="public-info-icon">#</span>
                   <div>
-                    <span>Participants</span>
+                    <span>Người tham gia</span>
                     <strong>{participantText}</strong>
                   </div>
                 </div>
                 <div className="public-info-card">
                   <span className="public-info-icon">✓</span>
                   <div>
-                    <span>Status</span>
+                    <span>Trạng thái</span>
                     <strong>{event.status || '-'}</strong>
                   </div>
                 </div>
@@ -371,11 +371,11 @@ function PublicEventDetailPage() {
           </section>
 
           <aside className="public-registration-panel">
-            <h3>Registration</h3>
+            <h3>Đăng ký tham gia</h3>
             {isEventMember ? (
               <>
-                <span className="registration-status">EventMember</span>
-                <p>You are participating as an event organizer (BTC).</p>
+                <span className="registration-status">Thành viên BTC</span>
+                <p>Bạn đang tham gia với vai trò thành viên ban tổ chức.</p>
                 <button
                   type="button"
                   className="app-button app-button--secondary"
@@ -394,19 +394,19 @@ function PublicEventDetailPage() {
                   onClick={handleCancelRegistration}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Cancelling...' : 'Cancel registration'}
+                  {isSubmitting ? 'Đang hủy...' : 'Hủy đăng ký'}
                 </button>
               </>
             ) : (
               <>
-                <p>Register to join this public event as an attendee.</p>
+                <p>Đăng ký để tham gia sự kiện công khai này với vai trò attendee.</p>
                 <button
                   type="button"
                   className="app-button app-button--primary"
                   onClick={handleRegister}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Registering...' : isAuthenticated ? 'Register' : 'Log in to register'}
+                  {isSubmitting ? 'Đang đăng ký...' : isAuthenticated ? 'Đăng ký tham gia' : 'Đăng nhập để đăng ký'}
                 </button>
               </>
             )}

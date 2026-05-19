@@ -58,7 +58,7 @@ function Popup({ info, onClose, navigate }) {
           <div className="dash-popup-actions">
             {isEvent ? (<>
               <button className="dash-popup-btn" onClick={() => { navigate(`/events/${item.id}`); onClose(); }}>Xem chi tiết</button>
-              {item.organizationId && <button className="dash-popup-btn dash-popup-btn--primary" onClick={() => { navigate(`/org/events/${item.id}?orgId=${item.organizationId}`); onClose(); }}>Workspace</button>}
+              {item.organizationId && <button className="dash-popup-btn dash-popup-btn--primary" onClick={() => { navigate(`/org/events/${item.id}?orgId=${item.organizationId}`); onClose(); }}>Không gian làm việc</button>}
             </>) : item.taskSource === 'Department' ? (
               <button className="dash-popup-btn dash-popup-btn--primary" onClick={() => { navigate(`/org/departments?orgId=${item.organizationId}`); onClose(); }}>Mở phòng ban</button>
             ) : (

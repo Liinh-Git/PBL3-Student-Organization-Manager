@@ -9,7 +9,7 @@ const DEFAULT_EVENT_BANNER =
       "<stop offset='0%' stop-color='#dbeafe'/><stop offset='100%' stop-color='#bfdbfe'/>" +
       "</linearGradient></defs>" +
       "<rect width='1200' height='360' fill='url(#g)'/>" +
-      "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#1e3a8a' font-family='Arial' font-size='42'>Event Banner</text>" +
+      "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#1e3a8a' font-family='Arial' font-size='42'>Banner sự kiện</text>" +
       "</svg>",
   );
 

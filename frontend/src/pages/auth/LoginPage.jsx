@@ -24,7 +24,7 @@ function LoginPage() {
       await login(formData);
       navigate("/user/organizations");
     } catch (err) {
-      setApiError(err.message || "Login failed");
+      setApiError(err.message || "Đăng nhập thất bại");
     } finally {
       setIsSubmitting(false);
     }

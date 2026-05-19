@@ -306,7 +306,7 @@ function UserOrganizationsPage() {
                   />
                 </div>
 
-                {/* Pháº§n thÃ´ng tin thÃªm */}
+                {/* Phần thông tin thêm */}
                 <div
                   style={{
                     marginTop: "2rem",

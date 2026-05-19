@@ -139,7 +139,7 @@ function OrgRequestsPage() {
         const memberData = await getOrganizationMembers(orgId);
         setMembers(memberData);
       } catch (err) {
-        setError(err.message || "Failed to load requests");
+        setError(err.message || "Không thể tải danh sách yêu cầu");
       } finally {
         setIsLoading(false);
       }
@@ -173,7 +173,7 @@ function OrgRequestsPage() {
       form.reset();
       setShowCreateForm(false);
     } catch (err) {
-      alert(err.message || "Failed to create request");
+      alert(err.message || "Không thể tạo yêu cầu");
     } finally {
       setIsSubmitting(false);
     }
@@ -210,14 +210,14 @@ function OrgRequestsPage() {
         prev.map((item) => (item.id === requestId ? updated : item)),
       );
     } catch (err) {
-      alert(err.message || "Failed to review request");
+      alert(err.message || "Không thể duyệt yêu cầu");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   if (!isMember) {
@@ -251,7 +251,7 @@ function OrgRequestsPage() {
           title="Yêu cầu đang chờ duyệt"
           description="Quản lý và xem xét các yêu cầu tham gia tổ chức cũng như các đề xuất từ thành viên."
         />
-        <LoadingSpinner message="Loading requests..." />
+        <LoadingSpinner message="Đang tải danh sách yêu cầu..." />
       </div>
     );
   }

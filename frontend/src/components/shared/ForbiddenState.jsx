@@ -15,10 +15,10 @@
  *   <ForbiddenState message="You are not a member of this organization" />
  */
 
-function ForbiddenState({ message = 'You do not have permission to access this resource' }) {
+function ForbiddenState({ message = 'Bạn không có quyền truy cập tài nguyên này' }) {
   return (
     <div className="app-forbidden">
-      <h3>Access Denied</h3>
+      <h3>Không có quyền truy cập</h3>
       <p>{message}</p>
     </div>
   );

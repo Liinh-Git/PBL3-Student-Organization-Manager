@@ -1,20 +1,5 @@
-/**
+﻿/**
  * OrgTasksPlaceholderPage.jsx - Aggregate task board placeholder
- * 
- * Phase 3C-4C: Page skeleton only
- * 
- * PROTOTYPE_ONLY: This page is a placeholder for the aggregate task board.
- * 
- * IMPORTANT:
- * - Task is CORE inside EventDetail tree (OrgEventDetailPage)
- * - Only /org/tasks aggregate board is PROTOTYPE_ONLY
- * - No service file for aggregate board
- * - No adapter file for aggregate board
- * - No API calls
- * - No fake board
- * - No fake task cards
- * 
- * Route: /org/tasks?orgId=
  */
 
 import { useSearchParams } from 'react-router-dom';
@@ -27,21 +12,21 @@ function OrgTasksPlaceholderPage() {
   const orgId = searchParams.get('orgId');
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   return (
     <div className="org-tasks-placeholder-page">
       <PageHeader
-        title="Task Board"
-        description="Aggregate task board across all events"
+        title="Bảng công việc"
+        description="Bảng công việc tổng hợp từ tất cả sự kiện"
       />
 
       <PrototypePlaceholder
-        title="Aggregate Task Board"
-        description="This feature displays all tasks across all events in a unified board view"
+        title="Bảng công việc tổng hợp"
+        description="Tính năng này hiển thị toàn bộ nhiệm vụ của các sự kiện trong một bảng thống nhất"
         status="PROTOTYPE_ONLY"
-        notes="Task CRUD is fully available inside the EventDetail tree (Event → Milestone → Category → Task). This aggregate board view is not implemented in the base prototype."
+        notes="CRUD nhiệm vụ đã có đầy đủ trong cây Event Detail (Sự kiện → Mốc → Hạng mục → Nhiệm vụ). Bảng tổng hợp chưa được triển khai trong bản cơ sở."
       />
     </div>
   );

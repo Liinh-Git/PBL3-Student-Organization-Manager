@@ -18,14 +18,14 @@ function OrgFinancePlaceholderPage() {
   const orgId = searchParams.get('orgId');
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   return (
     <div className="org-finance-placeholder-page">
       <PageHeader
         title="Finance"
-        description="Manage organization finances"
+        description="Quản lý tài chính của tổ chức"
       />
 
       <PrototypePlaceholder

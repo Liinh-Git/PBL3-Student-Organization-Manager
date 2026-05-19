@@ -12,7 +12,7 @@
  */
 
 function StatusBadge({ 
-  status = 'Unknown',
+  status = 'Không rõ',
   variant = 'default' // default, success, warning, danger, info
 }) {
   const variantClass = variant === 'success' ? 'app-badge--success' :

@@ -77,7 +77,7 @@ function OrgDepartmentsPage() {
         );
         setTasksByDepartment(Object.fromEntries(taskEntries));
       } catch (err) {
-        setError(err.message || "Failed to load departments");
+        setError(err.message || "Không thể tải danh sách phòng ban");
       } finally {
         setIsLoading(false);
       }
@@ -85,7 +85,7 @@ function OrgDepartmentsPage() {
     loadData();
   }, [orgId, isMember]);
 
-  if (!orgId) return <ErrorState message="Organization ID is required" />;
+  if (!orgId) return <ErrorState message="Thiếu mã tổ chức" />;
   if (!isMember)
     return (
       <ForbiddenState message="You are not a member of this organization" />
@@ -119,7 +119,7 @@ function OrgDepartmentsPage() {
       form.reset();
       setShowCreateForm(false);
     } catch (err) {
-      alert(err.message || "Failed to create department");
+      alert(err.message || "Không thể tạo phòng ban");
     } finally {
       setIsSubmitting(false);
     }
@@ -154,7 +154,7 @@ function OrgDepartmentsPage() {
       }
       setEditingDept(null);
     } catch (err) {
-      alert(err.message || "Failed to update department");
+      alert(err.message || "Không thể cập nhật phòng ban");
     } finally {
       setIsSubmitting(false);
     }
@@ -169,7 +169,7 @@ function OrgDepartmentsPage() {
       await deleteDepartment(deptId);
       setDepartments((prev) => prev.filter((d) => d.id !== deptId));
     } catch (err) {
-      alert(err.message || "Failed to delete department");
+      alert(err.message || "Không thể xóa phòng ban");
     } finally {
       setIsSubmitting(false);
     }
@@ -229,7 +229,7 @@ function OrgDepartmentsPage() {
       );
       if (invalid) {
         throw new Error(
-          `${invalid.fullName || invalid.email || "Member"} already belongs to another department`,
+          `${invalid.fullName || invalid.email || "Thành viên"} đã thuộc phòng ban khác`,
         );
       }
 
@@ -240,7 +240,7 @@ function OrgDepartmentsPage() {
         selfMember.departmentId !== deptId &&
         memberIds.includes(selfMember.id)
       ) {
-        throw new Error("You already belong to another department");
+        throw new Error("Bạn đã thuộc phòng ban khác");
       }
 
       const updatedMembers = await Promise.all(
@@ -251,7 +251,7 @@ function OrgDepartmentsPage() {
       const byId = new Map(updatedMembers.map((m) => [m.id, m]));
       setMembers((prev) => prev.map((m) => byId.get(m.id) || m));
     } catch (err) {
-      alert(err.message || "Failed to add members to department");
+      alert(err.message || "Không thể thêm thành viên vào phòng ban");
     } finally {
       setIsSubmitting(false);
     }
@@ -265,9 +265,9 @@ function OrgDepartmentsPage() {
     setIsSubmitting(true);
     try {
       const member = members.find((m) => m.id === memberId);
-      if (!member) throw new Error("Member not found");
+      if (!member) throw new Error("Không tìm thấy thành viên");
       if (!member.departmentId || member.departmentId !== deptId) {
-        throw new Error("Member is not in this department");
+        throw new Error("Thành viên không thuộc phòng ban này");
       }
 
       const updatedMember = await updateMemberDepartment(memberId, {
@@ -277,7 +277,7 @@ function OrgDepartmentsPage() {
         prev.map((m) => (m.id === updatedMember.id ? updatedMember : m)),
       );
     } catch (err) {
-      alert(err.message || "Failed to remove member from department");
+      alert(err.message || "Không thể xóa thành viên khỏi phòng ban");
     } finally {
       setIsSubmitting(false);
     }
@@ -304,7 +304,7 @@ function OrgDepartmentsPage() {
         [deptId]: [created, ...(prev[deptId] || [])],
       }));
     } catch (err) {
-      alert(err.message || "Failed to create department task");
+      alert(err.message || "Không thể tạo công việc phòng ban");
     } finally {
       setIsSubmitting(false);
     }
@@ -324,7 +324,7 @@ function OrgDepartmentsPage() {
         return next;
       });
     } catch (err) {
-      alert(err.message || "Failed to update task status");
+      alert(err.message || "Không thể cập nhật trạng thái công việc");
     } finally {
       setIsSubmitting(false);
     }
@@ -346,7 +346,7 @@ function OrgDepartmentsPage() {
         return next;
       });
     } catch (err) {
-      alert(err.message || "Failed to assign task");
+      alert(err.message || "Không thể phân công công việc");
     } finally {
       setIsSubmitting(false);
     }

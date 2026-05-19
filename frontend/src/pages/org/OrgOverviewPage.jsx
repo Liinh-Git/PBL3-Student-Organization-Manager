@@ -79,11 +79,11 @@ function OrgOverviewPage() {
   }, [avatarPreviewUrl, coverPreviewUrl]);
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   if (contextLoading) {
-    return <LoadingSpinner message="Loading organization data..." />;
+    return <LoadingSpinner message="Đang tải dữ liệu tổ chức..." />;
   }
 
   if (!isMember) {
@@ -149,7 +149,7 @@ function OrgOverviewPage() {
       await loadWorkspaceOrg(orgId);
       setIsEditMode(false);
     } catch (err) {
-      alert(err.message || "Failed to update organization");
+      alert(err.message || "Không thể cập nhật tổ chức");
     } finally {
       setIsSubmitting(false);
     }
@@ -180,7 +180,7 @@ function OrgOverviewPage() {
       if (type === "avatar") setAvatarPreviewUrl(null);
       if (type === "cover") setCoverPreviewUrl(null);
     } catch (err) {
-      alert(err.message || "Failed to upload image");
+      alert(err.message || "Không thể tải ảnh lên");
       if (type === "avatar") {
         if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
         setAvatarPreviewUrl(null);
@@ -205,13 +205,13 @@ function OrgOverviewPage() {
 
   const titleValue = isEditMode
     ? formState.orgName
-    : contextOrg?.name || "Organization";
+    : contextOrg?.name || "Tổ chức";
   const descriptionValue = isEditMode
     ? formState.description
-    : contextOrg?.description || "Organization has no description yet.";
+    : contextOrg?.description || "Tổ chức chưa có mô tả.";
   const locationValue = isEditMode
     ? formState.location
-    : contextOrg?.location || "Not specified";
+    : contextOrg?.location || "Chưa cập nhật";
   const contactEmailValue = isEditMode
     ? formState.contactEmail
     : contextOrg?.contactEmail || "-";
@@ -226,12 +226,12 @@ function OrgOverviewPage() {
           <img
             className="org-banner-image"
             src={coverSrc}
-            alt="Organization cover"
+            alt="Ảnh bìa tổ chức"
           />
         ) : null}
         {isEditMode && canEdit ? (
           <label className="org-image-edit org-image-edit--cover">
-            {isUploadingCover ? "Uploading..." : "Edit cover/banner"}
+            {isUploadingCover ? "Đang tải..." : "Sửa ảnh bìa/banner"}
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -248,7 +248,7 @@ function OrgOverviewPage() {
               <img
                 className="org-avatar-image"
                 src={avatarSrc}
-                alt="Organization avatar"
+                alt="Ảnh đại diện tổ chức"
               />
             ) : (
               <span className="org-avatar-fallback">{initial}</span>
@@ -256,7 +256,7 @@ function OrgOverviewPage() {
           </div>
           {isEditMode && canEdit ? (
             <label className="org-image-edit org-image-edit--avatar">
-              {isUploadingAvatar ? "Uploading..." : "Edit avatar"}
+              {isUploadingAvatar ? "Đang tải..." : "Sửa ảnh đại diện"}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -279,7 +279,7 @@ function OrgOverviewPage() {
           ) : (
             <h1>{titleValue}</h1>
           )}
-          <p>Organization overview and official contact information.</p>
+          <p>Tổng quan tổ chức và thông tin liên hệ chính thức.</p>
         </div>
 
         {canEdit ? (
@@ -289,7 +289,7 @@ function OrgOverviewPage() {
                 onClick={() => setIsEditMode(true)}
                 className="org-btn-header"
               >
-                Edit
+                Sửa
               </button>
             ) : (
               <>
@@ -298,14 +298,14 @@ function OrgOverviewPage() {
                   className="org-btn org-btn-secondary"
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   onClick={handleSave}
                   className="org-btn org-btn-primary"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Saving..." : "Save"}
+                  {isSubmitting ? "Đang lưu..." : "Lưu"}
                 </button>
               </>
             )}
@@ -329,7 +329,7 @@ function OrgOverviewPage() {
             </svg>
           </div>
           <div>
-            <span className="stat-label-text">Location</span>
+            <span className="stat-label-text">Địa điểm</span>
             {isEditMode ? (
               <input
                 type="text"
@@ -360,9 +360,9 @@ function OrgOverviewPage() {
             </svg>
           </div>
           <div>
-            <span className="stat-label-text">Members</span>
+            <span className="stat-label-text">Thành viên</span>
             <p className="stat-value-text">
-              {contextOrg?.totalMembers || 0} people
+              {contextOrg?.totalMembers || 0} người
             </p>
           </div>
         </div>
@@ -467,7 +467,7 @@ function OrgOverviewPage() {
               )}
             </div>
             <div className="contact-row">
-              <span className="org-form-label-small">Created at</span>
+              <span className="org-form-label-small">Ngày tạo</span>
               <p className="contact-val-text">
                 {contextOrg?.createdAtUtc
                   ? new Date(contextOrg.createdAtUtc).toLocaleDateString(

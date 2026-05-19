@@ -226,7 +226,7 @@ function Toast({ message, type = "success", onClose }) {
     <div className={`discover-toast discover-toast--${type}`} onClick={onClose}>
       <span>{icons[type]}</span>
       <span>{message}</span>
-      <button className="discover-toast-close" aria-label="close">
+      <button className="discover-toast-close" aria-label="Đóng">
         <IconX />
       </button>
     </div>
@@ -268,7 +268,7 @@ function DiscoverOrgCard({
   onOpen,
 }) {
   const orgName =
-    org.name || org.orgName || org.organizationName || "Unknown organization";
+    org.name || org.orgName || org.organizationName || "Tổ chức chưa xác định";
   const avatarSrc = toAbsoluteMediaUrl(org.avatarUrl || org.logoUrl || "");
   const coverSrc = toAbsoluteMediaUrl(org.coverUrl || org.bannerUrl || "");
   const initial = orgName.charAt(0).toUpperCase();
@@ -968,7 +968,7 @@ function UserDiscoverPage() {
                           org.name ||
                           org.orgName ||
                           org.organizationName ||
-                          "Unknown organization";
+                          "Tổ chức chưa xác định";
                         return (
                           <DiscoverOrgCard
                             key={org.id}
@@ -1211,7 +1211,7 @@ function UserDiscoverPage() {
                                   }
                                   disabled={!event?.organizationId}
                                 >
-                                  Vào workspace
+                                  Vào không gian làm việc
                                 </button>
                               ) : (
                                 <button

@@ -18,21 +18,21 @@ function OrgResourcesPlaceholderPage() {
   const orgId = searchParams.get('orgId');
 
   if (!orgId) {
-    return <ErrorState message="Organization ID is required" />;
+    return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
   return (
     <div className="org-resources-placeholder-page">
       <PageHeader
-        title="Resources"
-        description="Manage organization resources"
+        title="Tài nguyên"
+        description="Quản lý tài nguyên của tổ chức"
       />
 
       <PrototypePlaceholder
-        title="Resources Management"
-        description="This feature manages organization resources (equipment, facilities, etc.)"
+        title="Quản lý tài nguyên"
+        description="Tính năng này quản lý tài nguyên tổ chức như thiết bị, cơ sở vật chất..."
         status="PROTOTYPE_ONLY"
-        notes="Resources entity exists in database foundation but no working UI/API in base prototype."
+        notes="Đã có cấu trúc dữ liệu tài nguyên trong nền tảng, nhưng UI/API đầy đủ chưa được triển khai ở bản cơ sở."
       />
     </div>
   );

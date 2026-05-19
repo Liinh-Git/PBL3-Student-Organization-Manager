@@ -67,7 +67,7 @@ function PublicEventsPage() {
         const data = await getPublicEvents();
         setEvents(Array.isArray(data) ? data : data?.items || []);
       } catch (err) {
-        setError(err.message || 'Failed to load public events');
+        setError(err.message || 'Không thể tải danh sách sự kiện công khai');
       } finally {
         setIsLoading(false);
       }
@@ -104,7 +104,7 @@ function PublicEventsPage() {
       const data = await getPublicEvents();
       setEvents(Array.isArray(data) ? data : data?.items || []);
     } catch (err) {
-      setError(err.message || 'Failed to load public events');
+      setError(err.message || 'Không thể tải danh sách sự kiện công khai');
     } finally {
       setIsLoading(false);
     }
@@ -158,11 +158,11 @@ function PublicEventsPage() {
       `}</style>
 
       <PageHeader
-        title="Public Events"
-        description="Browse upcoming student organization events"
+        title="Sự kiện công khai"
+        description="Khám phá các sự kiện sắp diễn ra"
         actions={
           <button onClick={handleReloadEvents} disabled={isLoading} className="app-button app-button--primary">
-            {isLoading ? 'Loading...' : 'Refresh'}
+            {isLoading ? 'Đang tải...' : 'Làm mới'}
           </button>
         }
       />
@@ -171,14 +171,14 @@ function PublicEventsPage() {
         <input
           value={searchTerm}
           onChange={handleSearchChange}
-          placeholder="Search event, organization, or location"
+          placeholder="Tìm theo sự kiện, tổ chức hoặc địa điểm"
         />
       </div>
 
       <div className="app-section">
         {isLoading && <LoadingSpinner />}
         {error && <ErrorState message={error} />}
-        {!isLoading && !error && filteredEvents.length === 0 && <EmptyState message="No public events found" />}
+        {!isLoading && !error && filteredEvents.length === 0 && <EmptyState message="Không có sự kiện công khai nào" />}
         {!isLoading && !error && filteredEvents.length > 0 && (
           <div className="public-events-grid">
             {filteredEvents.map((event) => (
