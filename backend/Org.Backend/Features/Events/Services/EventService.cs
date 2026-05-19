@@ -288,17 +288,34 @@ public class EventService : IEventService
 
         await EnsureEventManagerAsync(evt.Id, userId, ct);
 
-        if (!Enum.TryParse<EventStatus>(request.Status, true, out var nextStatus) ||
-            (nextStatus != EventStatus.Draft && nextStatus != EventStatus.Published))
+        if (!Enum.TryParse<EventStatus>(request.Status, true, out var nextStatus))
         {
-            throw new InvalidOperationException("Status must be 'Draft' or 'Published'");
+            throw new InvalidOperationException("Invalid event status");
+        }
+
+        if (evt.Status == EventStatus.Cancelled && nextStatus != EventStatus.Cancelled)
+        {
+            throw new InvalidOperationException("Cancelled events cannot change to another status");
+        }
+
+        if (evt.Status == EventStatus.Completed && nextStatus != EventStatus.Completed)
+        {
+            throw new InvalidOperationException("Completed events cannot change to another status");
+        }
+
+        if (nextStatus == EventStatus.Completed)
+        {
+            var eventEndUtc = evt.EndDate.Kind == DateTimeKind.Utc
+                ? evt.EndDate
+                : DateTime.SpecifyKind(evt.EndDate, DateTimeKind.Utc);
+
+            if (eventEndUtc > DateTime.UtcNow)
+            {
+                throw new InvalidOperationException("Can only mark event as Completed after event end time");
+            }
         }
 
         evt.Status = nextStatus;
-        if (nextStatus == EventStatus.Published)
-        {
-            evt.Visibility = EventVisibility.Public;
-        }
         evt.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);

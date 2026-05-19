@@ -18,5 +18,5 @@ public record DiscoverEventDto
     public required DateTime EndDate { get; init; }
     public string? Location { get; init; }
     public required string Visibility { get; init; } // Public, OrganizationOnly, Private
-    public required string Status { get; init; } // Draft, Published, Ongoing, Completed, Cancelled, Archived
+    public required string Status { get; init; } // Draft, Published, Ongoing, Completed, Cancelled
 }

@@ -26,7 +26,7 @@ public record UpdateTaskRequest
     public Guid? DeptId { get; init; }
     public DateTime? Deadline { get; init; }
     public string? Priority { get; init; } // Low, Medium, High, Urgent
-    public string? Status { get; init; } // Todo, InProgress, Blocked, Done, Cancelled
+    public string? Status { get; init; } // Todo, InProgress, Done
     public int? OrderIndex { get; init; }
     public string? Note { get; init; }
 }
@@ -36,7 +36,7 @@ public record UpdateTaskRequest
 /// </summary>
 public record UpdateTaskStatusRequest
 {
-    public required string Status { get; init; } // Todo, InProgress, Blocked, Done, Cancelled
+    public required string Status { get; init; } // Todo, InProgress, Done
 }
 
 /// <summary>

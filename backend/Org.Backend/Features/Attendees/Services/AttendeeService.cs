@@ -208,7 +208,7 @@ public class AttendeeService : IAttendeeService
 
     private async Task EnsureUserCanRegisterAsync(Event evt, Guid userId, CancellationToken ct)
     {
-        if (evt.Status is EventStatus.Cancelled or EventStatus.Archived or EventStatus.Completed)
+        if (evt.Status is EventStatus.Cancelled or EventStatus.Completed)
         {
             throw new InvalidOperationException("This event is not accepting new attendees");
         }

@@ -21,12 +21,10 @@ const initials = (name = "") => {
 const STATUS_META = {
   Todo: { label: "Todo", cls: "dc-pill--todo" },
   InProgress: { label: "In Progress", cls: "dc-pill--progress" },
-  Blocked: { label: "Blocked", cls: "dc-pill--blocked" },
   Done: { label: "Done", cls: "dc-pill--done" },
-  Cancelled: { label: "Cancelled", cls: "dc-pill--cancelled" },
 };
 
-const STATUS_ORDER = ["InProgress", "Todo", "Blocked", "Done", "Cancelled"];
+const STATUS_ORDER = ["InProgress", "Todo", "Done"];
 
 const fmtDate = (iso) => {
   if (!iso) return null;

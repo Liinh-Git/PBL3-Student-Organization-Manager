@@ -68,7 +68,6 @@ function TaskFormModal({
               <option value="NotStarted">Not Started</option>
               <option value="InProgress">In Progress</option>
               <option value="Completed">Completed</option>
-              <option value="Blocked">Blocked</option>
             </select>
           </div>
 

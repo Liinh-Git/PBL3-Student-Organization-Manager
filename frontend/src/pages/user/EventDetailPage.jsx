@@ -86,7 +86,7 @@ function getStatusLabel(status) {
   const normalized = String(status || "").toLowerCase();
   if (["published", "active", "ongoing"].includes(normalized)) return "Đang diễn ra";
   if (["draft", "planned"].includes(normalized)) return "Bản nháp";
-  if (["completed", "archived"].includes(normalized)) return "Đã kết thúc";
+  if (["completed"].includes(normalized)) return "Đã kết thúc";
   if (["cancelled"].includes(normalized)) return "Đã hủy";
   return status || "Không rõ";
 }
@@ -214,7 +214,7 @@ function EventDetailPage() {
   const canJoin = useMemo(() => {
     if (!eventData) return false;
     const status = String(eventData.status || "");
-    return !["Cancelled", "Archived", "Completed"].includes(status);
+    return !["Cancelled", "Completed"].includes(status);
   }, [eventData]);
 
   const statusTone = useMemo(() => getStatusTone(eventData?.status), [eventData?.status]);

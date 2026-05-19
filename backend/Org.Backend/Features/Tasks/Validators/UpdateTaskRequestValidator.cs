@@ -18,8 +18,8 @@ public class UpdateTaskRequestValidator : Validator<UpdateTaskRequest>
             .WithMessage("Priority must be one of: Low, Medium, High, Urgent");
 
         RuleFor(x => x.Status)
-            .Must(s => s == null || new[] { "Todo", "InProgress", "Blocked", "Done", "Cancelled" }.Contains(s))
-            .WithMessage("Status must be one of: Todo, InProgress, Blocked, Done, Cancelled");
+            .Must(s => s == null || new[] { "Todo", "InProgress", "Done" }.Contains(s))
+            .WithMessage("Status must be one of: Todo, InProgress, Done");
 
         RuleFor(x => x.OrderIndex)
             .GreaterThanOrEqualTo(0).WithMessage("OrderIndex must be non-negative")

@@ -24,14 +24,14 @@ public class UpdateTaskRequest
     public Guid? AssigneeId { get; set; }
     public Guid? DeptId { get; set; }
     public string Priority { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty; // Todo, InProgress, Blocked, Done, Cancelled
+    public string Status { get; set; } = string.Empty; // Todo, InProgress, Done
     public DateTime? Deadline { get; set; }
     public string? Note { get; set; }
 }
 
 public class UpdateTaskStatusRequest
 {
-    public string Status { get; set; } = string.Empty; // Todo, InProgress, Blocked, Done, Cancelled
+    public string Status { get; set; } = string.Empty; // Todo, InProgress, Done
 }
 
 public class AssignTaskRequest

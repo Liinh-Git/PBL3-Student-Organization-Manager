@@ -67,7 +67,7 @@ Task management within categories (CORE inside EventDetail tree).
 ## Validation Notes
 - **TaskName**: Required, max 200 characters
 - **Priority**: Required, Low/Medium/High/Urgent
-- **Status**: Required, Todo/InProgress/Blocked/Done/Cancelled
+- **Status**: Required, Todo/InProgress/Done
 - **AssigneeId**: Optional, must be a Member in same organization
 - **DeptId**: Optional, must belong to same organization
 
