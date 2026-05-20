@@ -8,6 +8,16 @@ import { useNotifications } from "../hooks/useNotifications";
 import { useSearchParams } from "react-router-dom";
 import { getMyOrganizations } from "../services/userService.js";
 
+function toAbsoluteMediaUrl(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  const apiBase =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const origin = apiBase.replace(/\/api\/?$/, "");
+  if (url.startsWith("/")) return `${origin}${url}`;
+  return `${origin}/${url}`;
+}
+
 function TopBar() {
   const { user } = useAuthContext();
   const [searchParams] = useSearchParams();
@@ -31,6 +41,7 @@ function TopBar() {
     () => notifications.slice(0, 8),
     [notifications],
   );
+  const userAvatarSrc = toAbsoluteMediaUrl(user?.avatarUrl);
 
   useEffect(() => {
     if (orgId) {
@@ -213,9 +224,22 @@ function TopBar() {
             <span>{user?.email || "example1@gmail.com"}</span>
           </div>
           <div className="user-avatar-sm">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
+            {userAvatarSrc ? (
+              <img
+                src={userAvatarSrc}
+                alt={user?.fullName || "User avatar"}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "inherit",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            )}
           </div>
         </div>
       </div>

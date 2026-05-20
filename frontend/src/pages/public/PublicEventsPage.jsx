@@ -48,7 +48,7 @@ import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
-import './public.css';
+// import './public.css';
 
 function PublicEventsPage() {
   const [searchParams, setSearchParams] = useSearchParams();

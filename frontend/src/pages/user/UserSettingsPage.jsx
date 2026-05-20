@@ -10,6 +10,7 @@ import { getMe, updateMe, changePassword } from "../../services/userService.js";
 import PageHeader from "../../components/shared/PageHeader";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorState from "../../components/shared/ErrorState";
+import UserAvatarUpload from "../../components/user/UserAvatarUpload.jsx";
 import "./UserSettingsPage.css"; // File CSS đi kèm tạo ở dưới
 
 function UserSettingsPage() {
@@ -23,6 +24,7 @@ function UserSettingsPage() {
     phoneNumber: "",
     address: "",
     bio: "",
+    avatarUrl: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -43,6 +45,7 @@ function UserSettingsPage() {
           phoneNumber: data?.phoneNumber || "",
           address: data?.address || "",
           bio: data?.bio || "",
+          avatarUrl: data?.avatarUrl || "",
         });
       } catch (err) {
         setError(err.message || "Không thể tải hồ sơ");
@@ -67,6 +70,7 @@ function UserSettingsPage() {
         phoneNumber: formData.phoneNumber || undefined,
         address: formData.address || undefined,
         bio: formData.bio || undefined,
+        avatarUrl: formData.avatarUrl || undefined,
       });
       setFormData((prev) => ({
         ...prev,
@@ -75,6 +79,7 @@ function UserSettingsPage() {
         phoneNumber: updated?.phoneNumber || prev.phoneNumber,
         address: updated?.address || prev.address,
         bio: updated?.bio || prev.bio,
+        avatarUrl: updated?.avatarUrl || prev.avatarUrl,
       }));
       alert("Cập nhật hồ sơ thành công");
     } catch (err) {
@@ -82,6 +87,18 @@ function UserSettingsPage() {
     } finally {
       setIsSubmittingProfile(false);
     }
+  };
+
+  const handleAvatarUploaded = (updatedProfile) => {
+    setFormData((prev) => ({
+      ...prev,
+      fullName: updatedProfile?.fullName || prev.fullName,
+      email: updatedProfile?.email || prev.email,
+      phoneNumber: updatedProfile?.phoneNumber || prev.phoneNumber,
+      address: updatedProfile?.address || prev.address,
+      bio: updatedProfile?.bio || prev.bio,
+      avatarUrl: updatedProfile?.avatarUrl || prev.avatarUrl,
+    }));
   };
 
   // --- PASSWORD LOGIC ---
@@ -175,6 +192,11 @@ function UserSettingsPage() {
               <div className="pane-header">
                 <h3 className="app-section-title">Thông tin cá nhân</h3>
               </div>
+
+              <UserAvatarUpload
+                userProfile={formData}
+                onUploaded={handleAvatarUploaded}
+              />
 
               <form
                 onSubmit={handleProfileUpdate}

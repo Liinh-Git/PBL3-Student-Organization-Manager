@@ -13,5 +13,6 @@ public interface IUserService
     
     // Write operations
     Task<UserProfileDto> UpdateProfileAsync(Guid userId, UpdateUserProfileRequest request, CancellationToken ct = default);
+    Task<UserProfileDto> UploadAvatarAsync(Guid userId, Stream fileStream, string originalFileName, string contentType, CancellationToken ct = default);
     Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken ct = default);
 }

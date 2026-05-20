@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Org.Backend.Domain.Entities;
 using Org.Backend.Domain.Enums;
 using Org.Backend.Features.Users.Mappings;
@@ -13,11 +14,13 @@ public class UserService : IUserService
 {
     private readonly AppDbContext _context;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly IHostEnvironment _hostEnvironment;
 
-    public UserService(AppDbContext context, IPasswordHasher<User> passwordHasher)
+    public UserService(AppDbContext context, IPasswordHasher<User> passwordHasher, IHostEnvironment hostEnvironment)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _hostEnvironment = hostEnvironment;
     }
 
     public async Task<UserProfileDto> GetMeAsync(Guid userId, CancellationToken ct = default)
@@ -229,6 +232,62 @@ public class UserService : IUserService
 
         user.UpdatedAt = DateTime.UtcNow;
 
+        await _context.SaveChangesAsync(ct);
+
+        return user.ToUserProfileDto();
+    }
+
+    public async Task<UserProfileDto> UploadAvatarAsync(
+        Guid userId,
+        Stream fileStream,
+        string originalFileName,
+        string contentType,
+        CancellationToken ct = default)
+    {
+        var allowedTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        };
+
+        if (!allowedTypes.Contains(contentType))
+        {
+            throw new InvalidOperationException("Only jpeg, png, webp images are allowed");
+        }
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user == null)
+        {
+            throw new KeyNotFoundException("User not found");
+        }
+
+        var extension = Path.GetExtension(originalFileName);
+        if (string.IsNullOrWhiteSpace(extension))
+        {
+            extension = contentType.ToLowerInvariant() switch
+            {
+                "image/jpeg" => ".jpg",
+                "image/png" => ".png",
+                "image/webp" => ".webp",
+                _ => ".bin"
+            };
+        }
+
+        var fileName = $"{Guid.NewGuid():N}_{DateTime.UtcNow:yyyyMMddHHmmssfff}{extension}";
+        var uploadsRoot = Path.Combine(_hostEnvironment.ContentRootPath, "uploads", "users");
+        Directory.CreateDirectory(uploadsRoot);
+        var absolutePath = Path.Combine(uploadsRoot, fileName);
+
+        await using (var output = File.Create(absolutePath))
+        {
+            await fileStream.CopyToAsync(output, ct);
+        }
+
+        user.AvatarUrl = $"/uploads/users/{fileName}";
+        user.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(ct);
 
         return user.ToUserProfileDto();
