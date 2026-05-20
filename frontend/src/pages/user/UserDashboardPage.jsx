@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMyEvents, getMyOrganizations, getMyTasks } from '../../services/userService.js';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import ErrorState from '../../components/shared/ErrorState';
 import './UserDashboardPage.css';
 import {
   MONTHS_VI, WDAYS, daysInMonth, firstDay, toKey, fmtDate, fmtTime, TODAY_KEY,
@@ -370,7 +371,7 @@ function UserDashboardPage() {
   function nextMonth() { setViewDate(d => new Date(d.getFullYear(), d.getMonth()+1, 1)); }
 
   if (loading) return <div className="app-page"><LoadingSpinner message="Đang tải dashboard..." /></div>;
-  if (error) return <div className="app-page"><div className="app-error"><p>{error}</p></div></div>;
+  if (error) return <div className="app-page"><ErrorState message={error} /></div>;
 
   return (
     <div className="app-page dashboard-page">

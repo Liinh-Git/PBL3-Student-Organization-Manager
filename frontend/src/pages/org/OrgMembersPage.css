@@ -4,13 +4,8 @@
   width: 100%;
   min-height: 100vh;
   background-color: #f8fafc;
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
   color: #1e293b;
-  padding: 2rem 3rem;
+  padding: 2rem 2.5rem;
   box-sizing: border-box;
 }
 
@@ -352,6 +347,28 @@
 .org-btn-primary {
   background-color: #fb923c;
   color: white;
+}
+
+@media (max-width: 900px) {
+  .members-container {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .members-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .members-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .members-table-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
 }
 
 /* Các State dùng lại từ file cũ nhưng điều chỉnh */

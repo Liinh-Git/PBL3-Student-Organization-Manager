@@ -17,9 +17,10 @@
 
 function ForbiddenState({ message = 'Bạn không có quyền truy cập tài nguyên này' }) {
   return (
-    <div className="app-forbidden">
-      <h3>Không có quyền truy cập</h3>
-      <p>{message}</p>
+    <div className="app-state app-forbidden" role="alert">
+      <div className="app-state-icon" aria-hidden="true">⛔</div>
+      <h3 className="app-state-title">Không có quyền truy cập</h3>
+      <p className="app-state-message">{message}</p>
     </div>
   );
 }

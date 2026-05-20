@@ -33,7 +33,7 @@ function OrgNotificationsPage() {
   }
 
   return (
-    <div className="app-page">
+    <div className="app-page org-notifications-page">
       <PageHeader
         title="Thông báo"
         description="Xem thông báo của tổ chức"

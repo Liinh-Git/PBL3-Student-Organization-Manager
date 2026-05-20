@@ -12,9 +12,10 @@
 
 function ErrorState({ message = 'Đã xảy ra lỗi', onRetry = null }) {
   return (
-    <div className="app-error">
-      <h3>Lỗi</h3>
-      <p>{message}</p>
+    <div className="app-state app-error" role="alert">
+      <div className="app-state-icon" aria-hidden="true">!</div>
+      <h3 className="app-state-title">Lỗi</h3>
+      <p className="app-state-message">{message}</p>
       {onRetry && (
         <button onClick={onRetry} className="app-button app-button--primary">
           Thử lại

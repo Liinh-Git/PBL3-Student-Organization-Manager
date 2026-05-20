@@ -12,6 +12,8 @@ import {
   uploadOrganizationImage,
 } from "../../services/organizationService.js";
 import OrgCard from "../../components/org/OrgCard";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import ErrorState from "../../components/shared/ErrorState";
 import "./UserOrganizationsPage.css";
 
 function UserOrganizationsPage() {
@@ -197,9 +199,9 @@ function UserOrganizationsPage() {
       </div>
 
       {isLoading ? (
-        <div className="org-loading">Đang tải danh sách tổ chức...</div>
+        <LoadingSpinner message="Đang tải danh sách tổ chức..." />
       ) : error ? (
-        <div className="org-alert-error">{error}</div>
+        <ErrorState message={error} />
       ) : (
         <div className="org-section">
           <div className="org-section-title">

@@ -48,6 +48,7 @@ import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import './public.css';
 
 function PublicEventsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -111,51 +112,7 @@ function PublicEventsPage() {
   };
 
   return (
-    <div className="public-events-page">
-      <style>{`
-        .public-events-page {
-          padding: 34px;
-        }
-
-        .public-events-toolbar {
-          display: flex;
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        .public-events-toolbar input {
-          width: min(420px, 100%);
-          min-height: 42px;
-          border: 1px solid #DDE7F2;
-          border-radius: 8px;
-          padding: 0 12px;
-        }
-
-        .public-events-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 18px;
-        }
-
-        .public-event-card {
-          display: grid;
-          gap: 12px;
-          padding: 18px;
-          border: 1px solid #DDE7F2;
-          border-radius: 8px;
-          background: #FFFFFF;
-        }
-
-        .public-event-card h3 {
-          margin: 0;
-          font-size: 18px;
-        }
-
-        .public-event-card p {
-          margin: 0;
-          color: #64748B;
-        }
-      `}</style>
+    <div className="public-events-page app-page">
 
       <PageHeader
         title="Sự kiện công khai"
@@ -172,6 +129,7 @@ function PublicEventsPage() {
           value={searchTerm}
           onChange={handleSearchChange}
           placeholder="Tìm theo sự kiện, tổ chức hoặc địa điểm"
+          className="public-events-input"
         />
       </div>
 

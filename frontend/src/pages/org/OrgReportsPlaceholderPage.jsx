@@ -16,18 +16,20 @@ function OrgReportsPlaceholderPage() {
   }
 
   return (
-    <div className="org-reports-placeholder-page">
+    <div className="app-page org-reports-placeholder-page">
       <PageHeader
         title="Báo cáo"
         description="Xem báo cáo của tổ chức và sự kiện"
       />
 
-      <PrototypePlaceholder
-        title="Báo cáo & Phân tích"
-        description="Tính năng này cung cấp báo cáo và phân tích cho các sự kiện của tổ chức"
-        status="PROTOTYPE_ONLY"
-        notes="Nền tảng dữ liệu báo cáo đã có, nhưng giao diện/API báo cáo chưa được triển khai trong bản cơ sở."
-      />
+      <div className="app-section">
+        <PrototypePlaceholder
+          title="Báo cáo & Phân tích"
+          description="Tính năng này cung cấp báo cáo và phân tích cho các sự kiện của tổ chức"
+          status="PROTOTYPE_ONLY"
+          notes="Nền tảng dữ liệu báo cáo đã có, nhưng giao diện/API báo cáo chưa được triển khai trong bản cơ sở."
+        />
+      </div>
     </div>
   );
 }

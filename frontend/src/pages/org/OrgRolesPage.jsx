@@ -13,6 +13,7 @@ import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import ErrorState from '../../components/shared/ErrorState';
 import ForbiddenState from '../../components/shared/ForbiddenState';
+import './OrgRolesPage.css';
 
 function OrgRolesPage() {
   const [searchParams] = useSearchParams();
@@ -198,7 +199,7 @@ function OrgRolesPage() {
   }
 
   return (
-    <div className="app-page">
+    <div className="app-page org-roles-page">
       <PageHeader
         title="Vai trò & Quyền hạn"
         description="Quản lý vai trò và quyền hạn trong tổ chức"
@@ -308,53 +309,57 @@ function OrgRolesPage() {
           {roles.length === 0 ? (
             <EmptyState message="Chưa có vai trò nào" />
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Tên vai trò</th>
-                  <th>Mô tả</th>
-                  <th>Quyền</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {roles.map((role) => (
-                  <tr key={role.id}>
-                    <td>{role.roleName || '-'}</td>
-                    <td>{role.description || '-'}</td>
-                    <td style={{ maxWidth: '300px', wordWrap: 'break-word' }}>
-                      {(role.permissionKeys || []).map((perm, idx) => (
-                        <span key={idx} className="app-badge app-badge--info" style={{ marginRight: '4px', marginBottom: '4px', display: 'inline-block' }}>
-                          {perm}
-                        </span>
-                      )) || '-'}
-                    </td>
-                    <td>
-                      <div className="app-action-row">
-                        {canUpdate && (
-                          <button
-                            onClick={() => setEditingRole(role)}
-                            disabled={isSubmitting}
-                            className="app-button app-button--secondary"
-                          >
-                            Sửa
-                          </button>
-                        )}
-                        {canDelete && (
-                          <button
-                            onClick={() => handleDelete(role.id)}
-                            disabled={isSubmitting}
-                            className="app-button app-button--danger"
-                          >
-                            Xóa
-                          </button>
-                        )}
-                      </div>
-                    </td>
+            <div className="org-roles-table-wrap">
+              <table className="org-roles-table">
+                <thead>
+                  <tr>
+                    <th>Tên vai trò</th>
+                    <th>Mô tả</th>
+                    <th>Quyền</th>
+                    <th>Thao tác</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {roles.map((role) => (
+                    <tr key={role.id}>
+                      <td>{role.roleName || '-'}</td>
+                      <td>{role.description || '-'}</td>
+                      <td className="org-roles-perms">
+                        {(role.permissionKeys || []).length > 0
+                          ? (role.permissionKeys || []).map((perm, idx) => (
+                              <span key={idx} className="app-badge app-badge--info org-roles-perm">
+                                {perm}
+                              </span>
+                            ))
+                          : '-'}
+                      </td>
+                      <td>
+                        <div className="app-action-row">
+                          {canUpdate && (
+                            <button
+                              onClick={() => setEditingRole(role)}
+                              disabled={isSubmitting}
+                              className="app-button app-button--secondary"
+                            >
+                              Sửa
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDelete(role.id)}
+                              disabled={isSubmitting}
+                              className="app-button app-button--danger"
+                            >
+                              Xóa
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
@@ -366,41 +371,42 @@ function OrgRolesPage() {
             {members.length === 0 ? (
               <EmptyState message="Chưa có thành viên nào" />
             ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Thành viên</th>
-                    <th>Email</th>
-                    <th>Vai trò hiện tại</th>
-                    <th>Gán vai trò</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {members.map((member) => (
-                    <tr key={member.id}>
-                      <td>{member.user?.fullName || '-'}</td>
-                      <td>{member.user?.email || '-'}</td>
-                      <td>{member.role?.roleName || '-'}</td>
-                      <td>
-                        <select
-                          value={member.roleId || ''}
-                          onChange={(e) => handleAssignRole(member.id, e.target.value)}
-                          disabled={isSubmitting}
-                          className="form-select"
-                          style={{ minWidth: '150px' }}
-                        >
-                          <option value="">Không có vai trò</option>
-                          {roles.map(role => (
-                            <option key={role.id} value={role.id}>
-                              {role.roleName}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
+              <div className="org-roles-table-wrap">
+                <table className="org-roles-table">
+                  <thead>
+                    <tr>
+                      <th>Thành viên</th>
+                      <th>Email</th>
+                      <th>Vai trò hiện tại</th>
+                      <th>Gán vai trò</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {members.map((member) => (
+                      <tr key={member.id}>
+                        <td>{member.user?.fullName || '-'}</td>
+                        <td>{member.user?.email || '-'}</td>
+                        <td>{member.role?.roleName || '-'}</td>
+                        <td>
+                          <select
+                            value={member.roleId || ''}
+                            onChange={(e) => handleAssignRole(member.id, e.target.value)}
+                            disabled={isSubmitting}
+                            className="form-select org-roles-select"
+                          >
+                            <option value="">Không có vai trò</option>
+                            {roles.map(role => (
+                              <option key={role.id} value={role.id}>
+                                {role.roleName}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}

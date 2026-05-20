@@ -1,0 +1,35 @@
+.org-roles-page {
+  gap: 1.25rem;
+}
+
+.org-roles-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.org-roles-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.org-roles-perms {
+  max-width: 320px;
+  word-break: break-word;
+}
+
+.org-roles-perm {
+  display: inline-flex;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+.org-roles-select {
+  min-width: 160px;
+}
+
+@media (max-width: 900px) {
+  .org-roles-table {
+    min-width: 600px;
+  }
+}

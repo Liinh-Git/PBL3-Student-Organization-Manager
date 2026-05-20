@@ -22,18 +22,20 @@ function OrgResourcesPlaceholderPage() {
   }
 
   return (
-    <div className="org-resources-placeholder-page">
+    <div className="app-page org-resources-placeholder-page">
       <PageHeader
         title="Tài nguyên"
         description="Quản lý tài nguyên của tổ chức"
       />
 
-      <PrototypePlaceholder
-        title="Quản lý tài nguyên"
-        description="Tính năng này quản lý tài nguyên tổ chức như thiết bị, cơ sở vật chất..."
-        status="PROTOTYPE_ONLY"
-        notes="Đã có cấu trúc dữ liệu tài nguyên trong nền tảng, nhưng UI/API đầy đủ chưa được triển khai ở bản cơ sở."
-      />
+      <div className="app-section">
+        <PrototypePlaceholder
+          title="Quản lý tài nguyên"
+          description="Tính năng này quản lý tài nguyên tổ chức như thiết bị, cơ sở vật chất..."
+          status="PROTOTYPE_ONLY"
+          notes="Đã có cấu trúc dữ liệu tài nguyên trong nền tảng, nhưng UI/API đầy đủ chưa được triển khai ở bản cơ sở."
+        />
+      </div>
     </div>
   );
 }

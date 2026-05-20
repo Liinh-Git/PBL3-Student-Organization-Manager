@@ -339,8 +339,9 @@ function DepartmentCard({
   onCreateTask,
   onUpdateTaskStatus,
   onAssignTask,
+  initiallyExpanded = false,
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   const [showMembers, setShowMembers] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [statusFilter, setStatusFilter] = useState(["All"]);

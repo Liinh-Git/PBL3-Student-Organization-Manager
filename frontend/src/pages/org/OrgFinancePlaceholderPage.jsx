@@ -22,18 +22,20 @@ function OrgFinancePlaceholderPage() {
   }
 
   return (
-    <div className="org-finance-placeholder-page">
+    <div className="app-page org-finance-placeholder-page">
       <PageHeader
         title="Finance"
         description="Quản lý tài chính của tổ chức"
       />
 
-      <PrototypePlaceholder
-        title="Finance Management"
-        description="This feature manages organization finances, budgets, and transactions"
-        status="PROTOTYPE_ONLY"
-        notes="Finance-specific module is excluded from base prototype. Event.Budget field exists but no working finance module."
-      />
+      <div className="app-section">
+        <PrototypePlaceholder
+          title="Finance Management"
+          description="This feature manages organization finances, budgets, and transactions"
+          status="PROTOTYPE_ONLY"
+          notes="Finance-specific module is excluded from base prototype. Event.Budget field exists but no working finance module."
+        />
+      </div>
     </div>
   );
 }

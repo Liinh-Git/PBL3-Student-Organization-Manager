@@ -133,6 +133,11 @@
   background: #173f61;
 }
 
+.event-card-btn:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
+}
+
 .event-card-footer-actions {
   display: flex;
   gap: 0.45rem;

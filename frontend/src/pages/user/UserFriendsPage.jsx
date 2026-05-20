@@ -45,6 +45,7 @@ import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorState from '../../components/shared/ErrorState';
+import './UserFriendsPage.css';
 
 function UserFriendsPage() {
   // TODO Phase 3C-5+: Add state management
@@ -96,7 +97,7 @@ function UserFriendsPage() {
   // };
 
   return (
-    <div className="user-friends-page">
+    <div className="app-page user-friends-page">
       <PageHeader
         title="Bạn bè"
         description="Quản lý bạn bè và lời mời kết bạn"
@@ -106,20 +107,24 @@ function UserFriendsPage() {
       {/* TODO Phase 3C-5+: Show ErrorState when error */}
 
       {/* TODO Phase 3C-5+: Friend requests section */}
-      <section className="friend-requests-section">
-        <h2>Lời mời kết bạn</h2>
+      <section className="app-card friends-card">
+        <div className="friends-card-header">
+          <h2 className="app-section-title">Lời mời kết bạn</h2>
+          <span className="friends-card-sub">Tính năng đang hoàn thiện</span>
+        </div>
         <div className="friend-requests-list">
-          {/* TODO: Show EmptyState when no requests */}
-          {/* TODO: Render friend request cards with accept/reject buttons */}
+          <EmptyState message="Chưa có lời mời kết bạn." />
         </div>
       </section>
 
       {/* TODO Phase 3C-5+: Friends list section */}
-      <section className="friends-section">
-        <h2>Bạn bè của tôi</h2>
+      <section className="app-card friends-card">
+        <div className="friends-card-header">
+          <h2 className="app-section-title">Bạn bè của tôi</h2>
+          <span className="friends-card-sub">Đồng bộ sẽ có trong giai đoạn sau</span>
+        </div>
         <div className="friends-list">
-          {/* TODO: Show EmptyState when no friends */}
-          {/* TODO: Render friend cards */}
+          <EmptyState message="Chưa có danh sách bạn bè." />
         </div>
       </section>
     </div>

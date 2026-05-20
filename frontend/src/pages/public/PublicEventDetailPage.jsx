@@ -49,6 +49,7 @@ import { useAuth } from '../../hooks/useAuth.js';
 import PageHeader from '../../components/shared/PageHeader';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import ErrorState from '../../components/shared/ErrorState';
+import './public.css';
 
 function toAbsoluteMediaUrl(url) {
   if (!url) return '';
@@ -161,138 +162,6 @@ function PublicEventDetailPage() {
 
   return (
     <div className="app-page public-event-detail-page">
-      <style>{`
-        .public-event-detail-page {
-          width: 100%;
-          min-height: calc(100vh - 62px);
-          align-content: start;
-          background: linear-gradient(135deg, #F8FBFF 0%, #EAF3FF 52%, #F7FBFF 100%);
-        }
-
-        .public-event-detail-shell {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
-          gap: 32px;
-          align-items: start;
-          width: min(1280px, 100%);
-        }
-
-        .public-event-hero,
-        .public-registration-panel {
-          border: 1px solid #DDE7F2;
-          border-radius: 8px;
-          background: #FFFFFF;
-          overflow: hidden;
-        }
-
-        .public-event-banner {
-          width: 100%;
-          aspect-ratio: 16 / 7;
-          object-fit: cover;
-          background: #F8FAFC;
-        }
-
-        .public-event-body,
-        .public-registration-panel {
-          padding: 32px;
-        }
-
-        .public-event-body h2,
-        .public-registration-panel h3 {
-          margin: 0 0 18px;
-          color: #0F1F33;
-        }
-
-        .public-event-body > p,
-        .public-registration-panel p {
-          margin: 0 0 22px;
-          color: #102A43;
-          font-size: 15px;
-          line-height: 1.6;
-        }
-
-        .public-event-meta {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 16px;
-          margin-top: 28px;
-        }
-
-        .public-info-card {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          min-height: 92px;
-          padding: 18px;
-          border: 1px solid #DDE7F2;
-          border-radius: 8px;
-          background: #FFFFFF;
-          box-shadow: 0 10px 24px rgba(15, 31, 51, 0.05);
-        }
-
-        .public-info-icon {
-          display: inline-flex;
-          width: 54px;
-          height: 54px;
-          flex: 0 0 54px;
-          align-items: center;
-          justify-content: center;
-          border-radius: 8px;
-          background: #EFF4F7;
-          color: #F97316;
-          font-size: 22px;
-          font-weight: 900;
-        }
-
-        .public-info-card div span {
-          display: block;
-          color: #7C8CA3;
-          font-size: 12px;
-          font-weight: 850;
-          text-transform: uppercase;
-        }
-
-        .public-info-card strong {
-          display: block;
-          margin-top: 3px;
-          color: #12263A;
-          font-size: 20px;
-          line-height: 1.2;
-        }
-
-        .public-registration-panel {
-          display: grid;
-          gap: 10px;
-        }
-
-        .registration-status {
-          display: inline-flex;
-          width: fit-content;
-          margin-bottom: 14px;
-          padding: 6px 10px;
-          border-radius: 4px;
-          background: #ECFDF5;
-          color: #047857;
-          font-size: 12px;
-          font-weight: 800;
-        }
-
-        @media (max-width: 800px) {
-          .public-event-detail-shell {
-            grid-template-columns: 1fr;
-            gap: 20px;
-          }
-
-          .public-event-meta {
-            grid-template-columns: 1fr;
-          }
-
-          .public-event-body,
-          .public-registration-panel {
-            padding: 22px;
-          }
-        }
-      `}</style>
 
       {isLoading && <LoadingSpinner />}
       {error && <ErrorState message={error} />}

@@ -2,10 +2,17 @@
   Giao diện Cài đặt tài khoản (Tab nổi, viền khối bo tròn, tông cam)
 */
 
+.settings-modern-page {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
 .settings-modern-page .settings-wrapper {
   max-width: none;
   width: 100%;
-  margin: 0; /* Lệch trái theo flow gốc */
+  margin: 0;
+  display: grid;
+  gap: 1rem;
 }
 
 /* Tabs */
@@ -47,7 +54,7 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 1.5rem;
-  padding: 2rem 2.5rem;
+  padding: 1.75rem 2rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
   min-height: 450px;
 }
@@ -141,6 +148,15 @@
 }
 
 @media (max-width: 768px) {
+  .settings-modern-page {
+    max-width: none;
+  }
+
+  .pill-tabs {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
   .modern-grid-form {
     grid-template-columns: 1fr;
   }

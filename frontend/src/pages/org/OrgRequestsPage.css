@@ -19,7 +19,7 @@
 }
 
 .kora-page-title {
-  font-size: 2.25rem;
+  font-size: clamp(1.7rem, 2.6vw, 2.2rem);
   font-weight: 800;
   color: #1a2634;
   margin: 0 0 0.5rem 0;
@@ -38,8 +38,8 @@
   background-color: #1a2634;
   color: #ffffff;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  padding: 0.65rem 1.2rem;
+  border-radius: 0.6rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -94,7 +94,7 @@
 
 .kora-form-input {
   padding: 0.75rem;
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   font-size: 0.9rem;
@@ -114,8 +114,8 @@
   background: #ff9b51;
   color: white;
   border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 0.5rem;
+  padding: 0.7rem 1.6rem;
+  border-radius: 0.6rem;
   font-weight: bold;
   cursor: pointer;
 }

@@ -12,9 +12,10 @@
 
 function LoadingSpinner({ message = 'Đang tải...' }) {
   return (
-    <div className="app-loading">
-      <h3>Đang tải...</h3>
-      {message && <p>{message}</p>}
+    <div className="app-state app-loading" role="status" aria-live="polite">
+      <div className="app-state-icon app-state-icon--spin" aria-hidden="true">⟳</div>
+      <h3 className="app-state-title">Đang tải...</h3>
+      {message && <p className="app-state-message">{message}</p>}
     </div>
   );
 }

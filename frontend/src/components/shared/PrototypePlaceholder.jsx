@@ -33,6 +33,7 @@ function PrototypePlaceholder({
   return (
     <div className="prototype-placeholder">
       <div className="placeholder-content">
+        <div className="app-state-icon" aria-hidden="true">⧗</div>
         <h2>{title}</h2>
         <p className="placeholder-description">{description}</p>
         <span className="placeholder-status">{status}</span>

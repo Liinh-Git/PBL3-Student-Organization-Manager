@@ -12,10 +12,11 @@
 
 function EmptyState({ message = "Chưa có dữ liệu", action = null }) {
   return (
-    <div className="app-empty">
-      <h3>Không có dữ liệu</h3>
-      <p>{message}</p>
-      {action && <div className="app-action-row">{action}</div>}
+    <div className="app-state app-empty" role="status" aria-live="polite">
+      <div className="app-state-icon" aria-hidden="true">◻</div>
+      <h3 className="app-state-title">Không có dữ liệu</h3>
+      <p className="app-state-message">{message}</p>
+      {action && <div className="app-action-row app-state-actions">{action}</div>}
     </div>
   );
 }
