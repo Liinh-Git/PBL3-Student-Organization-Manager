@@ -159,11 +159,13 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   overflow: hidden;
 }
 
 .dept-card.is-expanded .dept-card-desc {
   -webkit-line-clamp: unset;
+  line-clamp: unset;
   overflow: visible;
 }
 
