@@ -1,0 +1,180 @@
+// AuthContracts.cs.TODO
+// This is a TODO skeleton file for Auth module contracts.
+// DO NOT implement this file in Phase 3C. This is documentation only.
+
+/*
+namespace Org.Shared.Features.Auth;
+
+// ============================================================
+// REQUEST DTOs
+// ============================================================
+
+/// <summary>
+/// Request DTO for user login
+/// </summary>
+public class LoginRequest
+{
+    /// <summary>
+    /// User email address (required, email format)
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User password (required, min 8 characters)
+    /// </summary>
+    public string Password { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request DTO for user registration
+/// </summary>
+public class RegisterRequest
+{
+    /// <summary>
+    /// User full name (required, max 100 characters)
+    /// </summary>
+    public string FullName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User email address (required, email format, unique)
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User password (required, min 8 characters, strength rules)
+    /// </summary>
+    public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Confirm password (optional, client-side validation only)
+    /// </summary>
+    public string? ConfirmPassword { get; set; }
+}
+
+// ============================================================
+// RESPONSE DTOs
+// ============================================================
+
+/// <summary>
+/// Minimal user info for auth context
+/// </summary>
+public class AuthUserDto
+{
+    /// <summary>
+    /// User ID (UUID)
+    /// </summary>
+    public Guid Id { get; set; }
+
+    /// <summary>
+    /// User full name
+    /// </summary>
+    public string FullName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User email address
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User status (Active, Inactive, Suspended)
+    /// </summary>
+    public string Status { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User avatar URL (optional)
+    /// </summary>
+    public string? AvatarUrl { get; set; }
+}
+
+/// <summary>
+/// Response DTO for login/register with JWT token
+/// </summary>
+public class AuthTokenResponse
+{
+    /// <summary>
+    /// JWT access token
+    /// </summary>
+    public string AccessToken { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Token type (usually "Bearer")
+    /// </summary>
+    public string TokenType { get; set; } = "Bearer";
+
+    /// <summary>
+    /// Token expiration time (UTC)
+    /// </summary>
+    public DateTime ExpiresAtUtc { get; set; }
+
+    /// <summary>
+    /// User info
+    /// </summary>
+    public AuthUserDto User { get; set; } = new();
+}
+
+/// <summary>
+/// Response DTO for current user info
+/// </summary>
+public class CurrentUserResponse
+{
+    /// <summary>
+    /// User ID (UUID)
+    /// </summary>
+    public Guid Id { get; set; }
+
+    /// <summary>
+    /// User full name
+    /// </summary>
+    public string FullName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User email address
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User status (Active, Inactive, Suspended)
+    /// </summary>
+    public string Status { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User avatar URL (optional)
+    /// </summary>
+    public string? AvatarUrl { get; set; }
+}
+
+*/
+
+// ============================================================
+// TODO NOTES
+// ============================================================
+
+// TODO: Implement LoginRequest with validation
+// TODO: Implement RegisterRequest with validation
+// TODO: Implement AuthUserDto mapping from User entity
+// TODO: Implement AuthTokenResponse with JWT token generation
+// TODO: Implement CurrentUserResponse mapping from User entity
+// TODO: Ensure Password is never exposed in any response DTO
+// TODO: Ensure PasswordHash is never exposed in any response DTO
+// TODO: Add email format validation
+// TODO: Add password strength validation
+// TODO: Add unique email constraint check
+// TODO: JWT token generation logic will be implemented in backend service
+// TODO: Password hashing logic will be implemented in backend service
+
+// ============================================================
+// SECURITY NOTES
+// ============================================================
+
+// CRITICAL: Never expose PasswordHash in any DTO
+// CRITICAL: Never return Password in any response
+// CRITICAL: Hash password before saving to database
+// CRITICAL: Validate email uniqueness before registration
+// CRITICAL: Use secure JWT signing key (not hardcoded)
+// CRITICAL: Store JWT token securely (httpOnly cookie or secure storage)
+
+// ============================================================
+// NOT IMPLEMENTED IN PHASE 3C
+// ============================================================
+
+// This file is a TODO skeleton only. Real C# DTO implementations will be created in later phases.

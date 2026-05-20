@@ -1,0 +1,26 @@
+FIX NOTES - 2026-05-08
+=======================
+
+1. Lỗi tạo tổ chức mới (DateTime issue):
+   - Nguyên nhân: PostgreSQL yêu cầu kiểu dữ liệu 'timestamp with time zone' phải có múi giờ (UTC). Khi nhập liệu từ frontend, chuỗi ngày tháng bị deserialized thành DateTime với Kind=Unspecified, gây lỗi ArgumentException khi lưu vào DB.
+   - Khắc phục: 
+     + Trong OrganizationService.cs: Sử dụng .ToUniversalTime() cho trường FoundingDate.
+     + Đảm bảo các giá trị DateTime khác (CreatedAt, UpdatedAt) luôn dùng DateTime.UtcNow.
+
+2. Cập nhật giao diện và tính năng Sự kiện (Events):
+   - Đổi tên nhãn "Start Date" thành "Ngày tổ chức".
+   - Đổi tên nhãn "End Date" thành "Giờ bắt đầu" (Chuyển sang kiểu nhập liệu Time).
+   - Thêm trường "Số lượng tham gia" (Target Participants) vào giao diện tạo/sửa sự kiện và danh sách sự kiện.
+   - Cập nhật Backend:
+     + Thêm TargetParticipants vào CreateEventRequest, UpdateEventRequest và các DTO liên quan.
+     + Cập nhật EventService và EventMappings để xử lý trường dữ liệu mới này.
+   - Đồng bộ Ngày/Giờ: Kết hợp "Ngày tổ chức" và "Giờ bắt đầu" từ frontend thành một chuỗi ISO UTC trước khi gửi về backend để tránh lỗi múi giờ.
+
+Các file đã thay đổi:
+- backend/Org.Backend/Features/Organizations/Services/OrganizationService.cs
+- backend/Org.Backend/Features/Events/Services/EventService.cs
+- backend/Org.Backend/Features/Events/Mappings/EventMappings.cs
+- backend/Org.Shared/Features/Events/EventContracts.cs
+- backend/Org.Shared/Features/Events/EventWriteContracts.cs
+- frontend/src/pages/org/OrgEventsPage.jsx
+- frontend/src/pages/org/OrgEventDetailPage.jsx

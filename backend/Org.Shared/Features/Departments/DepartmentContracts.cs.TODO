@@ -1,0 +1,44 @@
+// DepartmentContracts.cs.TODO
+// TODO skeleton for Departments module contracts
+// NOT IMPLEMENTED IN PHASE 3C
+
+/*
+namespace Org.Shared.Features.Departments;
+
+// REQUEST DTOs
+public class CreateDepartmentRequest
+{
+    public string DeptName { get; set; } = string.Empty; // Required
+    public string? Code { get; set; } // Optional, uniqueness is service-level
+    public string? Function { get; set; }
+    public Guid? ManagerId { get; set; } // Points to Member, not User
+}
+
+public class UpdateDepartmentRequest
+{
+    public string DeptName { get; set; } = string.Empty;
+    public string? Code { get; set; }
+    public string? Function { get; set; }
+    public Guid? ManagerId { get; set; }
+}
+
+// RESPONSE DTOs
+public class DepartmentDto
+{
+    public Guid Id { get; set; }
+    public Guid OrganizationId { get; set; }
+    public string DeptName { get; set; } = string.Empty;
+    public string? Code { get; set; }
+    public string? Function { get; set; }
+    public Guid? ManagerId { get; set; }
+    public string? ManagerName { get; set; } // From Member.User.FullName
+    public string Status { get; set; } = string.Empty; // Active, Inactive, Archived
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+*/
+
+// TODO: Implement all DTOs
+// TODO: ManagerId points to Member, not User
+// TODO: Department.Code uniqueness is service-level check
+// NOT IMPLEMENTED IN PHASE 3C

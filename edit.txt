@@ -1,0 +1,9 @@
+- Chỉnh sửa lại phần giao diện của setting và profile
+- Setting chỉ chứa phần đổi mật khẩu
+- Profile sẽ chứa thông tin cá nhân và edit được, có thêm nút update profile vào mục profile
+- Profile sẽ gồm các trường:
+ + Name
+ + Email
+ + Phone
+ + Address
+ + Bio

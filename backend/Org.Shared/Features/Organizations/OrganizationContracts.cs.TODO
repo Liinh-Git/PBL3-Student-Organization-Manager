@@ -1,0 +1,79 @@
+// OrganizationContracts.cs.TODO
+// TODO skeleton for Organizations module contracts
+// NOT IMPLEMENTED IN PHASE 3C
+
+/*
+namespace Org.Shared.Features.Organizations;
+
+// REQUEST DTOs
+public class CreateOrganizationRequest
+{
+    public string OrgName { get; set; } = string.Empty; // Required, unique (service-level)
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? CoverUrl { get; set; }
+    public DateTime? FoundingDate { get; set; }
+    public string? Location { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? ContactPhone { get; set; }
+}
+
+public class UpdateOrganizationRequest
+{
+    public string OrgName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? CoverUrl { get; set; }
+    public DateTime? FoundingDate { get; set; }
+    public string? Location { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? ContactPhone { get; set; }
+}
+
+// RESPONSE DTOs
+public class OrganizationDto
+{
+    public Guid Id { get; set; }
+    public string OrgName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? CoverUrl { get; set; }
+    public DateTime? FoundingDate { get; set; }
+    public string? Location { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? ContactPhone { get; set; }
+    public int TotalMembers { get; set; }
+    public string Status { get; set; } = string.Empty; // Active, Suspended, Archived
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+public class OrganizationSummaryDto
+{
+    public Guid Id { get; set; }
+    public string OrgName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public int TotalMembers { get; set; }
+    public string Status { get; set; } = string.Empty;
+}
+
+public class OrganizationPublicOverviewDto
+{
+    public Guid Id { get; set; }
+    public string OrgName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? CoverUrl { get; set; }
+    public DateTime? FoundingDate { get; set; }
+    public string? Location { get; set; }
+    public int TotalMembers { get; set; }
+    public string Status { get; set; } = string.Empty;
+    // Note: No contact info in public overview
+}
+
+*/
+
+// TODO: Implement all DTOs
+// TODO: OrgName uniqueness is service-level check, not DB constraint
+// TODO: Public overview must remain renderable even if permissions/me returns 403
+// NOT IMPLEMENTED IN PHASE 3C

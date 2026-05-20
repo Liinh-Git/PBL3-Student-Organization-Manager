@@ -1,0 +1,420 @@
+/* =========================================================
+   Giao diện Kora Admin Console - Yêu cầu tham gia
+   ========================================================= */
+
+.kora-page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 3rem;
+  font-family: "Inter", sans-serif;
+  color: #0f1f29;
+}
+
+/* Header */
+.kora-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2.5rem;
+}
+
+.kora-page-title {
+  font-size: clamp(1.7rem, 2.6vw, 2.2rem);
+  font-weight: 800;
+  color: #1a2634;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.03em;
+}
+
+.kora-page-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.kora-btn-create {
+  background-color: #1a2634;
+  color: #ffffff;
+  border: none;
+  padding: 0.65rem 1.2rem;
+  border-radius: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.kora-btn-create:hover {
+  background-color: #0f1f29;
+}
+
+/* Create Form */
+.kora-create-form-box {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+}
+
+.kora-box-title {
+  margin: 0 0 0.25rem 0;
+  font-weight: 800;
+}
+.kora-box-subtitle {
+  margin: 0 0 1.5rem 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.kora-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.kora-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.kora-form-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a2634;
+}
+
+.kora-form-input {
+  padding: 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+}
+.kora-form-input:focus {
+  border-color: #ff9b51;
+  background: #ffffff;
+}
+
+.kora-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.kora-btn-submit {
+  background: #ff9b51;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.6rem;
+  border-radius: 0.6rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Filters */
+.kora-filter-container {
+  margin-bottom: 2rem;
+}
+
+.kora-filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.kora-filter-btn {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.kora-filter-btn:hover {
+  background: #e2e8f0;
+  color: #1a2634;
+}
+
+.kora-filter-btn.active {
+  background: #1a2634;
+  color: #ffffff;
+  border-color: #1a2634;
+}
+
+/* List Header */
+.kora-list-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kora-section-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  color: #1a2634;
+}
+
+.kora-count-badge {
+  background: #e2e8f0;
+  color: #1a2634;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+/* =========================================================
+   THẺ YÊU CẦU (REQUEST CARDS)
+   ========================================================= */
+.kora-request-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .kora-request-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.kora-req-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+
+.kora-req-card:hover {
+  box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Top Area: Avatar & Info */
+.kora-req-top {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.kora-req-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 900;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.kora-req-info {
+  flex: 1;
+}
+
+.kora-req-info h4 {
+  margin: 0 0 0.15rem 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1a2634;
+}
+
+.kora-req-info p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Tags */
+.kora-req-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.kora-tag {
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.kora-tag-blue {
+  background-color: #eef4ff;
+  color: #3b82f6;
+}
+
+.kora-tag-gray {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.kora-req-time {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Body: Title, Content, Status */
+.kora-req-body {
+  padding: 0.5rem 0;
+  flex: 1;
+}
+
+.kora-req-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a2634;
+  margin: 0 0 0.25rem 0;
+}
+
+.kora-req-desc {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0 0 1rem 0;
+}
+
+.kora-req-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.kora-status-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.kora-status-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.kora-status-warning {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.kora-status-rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.kora-req-reviewer {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.kora-req-note {
+  margin-top: 1rem;
+  background-color: #f8fafc;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+/* Actions: Accept & Reject Buttons */
+.kora-req-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.kora-btn-accept {
+  flex: 1;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: none;
+  padding: 0.7rem;
+  border-radius: 0.5rem;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.kora-btn-accept:hover {
+  background-color: #c8e6c9;
+}
+
+.kora-btn-reject {
+  flex: 1;
+  background-color: #fff3e0;
+  color: #e65100;
+  border: none;
+  padding: 0.7rem;
+  border-radius: 0.5rem;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.kora-btn-reject:hover {
+  background-color: #ffe0b2;
+}
+
+.kora-text-muted {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .kora-page-wrapper {
+    padding: 1.5rem 1rem;
+  }
+  .kora-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

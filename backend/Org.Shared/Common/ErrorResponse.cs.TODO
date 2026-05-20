@@ -1,0 +1,45 @@
+// ErrorResponse.cs.TODO
+// This is a TODO skeleton file for error response shape.
+// DO NOT implement this file in Phase 3C. This is documentation only.
+
+/*
+namespace Org.Shared.Common;
+
+/// <summary>
+/// Standardized error response shape for all API errors.
+/// </summary>
+public class ErrorResponse
+{
+    /// <summary>
+    /// HTTP status code (e.g., 400, 404, 500)
+    /// </summary>
+    public int StatusCode { get; set; }
+
+    /// <summary>
+    /// Human-readable error message
+    /// </summary>
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional list of detailed error messages (for validation errors)
+    /// </summary>
+    public List<string>? Errors { get; set; }
+
+    /// <summary>
+    /// Optional trace ID for debugging (correlation ID)
+    /// </summary>
+    public string? TraceId { get; set; }
+}
+
+// Usage examples:
+// - 400 Bad Request: { StatusCode = 400, Message = "Validation failed", Errors = ["Email is required", "Password too short"] }
+// - 404 Not Found: { StatusCode = 404, Message = "Organization not found" }
+// - 403 Forbidden: { StatusCode = 403, Message = "You do not have permission to access this resource" }
+// - 500 Internal Server Error: { StatusCode = 500, Message = "An unexpected error occurred", TraceId = "abc123" }
+
+*/
+
+// TODO: Implement ErrorResponse in later phase
+// TODO: Add global exception handler to return ErrorResponse for all exceptions
+// TODO: Ensure TraceId is populated from HttpContext
+// TODO: Add field-level validation errors if needed (e.g., { "email": ["Email is required"] })
