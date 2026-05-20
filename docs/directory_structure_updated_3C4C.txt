@@ -1,0 +1,207 @@
+Cấu trúc thư mục của PBL3-rescue — cập nhật sau Phase 3C-4C
+=====================================================================
+
+Nguồn cập nhật:
+- KIRO_CHECKPOINT_3C4C.md
+- FRONTEND_PAGE_COMPONENT_MATRIX.md
+- directory_structure.txt bản cũ
+
+Ghi chú:
+- Bản directory_structure.txt cũ có lệch số liệu: frontend/src/pages/public/ ghi 0 items và tổng Pages ghi 20 files.
+- Theo checkpoint/matrix 3C-4C, public pages có 3 files và tổng page skeleton là 23 pages.
+- File này là bản cập nhật logic theo báo cáo 3C-4C.
+
+=====================================================================
+frontend/src/services/
+=====================================================================
+- authService.js
+- categoryService.js
+- departmentService.js
+- discoverService.js
+- eventService.js
+- friendService.js
+- memberService.js
+- milestoneService.js
+- notificationService.js
+- organizationService.js
+- requestService.js
+- roleService.js
+- taskService.js
+- userService.js
+
+Tổng: 14 service files
+Ghi chú: danh sách service thực tế từ bản cũ có 14 files; mục departmentService bị ghi lặp ở trên nếu copy thủ công thì cần giữ 1 dòng duy nhất trong repo.
+
+Danh sách service chuẩn:
+- authService.js
+- categoryService.js
+- departmentService.js
+- discoverService.js
+- eventService.js
+- friendService.js
+- memberService.js
+- milestoneService.js
+- notificationService.js
+- organizationService.js
+- requestService.js
+- roleService.js
+- taskService.js
+- userService.js
+
+=====================================================================
+frontend/src/adapters/
+=====================================================================
+- categoryAdapter.js
+- departmentAdapter.js
+- discoverAdapter.js
+- eventAdapter.js
+- friendAdapter.js
+- memberAdapter.js
+- milestoneAdapter.js
+- notificationAdapter.js
+- organizationAdapter.js
+- requestAdapter.js
+- roleAdapter.js
+- taskAdapter.js
+- userAdapter.js
+
+Tổng: 13 adapter files
+
+=====================================================================
+frontend/src/pages/
+=====================================================================
+
+frontend/src/pages/public/
+--------------------------
+- HomePage.jsx
+- PublicEventsPage.jsx
+- PublicEventDetailPage.jsx
+
+Tổng public pages: 3
+
+frontend/src/pages/auth/
+------------------------
+- LoginPage.jsx
+- RegisterPage.jsx
+
+Tổng auth pages: 2
+
+frontend/src/pages/user/
+------------------------
+- UserOrganizationsPage.jsx
+- UserEventsPage.jsx
+- UserProfilePage.jsx
+- UserSettingsPage.jsx
+- UserFriendsPage.jsx
+- UserDiscoverPage.jsx
+
+Tổng user workspace pages: 6
+
+frontend/src/pages/org/
+-----------------------
+Org workspace pages:
+- OrgOverviewPage.jsx
+- OrgMembersPage.jsx
+- OrgDepartmentsPage.jsx
+- OrgEventsPage.jsx
+- OrgEventDetailPage.jsx
+- OrgRequestsPage.jsx
+- OrgRolesPage.jsx
+- OrgNotificationsPage.jsx
+
+Prototype-only org pages:
+- OrgTasksPlaceholderPage.jsx
+- OrgResourcesPlaceholderPage.jsx
+- OrgReportsPlaceholderPage.jsx
+- OrgFinancePlaceholderPage.jsx
+
+Tổng org pages: 12
+- Working/skeleton org workspace pages: 8
+- Prototype-only org pages: 4
+
+Tổng pages: 23
+- Public: 3
+- Auth: 2
+- User workspace: 6
+- Org workspace: 8
+- Prototype-only: 4
+
+=====================================================================
+frontend/src/components/event-detail/
+=====================================================================
+- CategoryFormModal.jsx
+- CategoryPanel.jsx
+- MilestoneFormModal.jsx
+- MilestonePanel.jsx
+- TaskAssignControl.jsx
+- TaskCard.jsx
+- TaskFormModal.jsx
+- TaskStatusControl.jsx
+
+Tổng EventDetail components: 8
+
+Ghi chú logic:
+- OrgEventDetailPage là root/page-level owner của source-of-truth tree state.
+- MilestonePanel, CategoryPanel, TaskCard chỉ nhận props/callbacks.
+- TaskCard không giữ source-of-truth state.
+- Task thuộc EventDetail chain: Event → Milestone → EventCategory → OrgTask.
+- /org/tasks aggregate board chỉ là prototype-only placeholder.
+
+=====================================================================
+frontend/src/components/event/
+=====================================================================
+- EventCard.jsx
+- EventStatusBadge.jsx
+
+Tổng event components: 2
+
+=====================================================================
+frontend/src/components/org/
+=====================================================================
+- OrgCard.jsx
+- OrgSwitcher.jsx
+
+Tổng org components: 2
+
+=====================================================================
+frontend/src/components/notifications/
+=====================================================================
+- NotificationBadge.jsx
+
+Tổng notifications components: 1
+
+=====================================================================
+TỔNG KẾT FRONTEND SKELETON SAU 3C-4C
+=====================================================================
+- Services: 14 files
+- Adapters: 13 files
+- Pages: 23 files
+- EventDetail components: 8 files
+- Event components: 2 files
+- Org components: 2 files
+- Notification components: 1 file
+
+Tổng files đã liệt kê trong nhóm này: 63 files
+
+=====================================================================
+TRẠNG THÁI PHASE
+=====================================================================
+Phase 3C-4C: DONE theo báo cáo Kiro.
+Build frontend: PASS, 0 errors.
+Backend/shared/services/adapters không bị sửa trong 3C-4C.
+Không có API thật, không mock data, không fake data.
+Không có Posts/Comments/Messages/Chat working module.
+Không có Resources/Reports/Finance working module; chỉ có placeholder.
+
+Tiếp theo:
+Phase 3C-5 — Cross-layer Docs + Full Build Verification.
+
+Mục tiêu 3C-5:
+- Tạo MODULE_FILE_MANIFEST.md
+- Tạo API_CONTRACT_TODO_MAP.md
+- Tạo TODO_IMPLEMENTATION_GUIDE.md
+- Tạo PROTOTYPE_ONLY_BOUNDARY.md
+- Tạo CROSS_LAYER_TRACEABILITY.md
+- Tạo PHASE_3C_PROTOTYPE_SKELETON_REPORT.md
+- Chạy full backend build + frontend build
+- Kiểm tra route/page/service/adapter/contract/backend mapping

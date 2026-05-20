@@ -1,0 +1,50 @@
+// ListResponse.cs.TODO
+// This is a TODO skeleton file for the list response wrapper.
+// DO NOT implement this file in Phase 3C. This is documentation only.
+
+/*
+namespace Org.Shared.Common;
+
+/// <summary>
+/// List response wrapper with pagination metadata.
+/// </summary>
+/// <typeparam name="T">The type of items in the list</typeparam>
+public class ListResponse<T>
+{
+    /// <summary>
+    /// The list of items
+    /// </summary>
+    public List<T> Items { get; set; } = new();
+
+    /// <summary>
+    /// Total count of items (before pagination)
+    /// </summary>
+    public int TotalCount { get; set; }
+
+    /// <summary>
+    /// Current page number (1-indexed)
+    /// </summary>
+    public int Page { get; set; }
+
+    /// <summary>
+    /// Number of items per page
+    /// </summary>
+    public int PageSize { get; set; }
+
+    /// <summary>
+    /// Total number of pages (calculated)
+    /// </summary>
+    public int? TotalPages => PageSize > 0 ? (int)Math.Ceiling((double)TotalCount / PageSize) : null;
+}
+
+// Usage examples:
+// - GET /api/organizations/{orgId}/members returns ApiResponse<ListResponse<MemberDto>>
+// - GET /api/organizations/{orgId}/events returns ApiResponse<ListResponse<EventDto>>
+// - GET /api/notifications returns ApiResponse<ListResponse<NotificationDto>>
+
+*/
+
+// TODO: Implement ListResponse<T> in later phase
+// TODO: Add HasNextPage, HasPreviousPage computed properties if needed
+// TODO: Ensure TotalCount is accurate from database query
+// TODO: Ensure Page and PageSize match request parameters

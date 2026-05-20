@@ -1,0 +1,69 @@
+// TaskContracts.cs.TODO
+// TODO skeleton for Tasks module contracts
+// NOT IMPLEMENTED IN PHASE 3C
+
+/*
+namespace Org.Shared.Features.Tasks;
+
+// REQUEST DTOs
+public class CreateTaskRequest
+{
+    public string TaskName { get; set; } = string.Empty; // Required
+    public string? Description { get; set; }
+    public Guid? AssigneeId { get; set; } // Single assignee only
+    public Guid? DeptId { get; set; }
+    public string Priority { get; set; } = "Medium"; // Low, Medium, High, Urgent
+    public DateTime? Deadline { get; set; }
+    public string? Note { get; set; }
+}
+
+public class UpdateTaskRequest
+{
+    public string TaskName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public Guid? AssigneeId { get; set; }
+    public Guid? DeptId { get; set; }
+    public string Priority { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty; // Todo, InProgress, Done
+    public DateTime? Deadline { get; set; }
+    public string? Note { get; set; }
+}
+
+public class UpdateTaskStatusRequest
+{
+    public string Status { get; set; } = string.Empty; // Todo, InProgress, Done
+}
+
+public class AssignTaskRequest
+{
+    public Guid? AssigneeId { get; set; } // Null to unassign
+}
+
+// RESPONSE DTOs
+public class TaskDto
+{
+    public Guid Id { get; set; }
+    public Guid EventCategoryId { get; set; }
+    public string TaskName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public Guid? AssigneeId { get; set; }
+    public string? AssigneeName { get; set; } // From Member.User.FullName
+    public Guid? DeptId { get; set; }
+    public string? DepartmentName { get; set; }
+    public string Priority { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTime? Deadline { get; set; }
+    public string? Note { get; set; }
+    public Guid? CreatedByMemberId { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime UpdatedAtUtc { get; set; }
+}
+
+*/
+
+// TODO: Implement all DTOs
+// TODO: Single assignee only (no multi-assignee in v1)
+// TODO: Create task response should return TaskDto so frontend can append locally
+// TODO: Task is CORE inside EventDetail, only /org/tasks board is PROTOTYPE_ONLY
+// NOT IMPLEMENTED IN PHASE 3C

@@ -1,0 +1,65 @@
+// LoginEndpoint.cs.TODO
+// NOT IMPLEMENTED IN PHASE 3C - This is a TODO skeleton file
+
+/*
+ * Endpoint Name: LoginEndpoint
+ * HTTP Method: POST
+ * Backend Route: /api/auth/login
+ * 
+ * Future Request Contract: LoginRequest
+ *   - Email: string (required, valid email)
+ *   - Password: string (required, min 6 chars)
+ * 
+ * Future Response Contract: LoginResponse
+ *   - Token: string (JWT token)
+ *   - User: UserDto (user profile without PasswordHash)
+ * 
+ * Required Permission: None (public endpoint)
+ * 
+ * Related Domain Entities:
+ *   - User (Domain/Entities/User.cs)
+ * 
+ * Validation Steps:
+ *   1. Validate Email format
+ *   2. Validate Password not empty
+ *   3. Check Email exists in database
+ *   4. Verify password hash matches
+ * 
+ * Implementation Steps:
+ *   1. Receive LoginRequest
+ *   2. Query User by Email from AppDbContext
+ *   3. Verify PasswordHash using BCrypt.Verify()
+ *   4. Generate JWT token with user claims (UserId, Email)
+ *   5. Map User entity to UserDto (exclude PasswordHash)
+ *   6. Return LoginResponse with token and user info
+ * 
+ * Error Cases:
+ *   - 400 Bad Request: validation errors (invalid email format, empty password)
+ *   - 401 Unauthorized: invalid credentials (email not found or password mismatch)
+ *   - 500 Internal Server Error: unexpected database or hashing errors
+ * 
+ * EXPLICIT NOTE: NOT IMPLEMENTED IN PHASE 3C
+ * This file is a TODO skeleton only. Real implementation will be done in later phase.
+ */
+
+// Example structure (NOT IMPLEMENTED):
+// public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
+// {
+//     private readonly AppDbContext _db;
+//     private readonly IJwtService _jwtService;
+//     
+//     public override void Configure()
+//     {
+//         Post("/api/auth/login");
+//         AllowAnonymous();
+//     }
+//     
+//     public override async Task HandleAsync(LoginRequest req, CancellationToken ct)
+//     {
+//         // TODO: Query user by email
+//         // TODO: Verify password hash
+//         // TODO: Generate JWT token
+//         // TODO: Map to UserDto
+//         // TODO: Return LoginResponse
+//     }
+// }

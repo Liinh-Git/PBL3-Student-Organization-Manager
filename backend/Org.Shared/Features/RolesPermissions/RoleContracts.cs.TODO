@@ -1,0 +1,60 @@
+// RoleContracts.cs.TODO
+// TODO skeleton for RolesPermissions module contracts
+// NOT IMPLEMENTED IN PHASE 3C
+
+/*
+namespace Org.Shared.Features.RolesPermissions;
+
+// REQUEST DTOs
+public class CreateRoleRequest
+{
+    public string RoleName { get; set; } = string.Empty; // Required, unique per org
+    public string? Description { get; set; }
+    public List<string> PermissionKeys { get; set; } = new(); // Array of permission keys
+}
+
+public class UpdateRoleRequest
+{
+    public string RoleName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public List<string> PermissionKeys { get; set; } = new();
+}
+
+public class AssignRoleToMemberRequest
+{
+    public Guid RoleId { get; set; } // Canonical role link
+}
+
+// RESPONSE DTOs
+public class MyPermissionsResponse
+{
+    public List<string> PermissionKeys { get; set; } = new(); // Must normalize to string[]
+}
+
+public class PermissionDto
+{
+    public Guid Id { get; set; }
+    public string PermissionKey { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string ModuleGroup { get; set; } = string.Empty;
+    public string? Description { get; set; }
+}
+
+public class RoleDto
+{
+    public Guid Id { get; set; }
+    public Guid OrganizationId { get; set; }
+    public string RoleName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsDefault { get; set; }
+    public int? Level { get; set; }
+    public List<string> PermissionKeys { get; set; } = new(); // Assigned permissions
+}
+
+*/
+
+// TODO: Implement all DTOs
+// TODO: RoleId is canonical, not MemberRole enum
+// TODO: permissions/me must normalize to string[]
+// TODO: Fallback must NEVER grant org.workspace.access
+// NOT IMPLEMENTED IN PHASE 3C

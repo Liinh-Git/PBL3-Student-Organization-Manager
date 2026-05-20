@@ -1,0 +1,50 @@
+// RequestContracts.cs.TODO
+// TODO skeleton for Requests module contracts
+// NOT IMPLEMENTED IN PHASE 3C
+
+/*
+namespace Org.Shared.Features.Requests;
+
+// REQUEST DTOs
+public class CreateRequestRequest
+{
+    public string RequestType { get; set; } = "JoinOrganization"; // JoinOrganization, DepartmentChange, RoleChange, EventParticipation, Other
+    public string? Title { get; set; }
+    public string Content { get; set; } = string.Empty; // Required
+    public Guid? DesiredDepartmentId { get; set; }
+    public string? DesiredPosition { get; set; }
+}
+
+public class ReviewRequestRequest
+{
+    public string Status { get; set; } = string.Empty; // Approved or Rejected
+    public string? ReviewNote { get; set; }
+}
+
+// RESPONSE DTOs
+public class RequestDto
+{
+    public Guid Id { get; set; }
+    public Guid SenderId { get; set; }
+    public string SenderName { get; set; } = string.Empty; // From User.FullName
+    public Guid OrganizationId { get; set; }
+    public string RequestType { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public Guid? DesiredDepartmentId { get; set; }
+    public string? DesiredDepartmentName { get; set; }
+    public string? DesiredPosition { get; set; }
+    public string Status { get; set; } = string.Empty; // Pending, Approved, Rejected, Cancelled, Closed
+    public string? ReviewNote { get; set; }
+    public Guid? ReviewedByMemberId { get; set; }
+    public string? ReviewedByMemberName { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+*/
+
+// TODO: Implement all DTOs
+// TODO: This is the foundation for join organization workflow
+// TODO: Other request types can be added later when DTO/API is confirmed
+// NOT IMPLEMENTED IN PHASE 3C

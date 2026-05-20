@@ -1,0 +1,791 @@
+/* DepartmentCard.css */
+
+/* ─── Card Shell ──────────────────────────────── */
+.dc-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e8edf3;
+  box-shadow: 0 2px 8px rgba(15, 31, 55, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-sizing: border-box;
+  width: 100%;
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+  position: relative;
+  overflow: visible;
+}
+
+.dc-card:hover {
+  box-shadow: 0 4px 18px rgba(15, 31, 55, 0.09);
+}
+
+/* ─── Top section ─────────────────────────────── */
+.dc-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.1rem 1.1rem 0.7rem;
+}
+
+.dc-card-title-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.dc-card-name {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.dc-card-desc {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.dc-card--expanded .dc-card-desc {
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  overflow: visible;
+}
+
+.dc-card-top-right {
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* ─── Avatar Stack ────────────────────────────── */
+.dc-avatar-stack {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 999px;
+  transition: opacity 0.15s;
+}
+.dc-avatar-stack:hover {
+  opacity: 0.8;
+}
+
+.dc-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #1e293b;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  margin-left: -7px;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+
+.dc-avatar:first-child {
+  margin-left: 0;
+}
+
+.dc-avatar--more {
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.6rem;
+}
+
+.dc-avatar--empty {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.dc-avatar--sm {
+  width: 28px;
+  height: 28px;
+  font-size: 0.62rem;
+  margin-left: 0;
+  border: none;
+  flex-shrink: 0;
+}
+
+/* ─── Members Popup ──────────────────────────── */
+.dc-members-popup {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  width: 270px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+  padding: 0.65rem;
+  display: grid;
+  gap: 0.6rem;
+  z-index: 60;
+}
+
+.dc-popup-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dc-popup-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.dc-popup-count {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  margin-left: 0.35rem;
+}
+
+.dc-popup-add-btn {
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #c2410c;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dc-popup-add-btn.is-active {
+  background: #fb923c;
+  color: #fff;
+  border-color: #fb923c;
+}
+
+.dc-popup-close {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  border-radius: 8px;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.dc-popup-add-panel {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.dc-popup-search {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.78rem;
+  outline: none;
+}
+.dc-popup-search:focus {
+  border-color: #fb923c;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.12);
+}
+
+.dc-popup-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.dc-popup-list--scroll {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+
+.dc-popup-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.45rem 0.55rem;
+  background: #ffffff;
+}
+
+.dc-popup-row--pick {
+  cursor: pointer;
+}
+.dc-popup-row--pick.is-selected {
+  border-color: #fdba74;
+  background: #fff7ed;
+}
+
+.dc-popup-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.dc-popup-row-text strong {
+  font-size: 0.8rem;
+  color: #0f172a;
+}
+.dc-popup-row-text small {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.dc-popup-checkbox {
+  width: 14px;
+  height: 14px;
+  accent-color: #fb923c;
+}
+
+.dc-popup-empty {
+  margin: 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  padding: 0.5rem 0;
+}
+
+.dc-popup-confirm {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: #fb923c;
+  color: #ffffff;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.dc-popup-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dc-popup-remove {
+  margin-left: auto;
+  border: 1px solid #fecaca;
+  background: #fff5f5;
+  color: #ef4444;
+  border-radius: 8px;
+  padding: 0.1rem 0.45rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* ─── Stats row ───────────────────────────────── */
+.dc-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.8rem;
+  padding: 0 1.1rem 0.8rem;
+}
+
+.dc-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.dc-stat svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.dc-stat--manager {
+  color: #c2410c;
+  font-weight: 700;
+}
+.dc-stat--manager svg {
+  opacity: 1;
+  color: #fb923c;
+}
+
+/* ─── Progress bar ────────────────────────────── */
+.dc-progress-wrap {
+  padding: 0 1.1rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dc-progress-bar {
+  flex: 1;
+  height: 5px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dc-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fb923c, #f97316);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+
+.dc-progress-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+/* ─── Tasks section ───────────────────────────── */
+.dc-tasks-section {
+  border-top: 1px solid #f1f5f9;
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.dc-tasks-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dc-tasks-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #94a3b8;
+  margin-right: auto;
+}
+
+.dc-tasks-header-pills {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.dc-add-task-btn {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fb923c;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.dc-add-task-btn:hover {
+  background: #fff7ed;
+}
+
+/* ─── Status Pills ────────────────────────────── */
+.dc-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.dc-pill--todo {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.dc-pill--progress {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+.dc-pill--blocked {
+  background: #fef2f2;
+  color: #dc2626;
+}
+.dc-pill--done {
+  background: #f0fdf4;
+  color: #15803d;
+}
+.dc-pill--cancelled {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+/* ─── Task Filters ────────────────────────────── */
+.dc-task-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.dc-task-filter-btn {
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dc-task-filter-btn:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.dc-task-filter-btn.is-active {
+  background: #fff7ed;
+  border-color: #fb923c;
+  color: #c2410c;
+}
+
+/* ─── Task List ───────────────────────────────── */
+.dc-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dc-task-empty {
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  padding: 0.75rem 0;
+}
+
+/* ─── Task Item (compact) ─────────────────────── */
+.dc-task-item {
+  border: 1px solid #e8edf3;
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  gap: 0.35rem;
+  transition: all 0.15s;
+}
+.dc-task-item:hover {
+  border-color: #fdba74;
+  box-shadow: 0 2px 8px rgba(15, 31, 55, 0.08);
+}
+
+.dc-task-item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dc-task-title {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.dc-task-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.dc-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.dc-task-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.dc-task-meta-icon {
+  width: 11px;
+  height: 11px;
+}
+
+/* ─── Add Task Form ───────────────────────────── */
+.dc-add-task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 0.7rem;
+}
+
+.dc-add-input {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #0f172a;
+  outline: none;
+  background: #ffffff;
+  transition: border-color 0.15s;
+}
+.dc-add-input:focus {
+  border-color: #fb923c;
+}
+
+.dc-add-textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.dc-add-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.dc-add-select {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.dc-add-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.dc-add-cancel {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.dc-add-submit {
+  padding: 0.35rem 0.9rem;
+  border: none;
+  border-radius: 8px;
+  background: #fb923c;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.dc-add-submit:hover:not(:disabled) {
+  background: #f97316;
+}
+.dc-add-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─── Footer ──────────────────────────────────── */
+.dc-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem 0.7rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.dc-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+.dc-expand-btn:hover {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.dc-manage-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.dc-icon-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dc-icon-btn:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.dc-icon-btn--danger {
+  color: #ef4444;
+  background: #fff5f5;
+  border-color: #fecaca;
+}
+.dc-icon-btn--danger:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+.dc-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Task Detail Modal ───────────────────────── */
+.dc-task-detail-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 2200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.dc-task-detail-card {
+  width: min(100%, 540px);
+  max-height: min(86vh, 740px);
+  overflow: auto;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  padding: 1rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.dc-task-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.dc-task-detail-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dc-task-detail-body {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.dc-task-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.dc-task-detail-grid--subtle {
+  grid-template-columns: 1fr;
+}
+
+.dc-task-detail-grid > div,
+.dc-task-detail-block {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 0.75rem;
+}
+
+.dc-task-detail-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #64748b;
+}
+
+.dc-task-detail-grid strong,
+.dc-task-detail-block p {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.dc-task-detail-error {
+  margin: 0;
+  color: #dc2626;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .dc-card--expanded {
+    grid-column: span 1;
+  }
+}

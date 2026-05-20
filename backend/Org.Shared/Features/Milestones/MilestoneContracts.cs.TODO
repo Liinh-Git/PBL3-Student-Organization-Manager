@@ -1,0 +1,46 @@
+// MilestoneContracts.cs.TODO
+// TODO skeleton for Milestones module contracts
+// NOT IMPLEMENTED IN PHASE 3C
+
+/*
+namespace Org.Shared.Features.Milestones;
+
+// REQUEST DTOs
+public class CreateMilestoneRequest
+{
+    public string Title { get; set; } = string.Empty; // Required
+    public string? Description { get; set; }
+    public int OrderIndex { get; set; } // Required, for timeline ordering
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+}
+
+public class UpdateMilestoneRequest
+{
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int OrderIndex { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public string Status { get; set; } = string.Empty; // Planned, InProgress, Completed, Archived
+}
+
+// RESPONSE DTOs
+public class MilestoneDto
+{
+    public Guid Id { get; set; }
+    public Guid EventId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int OrderIndex { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+*/
+
+// TODO: Implement all DTOs
+// TODO: OrderIndex should be kept stable for timeline rendering
+// NOT IMPLEMENTED IN PHASE 3C

@@ -1,0 +1,41 @@
+// NotificationContracts.cs.TODO
+// TODO skeleton for Notifications module contracts
+// NOT IMPLEMENTED IN PHASE 3C
+
+/*
+namespace Org.Shared.Features.Notifications;
+
+// RESPONSE DTOs (no request DTOs, all actions use route parameters)
+public class NotificationDto
+{
+    public Guid Id { get; set; }
+    public Guid ReceiverId { get; set; }
+    public Guid? ActorId { get; set; }
+    public string? ActorName { get; set; } // From User.FullName
+    public string Title { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty; // System, RequestSubmitted, RequestReviewed, FriendRequest, EventCreated, etc.
+    public string? RelatedEntityType { get; set; } // Polymorphic reference
+    public Guid? RelatedEntityId { get; set; }
+    public string? ActionUrl { get; set; }
+    public bool IsRead { get; set; }
+    public DateTime? ReadAt { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+public class UnreadCountResponse
+{
+    public int UnreadCount { get; set; }
+}
+
+public class MarkNotificationReadResponse
+{
+    public bool Success { get; set; }
+    public int UnreadCount { get; set; } // Updated unread count after marking read
+}
+
+*/
+
+// TODO: Implement all DTOs
+// TODO: REST is base, SignalR is optional future
+// NOT IMPLEMENTED IN PHASE 3C
