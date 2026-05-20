@@ -57,6 +57,39 @@ export async function updateMe(payload) {
 }
 
 /**
+ * Upload current user's avatar image and update avatarUrl in backend.
+ *
+ * Backend route: POST /api/users/me/avatar
+ * Frontend path: /users/me/avatar
+ * Input:
+ * - file: File
+ * Response:
+ * - ApiResponse<UserProfileDto>
+ */
+export async function uploadMyAvatar(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  let response;
+  try {
+    response = await httpClient.post('/users/me/avatar', formData);
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.errors?.[0] ||
+      error.message ||
+      'Failed to upload avatar';
+    throw new Error(message);
+  }
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Failed to upload avatar');
+  }
+
+  return response.data.data;
+}
+
+/**
  * Change password
  * 
  * Backend route: PUT /api/users/me/change-password
