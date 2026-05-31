@@ -168,8 +168,8 @@ const IconCheck = () => (
 
 const IconX = () => (
   <svg
-    width="12"
-    height="12"
+    width="14"
+    height="14"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -385,6 +385,29 @@ function UserDiscoverPage() {
     useState(null);
   const [invitingKey, setInvitingKey] = useState(null);
   const [inviteOrgIdByFriendId, setInviteOrgIdByFriendId] = useState({});
+  // invitedKeys persists in localStorage so navigating away and back won't reset it.
+  // Key format: "userId:orgId" — unique per (friend, org) pair.
+  const [invitedKeys, setInvitedKeys] = useState(() => {
+    try {
+      const raw = localStorage.getItem("__discover_invitedKeys__");
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  const addInvitedKey = (key) => {
+    setInvitedKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      try {
+        localStorage.setItem(
+          "__discover_invitedKeys__",
+          JSON.stringify([...next]),
+        );
+      } catch {}
+      return next;
+    });
+  };
   const [processingInvitationId, setProcessingInvitationId] = useState(null);
 
   const [orgSearch, setOrgSearch] = useState("");
@@ -507,7 +530,12 @@ function UserDiscoverPage() {
         (friendRequests || []).filter((r) => r.status === "Pending"),
       );
       setFriends(myFriends || []);
-      setMyInvitations(invitations || []);
+      setMyInvitations(
+        [...(invitations || [])].sort(
+          (a, b) =>
+            (a.status === "Pending" ? 0 : 1) - (b.status === "Pending" ? 0 : 1),
+        ),
+      );
       setFriendSuggestions(suggestions || []);
       setSentFriendRequestUserIds(
         new Set(
@@ -631,7 +659,8 @@ function UserDiscoverPage() {
     (event) => {
       const eventId = event?.id || event?.eventId;
       const roleFromMyEvents = eventId ? myEventRoleMap[eventId] : null;
-      if (roleFromMyEvents === "OrganizationMember") return "OrganizationMember";
+      if (roleFromMyEvents === "OrganizationMember")
+        return "OrganizationMember";
       if (roleFromMyEvents === "Attendee") return "Attendee";
       if (event?.organizationId && myOrgIds.includes(event.organizationId)) {
         return "OrganizationMember";
@@ -690,26 +719,25 @@ function UserDiscoverPage() {
 
   const handleViewEvent = (event) => {
     const eventId = event?.id || event?.eventId;
-    const orgId =
-      event?.organizationId || event?.orgId || event?.organization?.id;
     if (!eventId) {
       setError("Thiếu ID sự kiện");
-      return;
-    }
-    if (orgId && myOrgIds.includes(orgId)) {
-      navigate(`/org/events/${eventId}?orgId=${orgId}`);
       return;
     }
     navigate(`/events/${eventId}`);
   };
 
   const handleInviteFriend = async (friendUserId) => {
-    const targetOrgId = inviteOrgIdByFriendId[friendUserId];
+    const targetOrgId =
+      inviteOrgIdByFriendId[friendUserId] ||
+      inviteOrgIdByFriendId["__global__"] ||
+      "";
     if (!targetOrgId) {
       setError("Vui lòng chọn tổ chức trước khi mời");
       return;
     }
     const busyKey = `${friendUserId}:${targetOrgId}`;
+    // Hard guard: already invited → do nothing (button should be disabled but just in case)
+    if (invitedKeys.has(busyKey)) return;
     setInvitingKey(busyKey);
     setError(null);
     setSuccessMessage(null);
@@ -719,19 +747,41 @@ function UserDiscoverPage() {
           receiverUserId: friendUserId,
         });
         setSuccessMessage("Đã gửi lời mời. Đang chờ xác nhận.");
+        addInvitedKey(busyKey);
       } catch (inviteErr) {
         const msg = (inviteErr?.message || "").toLowerCase();
-        if (msg.includes("permission to invite members")) {
+        // Already invited / duplicate → mark as invited so button locks permanently
+        if (
+          msg.includes("already") ||
+          msg.includes("existed") ||
+          msg.includes("duplicate") ||
+          msg.includes("pending")
+        ) {
+          addInvitedKey(busyKey);
+          setError("Lời mời đã được gửi trước đó rồi.");
+        } else if (msg.includes("permission to invite members")) {
           await createOrganizationInvitationRecommendation(targetOrgId, {
             receiverUserId: friendUserId,
           });
           setSuccessMessage("Đã gửi đề xuất cho người quản lý xét duyệt.");
+          addInvitedKey(busyKey);
         } else {
           throw inviteErr;
         }
       }
     } catch (err) {
-      setError(err.message || "Không gửi được lời mời");
+      const msg = (err?.message || "").toLowerCase();
+      if (
+        msg.includes("already") ||
+        msg.includes("existed") ||
+        msg.includes("duplicate") ||
+        msg.includes("pending")
+      ) {
+        addInvitedKey(busyKey);
+        setError("Lời mời đã được gửi trước đó rồi.");
+      } else {
+        setError(err.message || "Không gửi được lời mời");
+      }
     } finally {
       setInvitingKey(null);
     }
@@ -924,6 +974,18 @@ function UserDiscoverPage() {
                         }}
                         placeholder="Tìm kiếm tổ chức, câu lạc bộ..."
                       />
+                      {orgSearchInput && (
+                        <button
+                          className="discover-search-clear"
+                          onClick={() => {
+                            setOrgSearchInput("");
+                            setOrgSearch("");
+                          }}
+                          title="Xóa"
+                        >
+                          <IconX />
+                        </button>
+                      )}
                       <button
                         className="discover-search-btn"
                         onClick={() => setOrgSearch(orgSearchInput)}
@@ -977,9 +1039,9 @@ function UserDiscoverPage() {
                             isPending={isPending}
                             isWorking={isWorking}
                             onAction={handleRequestToJoin}
-                            onOpen={(id) =>
-                              navigate(`/org/overview?orgId=${id}`)
-                            }
+                            onOpen={(id) => {
+                              navigate(`/org/overview?orgId=${id}`);
+                            }}
                           />
                         );
                       })}
@@ -990,9 +1052,9 @@ function UserDiscoverPage() {
 
               {/* People / Community tab */}
               {activeTab === "people" && (
-                <div className="discover-community-grid">
+                <div className="discover-community-stack">
                   {/* Friend suggestions */}
-                  <div className="app-card discover-subpanel">
+                  <div className="dsc-community-section">
                     <div className="dsc-panel-header">
                       <h3 className="dsc-panel-title">
                         <span className="dsc-panel-title-icon dsc-panel-title-icon--blue">
@@ -1004,7 +1066,7 @@ function UserDiscoverPage() {
                     {friendSuggestions.length === 0 ? (
                       <EmptyState message="Không có gợi ý kết bạn nào" />
                     ) : (
-                      <div className="discover-list">
+                      <div className="dsc-people-grid">
                         {friendSuggestions.map((user) => {
                           const isSending =
                             sendingFriendRequestToUserId === user.userId;
@@ -1015,51 +1077,36 @@ function UserDiscoverPage() {
                             .charAt(0)
                             .toUpperCase();
                           return (
-                            <div
-                              key={user.userId}
-                              className="discover-list-item"
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.65rem",
-                                }}
+                            <div key={user.userId} className="dsc-people-card">
+                              <div className="dsc-people-card__avatar">
+                                {user.avatarUrl ? (
+                                  <img
+                                    src={toAbsoluteMediaUrl(user.avatarUrl)}
+                                    alt={user.fullName}
+                                  />
+                                ) : (
+                                  initial
+                                )}
+                              </div>
+                              <div className="dsc-people-card__name">
+                                {user.fullName}
+                              </div>
+                              <div className="dsc-people-card__meta">
+                                <IconMail /> {user.email || "-"}
+                              </div>
+                              <button
+                                className={`dsc-btn dsc-btn--sm ${isSent ? "dsc-btn--ghost" : "dsc-btn--primary"}`}
+                                disabled={isSending || isSent}
+                                onClick={() =>
+                                  handleSendFriendRequest(user.userId)
+                                }
                               >
-                                <div className="dsc-avatar-circle">
-                                  {initial}
-                                </div>
-                                <div>
-                                  <div className="discover-item-title">
-                                    {user.fullName}
-                                  </div>
-                                  <div
-                                    className="discover-item-meta"
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "0.25rem",
-                                    }}
-                                  >
-                                    <IconMail /> {user.email || "-"}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="discover-actions">
-                                <button
-                                  className={`dsc-btn ${isSent ? "dsc-btn--ghost" : "dsc-btn--primary"}`}
-                                  disabled={isSending || isSent}
-                                  onClick={() =>
-                                    handleSendFriendRequest(user.userId)
-                                  }
-                                >
-                                  {isSending
-                                    ? "Đang gửi…"
-                                    : isSent
-                                      ? "Đã gửi"
-                                      : "Kết bạn"}
-                                </button>
-                              </div>
+                                {isSending
+                                  ? "Đang gửi…"
+                                  : isSent
+                                    ? "Đã gửi"
+                                    : "Kết bạn"}
+                              </button>
                             </div>
                           );
                         })}
@@ -1068,7 +1115,7 @@ function UserDiscoverPage() {
                   </div>
 
                   {/* Invite friends to org */}
-                  <div className="app-card discover-subpanel">
+                  <div className="dsc-community-section">
                     <div className="dsc-panel-header">
                       <h3 className="dsc-panel-title">
                         <span className="dsc-panel-title-icon dsc-panel-title-icon--green">
@@ -1076,92 +1123,150 @@ function UserDiscoverPage() {
                         </span>
                         Mời bạn bè vào tổ chức
                       </h3>
+                      {/* Org selector – chọn tổ chức áp dụng cho toàn bộ danh sách */}
+                      {myOrganizations.length > 0 && (
+                        <div className="dsc-invite-org-picker">
+                          <select
+                            className="dsc-invite-select"
+                            value={inviteOrgIdByFriendId["__global__"] || ""}
+                            onChange={(e) =>
+                              setInviteOrgIdByFriendId((prev) => ({
+                                ...prev,
+                                __global__: e.target.value,
+                              }))
+                            }
+                          >
+                            <option value="">Chọn tổ chức…</option>
+                            {myOrganizations.map((org) => (
+                              <option key={org.id} value={org.id}>
+                                {org.name || org.orgName || "Unnamed org"}
+                              </option>
+                            ))}
+                          </select>
+                          {(() => {
+                            const gOrgId =
+                              inviteOrgIdByFriendId["__global__"] || "";
+                            const gOrg = myOrganizations.find(
+                              (o) => o.id === gOrgId,
+                            );
+                            if (!gOrg) return null;
+                            const gInitial = (gOrg.name || gOrg.orgName || "?")
+                              .charAt(0)
+                              .toUpperCase();
+                            const gAvatar = toAbsoluteMediaUrl(
+                              gOrg.avatarUrl || gOrg.logoUrl || "",
+                            );
+                            return (
+                              <div className="dsc-invite-org-badge">
+                                <div className="dsc-invite-org-avatar">
+                                  {gAvatar ? (
+                                    <img
+                                      src={gAvatar}
+                                      alt={gOrg.name}
+                                      onError={(e) => {
+                                        e.target.style.display = "none";
+                                        e.target.nextSibling.style.display =
+                                          "flex";
+                                      }}
+                                    />
+                                  ) : null}
+                                  <span
+                                    style={{
+                                      display: gAvatar ? "none" : "flex",
+                                    }}
+                                  >
+                                    {gInitial}
+                                  </span>
+                                </div>
+                                <div>
+                                  <div className="dsc-invite-org-name">
+                                    {gOrg.name || gOrg.orgName}
+                                  </div>
+                                  {gOrg.totalMembers != null && (
+                                    <div className="dsc-invite-org-count">
+                                      {gOrg.totalMembers} thành viên hiện tại
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </div>
                     {friends.length === 0 ? (
                       <EmptyState message="Chưa có bạn bè để mời" />
                     ) : myOrganizations.length === 0 ? (
                       <EmptyState message="Bạn cần tham gia ít nhất một tổ chức để mời bạn bè" />
                     ) : (
-                      <div className="discover-list">
+                      <div className="dsc-people-grid">
                         {friends.map((friend) => {
-                          const selectedOrgId =
-                            inviteOrgIdByFriendId[friend.userId] || "";
-                          const busyKey = `${friend.userId}:${selectedOrgId}`;
+                          const globalOrgId =
+                            inviteOrgIdByFriendId["__global__"] || "";
+                          const busyKey = `${friend.userId}:${globalOrgId}`;
                           const isBusy = invitingKey === busyKey;
-                          const availableOrgs = myOrganizations.filter(
-                            (org) => {
-                              const memberSet = orgMemberUserIdsMap[org.id];
-                              return !(
-                                memberSet && memberSet.has(friend.userId)
-                              );
-                            },
-                          );
+                          const isInvited = invitedKeys.has(busyKey);
+                          const memberSet = globalOrgId
+                            ? orgMemberUserIdsMap[globalOrgId]
+                            : null;
+                          const isAlreadyMember =
+                            memberSet && memberSet.has(friend.userId);
                           const initial = (friend.fullName || "?")
                             .charAt(0)
                             .toUpperCase();
 
+                          // Determine button state
+                          let btnLabel, btnClass, btnDisabled;
+                          if (isAlreadyMember) {
+                            btnLabel = "Đã tham gia";
+                            btnClass = "dsc-btn--joined";
+                            btnDisabled = true;
+                          } else if (isInvited) {
+                            btnLabel = "Đã mời";
+                            btnClass = "dsc-btn--invited";
+                            btnDisabled = true;
+                          } else {
+                            btnLabel = isBusy ? "Đang mời…" : "Gửi lời mời";
+                            btnClass = !globalOrgId
+                              ? "dsc-btn--ghost"
+                              : "dsc-btn--primary";
+                            btnDisabled = !globalOrgId || isBusy;
+                          }
+
                           return (
                             <div
                               key={friend.userId}
-                              className="dsc-invite-card"
+                              className="dsc-people-card"
                             >
-                              <div className="dsc-invite-header">
-                                <div className="dsc-avatar-circle">
-                                  {initial}
-                                </div>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div className="discover-item-title">
-                                    {friend.fullName}
-                                  </div>
-                                  <div
-                                    className="discover-item-meta"
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "0.25rem",
-                                    }}
-                                  >
-                                    <IconMail /> {friend.email || "-"}
-                                  </div>
-                                </div>
+                              <div className="dsc-people-card__avatar">
+                                {friend.avatarUrl ? (
+                                  <img
+                                    src={toAbsoluteMediaUrl(friend.avatarUrl)}
+                                    alt={friend.fullName}
+                                  />
+                                ) : (
+                                  initial
+                                )}
                               </div>
-                              <div className="dsc-invite-controls">
-                                <select
-                                  className="dsc-invite-select"
-                                  value={selectedOrgId}
-                                  disabled={availableOrgs.length === 0}
-                                  onChange={(e) =>
-                                    setInviteOrgIdByFriendId((prev) => ({
-                                      ...prev,
-                                      [friend.userId]: e.target.value,
-                                    }))
-                                  }
-                                >
-                                  <option value="">
-                                    {availableOrgs.length > 0
-                                      ? "Chọn tổ chức…"
-                                      : "Không có tổ chức"}
-                                  </option>
-                                  {availableOrgs.map((org) => (
-                                    <option key={org.id} value={org.id}>
-                                      {org.name || org.orgName || "Unnamed org"}
-                                    </option>
-                                  ))}
-                                </select>
-                                <button
-                                  className="dsc-btn dsc-btn--primary"
-                                  disabled={
-                                    !selectedOrgId ||
-                                    isBusy ||
-                                    availableOrgs.length === 0
-                                  }
-                                  onClick={() =>
-                                    handleInviteFriend(friend.userId)
-                                  }
-                                >
-                                  {isBusy ? "Đang mời…" : "Mời"}
-                                </button>
+                              <div className="dsc-people-card__name">
+                                {friend.fullName}
                               </div>
+                              <div className="dsc-people-card__meta">
+                                <IconMail /> {friend.email || "-"}
+                              </div>
+                              <button
+                                className={`dsc-btn dsc-btn--sm ${btnClass}`}
+                                disabled={btnDisabled}
+                                onClick={() => {
+                                  setInviteOrgIdByFriendId((prev) => ({
+                                    ...prev,
+                                    [friend.userId]: prev["__global__"] || "",
+                                  }));
+                                  handleInviteFriend(friend.userId);
+                                }}
+                              >
+                                {btnLabel}
+                              </button>
                             </div>
                           );
                         })}
@@ -1184,7 +1289,11 @@ function UserDiscoverPage() {
                       const isRegistered = !!eventRegistrationMap[eventId];
                       const isBusy = processingEventId === eventId;
                       const status = String(event?.status || "").toLowerCase();
-                      const canToggle = !["cancelled", "archived", "completed"].includes(status);
+                      const canToggle = ![
+                        "cancelled",
+                        "archived",
+                        "completed",
+                      ].includes(status);
 
                       return (
                         <EventCard
@@ -1217,7 +1326,9 @@ function UserDiscoverPage() {
                                 <button
                                   type="button"
                                   className={`app-button ${isRegistered ? "app-button--secondary" : "app-button--primary"}`}
-                                  onClick={() => handleToggleDiscoverEventRegistration(event)}
+                                  onClick={() =>
+                                    handleToggleDiscoverEventRegistration(event)
+                                  }
                                   disabled={isBusy || !canToggle}
                                 >
                                   {isBusy
@@ -1264,7 +1375,16 @@ function UserDiscoverPage() {
                       .toUpperCase();
                     return (
                       <div key={item.id} className="dsc-friend-row">
-                        <div className="dsc-avatar-circle">{initial}</div>
+                        <div className="dsc-avatar-circle">
+                          {item.senderAvatarUrl ? (
+                            <img
+                              src={toAbsoluteMediaUrl(item.senderAvatarUrl)}
+                              alt={item.senderName}
+                            />
+                          ) : (
+                            initial
+                          )}
+                        </div>
                         <div className="dsc-friend-info">
                           <div className="discover-item-title">
                             {item.senderName}
@@ -1341,26 +1461,37 @@ function UserDiscoverPage() {
                 <EmptyState message="Không có lời mời tổ chức" />
               ) : (
                 <>
-                  {myInvitations.slice(0, 3).map((item) => {
-                    const isPending = item.status === "Pending";
-                    const isBusy = processingInvitationId === item.invitationId;
-                    const initial = (item.organizationName || "?")
-                      .charAt(0)
-                      .toUpperCase();
-                    return (
-                      <div key={item.invitationId} className="dsc-invite-row">
-                        <div className="dsc-avatar-circle dsc-avatar-circle--org">
-                          {initial}
-                        </div>
-                        <div className="dsc-friend-info">
-                          <div className="discover-item-title">
-                            {item.organizationName}
+                  {myInvitations
+                    .filter((i) => i.status === "Pending")
+                    .slice(0, 3)
+                    .map((item) => {
+                      const isBusy =
+                        processingInvitationId === item.invitationId;
+                      const initial = (item.organizationName || "?")
+                        .charAt(0)
+                        .toUpperCase();
+                      return (
+                        <div key={item.invitationId} className="dsc-invite-row">
+                          <div className="dsc-avatar-circle dsc-avatar-circle--org">
+                            {item.organizationAvatarUrl ? (
+                              <img
+                                src={toAbsoluteMediaUrl(
+                                  item.organizationAvatarUrl,
+                                )}
+                                alt={item.organizationName}
+                              />
+                            ) : (
+                              initial
+                            )}
                           </div>
-                          <div className="discover-item-meta">
-                            Từ: {item.inviterName || "-"}
+                          <div className="dsc-friend-info">
+                            <div className="discover-item-title">
+                              {item.organizationName}
+                            </div>
+                            <div className="discover-item-meta">
+                              Từ: {item.inviterName || "-"}
+                            </div>
                           </div>
-                        </div>
-                        {isPending && (
                           <div className="dsc-friend-btns">
                             <button
                               className="dsc-btn dsc-btn--confirm"
@@ -1389,10 +1520,9 @@ function UserDiscoverPage() {
                               <IconX />
                             </button>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        </div>
+                      );
+                    })}
                   {myInvitations.length > 3 && (
                     <button
                       className="dsc-see-all-btn"
@@ -1406,13 +1536,10 @@ function UserDiscoverPage() {
             </div>
 
             {/* Featured events */}
-            <div className="app-card discover-panel">
+            <div className="app-card discover-panel discover-panel--featured">
               <div className="dsc-panel-header">
                 <h3 className="dsc-panel-title">
-                  <span
-                    className="dsc-panel-title-icon dsc-panel-title-icon--amber"
-                    style={{ color: "#d97706" }}
-                  >
+                  <span className="dsc-panel-title-icon dsc-panel-title-icon--amber">
                     <IconStar />
                   </span>
                   Sự kiện nổi bật
@@ -1475,7 +1602,7 @@ function UserDiscoverPage() {
                   <button
                     className="dsc-btn dsc-btn--ghost dsc-btn--full"
                     style={{ marginTop: "0.25rem" }}
-                    onClick={() => setPopup("events")}
+                    onClick={() => setActiveTab("events")}
                   >
                     Xem tất cả sự kiện →
                   </button>
@@ -1507,7 +1634,16 @@ function UserDiscoverPage() {
               const initial = (item.senderName || "?").charAt(0).toUpperCase();
               return (
                 <div key={item.id} className="dsc-friend-row">
-                  <div className="dsc-avatar-circle">{initial}</div>
+                  <div className="dsc-avatar-circle">
+                    {item.senderAvatarUrl ? (
+                      <img
+                        src={toAbsoluteMediaUrl(item.senderAvatarUrl)}
+                        alt={item.senderName}
+                      />
+                    ) : (
+                      initial
+                    )}
+                  </div>
                   <div className="dsc-friend-info">
                     <div className="discover-item-title">{item.senderName}</div>
                     <div
@@ -1566,7 +1702,14 @@ function UserDiscoverPage() {
               return (
                 <div key={item.invitationId} className="dsc-invite-row">
                   <div className="dsc-avatar-circle dsc-avatar-circle--org">
-                    {initial}
+                    {item.organizationAvatarUrl ? (
+                      <img
+                        src={toAbsoluteMediaUrl(item.organizationAvatarUrl)}
+                        alt={item.organizationName}
+                      />
+                    ) : (
+                      initial
+                    )}
                   </div>
                   <div className="dsc-friend-info">
                     <div className="discover-item-title">
@@ -1617,58 +1760,7 @@ function UserDiscoverPage() {
         </PopupModal>
       )}
 
-      {/* POPUP: All events */}
-      {popup === "events" && (
-        <PopupModal
-          title={`Tất cả sự kiện (${events.length})`}
-          onClose={() => setPopup(null)}
-        >
-          <div className="discover-list">
-            {events.map((event) => {
-              const startDate = event?.startDate
-                ? new Date(event.startDate)
-                : null;
-              const md = startDate ? formatMonthDay(event.startDate) : null;
-              const time = startDate ? formatStartTime(event.startDate) : null;
-              return (
-                <div
-                  key={event?.id || event?.eventId}
-                  className="discover-list-item"
-                  onClick={() => handleViewEvent(event)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <div style={{ display: "flex", gap: "0.65rem" }}>
-                    {md && (
-                      <div className="dsc-event-date">
-                        <span className="dsc-event-month">{md.month}</span>
-                        <span className="dsc-event-day">{md.day}</span>
-                      </div>
-                    )}
-                    <div>
-                      <div className="discover-item-title">
-                        {event?.title || event?.name || "Sự kiện"}
-                      </div>
-                      {time && (
-                        <div className="discover-item-meta">
-                          <IconClock /> {time}
-                        </div>
-                      )}
-                      {event?.location && (
-                        <div className="discover-item-meta">
-                          <IconPin /> {event.location}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <button className="dsc-btn dsc-btn--outline dsc-btn--sm">
-                    Xem
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </PopupModal>
-      )}
+      {/* POPUP: All events removed — "Xem tất cả" now switches to events tab */}
     </div>
   );
 }

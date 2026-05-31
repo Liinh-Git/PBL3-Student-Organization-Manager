@@ -3,10 +3,15 @@
    ========================================================= */
 
 .kora-page-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 3rem;
-  font-family: "Inter", sans-serif;
+  width: 100%;
+  max-width: 100%; /* Tràn viền giống trang sự kiện */
+  margin: 0; /* Đưa sang trái thay vì căn giữa */
+  padding: 2rem 2.5rem;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif; /* Fix lỗi font dự phòng */
   color: #0f1f29;
 }
 
@@ -131,27 +136,47 @@
   gap: 0.5rem;
 }
 
+/* Màu mặc định của nút lọc */
 .kora-filter-btn {
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
   color: #475569;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 999px;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
+  font-family: "Inter", "Segoe UI", sans-serif;
 }
 
 .kora-filter-btn:hover {
   background: #e2e8f0;
-  color: #1a2634;
 }
 
-.kora-filter-btn.active {
+/* Màu riêng cho từng trạng thái khi được chọn (Active) giống hệt màu Badge */
+.kora-filter-btn.active.filter-All {
   background: #1a2634;
   color: #ffffff;
   border-color: #1a2634;
+}
+
+.kora-filter-btn.active.filter-Pending {
+  background: #fef9c3;
+  color: #854d0e;
+  border-color: #fef9c3;
+}
+
+.kora-filter-btn.active.filter-Approved {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #dcfce7;
+}
+
+.kora-filter-btn.active.filter-Rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fee2e2;
 }
 
 /* List Header */
@@ -180,7 +205,7 @@
 }
 
 /* =========================================================
-   THẺ YÊU CẦU (REQUEST CARDS)
+   THẺ YÊU CẦU (REQUEST CARDS) - 3 Cột
    ========================================================= */
 .kora-request-grid {
   display: grid;
@@ -188,9 +213,18 @@
   gap: 1.5rem;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   .kora-request-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .kora-request-grid {
+    grid-template-columns: repeat(
+      3,
+      1fr
+    ); /* Đảm bảo 3 cột trên màn hình rộng */
   }
 }
 
@@ -233,6 +267,13 @@
   font-weight: 900;
   flex-shrink: 0;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  overflow: hidden; /* Đảm bảo hình ảnh không tràn */
+}
+
+.kora-req-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .kora-req-info {
@@ -297,21 +338,17 @@
   font-size: 0.95rem;
   font-weight: 700;
   color: #1a2634;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.5rem 0; /* Tăng khoảng cách dưới title */
 }
 
-.kora-req-desc {
-  font-size: 0.85rem;
-  color: #475569;
-  line-height: 1.5;
-  margin: 0 0 1rem 0;
-}
+/* Đã xóa .kora-req-desc theo yêu cầu */
 
 .kora-req-meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-top: auto; /* Đẩy xuống dưới nếu phần trên rỗng */
 }
 
 .kora-status-badge {
@@ -376,6 +413,8 @@
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-family:
+    "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Thêm dòng này để fix lỗi font */
 }
 
 .kora-btn-accept:hover {
@@ -394,6 +433,12 @@
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-family:
+    "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Thêm dòng này để fix lỗi font */
+}
+
+.kora-btn-reject:hover {
+  background-color: #ffe0b2;
 }
 
 .kora-btn-reject:hover {

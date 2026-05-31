@@ -81,13 +81,12 @@ const IconReply = () => (
   </svg>
 );
 
+// Lọc bỏ trạng thái Cancelled và Closed
 const STATUS_OPTIONS = [
   { value: "All", label: "Tất cả yêu cầu" },
   { value: "Pending", label: "Đang chờ xử lý" },
   { value: "Approved", label: "Đã chấp thuận" },
   { value: "Rejected", label: "Đã từ chối" },
-  { value: "Cancelled", label: "Đã hủy" },
-  { value: "Closed", label: "Đã đóng" },
 ];
 
 function getStatusBadgeClass(status) {
@@ -135,7 +134,11 @@ function OrgRequestsPage() {
       setError(null);
       try {
         const data = await getOrganizationRequests(orgId);
-        setRequests(data);
+        // Chỉ lưu các yêu cầu Pending, Approved, Rejected
+        const activeRequests = data.filter((r) =>
+          ["Pending", "Approved", "Rejected"].includes(r.status),
+        );
+        setRequests(activeRequests);
         const memberData = await getOrganizationMembers(orgId);
         setMembers(memberData);
       } catch (err) {
@@ -268,37 +271,6 @@ function OrgRequestsPage() {
     );
   }
 
-  const summaryCards = [
-    {
-      key: "total",
-      label: "Tất cả đơn",
-      value: summary.total,
-      tone: "primary",
-      icon: <IconUser />,
-    },
-    {
-      key: "pending",
-      label: "Cần xử lý",
-      value: summary.pending,
-      tone: "warning",
-      icon: <IconClock />,
-    },
-    {
-      key: "approved",
-      label: "Đã chấp thuận",
-      value: summary.approved,
-      tone: "success",
-      icon: <IconCheck />,
-    },
-    {
-      key: "rejected",
-      label: "Đã từ chối",
-      value: summary.rejected,
-      tone: "danger",
-      icon: <IconX />,
-    },
-  ];
-
   return (
     <div className="kora-page-wrapper">
       <div className="kora-header-section">
@@ -376,13 +348,14 @@ function OrgRequestsPage() {
         )}
 
         {/* Filters */}
+        {/* Filters */}
         <div className="kora-filter-container">
           <div className="kora-filter-buttons">
             {STATUS_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
-                className={`kora-filter-btn ${statusFilter === option.value ? "active" : ""}`}
+                className={`kora-filter-btn filter-${option.value} ${statusFilter === option.value ? "active" : ""}`}
                 onClick={() => setStatusFilter(option.value)}
               >
                 {option.label}
@@ -410,13 +383,33 @@ function OrgRequestsPage() {
                 .charAt(0)
                 .toUpperCase();
 
+              // Xác định trạng thái tiếng Việt
+              let statusLabel = item.status;
+              if (item.status === "Pending") statusLabel = "ĐANG CHỜ";
+              if (item.status === "Approved") statusLabel = "ĐÃ CHẤP THUẬN";
+              if (item.status === "Rejected") statusLabel = "ĐÃ TỪ CHỐI";
+
               return (
                 <div key={item.id} className="kora-req-card">
                   {/* Top: Avatar, Info, Time */}
+                  {/* Top: Avatar, Info, Time */}
                   <div className="kora-req-top">
                     <div className="kora-req-avatar">
-                      {/* Mock Avatar Gradient, using Initial */}
-                      {senderInitial}
+                      {/* Bắt nhiều tên biến khác nhau trường hợp backend không dùng senderAvatarUrl */}
+                      {item.senderAvatarUrl ||
+                      item.avatarUrl ||
+                      item.userAvatarUrl ? (
+                        <img
+                          src={toAbsoluteMediaUrl(
+                            item.senderAvatarUrl ||
+                              item.avatarUrl ||
+                              item.userAvatarUrl,
+                          )}
+                          alt={item.senderName}
+                        />
+                      ) : (
+                        senderInitial
+                      )}
                     </div>
                     <div className="kora-req-info">
                       <h4>{item.senderName}</h4>
@@ -425,16 +418,7 @@ function OrgRequestsPage() {
                         <span className="kora-tag kora-tag-blue">
                           {item.requestType}
                         </span>
-                        {item.desiredDepartmentName && (
-                          <span className="kora-tag kora-tag-gray">
-                            {item.desiredDepartmentName}
-                          </span>
-                        )}
-                        {item.desiredPosition && (
-                          <span className="kora-tag kora-tag-gray">
-                            {item.desiredPosition}
-                          </span>
-                        )}
+                        {/* Đã loại bỏ các tag kora-tag-gray ở đây */}
                       </div>
                     </div>
                     <div className="kora-req-time">
@@ -447,10 +431,11 @@ function OrgRequestsPage() {
                     {item.title && (
                       <h5 className="kora-req-title">{item.title}</h5>
                     )}
-                    <p className="kora-req-desc">{item.content}</p>
+
+                    {/* Đã xóa phần hiển thị item.content theo yêu cầu */}
 
                     <div className="kora-req-meta">
-                      <span className={statusClass}>{item.status}</span>
+                      <span className={statusClass}>{statusLabel}</span>
                       {item.reviewedByMemberName && (
                         <span className="kora-req-reviewer">
                           | Duyệt bởi: {item.reviewedByMemberName} (

@@ -491,3 +491,261 @@
     width: 100%;
   }
 }
+
+/* ── Join / Withdraw / Leave buttons ───────────────────────────────────── */
+.org-btn-join {
+  padding: 0.65rem 1.4rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.org-btn-join:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.org-btn-join--join {
+  background-color: var(--brand-700, #f97316);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
+}
+.org-btn-join--join:hover:not(:disabled) {
+  background-color: var(--brand-500, #ea580c);
+}
+
+.org-btn-join--pending {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1.5px solid #fde68a;
+}
+.org-btn-join--pending:hover:not(:disabled) {
+  background-color: #fde68a;
+}
+
+.org-btn-join--leave {
+  background-color: transparent;
+  color: var(--dsc-red, #ef4444);
+  border: 1.5px solid #fca5a5;
+}
+.org-btn-join--leave:hover:not(:disabled) {
+  background-color: #fef2f2;
+}
+
+/* ── Join message ────────────────────────────────────────────────────────── */
+.org-join-message {
+  margin: 0 3rem 1rem 3rem;
+  padding: 0.75rem 1.1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.org-join-message--info {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.org-join-message--error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* ── Pending stat card variant ───────────────────────────────────────────── */
+.stat-item-card--pending::before {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* ── Public join CTA card (right sidebar) ───────────────────────────────── */
+.org-join-cta-card {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+  border-radius: 18px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.org-join-cta-card strong {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.org-join-cta-card p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .org-join-message {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}
+
+/* ── Membership action buttons ──────────────────────────────────────────── */
+.org-membership-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.org-membership-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tham gia — orange gradient */
+.org-membership-btn--join {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(234, 88, 12, 0.35);
+}
+.org-membership-btn--join:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Rút đơn — amber outline */
+.org-membership-btn--pending {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1.5px solid #fcd34d;
+  box-shadow: 0 1px 4px rgba(251, 191, 36, 0.2);
+}
+.org-membership-btn--pending:hover:not(:disabled) {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+/* Rời CLB — subtle red ghost */
+.org-membership-btn--leave {
+  background: transparent;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+}
+.org-membership-btn--leave:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+/* ── Join feedback toast ────────────────────────────────────────────────── */
+.org-join-feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 3rem 0.75rem 3rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  animation: feedbackSlide 0.2s ease-out;
+}
+@keyframes feedbackSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.org-join-feedback--success {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.org-join-feedback--info {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+.org-join-feedback--error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+.org-join-feedback__close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  padding: 0 0.15rem;
+}
+.org-join-feedback__close:hover {
+  opacity: 1;
+}
+
+/* ── Public CTA card ────────────────────────────────────────────────────── */
+.org-join-cta-card {
+  background: linear-gradient(145deg, #1e3a5f 0%, #0f172a 100%);
+  border-radius: 20px;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.org-join-cta-card__icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #93c5fd;
+}
+.org-join-cta-card strong {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.org-join-cta-card p {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  margin: 0;
+}
+.org-join-cta-card .org-membership-btn--join {
+  align-self: flex-start;
+}
+.org-join-cta-card .org-membership-btn--pending {
+  align-self: flex-start;
+}
+
+/* ── Pending status stat card ───────────────────────────────────────────── */
+.stat-item-card--pending-status::before {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+}
+.stat-icon-circle--amber {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fde68a;
+  color: #d97706;
+}
+
+@media (max-width: 600px) {
+  .org-join-feedback {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}
