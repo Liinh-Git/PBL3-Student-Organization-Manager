@@ -1098,10 +1098,12 @@
 }
 
 /* 3-column people grid */
+/* 3-column people grid - Fixed overflow */
 .dsc-people-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
+  /* Thay 1fr thành minmax(0, 1fr) để ép grid tuân thủ kích thước màn hình */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem; /* Giảm khoảng cách giữa các thẻ một chút */
 }
 
 @media (max-width: 800px) {
@@ -1527,4 +1529,16 @@
   width: 100%;
   justify-content: center;
   text-align: center;
+}
+
+/* --- OVERRIDE EVENT STATUS BADGE (Chỉ áp dụng ở trang Discover) --- */
+.discover-events-grid .event-card-status-badge > * {
+  background-color: #d1fae5 !important;
+  color: #059669 !important;
+  font-family: var(--dsc-font-title), "Sora", sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+  padding: 0.35rem 0.7rem !important;
+  border-radius: 8px !important;
+  border: none !important;
 }

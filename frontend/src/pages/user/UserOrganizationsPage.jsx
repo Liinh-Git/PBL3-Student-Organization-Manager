@@ -100,21 +100,29 @@ function UserOrganizationsPage() {
 
       const uploadTasks = [];
       if (createdOrg?.id && imageFiles.avatar) {
-        uploadTasks.push(uploadOrganizationImage(createdOrg.id, imageFiles.avatar, "avatar"));
+        uploadTasks.push(
+          uploadOrganizationImage(createdOrg.id, imageFiles.avatar, "avatar"),
+        );
       }
       if (createdOrg?.id && imageFiles.cover) {
-        uploadTasks.push(uploadOrganizationImage(createdOrg.id, imageFiles.cover, "cover"));
+        uploadTasks.push(
+          uploadOrganizationImage(createdOrg.id, imageFiles.cover, "cover"),
+        );
       }
 
       if (uploadTasks.length > 0) {
         const uploadResults = await Promise.allSettled(uploadTasks);
-        const failedUpload = uploadResults.find((result) => result.status === "rejected");
+        const failedUpload = uploadResults.find(
+          (result) => result.status === "rejected",
+        );
         if (failedUpload) {
           const message =
             failedUpload.reason?.response?.data?.message ||
             failedUpload.reason?.message ||
             "Upload ảnh thất bại";
-          setError(`Tạo tổ chức thành công nhưng upload ảnh thất bại: ${message}`);
+          setError(
+            `Tạo tổ chức thành công nhưng upload ảnh thất bại: ${message}`,
+          );
         }
       }
 
@@ -126,7 +134,9 @@ function UserOrganizationsPage() {
       setShowCreateModal(false);
       resetCreateForm();
     } catch (err) {
-      setCreateError(err.response?.data?.message || err.message || "Tạo tổ chức thất bại");
+      setCreateError(
+        err.response?.data?.message || err.message || "Tạo tổ chức thất bại",
+      );
     } finally {
       setIsCreating(false);
     }
@@ -242,10 +252,7 @@ function UserOrganizationsPage() {
 
       {/* Create Organization Modal */}
       {showCreateModal && (
-        <div
-          className="org-modal-overlay"
-          onClick={handleCloseCreateModal}
-        >
+        <div className="org-modal-overlay" onClick={handleCloseCreateModal}>
           <div className="org-modal" onClick={(e) => e.stopPropagation()}>
             <div className="org-modal-header">
               <h3>Tạo tổ chức mới</h3>
@@ -428,4 +435,3 @@ function UserOrganizationsPage() {
 }
 
 export default UserOrganizationsPage;
-

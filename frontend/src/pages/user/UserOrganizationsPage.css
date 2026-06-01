@@ -1,11 +1,10 @@
 .org-layout {
-  --org-card-height: 410px;
   background-color: #f8fafc;
   min-height: 100vh;
   padding: 2.5rem;
   color: #0f172a;
-  max-width: 1280px;
-  margin: 0 auto;
+  width: 100%; /* Dịch sang trái toàn bộ */
+  box-sizing: border-box;
 }
 
 /* Header Styles */
@@ -266,7 +265,7 @@
 .org-card-action {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #334155;
+  color: #ff9b51;
   display: flex;
   align-items: center;
   gap: 0.5rem;
