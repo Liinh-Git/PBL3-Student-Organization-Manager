@@ -54,7 +54,7 @@ public record AssignTaskRequest
 public record TaskDto
 {
     public required Guid Id { get; init; }
-    public required Guid EventCategoryId { get; init; }
+    public Guid? EventCategoryId { get; init; }
     public required string TaskName { get; init; }
     public string? Description { get; init; }
     public Guid? AssigneeId { get; init; }
