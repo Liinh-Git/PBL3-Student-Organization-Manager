@@ -119,7 +119,8 @@ public class EventMemberService : IEventMemberService
         var assignedTasks = await _context.OrgTasks
             .Where(t =>
                 t.AssigneeId == eventMember.MemberId &&
-                t.EventCategory.Milestone.EventId == eventMember.EventId)
+                t.EventCategoryId.HasValue &&
+                t.EventCategory!.Milestone.EventId == eventMember.EventId)
             .ToListAsync(ct);
 
         foreach (var task in assignedTasks)

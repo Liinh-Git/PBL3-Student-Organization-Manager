@@ -41,9 +41,29 @@ public class CreateDepartmentTaskEndpoint : Endpoint<CreateDepartmentTaskEndpoin
 
             Response = ApiResponse<TaskDto>.SuccessResponse(result, "Department task created successfully");
         }
-        catch (Exception ex)
+        catch (UnauthorizedAccessException ex)
+        {
+            HttpContext.Response.StatusCode = 403;
+            Response = ApiResponse<TaskDto>.ErrorResponse(ex.Message);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            HttpContext.Response.StatusCode = 404;
+            Response = ApiResponse<TaskDto>.ErrorResponse(ex.Message);
+        }
+        catch (InvalidOperationException ex)
         {
             HttpContext.Response.StatusCode = 400;
+            Response = ApiResponse<TaskDto>.ErrorResponse(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            HttpContext.Response.StatusCode = 400;
+            Response = ApiResponse<TaskDto>.ErrorResponse(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            HttpContext.Response.StatusCode = 500;
             Response = ApiResponse<TaskDto>.ErrorResponse("Failed to create department task", new List<string> { ex.Message });
         }
     }

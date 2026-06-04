@@ -30,6 +30,16 @@ public class GetDepartmentTasksEndpoint : EndpointWithoutRequest<ApiResponse<Lis
             var result = await _taskService.GetDepartmentTasksAsync(orgId, departmentId, userId, ct);
             Response = ApiResponse<List<TaskDto>>.SuccessResponse(result);
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            HttpContext.Response.StatusCode = 403;
+            Response = ApiResponse<List<TaskDto>>.ErrorResponse(ex.Message);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            HttpContext.Response.StatusCode = 404;
+            Response = ApiResponse<List<TaskDto>>.ErrorResponse(ex.Message);
+        }
         catch (Exception ex)
         {
             HttpContext.Response.StatusCode = 400;

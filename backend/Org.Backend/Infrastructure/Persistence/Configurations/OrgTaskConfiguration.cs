@@ -17,7 +17,7 @@ public class OrgTaskConfiguration : IEntityTypeConfiguration<OrgTask>
         BaseEntityProperties.ConfigureBaseEntityProperties(builder);
 
         builder.Property(e => e.EventCategoryId)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(e => e.TaskName)
             .IsRequired()

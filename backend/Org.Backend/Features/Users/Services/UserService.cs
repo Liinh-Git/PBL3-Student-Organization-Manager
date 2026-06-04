@@ -126,17 +126,21 @@ public class UserService : IUserService
 
         var query = _context.OrgTasks
             .Include(t => t.EventCategory)
-                .ThenInclude(c => c.Milestone)
+                .ThenInclude(c => c!.Milestone)
                     .ThenInclude(m => m.Event)
                         .ThenInclude(e => e.Organization)
             .Include(t => t.Department)
+                .ThenInclude(d => d!.Organization)
             .Include(t => t.Assignee)
                 .ThenInclude(a => a!.User)
             .Where(t =>
                 !t.IsDeleted &&
-                !t.EventCategory.IsDeleted &&
-                !t.EventCategory.Milestone.IsDeleted &&
-                !t.EventCategory.Milestone.Event.IsDeleted &&
+                (
+                    t.EventCategory == null ||
+                    (!t.EventCategory.IsDeleted &&
+                     !t.EventCategory.Milestone.IsDeleted &&
+                     !t.EventCategory.Milestone.Event.IsDeleted)
+                ) &&
                 t.AssigneeId.HasValue &&
                 t.Assignee != null &&
                 t.Assignee.UserId == userId &&
@@ -170,17 +174,17 @@ public class UserService : IUserService
             Deadline = t.Deadline,
             CompletedAt = t.CompletedAt,
             IsOverdue = t.Deadline.HasValue && t.Deadline.Value < nowUtc && t.Status != DomainTaskStatus.Done,
-            OrganizationId = t.EventCategory.Milestone.Event.OrgId,
-            OrganizationName = t.EventCategory.Milestone.Event.Organization.OrgName,
-            EventId = t.EventCategory.Milestone.EventId,
-            EventName = t.EventCategory.Milestone.Event.EventName,
-            MilestoneId = t.EventCategory.MilestoneId,
-            MilestoneTitle = t.EventCategory.Milestone.Title,
+            OrganizationId = t.EventCategory != null ? t.EventCategory.Milestone.Event.OrgId : t.Department!.OrgId,
+            OrganizationName = t.EventCategory != null ? t.EventCategory.Milestone.Event.Organization.OrgName : t.Department!.Organization.OrgName,
+            EventId = t.EventCategory != null ? t.EventCategory.Milestone.EventId : null,
+            EventName = t.EventCategory != null ? t.EventCategory.Milestone.Event.EventName : null,
+            MilestoneId = t.EventCategory != null ? t.EventCategory.MilestoneId : null,
+            MilestoneTitle = t.EventCategory != null ? t.EventCategory.Milestone.Title : null,
             CategoryId = t.EventCategoryId,
-            CategoryName = t.EventCategory.CategoryName,
+            CategoryName = t.EventCategory != null ? t.EventCategory.CategoryName : null,
             DepartmentId = t.DeptId,
             DepartmentName = t.Department != null ? t.Department.DeptName : null,
-            TaskSource = t.DeptId.HasValue ? "Department" : "Event"
+            TaskSource = t.EventCategoryId.HasValue ? "Event" : "Department"
         }).ToList();
     }
 
