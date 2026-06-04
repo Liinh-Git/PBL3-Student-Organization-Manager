@@ -452,3 +452,20 @@ textarea.org-input {
     letter-spacing: 0.08em;
   }
 }
+
+/* ========================================= */
+/* CSS CHO NÚT DANGER TRONG POPUP XÓA        */
+/* ========================================= */
+.org-btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.org-btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.org-btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

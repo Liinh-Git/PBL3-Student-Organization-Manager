@@ -884,7 +884,7 @@
 }
 
 .dsc-org-name {
-  font-family: var(--dsc-font-title);
+  font-family: "Segoe UI", sans-serif;
   font-weight: 800;
   font-size: 0.95rem;
   color: var(--dsc-slate-900);

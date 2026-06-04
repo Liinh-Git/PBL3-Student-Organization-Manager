@@ -164,3 +164,111 @@
     max-width: 100%;
   }
 }
+
+/* ========================================= */
+/* CSS CHO POPUP XÁC NHẬN LƯU THAY ĐỔI       */
+/* ========================================= */
+
+.settings-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+.settings-modal {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.settings-modal-header {
+  padding: 1.5rem 2rem 1rem;
+}
+
+.settings-modal-header h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 850;
+  color: #0f172a;
+}
+
+.settings-modal-body {
+  padding: 0 2rem 1.5rem;
+}
+
+.settings-modal-body p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.settings-modal-footer {
+  padding: 1rem 2rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.settings-btn-cancel {
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background-color: #f1f5f9;
+  color: #475569;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.settings-btn-cancel:hover:not(:disabled) {
+  background-color: #e2e8f0;
+}
+
+.settings-btn-confirm {
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background-color: #ff9b51; /* Màu cam chủ đạo của trang Setting */
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.settings-btn-confirm:hover:not(:disabled) {
+  background-color: #f97316;
+}
+
+.settings-btn-cancel:disabled,
+.settings-btn-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

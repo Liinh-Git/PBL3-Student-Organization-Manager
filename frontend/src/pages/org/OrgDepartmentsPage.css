@@ -1327,3 +1327,34 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =======================================================
+   NHỮNG ĐOẠN CSS THÊM MỚI 
+   ======================================================= */
+
+/* Nút Danger cho Modal Xác Nhận Xóa */
+.dept-btn-danger {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.dept-btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.dept-btn-danger:disabled {
+  background-color: #fca5a5;
+  cursor: not-allowed;
+}
+
+/* Hiển thị ảnh Avatar bên trong Avatar Stack 
+  Lưu ý: Bạn phải gắn thẻ <img> bên trong <div className="dept-avatar-circle"> 
+  tại file DepartmentCard.jsx
+*/
+.dept-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block; /* Tránh khoảng trống bên dưới ảnh do display inline mặc định */
+}

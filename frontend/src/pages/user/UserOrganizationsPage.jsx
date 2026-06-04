@@ -22,10 +22,15 @@ function UserOrganizationsPage() {
   const [organizations, setOrganizations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // States cho Tạo Tổ chức
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
+
+  // States cho Xóa / Giải tán Tổ chức
   const [deletingOrgId, setDeletingOrgId] = useState(null);
+  const [orgToDelete, setOrgToDelete] = useState(null); // Quản lý Popup Xóa
 
   const [formData, setFormData] = useState({
     orgName: "",
@@ -158,23 +163,38 @@ function UserOrganizationsPage() {
     }));
   };
 
-  const handleDeleteOrganization = async (orgId, orgName) => {
-    const confirmDelete = window.confirm(
-      `Bạn có chắc muốn xóa tổ chức "${orgName || "này"}"? Hành động này không thể hoàn tác.`,
-    );
-    if (!confirmDelete) return;
+  // Mở Popup Xóa
+  const handleDeleteClick = (orgId, orgName) => {
+    const org = organizations.find((o) => o.id === orgId);
+    setOrgToDelete(org || { id: orgId, name: orgName });
+  };
 
-    setDeletingOrgId(orgId);
+  // Xác nhận Xóa thực tế gọi API
+  const confirmDeleteOrganization = async () => {
+    if (!orgToDelete) return;
+    setDeletingOrgId(orgToDelete.id);
     setError(null);
 
     try {
-      await deleteOrganization(orgId);
-      setOrganizations((prev) => prev.filter((org) => org.id !== orgId));
+      await deleteOrganization(orgToDelete.id);
+      setOrganizations((prev) =>
+        prev.filter((org) => org.id !== orgToDelete.id),
+      );
+      setOrgToDelete(null); // Đóng popup sau khi xóa xong
     } catch (err) {
-      setError(err.message || "Xóa tổ chức thất bại");
+      setError(err.message || "Rời tổ chức thất bại");
     } finally {
       setDeletingOrgId(null);
     }
+  };
+
+  // Kiểm tra quyền Chủ nhiệm dựa trên Role name trả về
+  const checkIsPresident = (org) => {
+    if (!org) return false;
+    const role = (org.roleName || org.role?.roleName || "").toLowerCase();
+    return (
+      role.includes("chủ nhiệm") || role.includes("president") || org.isOwner
+    );
   };
 
   return (
@@ -242,7 +262,7 @@ function UserOrganizationsPage() {
                 key={org.id}
                 organization={org}
                 onClick={handleOrgClick}
-                onDelete={handleDeleteOrganization}
+                onDelete={handleDeleteClick} /* Đổi hàm gọi sang mở Popup */
                 isDeleting={deletingOrgId === org.id}
               />
             ))}
@@ -250,7 +270,7 @@ function UserOrganizationsPage() {
         </div>
       )}
 
-      {/* Create Organization Modal */}
+      {/* ─── POPUP TẠO TỔ CHỨC ─── */}
       {showCreateModal && (
         <div className="org-modal-overlay" onClick={handleCloseCreateModal}>
           <div className="org-modal" onClick={(e) => e.stopPropagation()}>
@@ -430,6 +450,68 @@ function UserOrganizationsPage() {
           </div>
         </div>
       )}
+
+      {/* ─── POPUP XÓA / GIẢI TÁN TỔ CHỨC ─── */}
+      {orgToDelete &&
+        (() => {
+          const isPresident = checkIsPresident(orgToDelete);
+          const orgNameDisplay =
+            orgToDelete.name || orgToDelete.orgName || "tổ chức này";
+
+          return (
+            <div
+              className="org-modal-overlay"
+              onClick={() => setOrgToDelete(null)}
+            >
+              <div
+                className="org-modal"
+                onClick={(e) => e.stopPropagation()}
+                style={{ maxWidth: "450px" }}
+              >
+                <div
+                  className="org-modal-header"
+                  style={{ paddingBottom: "1rem" }}
+                >
+                  <h3 style={{ color: "#ef4444" }}>
+                    {isPresident ? "Giải tán tổ chức" : "Rời tổ chức"}
+                  </h3>
+                </div>
+                <div className="org-modal-body">
+                  <p style={{ margin: 0, color: "#475569", lineHeight: "1.5" }}>
+                    {isPresident
+                      ? `Bạn có chắc chắn muốn giải tán tổ chức "${orgNameDisplay}"? Toàn bộ dữ liệu, thành viên, và các sự kiện liên quan sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.`
+                      : `Bạn có chắc chắn muốn rời tổ chức "${orgNameDisplay}"? Hành động này không thể hoàn tác.`}
+                  </p>
+                </div>
+                <div
+                  className="org-modal-footer"
+                  style={{ borderTop: "none", paddingTop: 0 }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOrgToDelete(null)}
+                    className="org-btn org-btn-secondary"
+                    disabled={deletingOrgId === orgToDelete.id}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDeleteOrganization}
+                    className="org-btn org-btn-danger"
+                    disabled={deletingOrgId === orgToDelete.id}
+                  >
+                    {deletingOrgId === orgToDelete.id
+                      ? "Đang xử lý..."
+                      : isPresident
+                        ? "Giải tán"
+                        : "Rời tổ chức"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import PageHeader from "../../components/shared/PageHeader";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ErrorState from "../../components/shared/ErrorState";
 import UserAvatarUpload from "../../components/user/UserAvatarUpload.jsx";
-import "./UserSettingsPage.css"; // File CSS đi kèm tạo ở dưới
+import "./UserSettingsPage.css";
 
 function UserSettingsPage() {
   // --- TAB STATE ---
@@ -29,6 +29,9 @@ function UserSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+
+  // STATE MỚI: Quản lý hiển thị Popup xác nhận Lưu thay đổi
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // --- PASSWORD STATE ---
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
@@ -61,8 +64,14 @@ function UserSettingsPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleProfileUpdate = async (e) => {
+  // Ngăn form submit mặc định và bật Popup
+  const handleProfileUpdateSubmit = (e) => {
     e.preventDefault();
+    setShowConfirmModal(true);
+  };
+
+  // Hàm gọi API thực tế sau khi bấm Xác nhận ở Popup
+  const confirmProfileUpdate = async () => {
     setIsSubmittingProfile(true);
     try {
       const updated = await updateMe({
@@ -81,9 +90,11 @@ function UserSettingsPage() {
         bio: updated?.bio || prev.bio,
         avatarUrl: updated?.avatarUrl || prev.avatarUrl,
       }));
-      alert("Cập nhật hồ sơ thành công");
+      setShowConfirmModal(false); // Đóng popup khi lưu thành công
+      // alert("Cập nhật hồ sơ thành công"); // Có thể bỏ alert nếu không muốn thông báo làm phiền
     } catch (err) {
       alert(err.message || "Không thể cập nhật hồ sơ");
+      setShowConfirmModal(false);
     } finally {
       setIsSubmittingProfile(false);
     }
@@ -199,7 +210,9 @@ function UserSettingsPage() {
               />
 
               <form
-                onSubmit={handleProfileUpdate}
+                onSubmit={
+                  handleProfileUpdateSubmit
+                } /* GỌI HÀM BẬT POPUP TẠI ĐÂY */
                 className="auth-form modern-grid-form"
               >
                 <div className="form-group">
@@ -270,10 +283,9 @@ function UserSettingsPage() {
                 <div className="app-action-row full-width flex-end">
                   <button
                     type="submit"
-                    disabled={isSubmittingProfile}
                     className="app-button app-button--primary btn-orange"
                   >
-                    {isSubmittingProfile ? "Đang cập nhật..." : "Lưu thay đổi"}
+                    Lưu thay đổi
                   </button>
                 </div>
               </form>
@@ -341,6 +353,42 @@ function UserSettingsPage() {
           )}
         </div>
       </div>
+
+      {/* POPUP XÁC NHẬN LƯU THAY ĐỔI */}
+      {showConfirmModal && (
+        <div
+          className="settings-modal-overlay"
+          onClick={() => setShowConfirmModal(false)}
+        >
+          <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="settings-modal-header">
+              <h3>Xác nhận lưu</h3>
+            </div>
+            <div className="settings-modal-body">
+              <p>
+                Bạn có chắc chắn muốn lưu lại các thông tin hồ sơ vừa chỉnh sửa
+                không?
+              </p>
+            </div>
+            <div className="settings-modal-footer">
+              <button
+                className="settings-btn-cancel"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={isSubmittingProfile}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                className="settings-btn-confirm"
+                onClick={confirmProfileUpdate}
+                disabled={isSubmittingProfile}
+              >
+                {isSubmittingProfile ? "Đang lưu..." : "Xác nhận lưu"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
