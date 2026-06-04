@@ -924,7 +924,7 @@ function OrgEventDetailPage() {
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinelinejoin="round"
+              strokeLinejoin="round"
             >
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
@@ -941,7 +941,7 @@ function OrgEventDetailPage() {
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
-            strokeLinelinejoin="round"
+            strokeLinejoin="round"
           >
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -965,7 +965,7 @@ function OrgEventDetailPage() {
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinelinejoin="round"
+              strokeLinejoin="round"
             >
               <circle cx="12" cy="12" r="10"></circle>
               <circle cx="12" cy="12" r="6"></circle>
@@ -986,7 +986,7 @@ function OrgEventDetailPage() {
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinelinejoin="round"
+              strokeLinejoin="round"
             >
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
               <circle cx="9" cy="7" r="4"></circle>
@@ -1008,7 +1008,7 @@ function OrgEventDetailPage() {
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinelinejoin="round"
+              strokeLinejoin="round"
             >
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
               <circle cx="9" cy="7" r="4"></circle>
@@ -1024,15 +1024,29 @@ function OrgEventDetailPage() {
         <div
           className="roadmap-heading roadmap-heading-clickable"
           onClick={() => setWorkspaceTab("kanban")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setWorkspaceTab("kanban");
+            }
+          }}
         >
           <div className="roadmap-heading-left">
-            <span
+            <button
+              type="button"
               className="roadmap-toggle"
               onClick={(e) => {
                 e.stopPropagation();
                 setWorkspaceTab("kanban");
                 setIsRoadmapExpanded((prev) => !prev);
               }}
+              aria-label={
+                isRoadmapExpanded
+                  ? "Thu gọn tiến độ dự án"
+                  : "Mở rộng tiến độ dự án"
+              }
             >
               <svg
                 width="18"
@@ -1042,7 +1056,7 @@ function OrgEventDetailPage() {
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
-                strokeLinelinejoin="round"
+                strokeLinejoin="round"
                 style={{
                   transform: isRoadmapExpanded
                     ? "rotate(0deg)"
@@ -1052,7 +1066,7 @@ function OrgEventDetailPage() {
               >
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
-            </span>
+            </button>
             <span>TIẾN ĐỘ DỰ ÁN</span>
           </div>
           <div className="roadmap-heading-actions">
@@ -1074,7 +1088,7 @@ function OrgEventDetailPage() {
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
-                  strokeLinelinejoin="round"
+                  strokeLinejoin="round"
                 >
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -1084,7 +1098,7 @@ function OrgEventDetailPage() {
           </div>
         </div>
 
-        {isRoadmapExpanded && showCreateMilestone && canManage && (
+        {false && isRoadmapExpanded && showCreateMilestone && canManage && (
           <form onSubmit={handleCreateMilestone} className="sidebar-form">
             <input
               name="title"
@@ -1146,7 +1160,7 @@ function OrgEventDetailPage() {
                           stroke="currentColor"
                           strokeWidth="2.5"
                           strokeLinecap="round"
-                          strokeLinelinejoin="round"
+                          strokeLinejoin="round"
                         >
                           <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
                           <line x1="4" y1="22" x2="4" y2="15"></line>
@@ -1183,7 +1197,7 @@ function OrgEventDetailPage() {
                     )}
                   </div>
 
-                  {editingMilestone === milestone.id && canManage && (
+                  {false && editingMilestone === milestone.id && canManage && (
                     <form
                       onSubmit={(e) => handleUpdateMilestone(milestone.id, e)}
                       className="sidebar-form nested-form"
@@ -1273,7 +1287,7 @@ function OrgEventDetailPage() {
                           )}
                         </div>
 
-                        {editingCategory === category.id && canManage && (
+                        {false && editingCategory === category.id && canManage && (
                           <form
                             onSubmit={(e) =>
                               handleUpdateCategory(category.id, milestone.id, e)
@@ -1315,7 +1329,7 @@ function OrgEventDetailPage() {
                       </div>
                     ))}
 
-                    {showCreateCategory[milestone.id] && canManage ? (
+                    {false && showCreateCategory[milestone.id] && canManage ? (
                       <form
                         onSubmit={(e) => handleCreateCategory(milestone.id, e)}
                         className="sidebar-form category-create-form"
@@ -1375,7 +1389,7 @@ function OrgEventDetailPage() {
                             stroke="currentColor"
                             strokeWidth="2.5"
                             strokeLinecap="round"
-                            strokeLinelinejoin="round"
+                            strokeLinejoin="round"
                           >
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -1394,111 +1408,7 @@ function OrgEventDetailPage() {
     </aside>
   );
 
-  const TaskCreatePanel = () => {
-    if (!showCreateTask || !activeCategory || !canManage) return null;
-    return (
-      <form
-        onSubmit={(e) => handleCreateTask(activeCategory.id, e)}
-        className="task-create-panel"
-      >
-        <input
-          name="taskName"
-          placeholder="Task name *"
-          required
-          className="workspace-input"
-        />
-        <input
-          name="description"
-          placeholder="Mô tả"
-          className="workspace-input"
-        />
-        <select
-          name="priority"
-          defaultValue="Medium"
-          className="workspace-select"
-        >
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-          <option value="Urgent">Urgent</option>
-        </select>
-        <input name="deadline" type="date" className="workspace-input" />
-        <button
-          type="submit"
-          disabled={taskLoading[activeCategory.id]}
-          className="workspace-button primary"
-        >
-          {taskLoading[activeCategory.id] ? "Đang tạo..." : "Thêm nhiệm vụ"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowCreateTask(false)}
-          className="workspace-button ghost"
-        >
-          Hủy
-        </button>
-      </form>
-    );
-  };
-
   const TaskCard = ({ task }) => {
-    if (editingTask === task.id) {
-      return (
-        <form
-          onSubmit={(e) => handleUpdateTask(task.id, e)}
-          className="task-card task-card-edit"
-        >
-          <input
-            name="taskName"
-            defaultValue={task.taskName}
-            required
-            className="workspace-input"
-            placeholder="Task name"
-          />
-          <input
-            name="description"
-            defaultValue={task.description || ""}
-            className="workspace-input"
-            placeholder="Mô tả"
-          />
-          <select
-            name="priority"
-            defaultValue={task.priority || "Medium"}
-            className="workspace-select"
-          >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Urgent">Urgent</option>
-          </select>
-          <input
-            name="deadline"
-            type="date"
-            defaultValue={
-              task.deadline ? String(task.deadline).split("T")[0] : ""
-            }
-            className="workspace-input"
-          />
-          <div className="task-card-actions always-visible">
-            <button
-              type="submit"
-              disabled={taskLoading[task.id]}
-              className="mini-primary-button"
-            >
-              {taskLoading[task.id] ? "Đang lưu..." : "Lưu"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditingTask(null)}
-              className="mini-ghost-button"
-            >
-              Hủy
-            </button>
-          </div>
-        </form>
-      );
-    }
-
     const assigneeName = getTaskAssigneeName(task);
 
     const canUpdateStatus = canUpdateTaskStatusByRole(task);
@@ -1620,8 +1530,6 @@ function OrgEventDetailPage() {
             </button>
           )}
         </header>
-
-        <TaskCreatePanel />
 
         <section className="kanban-scroll" aria-label="Bảng Kanban">
           <div className="kanban-board">
@@ -1979,7 +1887,7 @@ function OrgEventDetailPage() {
                   <td>
                     {String(attendee.status || "") === "CheckInPending" &&
                     canManageEventMembers ? (
-                      <div style={{ display: "inline-flex", gap: "8px" }}>
+                      <div className="attendee-action-group">
                         <button
                           type="button"
                           className="mini-primary-button"
@@ -2012,6 +1920,417 @@ function OrgEventDetailPage() {
     </div>
   );
 
+  const WorkspaceModalFrame = ({ title, children, onClose }) => (
+    <div className="workspace-modal-backdrop" role="presentation">
+      <div
+        className="workspace-modal workspace-form-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onKeyDown={(e) => e.stopPropagation()}
+        onKeyUp={(e) => e.stopPropagation()}
+      >
+        <div className="workspace-modal-header">
+          <div>
+            <h2>{title}</h2>
+          </div>
+          <button
+            type="button"
+            className="modal-close-button"
+            onClick={onClose}
+            aria-label="Đóng"
+          >
+            ×
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+
+  const WorkspaceFormModals = () => {
+    const createCategoryMilestoneId = Object.keys(showCreateCategory).find(
+      (milestoneId) => showCreateCategory[milestoneId],
+    );
+    const editingMilestoneData = milestones.find(
+      (milestone) => milestone.id === editingMilestone,
+    );
+    const editingCategoryData = allCategories.find(
+      (category) => category.id === editingCategory,
+    );
+    const editingTaskData = allCategories
+      .flatMap((category) =>
+        (category.tasks || []).map((task) => ({
+          ...task,
+          __categoryId: category.id,
+        })),
+      )
+      .find((task) => task.id === editingTask);
+
+    if (showCreateMilestone && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Tạo giai đoạn dự án"
+          onClose={() => setShowCreateMilestone(false)}
+        >
+          <form onSubmit={handleCreateMilestone} className="workspace-modal-form">
+            <div className="workspace-form-grid">
+              <label className="workspace-form-field">
+                <span>Tên giai đoạn *</span>
+                <input
+                  name="title"
+                  placeholder="VD: Chuẩn bị"
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  placeholder="Mục tiêu hoặc ghi chú của giai đoạn"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setShowCreateMilestone(false)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={milestoneLoading.create}
+                className="workspace-button primary"
+              >
+                {milestoneLoading.create ? "Đang tạo..." : "Tạo"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (editingMilestoneData && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Sửa giai đoạn"
+          onClose={() => setEditingMilestone(null)}
+        >
+          <form
+            onSubmit={(e) => handleUpdateMilestone(editingMilestoneData.id, e)}
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid">
+              <label className="workspace-form-field">
+                <span>Tên giai đoạn *</span>
+                <input
+                  name="title"
+                  defaultValue={editingMilestoneData.title}
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  defaultValue={editingMilestoneData.description || ""}
+                  placeholder="Mô tả"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setEditingMilestone(null)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={milestoneLoading[editingMilestoneData.id]}
+                className="workspace-button primary"
+              >
+                {milestoneLoading[editingMilestoneData.id]
+                  ? "Đang lưu..."
+                  : "Lưu"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (createCategoryMilestoneId && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Thêm hạng mục"
+          onClose={() => setShowCreateCategory({})}
+        >
+          <form
+            onSubmit={(e) => handleCreateCategory(createCategoryMilestoneId, e)}
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid">
+              <label className="workspace-form-field">
+                <span>Tên hạng mục *</span>
+                <input
+                  name="categoryName"
+                  placeholder="VD: Hậu cần, Truyền thông..."
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  placeholder="Mô tả ngắn cho hạng mục"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setShowCreateCategory({})}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={categoryLoading[createCategoryMilestoneId]}
+                className="workspace-button primary"
+              >
+                {categoryLoading[createCategoryMilestoneId]
+                  ? "Đang tạo..."
+                  : "Tạo"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (editingCategoryData && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Sửa hạng mục"
+          onClose={() => setEditingCategory(null)}
+        >
+          <form
+            onSubmit={(e) =>
+              handleUpdateCategory(
+                editingCategoryData.id,
+                editingCategoryData.milestoneId,
+                e,
+              )
+            }
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid">
+              <label className="workspace-form-field">
+                <span>Tên hạng mục *</span>
+                <input
+                  name="categoryName"
+                  defaultValue={editingCategoryData.categoryName}
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  defaultValue={editingCategoryData.description || ""}
+                  placeholder="Mô tả"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setEditingCategory(null)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={categoryLoading[editingCategoryData.id]}
+                className="workspace-button primary"
+              >
+                {categoryLoading[editingCategoryData.id]
+                  ? "Đang lưu..."
+                  : "Lưu"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (showCreateTask && activeCategory && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Thêm tác vụ"
+          onClose={() => setShowCreateTask(false)}
+        >
+          <form
+            onSubmit={(e) => handleCreateTask(activeCategory.id, e)}
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid two-columns">
+              <label className="workspace-form-field span-2">
+                <span>Tên tác vụ *</span>
+                <input
+                  name="taskName"
+                  placeholder="Nhập tên tác vụ"
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field span-2">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  placeholder="Ghi chú thêm"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Độ ưu tiên</span>
+                <select
+                  name="priority"
+                  defaultValue="Medium"
+                  className="workspace-select"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </label>
+              <label className="workspace-form-field">
+                <span>Deadline</span>
+                <input name="deadline" type="date" className="workspace-input" />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setShowCreateTask(false)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={taskLoading[activeCategory.id]}
+                className="workspace-button primary"
+              >
+                {taskLoading[activeCategory.id] ? "Đang tạo..." : "Thêm tác vụ"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (editingTaskData && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Sửa tác vụ"
+          onClose={() => setEditingTask(null)}
+        >
+          <form
+            onSubmit={(e) => handleUpdateTask(editingTaskData.id, e)}
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid two-columns">
+              <label className="workspace-form-field span-2">
+                <span>Tên tác vụ *</span>
+                <input
+                  name="taskName"
+                  defaultValue={editingTaskData.taskName}
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field span-2">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  defaultValue={editingTaskData.description || ""}
+                  placeholder="Mô tả"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Độ ưu tiên</span>
+                <select
+                  name="priority"
+                  defaultValue={editingTaskData.priority || "Medium"}
+                  className="workspace-select"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </label>
+              <label className="workspace-form-field">
+                <span>Deadline</span>
+                <input
+                  name="deadline"
+                  type="date"
+                  defaultValue={
+                    editingTaskData.deadline
+                      ? String(editingTaskData.deadline).split("T")[0]
+                      : ""
+                  }
+                  className="workspace-input"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setEditingTask(null)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={taskLoading[editingTaskData.id]}
+                className="workspace-button primary"
+              >
+                {taskLoading[editingTaskData.id] ? "Đang lưu..." : "Lưu"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="event-workspace">
       <Sidebar />
@@ -2021,6 +2340,7 @@ function OrgEventDetailPage() {
         {workspaceTab === "event-members" && <EventMembersBoard />}
         {workspaceTab === "attendees" && <AttendeesBoard />}
       </main>
+      <WorkspaceFormModals />
     </div>
   );
 }
