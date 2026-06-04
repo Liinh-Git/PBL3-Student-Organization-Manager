@@ -64,7 +64,12 @@ export function OrgProvider({ children }) {
         }
       }
     } catch (err) {
-      setError(err);
+      if (err.response?.status === 403) {
+        setPermissions([]);
+        setIsMember(false);
+      } else {
+        setError(err);
+      }
     } finally {
       setIsLoading(false);
     }

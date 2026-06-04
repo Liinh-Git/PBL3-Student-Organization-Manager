@@ -2,6 +2,7 @@
 import { useSearchParams } from "react-router-dom";
 import { useOrgContext } from "../../contexts/OrgContext.jsx";
 import {
+  getPublicOverview,
   updateOrganization,
   uploadOrganizationImage,
 } from "../../services/organizationService.js";
@@ -33,12 +34,16 @@ function OrgOverviewPage() {
     permissions,
     isMember,
     isLoading: contextLoading,
+    orgId: loadedOrgId,
   } = useOrgContext();
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [publicOrg, setPublicOrg] = useState(null);
+  const [publicLoading, setPublicLoading] = useState(false);
+  const [publicError, setPublicError] = useState(null);
   const [formState, setFormState] = useState({
     orgName: "",
     description: "",
@@ -58,10 +63,44 @@ function OrgOverviewPage() {
   const [pendingChecked, setPendingChecked] = useState(false);
 
   useEffect(() => {
-    if (orgId && (!contextOrg || String(contextOrg.id) !== String(orgId))) {
+    if (
+      orgId &&
+      String(loadedOrgId || "") !== String(orgId) &&
+      (!contextOrg || String(contextOrg.id) !== String(orgId))
+    ) {
       loadWorkspaceOrg(orgId);
     }
-  }, [orgId, contextOrg, loadWorkspaceOrg]);
+  }, [orgId, loadedOrgId, contextOrg, loadWorkspaceOrg]);
+
+  useEffect(() => {
+    setPendingChecked(false);
+    setJoinStatus("none");
+    setJoinFeedback(null);
+  }, [orgId]);
+
+  useEffect(() => {
+    if (!orgId) return;
+
+    let cancelled = false;
+    setPublicLoading(true);
+    setPublicError(null);
+    setPublicOrg(null);
+
+    getPublicOverview(orgId)
+      .then((data) => {
+        if (!cancelled) setPublicOrg(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setPublicError(err);
+      })
+      .finally(() => {
+        if (!cancelled) setPublicLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [orgId]);
 
   useEffect(() => {
     if (!contextOrg) return;
@@ -118,13 +157,21 @@ function OrgOverviewPage() {
     return <ErrorState message="Thiếu mã tổ chức" />;
   }
 
-  if (contextLoading) {
+  if (contextLoading || (publicLoading && !publicOrg)) {
     return <LoadingSpinner message="Đang tải dữ liệu tổ chức..." />;
+  }
+
+  if (publicError && !publicOrg && !contextOrg) {
+    return (
+      <ErrorState
+        message={publicError.message || "Không tải được thông tin tổ chức"}
+      />
+    );
   }
 
   if (!isMember) {
     // ── PUBLIC VIEW for non-members ──────────────────────────────────────────
-    const pub = contextOrg || {};
+    const pub = publicOrg || contextOrg || {};
     const pubName = pub.name || "Tổ chức";
     const pubInitial = pubName.charAt(0).toUpperCase();
     const pubAvatar = toAbsoluteMediaUrl(pub.avatarUrl || "");
