@@ -78,12 +78,12 @@ public record MyTaskDto
 
     public required Guid OrganizationId { get; init; }
     public required string OrganizationName { get; init; }
-    public required Guid EventId { get; init; }
-    public required string EventName { get; init; }
-    public required Guid MilestoneId { get; init; }
-    public required string MilestoneTitle { get; init; }
-    public required Guid CategoryId { get; init; }
-    public required string CategoryName { get; init; }
+    public Guid? EventId { get; init; }
+    public string? EventName { get; init; }
+    public Guid? MilestoneId { get; init; }
+    public string? MilestoneTitle { get; init; }
+    public Guid? CategoryId { get; init; }
+    public string? CategoryName { get; init; }
     public Guid? DepartmentId { get; init; }
     public string? DepartmentName { get; init; }
     public required string TaskSource { get; init; } // Event | Department
