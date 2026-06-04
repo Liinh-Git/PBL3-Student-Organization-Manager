@@ -9,7 +9,7 @@ namespace Org.Backend.Domain.Entities;
 /// </summary>
 public class OrgTask : BaseEntity
 {
-    public Guid EventCategoryId { get; set; }
+    public Guid? EventCategoryId { get; set; }
     public string TaskName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public Guid? AssigneeId { get; set; }
@@ -22,7 +22,7 @@ public class OrgTask : BaseEntity
     public DateTime? CompletedAt { get; set; }
 
     // Navigation properties
-    public virtual EventCategory EventCategory { get; set; } = null!;
+    public virtual EventCategory? EventCategory { get; set; }
     public virtual Member? Assignee { get; set; }
     public virtual Department? Department { get; set; }
     public virtual Member? CreatedByMember { get; set; }

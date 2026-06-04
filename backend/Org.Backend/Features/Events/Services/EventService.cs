@@ -417,7 +417,7 @@ public class EventService : IEventService
         }
 
         var tasks = await _context.OrgTasks
-            .Where(t => categoryIds.Contains(t.EventCategoryId))
+            .Where(t => t.EventCategoryId.HasValue && categoryIds.Contains(t.EventCategoryId.Value))
             .ToListAsync(ct);
         foreach (var task in tasks)
         {
