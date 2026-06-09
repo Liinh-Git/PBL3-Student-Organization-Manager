@@ -36,6 +36,7 @@ public class EventMemberService : IEventMemberService
                 MemberId = em.MemberId,
                 FullName = em.Member.User.FullName,
                 Email = em.Member.User.Email,
+                PhoneNumber = em.Member.User.PhoneNumber,
                 AssignedAtUtc = em.AssignedAt
             })
             .ToListAsync(ct);

@@ -191,7 +191,7 @@ function RegisterPage() {
                   id="email"
                   name="email"
                   className={`auth-input ${errors.email ? "error" : ""}`}
-                  placeholder="ten@truong.edu.vn"
+                  placeholder="Email đăng nhập"
                   value={formData.email}
                   onChange={handleChange}
                 />

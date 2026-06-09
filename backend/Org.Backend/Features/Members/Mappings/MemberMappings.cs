@@ -19,6 +19,7 @@ public static class MemberMappings
             StudentCode = member.StudentCode,
             FullName = member.User.FullName,
             Email = member.User.Email,
+            PhoneNumber = member.User.PhoneNumber,
             AvatarUrl = member.User.AvatarUrl,
             Status = member.Status.ToString(),
             JoinedAtUtc = member.JoinDate

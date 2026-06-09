@@ -1,7 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap");
-
 .org-events-page {
-  font-family: "Nunito", sans-serif;
+  font-family: var(--app-font-family);
   min-height: 100vh;
   background: #f8fafc;
   padding: 2rem 2.5rem; /* ← Thêm dòng này */
@@ -19,7 +17,7 @@
 }
 
 .oe-header h1 {
-  font-family: "Segoe UI", sans-serif;
+  font-family: var(--app-font-family);
   font-size: 1.85rem;
   font-weight: 800;
   color: #0f172a;
@@ -94,7 +92,7 @@
 }
 
 .oe-bd-day {
-  font-family: "Sora", sans-serif;
+  font-family: var(--app-font-family);
   font-size: 1.3rem;
   font-weight: 900;
   color: #0f172a;
@@ -150,7 +148,7 @@
 }
 
 .oe-card-title {
-  font-family: "Sora", sans-serif;
+  font-family: var(--app-font-family);
   font-size: 1.1rem;
   font-weight: 700;
   color: #1e293b;
@@ -205,7 +203,7 @@
 .oe-btn {
   border-radius: 8px;
   padding: 0.6rem 0.8rem;
-  font-family: "Nunito", sans-serif;
+  font-family: var(--app-font-family);
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
@@ -324,7 +322,7 @@
 }
 
 .oe-form-header h2 {
-  font-family: "Sora", sans-serif;
+  font-family: var(--app-font-family);
   font-size: 1.4rem;
   font-weight: 800;
   color: #0f172a;
@@ -372,7 +370,7 @@
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
   padding: 0.6rem 0.8rem;
-  font-family: "Nunito", sans-serif;
+  font-family: var(--app-font-family);
   font-size: 0.9rem;
   color: #0f172a;
   outline: none;
@@ -494,6 +492,73 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.8rem;
+}
+
+.oe-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+.oe-confirm-modal {
+  width: min(100%, 450px);
+  overflow: hidden;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.28);
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.oe-confirm-header {
+  padding: 1.5rem 2rem 1rem;
+}
+
+.oe-confirm-header h3 {
+  margin: 0;
+  color: #ef4444;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.oe-confirm-header--publish h3 {
+  color: #ea580c;
+}
+
+.oe-confirm-body {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0 2rem 1.5rem;
+}
+
+.oe-confirm-body p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.oe-confirm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 0 2rem 1.5rem;
 }
 
 /* ── RESPONSIVE ── */

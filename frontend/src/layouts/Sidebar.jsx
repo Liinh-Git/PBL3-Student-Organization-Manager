@@ -83,7 +83,7 @@ function Sidebar() {
 
   const handleSelectUserWorkspace = () => {
     setSelectedWorkspace("user");
-    navigate("/user/discover");
+    navigate("/user/dashboard");
   };
 
   const handleSelectOrgWorkspace = (orgId) => {

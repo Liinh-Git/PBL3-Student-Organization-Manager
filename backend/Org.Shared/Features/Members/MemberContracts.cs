@@ -15,6 +15,7 @@ public record MemberDto
     public string? StudentCode { get; init; }
     public required string FullName { get; init; }
     public required string Email { get; init; }
+    public string? PhoneNumber { get; init; }
     public string? AvatarUrl { get; init; }
     public required string Status { get; init; }
     public required DateTime JoinedAtUtc { get; init; }

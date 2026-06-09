@@ -7,6 +7,7 @@ public record EventMemberDto
     public required Guid MemberId { get; init; }
     public string? FullName { get; init; }
     public string? Email { get; init; }
+    public string? PhoneNumber { get; init; }
     public required DateTime AssignedAtUtc { get; init; }
 }
 

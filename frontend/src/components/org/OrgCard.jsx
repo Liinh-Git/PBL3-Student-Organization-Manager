@@ -25,7 +25,7 @@ const DEFAULT_ORG_COVER =
       "<stop offset='0%' stop-color='#ecfeff'/><stop offset='100%' stop-color='#cffafe'/>" +
       "</linearGradient></defs>" +
       "<rect width='1200' height='300' fill='url(#g)'/>" +
-      "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#155e75' font-family='Arial' font-size='34'>Organization Cover</text>" +
+      "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#155e75' font-family='Segoe UI' font-size='34'>Organization Cover</text>" +
       "</svg>",
   );
 

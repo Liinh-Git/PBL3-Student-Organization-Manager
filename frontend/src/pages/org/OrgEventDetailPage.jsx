@@ -62,6 +62,7 @@ function OrgEventDetailPage() {
   const [eventMembers, setEventMembers] = useState([]);
   const [isEventMemberSubmitting, setIsEventMemberSubmitting] = useState(false);
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [eventMemberToRemove, setEventMemberToRemove] = useState(null);
   const [memberSearchKeyword, setMemberSearchKeyword] = useState("");
   const [pendingMemberIds, setPendingMemberIds] = useState([]);
   const [workspaceTab, setWorkspaceTab] = useState("kanban");
@@ -256,6 +257,42 @@ function OrgEventDetailPage() {
     return status || "-";
   };
 
+  const getAttendeeCheckInClass = (status) => {
+    const normalized = String(status || "").toLowerCase();
+    if (normalized === "checkedin") return "attendee-status--checked";
+    if (normalized === "checkinpending") return "attendee-status--pending";
+    return "attendee-status--registered";
+  };
+
+  const getAttendeeReviewMeta = (attendee) => {
+    const reviewStatus =
+      attendee?.checkInReviewStatus ||
+      attendee?.reviewStatus ||
+      attendee?.checkInDecision;
+    const normalizedReview = String(reviewStatus || "").toLowerCase();
+    const normalizedStatus = String(attendee?.status || "").toLowerCase();
+
+    if (
+      normalizedReview === "approved" ||
+      normalizedReview === "approve" ||
+      normalizedStatus === "checkedin"
+    ) {
+      return {
+        label: "Đã duyệt",
+        className: "attendee-review-badge attendee-review-badge--approved",
+      };
+    }
+
+    if (normalizedReview === "rejected" || normalizedReview === "reject") {
+      return {
+        label: "Đã từ chối",
+        className: "attendee-review-badge attendee-review-badge--rejected",
+      };
+    }
+
+    return null;
+  };
+
   const handleReviewCheckIn = async (attendeeId, approve) => {
     if (!canManageEventMembers) {
       alert("Bạn không có quyền thực hiện thao tác này");
@@ -266,7 +303,13 @@ function OrgEventDetailPage() {
       const updated = await reviewAttendeeCheckIn(attendeeId, approve);
       setAttendees((prev) =>
         prev.map((item) =>
-          item.id === attendeeId ? { ...item, ...updated } : item,
+          item.id === attendeeId
+            ? {
+                ...item,
+                ...updated,
+                checkInReviewStatus: approve ? "Approved" : "Rejected",
+              }
+            : item,
         ),
       );
     } catch (err) {
@@ -884,19 +927,25 @@ function OrgEventDetailPage() {
     }
   };
 
-  const handleRemoveEventMember = async (eventMemberId) => {
+  const requestRemoveEventMember = (eventMember) => {
     if (!canManageEventMembers) {
       alert("Chỉ thành viên BTC của sự kiện mới có thể xóa thành viên BTC.");
       return;
     }
-    if (!window.confirm("Xóa thành viên này khỏi BTC sự kiện?")) return;
+
+    setEventMemberToRemove(eventMember);
+  };
+
+  const confirmRemoveEventMember = async () => {
+    if (!eventMemberToRemove) return;
 
     setIsEventMemberSubmitting(true);
     try {
-      await removeEventMember(eventMemberId);
+      await removeEventMember(eventMemberToRemove.id);
       setEventMembers((prev) =>
-        prev.filter((item) => item.id !== eventMemberId),
+        prev.filter((item) => item.id !== eventMemberToRemove.id),
       );
+      setEventMemberToRemove(null);
       await refreshEventMemberBoard();
     } catch (err) {
       alert(err.message || "Không thể xóa thành viên BTC");
@@ -1683,7 +1732,8 @@ function OrgEventDetailPage() {
                     <td>{item.fullName || "-"}</td>
                     <td>{item.email || "-"}</td>
                     <td>
-                      {memberMap.get(item.memberId)?.phoneNumber ||
+                      {item.phoneNumber ||
+                        memberMap.get(item.memberId)?.phoneNumber ||
                         memberMap.get(item.memberId)?.phone ||
                         memberMap.get(item.memberId)?.user?.phoneNumber ||
                         "-"}
@@ -1702,7 +1752,7 @@ function OrgEventDetailPage() {
                         <button
                           type="button"
                           className="mini-ghost-button"
-                          onClick={() => handleRemoveEventMember(item.id)}
+                          onClick={() => requestRemoveEventMember(item)}
                           disabled={isEventMemberSubmitting}
                         >
                           Xóa
@@ -1873,46 +1923,63 @@ function OrgEventDetailPage() {
                 <td colSpan={6}>Chưa có người tham gia.</td>
               </tr>
             ) : (
-              attendees.map((attendee) => (
-                <tr key={attendee.id}>
-                  <td>{attendee.fullName || "-"}</td>
-                  <td>{attendee.email || "-"}</td>
-                  <td>{attendee.phoneNumber || "-"}</td>
-                  <td>
-                    {formatDate(
-                      attendee.registeredAtUtc || attendee.createdAtUtc,
-                    )}
-                  </td>
-                  <td>{getAttendeeCheckInLabel(attendee.status)}</td>
-                  <td>
-                    {String(attendee.status || "") === "CheckInPending" &&
-                    canManageEventMembers ? (
-                      <div className="attendee-action-group">
-                        <button
-                          type="button"
-                          className="mini-primary-button"
-                          onClick={() => handleReviewCheckIn(attendee.id, true)}
-                          disabled={isEventMemberSubmitting}
-                        >
-                          Duyệt
-                        </button>
-                        <button
-                          type="button"
-                          className="mini-ghost-button"
-                          onClick={() =>
-                            handleReviewCheckIn(attendee.id, false)
-                          }
-                          disabled={isEventMemberSubmitting}
-                        >
-                          Từ chối
-                        </button>
-                      </div>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                </tr>
-              ))
+              attendees.map((attendee) => {
+                const reviewMeta = getAttendeeReviewMeta(attendee);
+                return (
+                  <tr key={attendee.id}>
+                    <td>{attendee.fullName || "-"}</td>
+                    <td>{attendee.email || "-"}</td>
+                    <td>{attendee.phoneNumber || "-"}</td>
+                    <td>
+                      {formatDate(
+                        attendee.registeredAtUtc || attendee.createdAtUtc,
+                      )}
+                    </td>
+                    <td>
+                      <span
+                        className={`attendee-status-badge ${getAttendeeCheckInClass(
+                          attendee.status,
+                        )}`}
+                      >
+                        {getAttendeeCheckInLabel(attendee.status)}
+                      </span>
+                    </td>
+                    <td>
+                      {String(attendee.status || "") === "CheckInPending" &&
+                      canManageEventMembers ? (
+                        <div className="attendee-action-group">
+                          <button
+                            type="button"
+                            className="mini-primary-button"
+                            onClick={() =>
+                              handleReviewCheckIn(attendee.id, true)
+                            }
+                            disabled={isEventMemberSubmitting}
+                          >
+                            Duyệt
+                          </button>
+                          <button
+                            type="button"
+                            className="mini-ghost-button"
+                            onClick={() =>
+                              handleReviewCheckIn(attendee.id, false)
+                            }
+                            disabled={isEventMemberSubmitting}
+                          >
+                            Từ chối
+                          </button>
+                        </div>
+                      ) : reviewMeta ? (
+                        <span className={reviewMeta.className}>
+                          {reviewMeta.label}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -2341,6 +2408,64 @@ function OrgEventDetailPage() {
         {workspaceTab === "attendees" && <AttendeesBoard />}
       </main>
       <WorkspaceFormModals />
+      {eventMemberToRemove && (
+        <div
+          className="workspace-confirm-backdrop"
+          onClick={() => {
+            if (!isEventMemberSubmitting) setEventMemberToRemove(null);
+          }}
+        >
+          <div
+            className="workspace-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remove-event-member-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="workspace-confirm-header">
+              <span className="workspace-confirm-icon workspace-confirm-icon--danger">
+                !
+              </span>
+              <div>
+                <p className="workspace-eyebrow">Ban tổ chức sự kiện</p>
+                <h2 id="remove-event-member-title">Xóa thành viên BTC</h2>
+              </div>
+            </div>
+            <div className="workspace-confirm-body">
+              <p>
+                Bạn có chắc chắn muốn xóa{" "}
+                <strong>
+                  {eventMemberToRemove.fullName ||
+                    eventMemberToRemove.email ||
+                    "thành viên này"}
+                </strong>{" "}
+                khỏi Ban tổ chức sự kiện?
+              </p>
+              <p className="workspace-confirm-note">
+                Thành viên này sẽ không còn quyền quản lý workspace của sự kiện.
+              </p>
+            </div>
+            <div className="workspace-confirm-actions">
+              <button
+                type="button"
+                className="workspace-button ghost"
+                disabled={isEventMemberSubmitting}
+                onClick={() => setEventMemberToRemove(null)}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                className="workspace-button danger"
+                disabled={isEventMemberSubmitting}
+                onClick={confirmRemoveEventMember}
+              >
+                {isEventMemberSubmitting ? "Đang xóa..." : "Xóa khỏi BTC"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

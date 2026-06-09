@@ -7,11 +7,7 @@
   max-width: 100%; /* Tràn viền giống trang sự kiện */
   margin: 0; /* Đưa sang trái thay vì căn giữa */
   padding: 2rem 2.5rem;
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif; /* Fix lỗi font dự phòng */
+  font-family: var(--app-font-family);
   color: #0f1f29;
 }
 
@@ -147,7 +143,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: "Inter", "Segoe UI", sans-serif;
+  font-family: var(--app-font-family);
 }
 
 .kora-filter-btn:hover {
@@ -413,8 +409,7 @@
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: background-color 0.2s;
-  font-family:
-    "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Thêm dòng này để fix lỗi font */
+  font-family: var(--app-font-family);
 }
 
 .kora-btn-accept:hover {
@@ -433,8 +428,7 @@
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: background-color 0.2s;
-  font-family:
-    "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Thêm dòng này để fix lỗi font */
+  font-family: var(--app-font-family);
 }
 
 .kora-btn-reject:hover {

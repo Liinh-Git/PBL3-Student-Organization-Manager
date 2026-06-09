@@ -132,7 +132,7 @@ const DEFAULT_EVENT_BANNER =
       "<stop offset='0%' stop-color='#fed7aa'/><stop offset='100%' stop-color='#ffedd5'/>" +
       "</linearGradient></defs>" +
       "<rect width='1200' height='360' fill='url(#g)'/>" +
-      "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#ea580c' font-family='Arial' font-size='42'>Banner sự kiện</text>" +
+      "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#ea580c' font-family='Segoe UI' font-size='42'>Banner sự kiện</text>" +
       "</svg>",
   );
 
@@ -163,6 +163,8 @@ function OrgEventsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [eventToDelete, setEventToDelete] = useState(null);
+  const [eventToPublish, setEventToPublish] = useState(null);
   const [orgMembers, setOrgMembers] = useState([]);
 
   useEffect(() => {
@@ -338,7 +340,7 @@ function OrgEventsPage() {
     }
   };
 
-  const handlePublishEvent = async (event) => {
+  const requestPublishEvent = (event) => {
     if (!canManage) {
       alert("Bạn không có quyền thực hiện thao tác này");
       return;
@@ -355,17 +357,18 @@ function OrgEventsPage() {
       return;
     }
 
-    const confirmMessage = [
-      `Hiện tại sự kiện đang ở mức ${getVisibilityDescription(event?.visibility)}.`,
-      "Nếu công khai, trạng thái sẽ chuyển từ Nháp sang Đã công khai.",
-      normalizeVisibility(event?.visibility) === "Public"
-        ? "Sự kiện sẽ hiển thị ở trang Khám phá cho người ngoài tổ chức."
-        : "Sự kiện vẫn chỉ hiển thị cho thành viên trong tổ chức.",
-      "",
-      "Xác nhận công khai?",
-    ].join("\n");
+    setEventToPublish(event);
+  };
 
-    if (!window.confirm(confirmMessage)) return;
+  const confirmPublishEvent = async () => {
+    if (!eventToPublish) return;
+
+    const eventId = getEventId(eventToPublish);
+    if (!eventId) {
+      alert("Thiếu mã sự kiện");
+      setEventToPublish(null);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -373,6 +376,7 @@ function OrgEventsPage() {
       setEvents((prev) =>
         prev.map((ev) => (getEventId(ev) === eventId ? updated : ev)),
       );
+      setEventToPublish(null);
     } catch (err) {
       alert(err.message || "Không thể công khai sự kiện");
     } finally {
@@ -380,7 +384,7 @@ function OrgEventsPage() {
     }
   };
 
-  const handleManageEventFromClose = async (event) => {
+  const requestDeleteEvent = (event) => {
     if (!canManage) {
       alert("Bạn không có quyền thực hiện thao tác này");
       return;
@@ -392,67 +396,28 @@ function OrgEventsPage() {
       return;
     }
 
-    const visibility = normalizeVisibility(event?.visibility);
-    const status = event?.status;
+    setEventToDelete(event);
+  };
 
-    if (status === "Published" && visibility !== "Public") {
-      const backToDraft = window.confirm(
-        "Sự kiện đang ở trạng thái Đã công khai nhưng chưa đặt Công khai hiển thị.\nBạn có muốn đưa sự kiện về Nháp không?",
-      );
-      if (backToDraft) {
-        setIsSubmitting(true);
-        try {
-          const updated = await updateEventStatus(eventId, "Draft");
-          setEvents((prev) =>
-            prev.map((ev) => (getEventId(ev) === eventId ? updated : ev)),
-          );
-        } catch (err) {
-          alert(err.message || "Không thể chuyển sự kiện về nháp");
-        } finally {
-          setIsSubmitting(false);
-        }
-        return;
-      }
-    }
+  const confirmDeleteEvent = async () => {
+    if (!eventToDelete) return;
 
-    const action = window.prompt(
-      "Chọn hành động:\n1 - Hủy sự kiện\n2 - Xóa hoàn toàn khỏi hệ thống\nNhập 1 hoặc 2:",
-      "1",
-    );
-    if (!action) return;
-
-    if (action === "1") {
-      if (!window.confirm("Xác nhận hủy sự kiện này?")) return;
-      setIsSubmitting(true);
-      try {
-        const updated = await updateEventStatus(eventId, "Cancelled");
-        setEvents((prev) =>
-          prev.map((ev) => (getEventId(ev) === eventId ? updated : ev)),
-        );
-      } catch (err) {
-        alert(err.message || "Không thể hủy sự kiện");
-      } finally {
-        setIsSubmitting(false);
-      }
+    const eventId = getEventId(eventToDelete);
+    if (!eventId) {
+      alert("Thiếu mã sự kiện");
+      setEventToDelete(null);
       return;
     }
 
-    if (action === "2") {
-      if (
-        !window.confirm(
-          "Xóa hoàn toàn sự kiện? Dữ liệu liên quan sẽ bị ẩn khỏi hệ thống.",
-        )
-      )
-        return;
-      setIsSubmitting(true);
-      try {
-        await deleteEvent(eventId, true);
-        setEvents((prev) => prev.filter((ev) => getEventId(ev) !== eventId));
-      } catch (err) {
-        alert(err.message || "Không thể xóa vĩnh viễn sự kiện");
-      } finally {
-        setIsSubmitting(false);
-      }
+    setIsSubmitting(true);
+    try {
+      await deleteEvent(eventId, true);
+      setEvents((prev) => prev.filter((ev) => getEventId(ev) !== eventId));
+      setEventToDelete(null);
+    } catch (err) {
+      alert(err.message || "Không thể xóa sự kiện");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1015,7 +980,7 @@ function OrgEventsPage() {
                       {isDraft && (
                         <button
                           type="button"
-                          onClick={() => handlePublishEvent(event)}
+                          onClick={() => requestPublishEvent(event)}
                           disabled={isSubmitting}
                           className="oe-btn oe-btn-publish oe-btn-flex"
                         >
@@ -1025,10 +990,11 @@ function OrgEventsPage() {
 
                       <button
                         type="button"
-                        onClick={() => handleManageEventFromClose(event)}
+                        onClick={() => requestDeleteEvent(event)}
                         disabled={isSubmitting}
                         className="oe-btn oe-btn-danger oe-btn-icon-only"
                         title="Xóa sự kiện"
+                        aria-label={`Xóa ${title}`}
                       >
                         <IconTrash />
                       </button>
@@ -1038,6 +1004,101 @@ function OrgEventsPage() {
               </div>
             );
           })}
+        </div>
+      )}
+      {eventToDelete && (
+        <div
+          className="oe-confirm-overlay"
+          onClick={() => {
+            if (!isSubmitting) setEventToDelete(null);
+          }}
+        >
+          <div className="oe-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="oe-confirm-header">
+              <h3>Xóa sự kiện</h3>
+            </div>
+            <div className="oe-confirm-body">
+              <p>
+                Bạn có chắc chắn muốn xóa sự kiện "
+                {getEventName(eventToDelete) || "sự kiện này"}"? Hành động này
+                không thể hoàn tác.
+              </p>
+            </div>
+            <div className="oe-confirm-footer">
+              <button
+                type="button"
+                className="oe-btn oe-btn-outline"
+                disabled={isSubmitting}
+                onClick={() => setEventToDelete(null)}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                className="oe-btn oe-btn-danger"
+                disabled={isSubmitting}
+                onClick={confirmDeleteEvent}
+              >
+                {isSubmitting ? "Đang xóa..." : "Xóa sự kiện"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {eventToPublish && (
+        <div
+          className="oe-confirm-overlay"
+          onClick={() => {
+            if (!isSubmitting) setEventToPublish(null);
+          }}
+        >
+          <div
+            className="oe-confirm-modal oe-confirm-modal--publish"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="publish-event-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="oe-confirm-header oe-confirm-header--publish">
+              <h3 id="publish-event-title">Xác nhận công khai sự kiện</h3>
+            </div>
+            <div className="oe-confirm-body">
+              <p>
+                Hiện tại sự kiện đang ở mức{" "}
+                <strong>
+                  {getVisibilityDescription(eventToPublish?.visibility)}
+                </strong>
+                .
+              </p>
+              <p>
+                Nếu công khai, trạng thái sẽ chuyển từ{" "}
+                <strong>Nháp</strong> sang <strong>Đã công khai</strong>.
+              </p>
+              <p>
+                {normalizeVisibility(eventToPublish?.visibility) === "Public"
+                  ? "Sự kiện sẽ hiển thị ở trang Khám phá cho người ngoài tổ chức."
+                  : "Sự kiện vẫn chỉ hiển thị cho thành viên trong tổ chức."}
+              </p>
+            </div>
+            <div className="oe-confirm-footer">
+              <button
+                type="button"
+                className="oe-btn oe-btn-outline"
+                disabled={isSubmitting}
+                onClick={() => setEventToPublish(null)}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                className="oe-btn oe-btn-publish"
+                disabled={isSubmitting}
+                onClick={confirmPublishEvent}
+              >
+                {isSubmitting ? "Đang công khai..." : "Công khai sự kiện"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -24,6 +24,13 @@ const STATUS_META = {
   Done: { label: "Done", cls: "dc-pill--done" },
 };
 
+const PRIORITY_META = {
+  Low: "Thấp",
+  Medium: "Trung bình",
+  High: "Cao",
+  Urgent: "Khẩn cấp",
+};
+
 const STATUS_ORDER = ["InProgress", "Todo", "Done"];
 
 const fmtDate = (iso) => {
@@ -37,6 +44,19 @@ const fmtDate = (iso) => {
         year: "numeric",
       });
 };
+
+const toDateInputValue = (iso) => (iso ? String(iso).split("T")[0] : "");
+
+const todayDateInputValue = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const isPastDateInputValue = (value) =>
+  Boolean(value) && value < todayDateInputValue();
 
 const getFirstSentence = (text) => {
   if (!text) return "Không có mô tả";
@@ -247,6 +267,7 @@ function DepartmentCard({
   canManage,
   canManageMembers,
   canManageTasks,
+  currentMemberId,
   isSubmitting,
   onEdit,
   onDelete,
@@ -255,6 +276,9 @@ function DepartmentCard({
   tasks,
   onOpenCreateTask,
   onUpdateTaskStatus,
+  onUpdateTaskDeadline,
+  onUpdateTaskPriority,
+  onUpdateTaskDescription,
   onAssignTask,
   initiallyExpanded = false,
 }) {
@@ -264,6 +288,10 @@ function DepartmentCard({
   const [selectedTaskDetail, setSelectedTaskDetail] = useState(null);
   const [taskDetailLoading, setTaskDetailLoading] = useState(false);
   const [taskDetailError, setTaskDetailError] = useState("");
+  const [deadlineSaving, setDeadlineSaving] = useState(false);
+  const [prioritySaving, setPrioritySaving] = useState(false);
+  const [descriptionDraft, setDescriptionDraft] = useState("");
+  const [descriptionSaving, setDescriptionSaving] = useState(false);
   const avatarBtnRef = useRef(null);
 
   const deptId = department.id;
@@ -301,6 +329,21 @@ function DepartmentCard({
         .filter((g) => activeFilters.includes(g.status))
         .flatMap((g) => g.tasks);
 
+  const selectedTaskStatus = selectedTaskDetail?.status || "Todo";
+  const selectedTaskAssigneeId =
+    selectedTaskDetail?.assigneeId ||
+    selectedTaskDetail?.assignedMemberId ||
+    selectedTaskDetail?.assignee?.id ||
+    null;
+  const isSelectedTaskAssignee =
+    !!currentMemberId && selectedTaskAssigneeId === currentMemberId;
+  const canConfirmSelectedTask =
+    !canManageTasks && isSelectedTaskAssignee && selectedTaskStatus !== "Done";
+
+  useEffect(() => {
+    setDescriptionDraft(selectedTaskDetail?.description || "");
+  }, [selectedTaskDetail?.description, selectedTaskDetail?.id]);
+
   const openTaskDetail = async (task) => {
     setSelectedTaskDetail(task);
     setTaskDetailLoading(true);
@@ -313,6 +356,133 @@ function DepartmentCard({
       setSelectedTaskDetail(task);
     } finally {
       setTaskDetailLoading(false);
+    }
+  };
+
+  const handleDeadlineChange = async (deadline) => {
+    if (!selectedTaskDetail || !onUpdateTaskDeadline) return;
+
+    if (isPastDateInputValue(deadline)) {
+      setTaskDetailError("Deadline không được là ngày trong quá khứ");
+      return;
+    }
+
+    const previousDeadline = selectedTaskDetail.deadline || "";
+    setDeadlineSaving(true);
+    setTaskDetailError("");
+    setSelectedTaskDetail((prev) => ({
+      ...prev,
+      deadline: deadline || undefined,
+    }));
+
+    try {
+      const updated = await onUpdateTaskDeadline(
+        selectedTaskDetail.id,
+        deadline,
+        selectedTaskDetail,
+      );
+      if (updated) {
+        setSelectedTaskDetail((prev) => ({ ...prev, ...updated }));
+      }
+    } catch (error) {
+      setTaskDetailError(error?.message || "Không thể cập nhật deadline");
+      setSelectedTaskDetail((prev) => ({
+        ...prev,
+        deadline: previousDeadline || undefined,
+      }));
+    } finally {
+      setDeadlineSaving(false);
+    }
+  };
+
+  const handlePriorityChange = async (priority) => {
+    if (!selectedTaskDetail || !onUpdateTaskPriority) return;
+
+    const previousPriority = selectedTaskDetail.priority || "Medium";
+    setPrioritySaving(true);
+    setTaskDetailError("");
+    setSelectedTaskDetail((prev) => ({
+      ...prev,
+      priority,
+    }));
+
+    try {
+      const updated = await onUpdateTaskPriority(
+        selectedTaskDetail.id,
+        priority,
+        selectedTaskDetail,
+      );
+      if (updated) {
+        setSelectedTaskDetail((prev) => ({ ...prev, ...updated }));
+      }
+    } catch (error) {
+      setTaskDetailError(error?.message || "Không thể cập nhật độ ưu tiên");
+      setSelectedTaskDetail((prev) => ({
+        ...prev,
+        priority: previousPriority,
+      }));
+    } finally {
+      setPrioritySaving(false);
+    }
+  };
+
+  const handleStatusChange = async (status) => {
+    if (!selectedTaskDetail || !onUpdateTaskStatus) return;
+
+    const previousStatus = selectedTaskDetail.status || "Todo";
+    setTaskDetailError("");
+    setSelectedTaskDetail((prev) => ({
+      ...prev,
+      status,
+    }));
+
+    try {
+      const updated = await onUpdateTaskStatus(selectedTaskDetail.id, status);
+      if (updated) {
+        setSelectedTaskDetail((prev) => ({ ...prev, ...updated }));
+      }
+    } catch (error) {
+      setTaskDetailError(error?.message || "Không thể cập nhật trạng thái");
+      setSelectedTaskDetail((prev) => ({
+        ...prev,
+        status: previousStatus,
+      }));
+    }
+  };
+
+  const handleConfirmTaskDone = () => {
+    handleStatusChange("Done");
+  };
+
+  const handleDescriptionSave = async () => {
+    if (!selectedTaskDetail || !onUpdateTaskDescription) return;
+
+    const previousDescription = selectedTaskDetail.description || "";
+    setDescriptionSaving(true);
+    setTaskDetailError("");
+    setSelectedTaskDetail((prev) => ({
+      ...prev,
+      description: descriptionDraft,
+    }));
+
+    try {
+      const updated = await onUpdateTaskDescription(
+        selectedTaskDetail.id,
+        descriptionDraft,
+        selectedTaskDetail,
+      );
+      if (updated) {
+        setSelectedTaskDetail((prev) => ({ ...prev, ...updated }));
+      }
+    } catch (error) {
+      setTaskDetailError(error?.message || "Không thể cập nhật mô tả");
+      setDescriptionDraft(previousDescription);
+      setSelectedTaskDetail((prev) => ({
+        ...prev,
+        description: previousDescription,
+      }));
+    } finally {
+      setDescriptionSaving(false);
     }
   };
 
@@ -667,15 +837,9 @@ function DepartmentCard({
                     {canManageTasks ? (
                       <select
                         className="dc-add-select"
-                        value={selectedTaskDetail.status || "Todo"}
-                        onChange={(e) => {
-                          const status = e.target.value;
-                          setSelectedTaskDetail((prev) => ({
-                            ...prev,
-                            status,
-                          }));
-                          onUpdateTaskStatus(selectedTaskDetail.id, status);
-                        }}
+                        value={selectedTaskStatus}
+                        disabled={isSubmitting}
+                        onChange={(e) => handleStatusChange(e.target.value)}
                       >
                         {Object.entries(STATUS_META).map(([k, v]) => (
                           <option key={k} value={k}>
@@ -684,17 +848,58 @@ function DepartmentCard({
                         ))}
                       </select>
                     ) : (
-                      <strong>{selectedTaskDetail.status || "Todo"}</strong>
+                      <div className="dc-task-status-readonly">
+                        <strong>
+                          {STATUS_META[selectedTaskStatus]?.label ||
+                            selectedTaskStatus}
+                        </strong>
+                        {canConfirmSelectedTask && (
+                          <button
+                            type="button"
+                            className="dc-task-confirm-done"
+                            disabled={isSubmitting}
+                            onClick={handleConfirmTaskDone}
+                          >
+                            Xác nhận hoàn thành
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
 
                   <div>
                     <span className="dc-task-detail-label">Độ ưu tiên</span>
-                    <strong>{selectedTaskDetail.priority || "-"}</strong>
+                    {canManageTasks ? (
+                      <div className="dc-task-deadline-control">
+                        <select
+                          className="dc-add-select"
+                          value={selectedTaskDetail.priority || "Medium"}
+                          disabled={prioritySaving || isSubmitting}
+                          onChange={(e) => handlePriorityChange(e.target.value)}
+                        >
+                          {Object.entries(PRIORITY_META).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                        {prioritySaving && (
+                          <small className="dc-task-detail-hint">
+                            Đang lưu...
+                          </small>
+                        )}
+                      </div>
+                    ) : (
+                      <strong>
+                        {PRIORITY_META[selectedTaskDetail.priority] ||
+                          selectedTaskDetail.priority ||
+                          "-"}
+                      </strong>
+                    )}
                   </div>
 
                   <div>
-                    <span className="dc-task-detail-label">Assignee</span>
+                    <span className="dc-task-detail-label">Người phụ trách</span>
                     {canManageTasks ? (
                       <select
                         className="dc-add-select"
@@ -729,11 +934,31 @@ function DepartmentCard({
 
                   <div>
                     <span className="dc-task-detail-label">Deadline</span>
-                    <strong>
-                      {selectedTaskDetail.deadline
-                        ? new Date(selectedTaskDetail.deadline).toLocaleString()
-                        : "-"}
-                    </strong>
+                    {canManageTasks ? (
+                      <div className="dc-task-deadline-control">
+                        <input
+                          type="date"
+                          className="dc-date-input"
+                          value={toDateInputValue(selectedTaskDetail.deadline)}
+                          min={todayDateInputValue()}
+                          disabled={deadlineSaving || isSubmitting}
+                          onChange={(e) => handleDeadlineChange(e.target.value)}
+                        />
+                        {deadlineSaving && (
+                          <small className="dc-task-detail-hint">
+                            Đang lưu...
+                          </small>
+                        )}
+                      </div>
+                    ) : (
+                      <strong>
+                        {selectedTaskDetail.deadline
+                          ? new Date(
+                              selectedTaskDetail.deadline,
+                            ).toLocaleString()
+                          : "-"}
+                      </strong>
+                    )}
                   </div>
 
                   <div>
@@ -743,28 +968,47 @@ function DepartmentCard({
                         ? new Date(
                             selectedTaskDetail.completedAt,
                           ).toLocaleString()
-                        : "-"}
+                        : "Chưa hoàn thành"}
                     </strong>
                   </div>
                 </div>
 
                 <div className="dc-task-detail-block">
                   <span className="dc-task-detail-label">Mô tả</span>
-                  <p>{selectedTaskDetail.description || "Không có mô tả"}</p>
-                </div>
-
-                <div className="dc-task-detail-block">
-                  <span className="dc-task-detail-label">Ghi chú</span>
-                  <p>{selectedTaskDetail.note || "-"}</p>
+                  {canManageTasks ? (
+                    <div className="dc-task-description-control">
+                      <textarea
+                        className="dc-description-textarea"
+                        value={descriptionDraft}
+                        disabled={descriptionSaving || isSubmitting}
+                        onChange={(e) => setDescriptionDraft(e.target.value)}
+                        placeholder="Nhập mô tả công việc..."
+                      />
+                      <div className="dc-task-description-footer">
+                        <small className="dc-task-detail-hint">
+                          {descriptionSaving ? "Đang lưu..." : "Có thể để trống"}
+                        </small>
+                        <button
+                          type="button"
+                          className="dc-description-save"
+                          disabled={
+                            descriptionSaving ||
+                            isSubmitting ||
+                            descriptionDraft ===
+                              (selectedTaskDetail.description || "")
+                          }
+                          onClick={handleDescriptionSave}
+                        >
+                          Lưu mô tả
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p>{selectedTaskDetail.description || "Không có mô tả"}</p>
+                  )}
                 </div>
 
                 <div className="dc-task-detail-grid dc-task-detail-grid--subtle">
-                  <div>
-                    <span className="dc-task-detail-label">Created by</span>
-                    <strong>
-                      {selectedTaskDetail.createdByMemberName || "-"}
-                    </strong>
-                  </div>
                   <div>
                     <span className="dc-task-detail-label">Ngày tạo</span>
                     <strong>
@@ -776,7 +1020,7 @@ function DepartmentCard({
                     </strong>
                   </div>
                   <div>
-                    <span className="dc-task-detail-label">Updated at</span>
+                    <span className="dc-task-detail-label">Cập nhật</span>
                     <strong>
                       {selectedTaskDetail.updatedAtUtc
                         ? new Date(

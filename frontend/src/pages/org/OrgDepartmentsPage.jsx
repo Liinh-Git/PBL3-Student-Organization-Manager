@@ -15,6 +15,7 @@ import {
 import {
   getDepartmentTasks,
   createDepartmentTask,
+  updateTask,
   updateTaskStatus,
   assignTask,
 } from "../../services/taskService.js";
@@ -57,6 +58,59 @@ function OrgDepartmentsPage() {
     myRoleName === "president" ||
     myRoleName === "vice president" ||
     myRoleName === "vicepresident";
+
+  const todayDateInputValue = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const isPastDateInputValue = (value) =>
+    Boolean(value) && value < todayDateInputValue();
+
+  const toTaskDeadlinePayload = (deadline) => {
+    if (!deadline) return null;
+    if (!String(deadline).includes("T") && isPastDateInputValue(deadline)) {
+      throw new Error("Deadline không được là ngày trong quá khứ");
+    }
+    if (String(deadline).includes("T")) return deadline;
+    return new Date(deadline).toISOString();
+  };
+
+  const buildTaskUpdatePayload = (task, patch = {}) => {
+    const merged = { ...(task || {}), ...patch };
+    return {
+      taskName: merged.taskName || merged.name || "Công việc",
+      description: merged.description ?? "",
+      assigneeId: merged.assigneeId || null,
+      deptId: merged.deptId || task?.departmentId || null,
+      deadline: toTaskDeadlinePayload(merged.deadline),
+      priority: merged.priority || "Medium",
+      status: merged.status || "Todo",
+      note: merged.note ?? undefined,
+    };
+  };
+
+  const replaceTaskInDepartments = (taskId, updated) => {
+    setTasksByDepartment((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((deptId) => {
+        next[deptId] = (next[deptId] || []).map((t) =>
+          t.id === taskId ? updated : t,
+        );
+      });
+      return next;
+    });
+  };
+
+  const updateDepartmentTask = async (taskId, patch, currentTask) => {
+    const payload = buildTaskUpdatePayload(currentTask, patch);
+    const updated = await updateTask(taskId, payload);
+    replaceTaskInDepartments(taskId, updated);
+    return updated;
+  };
 
   useEffect(() => {
     if (!orgId || !isMember) return;
@@ -295,6 +349,13 @@ function OrgDepartmentsPage() {
 
     setIsSubmitting(true);
     const form = e.target;
+    const deadline = form.deadline.value;
+
+    if (isPastDateInputValue(deadline)) {
+      alert("Deadline không được là ngày trong quá khứ");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const payload = {
@@ -303,9 +364,8 @@ function OrgDepartmentsPage() {
           description: form.description.value || undefined,
           assigneeId: form.assigneeId.value || undefined,
           deptId: taskModalDept.id,
-          deadline: form.deadline.value
-            ? new Date(form.deadline.value).toISOString()
-            : undefined,
+          priority: form.priority.value || "Medium",
+          deadline: deadline ? new Date(deadline).toISOString() : undefined,
           status: form.status.value || "Todo",
         },
       };
@@ -330,17 +390,69 @@ function OrgDepartmentsPage() {
     setIsSubmitting(true);
     try {
       const updated = await updateTaskStatus(taskId, { status });
-      setTasksByDepartment((prev) => {
-        const next = { ...prev };
-        Object.keys(next).forEach((deptId) => {
-          next[deptId] = (next[deptId] || []).map((t) =>
-            t.id === taskId ? updated : t,
-          );
-        });
-        return next;
-      });
+      replaceTaskInDepartments(taskId, updated);
+      return updated;
     } catch (err) {
       alert(err.message || "Không thể cập nhật trạng thái công việc");
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateTaskDeadline = async (taskId, deadline, currentTask) => {
+    setIsSubmitting(true);
+    try {
+      if (isPastDateInputValue(deadline)) {
+        throw new Error("Deadline không được là ngày trong quá khứ");
+      }
+      const updated = await updateDepartmentTask(
+        taskId,
+        { deadline: deadline || null },
+        currentTask,
+      );
+      return updated;
+    } catch (err) {
+      alert(err.message || "Không thể cập nhật deadline công việc");
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateTaskPriority = async (taskId, priority, currentTask) => {
+    setIsSubmitting(true);
+    try {
+      const updated = await updateDepartmentTask(
+        taskId,
+        { priority: priority || "Medium" },
+        currentTask,
+      );
+      return updated;
+    } catch (err) {
+      alert(err.message || "Không thể cập nhật độ ưu tiên công việc");
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateTaskDescription = async (
+    taskId,
+    description,
+    currentTask,
+  ) => {
+    setIsSubmitting(true);
+    try {
+      const updated = await updateDepartmentTask(
+        taskId,
+        { description: description ?? "" },
+        currentTask,
+      );
+      return updated;
+    } catch (err) {
+      alert(err.message || "Không thể cập nhật mô tả công việc");
+      throw err;
     } finally {
       setIsSubmitting(false);
     }
@@ -590,15 +702,30 @@ function OrgDepartmentsPage() {
                   ))}
                 </select>
               </div>
-              <div
-                style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}
-              >
-                <div style={{ flex: 1 }}>
+              <div className="dept-create-task-row">
+                <div>
                   <label className="dept-form-label">Hạn chót</label>
-                  {/* Sửa type="datetime-local" thành type="date" ở đây: */}
-                  <input type="date" name="deadline" className="dept-input" />
+                  <input
+                    type="date"
+                    name="deadline"
+                    className="dept-input"
+                    min={todayDateInputValue()}
+                  />
                 </div>
-                <div style={{ flex: 1 }}>
+                <div>
+                  <label className="dept-form-label">Độ ưu tiên</label>
+                  <select
+                    name="priority"
+                    className="dept-select"
+                    defaultValue="Medium"
+                  >
+                    <option value="Low">Thấp</option>
+                    <option value="Medium">Trung bình</option>
+                    <option value="High">Cao</option>
+                    <option value="Urgent">Khẩn cấp</option>
+                  </select>
+                </div>
+                <div>
                   <label className="dept-form-label">Trạng thái</label>
                   <select
                     name="status"
@@ -657,6 +784,7 @@ function OrgDepartmentsPage() {
                   canManage={deptCanManage}
                   canManageMembers={deptCanManageMembers}
                   canManageTasks={deptCanManageTasks}
+                  currentMemberId={myMember?.id || null}
                   isSubmitting={isSubmitting}
                   onEdit={setEditingDept}
                   onDelete={() => setDeptToDelete(dept.id)} // Truyền trigger thay vì xóa ngay
@@ -665,6 +793,9 @@ function OrgDepartmentsPage() {
                   tasks={tasksByDepartment[dept.id] || []}
                   onOpenCreateTask={() => setTaskModalDept(dept)} // Truyền trigger mở Popup Tạo Task
                   onUpdateTaskStatus={handleUpdateTaskStatus}
+                  onUpdateTaskDeadline={handleUpdateTaskDeadline}
+                  onUpdateTaskPriority={handleUpdateTaskPriority}
+                  onUpdateTaskDescription={handleUpdateTaskDescription}
                   onAssignTask={handleAssignTask}
                 />
               );

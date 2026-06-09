@@ -1,6 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap");
-
 :root {
+  --app-font-family: "Segoe UI", sans-serif;
   --bg-page: #ffffff;
   --bg-surface: #eaefef;
   --bg-soft: #eaeff2;
@@ -28,11 +27,12 @@
 
 * {
   box-sizing: border-box;
+  font-family: var(--app-font-family) !important;
 }
 
 body {
   margin: 0;
-  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--app-font-family);
   background: var(--bg-page);
   color: var(--ink-900);
   -webkit-font-smoothing: antialiased;
@@ -51,8 +51,7 @@ a:hover,
 }
 
 code {
-  font-family:
-    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--app-font-family);
 }
 
 /* App Layout */
@@ -200,7 +199,7 @@ code {
 .sidebar-header h2 {
   margin: 0;
   color: #ffffff;
-  font-family: "Inter", "Segoe UI", sans-serif;
+  font-family: var(--app-font-family);
   font-weight: 900;
   font-size: 16px;
   letter-spacing: 0;

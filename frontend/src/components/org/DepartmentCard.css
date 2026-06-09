@@ -584,6 +584,42 @@
   outline: none;
 }
 
+.dc-date-input {
+  width: 100%;
+  min-height: 34px;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.dc-date-input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.14);
+}
+
+.dc-description-textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  resize: vertical;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  outline: none;
+}
+
+.dc-description-textarea:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.14);
+}
+
 .dc-add-footer {
   display: flex;
   justify-content: flex-end;
@@ -775,6 +811,77 @@
   font-size: 0.875rem;
   line-height: 1.5;
   word-break: break-word;
+}
+
+.dc-task-deadline-control {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.dc-task-status-readonly {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.dc-task-confirm-done {
+  width: fit-content;
+  min-height: 32px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dc-task-confirm-done:hover:not(:disabled) {
+  background: #dcfce7;
+}
+
+.dc-task-confirm-done:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.dc-task-detail-hint {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.dc-task-description-control {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.dc-task-description-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dc-description-save {
+  min-height: 32px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dc-description-save:hover:not(:disabled) {
+  background: #ffedd5;
+}
+
+.dc-description-save:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .dc-task-detail-error {

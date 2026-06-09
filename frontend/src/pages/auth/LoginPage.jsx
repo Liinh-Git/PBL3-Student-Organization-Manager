@@ -80,7 +80,7 @@ function LoginPage() {
                   id="email"
                   name="email"
                   className="auth-input"
-                  placeholder="ten@truong.edu.vn"
+                  placeholder="Email đăng nhập"
                   value={formData.email}
                   onChange={handleChange}
                   disabled={isSubmitting}

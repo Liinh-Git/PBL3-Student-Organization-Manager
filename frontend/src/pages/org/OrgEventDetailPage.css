@@ -1569,6 +1569,17 @@
   background: var(--event-primary-hover);
 }
 
+.workspace-button.danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.workspace-button.danger:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
 .mini-ghost-button,
 .workspace-button.ghost {
   background: #ffffff;
@@ -1960,6 +1971,40 @@
   gap: 8px;
 }
 
+.attendee-status-badge,
+.attendee-review-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border-radius: var(--event-radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.attendee-status--checked,
+.attendee-review-badge--approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.attendee-status--pending {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.attendee-status--registered {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.attendee-review-badge--rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .workspace-modal-backdrop {
   background: rgba(15, 23, 42, 0.4);
   backdrop-filter: blur(2px);
@@ -1973,6 +2018,81 @@
   border-radius: var(--event-radius-md);
   background: #ffffff;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.workspace-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(3px);
+}
+
+.workspace-confirm-modal {
+  width: min(440px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--event-border);
+  border-radius: var(--event-radius-md);
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
+}
+
+.workspace-confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--event-border);
+}
+
+.workspace-confirm-header h2 {
+  margin: 2px 0 0;
+  color: var(--event-text-main);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.workspace-confirm-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+}
+
+.workspace-confirm-icon--danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.workspace-confirm-body {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+}
+
+.workspace-confirm-body p {
+  margin: 0;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.workspace-confirm-note {
+  color: #64748b !important;
+}
+
+.workspace-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 20px 18px;
 }
 
 .workspace-modal-header {

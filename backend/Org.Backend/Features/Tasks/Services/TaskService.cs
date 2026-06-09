@@ -262,10 +262,11 @@ public class TaskService : ITaskService
 
         var orgId = await GetTaskOrgIdAsync(task, ct);
         await VerifyMembershipAsync(orgId, userId, ct);
-        await EnsureTaskStatusUpdatePermissionAsync(task, orgId, userId, ct);
+        var requestedStatus = ParseStatus(request.Status);
+        await EnsureTaskStatusUpdatePermissionAsync(task, orgId, userId, requestedStatus, ct);
 
         var previousStatus = task.Status;
-        task.Status = ParseStatus(request.Status);
+        task.Status = requestedStatus;
         task.UpdatedAt = DateTime.UtcNow;
         ApplyCompletedAt(task);
 
@@ -379,7 +380,12 @@ public class TaskService : ITaskService
             ct);
     }
 
-    private async Task EnsureTaskStatusUpdatePermissionAsync(OrgTask task, Guid orgId, Guid userId, CancellationToken ct)
+    private async Task EnsureTaskStatusUpdatePermissionAsync(
+        OrgTask task,
+        Guid orgId,
+        Guid userId,
+        DomainTaskStatus requestedStatus,
+        CancellationToken ct)
     {
         if (task.EventCategoryId.HasValue)
         {
@@ -426,11 +432,16 @@ public class TaskService : ITaskService
 
             if (isAssignedUser)
             {
+                if (requestedStatus != DomainTaskStatus.Done)
+                {
+                    throw new UnauthorizedAccessException("Bạn chỉ có thể xác nhận hoàn thành task được giao");
+                }
+
                 return;
             }
         }
 
-        throw new UnauthorizedAccessException("Only department managers, leaders, or the assigned member can update task status");
+        throw new UnauthorizedAccessException("Chỉ quản lý phòng ban, chủ tịch hoặc người được gán task mới có thể cập nhật trạng thái");
     }
 
     private async Task EnsureAssigneeIsEligibleForEventTaskAsync(
@@ -661,7 +672,17 @@ public class TaskService : ITaskService
 
     private static DateTime? ToUtc(DateTime? value)
     {
-        return value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : null;
+        if (!value.HasValue)
+        {
+            return null;
+        }
+
+        if (value.Value.Date < DateTime.UtcNow.Date)
+        {
+            throw new ArgumentException("Deadline không được là ngày trong quá khứ");
+        }
+
+        return DateTime.SpecifyKind(value.Value, DateTimeKind.Utc);
     }
 
     private static void ApplyCompletedAt(OrgTask task)

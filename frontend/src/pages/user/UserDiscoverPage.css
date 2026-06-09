@@ -2,8 +2,6 @@
    UserDiscoverPage.css  –  2-Column Redesign (Orange Theme)
    --------------------------------------------- */
 
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Sora:wght@400;500;600;700&display=swap");
-
 /* -- Root tokens ------------------------------- */
 :root {
   --dsc-blue: #ea580c;
@@ -32,8 +30,8 @@
   --dsc-radius-sm: 10px;
   --dsc-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
   --dsc-shadow-md: 0 10px 24px rgba(15, 23, 42, 0.12);
-  --dsc-font-body: "Segoe UI", sans-serif;
-  --dsc-font-title: "Sora", sans-serif;
+  --dsc-font-body: var(--app-font-family);
+  --dsc-font-title: var(--app-font-family);
 }
 
 /* -- Page shell -------------------------------- */
@@ -1535,7 +1533,7 @@
 .discover-events-grid .event-card-status-badge > * {
   background-color: #d1fae5 !important;
   color: #059669 !important;
-  font-family: var(--dsc-font-title), "Sora", sans-serif !important;
+  font-family: var(--dsc-font-title) !important;
   font-weight: 700 !important;
   font-size: 0.75rem !important;
   padding: 0.35rem 0.7rem !important;
