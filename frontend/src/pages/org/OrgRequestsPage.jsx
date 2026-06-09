@@ -81,13 +81,12 @@ const IconReply = () => (
   </svg>
 );
 
+// Lọc bỏ trạng thái Cancelled và Closed
 const STATUS_OPTIONS = [
   { value: "All", label: "Tất cả yêu cầu" },
   { value: "Pending", label: "Đang chờ xử lý" },
   { value: "Approved", label: "Đã chấp thuận" },
   { value: "Rejected", label: "Đã từ chối" },
-  { value: "Cancelled", label: "Đã hủy" },
-  { value: "Closed", label: "Đã đóng" },
 ];
 
 function getStatusBadgeClass(status) {
@@ -117,6 +116,14 @@ function OrgRequestsPage() {
   const [error, setError] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
+  // State quản lý popup
+  const [reviewModal, setReviewModal] = useState({
+    isOpen: false,
+    requestId: null,
+    decision: null,
+  });
+  const [reviewNote, setReviewNote] = useState("");
+
   const canView =
     isMember &&
     (permissions.includes("org.requests.view") ||
@@ -135,7 +142,11 @@ function OrgRequestsPage() {
       setError(null);
       try {
         const data = await getOrganizationRequests(orgId);
-        setRequests(data);
+        // Chỉ lưu các yêu cầu Pending, Approved, Rejected
+        const activeRequests = data.filter((r) =>
+          ["Pending", "Approved", "Rejected"].includes(r.status),
+        );
+        setRequests(activeRequests);
         const memberData = await getOrganizationMembers(orgId);
         setMembers(memberData);
       } catch (err) {
@@ -191,17 +202,17 @@ function OrgRequestsPage() {
     return { pending, approved, rejected, total: requests.length };
   }, [requests]);
 
-  const handleReview = async (requestId, decision) => {
+  // Mở modal duyệt
+  const handleReviewClick = (requestId, decision) => {
     if (!canReview) return;
+    setReviewModal({ isOpen: true, requestId, decision });
+    setReviewNote(""); // Reset lại ghi chú
+  };
 
-    const reviewNote = window.prompt(
-      `${decision} request${decision === "Rejected" ? " - nhập lý do (optional)" : " - ghi chú (optional)"}`,
-      "",
-    );
-
-    if (reviewNote === null) {
-      return;
-    }
+  // Xác nhận gọi API
+  const confirmReview = async () => {
+    const { requestId, decision } = reviewModal;
+    if (!requestId || !decision) return;
 
     setIsSubmitting(true);
     try {
@@ -209,6 +220,8 @@ function OrgRequestsPage() {
       setRequests((prev) =>
         prev.map((item) => (item.id === requestId ? updated : item)),
       );
+      // Đóng modal sau khi thành công
+      setReviewModal({ isOpen: false, requestId: null, decision: null });
     } catch (err) {
       alert(err.message || "Không thể duyệt yêu cầu");
     } finally {
@@ -267,37 +280,6 @@ function OrgRequestsPage() {
       </div>
     );
   }
-
-  const summaryCards = [
-    {
-      key: "total",
-      label: "Tất cả đơn",
-      value: summary.total,
-      tone: "primary",
-      icon: <IconUser />,
-    },
-    {
-      key: "pending",
-      label: "Cần xử lý",
-      value: summary.pending,
-      tone: "warning",
-      icon: <IconClock />,
-    },
-    {
-      key: "approved",
-      label: "Đã chấp thuận",
-      value: summary.approved,
-      tone: "success",
-      icon: <IconCheck />,
-    },
-    {
-      key: "rejected",
-      label: "Đã từ chối",
-      value: summary.rejected,
-      tone: "danger",
-      icon: <IconX />,
-    },
-  ];
 
   return (
     <div className="kora-page-wrapper">
@@ -382,7 +364,7 @@ function OrgRequestsPage() {
               <button
                 key={option.value}
                 type="button"
-                className={`kora-filter-btn ${statusFilter === option.value ? "active" : ""}`}
+                className={`kora-filter-btn filter-${option.value} ${statusFilter === option.value ? "active" : ""}`}
                 onClick={() => setStatusFilter(option.value)}
               >
                 {option.label}
@@ -410,13 +392,31 @@ function OrgRequestsPage() {
                 .charAt(0)
                 .toUpperCase();
 
+              // Xác định trạng thái tiếng Việt
+              let statusLabel = item.status;
+              if (item.status === "Pending") statusLabel = "ĐANG CHỜ";
+              if (item.status === "Approved") statusLabel = "ĐÃ CHẤP THUẬN";
+              if (item.status === "Rejected") statusLabel = "ĐÃ TỪ CHỐI";
+
               return (
                 <div key={item.id} className="kora-req-card">
                   {/* Top: Avatar, Info, Time */}
                   <div className="kora-req-top">
                     <div className="kora-req-avatar">
-                      {/* Mock Avatar Gradient, using Initial */}
-                      {senderInitial}
+                      {item.senderAvatarUrl ||
+                      item.avatarUrl ||
+                      item.userAvatarUrl ? (
+                        <img
+                          src={toAbsoluteMediaUrl(
+                            item.senderAvatarUrl ||
+                              item.avatarUrl ||
+                              item.userAvatarUrl,
+                          )}
+                          alt={item.senderName}
+                        />
+                      ) : (
+                        senderInitial
+                      )}
                     </div>
                     <div className="kora-req-info">
                       <h4>{item.senderName}</h4>
@@ -425,16 +425,6 @@ function OrgRequestsPage() {
                         <span className="kora-tag kora-tag-blue">
                           {item.requestType}
                         </span>
-                        {item.desiredDepartmentName && (
-                          <span className="kora-tag kora-tag-gray">
-                            {item.desiredDepartmentName}
-                          </span>
-                        )}
-                        {item.desiredPosition && (
-                          <span className="kora-tag kora-tag-gray">
-                            {item.desiredPosition}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <div className="kora-req-time">
@@ -447,10 +437,9 @@ function OrgRequestsPage() {
                     {item.title && (
                       <h5 className="kora-req-title">{item.title}</h5>
                     )}
-                    <p className="kora-req-desc">{item.content}</p>
 
                     <div className="kora-req-meta">
-                      <span className={statusClass}>{item.status}</span>
+                      <span className={statusClass}>{statusLabel}</span>
                       {item.reviewedByMemberName && (
                         <span className="kora-req-reviewer">
                           | Duyệt bởi: {item.reviewedByMemberName} (
@@ -473,14 +462,14 @@ function OrgRequestsPage() {
                         <button
                           className="kora-btn-accept"
                           disabled={isSubmitting}
-                          onClick={() => handleReview(item.id, "Approved")}
+                          onClick={() => handleReviewClick(item.id, "Approved")}
                         >
                           CHẤP NHẬN
                         </button>
                         <button
                           className="kora-btn-reject"
                           disabled={isSubmitting}
-                          onClick={() => handleReview(item.id, "Rejected")}
+                          onClick={() => handleReviewClick(item.id, "Rejected")}
                         >
                           TỪ CHỐI
                         </button>
@@ -497,6 +486,56 @@ function OrgRequestsPage() {
           </div>
         )}
       </div>
+
+      {/* POPUP MODAL DUYỆT */}
+      {reviewModal.isOpen && (
+        <div className="kora-modal-overlay">
+          <div className="kora-modal-content">
+            <h3 className="kora-modal-title">
+              {reviewModal.decision === "Approved"
+                ? "Chấp thuận yêu cầu"
+                : "Từ chối yêu cầu"}
+            </h3>
+
+            <div className="kora-modal-form-group">
+              <label className="kora-modal-label">
+                GHI CHÚ{" "}
+                {reviewModal.decision === "Rejected" ? "(LÝ DO)" : "(TÙY CHỌN)"}
+              </label>
+              <textarea
+                className="kora-modal-input"
+                value={reviewNote}
+                onChange={(e) => setReviewNote(e.target.value)}
+                rows={3}
+                placeholder="Nhập ghi chú tại đây..."
+              />
+            </div>
+
+            <div className="kora-modal-actions">
+              <button
+                className="kora-modal-btn-cancel"
+                disabled={isSubmitting}
+                onClick={() =>
+                  setReviewModal({
+                    isOpen: false,
+                    requestId: null,
+                    decision: null,
+                  })
+                }
+              >
+                Hủy
+              </button>
+              <button
+                className="kora-modal-btn-confirm"
+                disabled={isSubmitting}
+                onClick={confirmReview}
+              >
+                {isSubmitting ? "Đang xử lý..." : "Xác nhận"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

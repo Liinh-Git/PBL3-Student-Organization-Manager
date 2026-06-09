@@ -59,6 +59,7 @@
 }
 
 .user-avatar-upload__button {
+  font-family: "Segoe UI", sans-serif;
   display: inline-flex;
   align-items: center;
   justify-content: center;

@@ -75,9 +75,11 @@ function AppRouter() {
             <Route path="/user/friends" element={<UserFriendsPage />} />
             <Route path="/user/discover" element={<UserDiscoverPage />} />
 
+            {/* Organization overview can show public data for non-members. */}
+            <Route path="/org/overview" element={<OrgOverviewPage />} />
+
             {/* Org workspace routes (requires membership) */}
             <Route element={<OrgMemberRoute />}>
-              <Route path="/org/overview" element={<OrgOverviewPage />} />
               <Route path="/org/members" element={<OrgMembersPage />} />
               <Route path="/org/departments" element={<OrgDepartmentsPage />} />
               <Route path="/org/events" element={<OrgEventsPage />} />

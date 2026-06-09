@@ -378,3 +378,40 @@
   color: #64748b;
   font-weight: 600;
 }
+
+/* =======================================================
+   BỔ SUNG CSS CHO AVATAR, CHỦ NHIỆM & POPUP XÓA
+   ======================================================= */
+
+/* Hình ảnh Avatar */
+.user-avatar {
+  overflow: hidden; /* Ngăn ảnh tràn viền thẻ div */
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Màu Role Badge dành riêng cho Chủ nhiệm (Màu tím nhạt) */
+.role-badge.president {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+/* Nút Xóa (Màu đỏ) trong Popup */
+.org-btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.org-btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.org-btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

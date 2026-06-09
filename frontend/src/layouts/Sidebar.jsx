@@ -92,6 +92,9 @@ function Sidebar() {
     navigate(`/org/overview?orgId=${orgId}`);
   };
 
+  // Lấy URL ảnh tuyệt đối của user nếu có
+  const userAvatarUrl = getAbsoluteImageUrl(user?.avatarUrl || user?.AvatarUrl);
+
   return (
     <>
       <aside className="app-rail">
@@ -102,8 +105,30 @@ function Sidebar() {
           onClick={handleSelectUserWorkspace}
           className={`app-rail-icon ${selectedWorkspace === "user" ? "app-rail-icon--active" : ""}`}
           title="User Workspace"
+          style={
+            userAvatarUrl
+              ? {
+                  padding: 0,
+                  overflow: "hidden",
+                  background: "transparent",
+                }
+              : {}
+          }
         >
-          {getInitials(user?.fullName)}
+          {userAvatarUrl ? (
+            <img
+              src={userAvatarUrl}
+              alt={user?.fullName || "User Avatar"}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "inherit",
+              }}
+            />
+          ) : (
+            getInitials(user?.fullName)
+          )}
         </button>
 
         <div className="app-rail-divider"></div>
@@ -195,11 +220,18 @@ function Sidebar() {
                     to="/user/dashboard"
                     className={isActive("/user/dashboard") ? "active" : ""}
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="3" y="3" width="7" height="7" rx="1"/>
-                      <rect x="14" y="3" width="7" height="7" rx="1"/>
-                      <rect x="14" y="14" width="7" height="7" rx="1"/>
-                      <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <rect x="3" y="3" width="7" height="7" rx="1" />
+                      <rect x="14" y="3" width="7" height="7" rx="1" />
+                      <rect x="14" y="14" width="7" height="7" rx="1" />
+                      <rect x="3" y="14" width="7" height="7" rx="1" />
                     </svg>
                     Dashboard
                   </Link>

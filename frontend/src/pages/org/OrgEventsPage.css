@@ -1,0 +1,513 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap");
+
+.org-events-page {
+  font-family: "Nunito", sans-serif;
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 2rem 2.5rem; /* ← Thêm dòng này */
+  padding-bottom: 3rem;
+}
+
+/* ── HEADER ── */
+.oe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.oe-header h1 {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.4rem 0;
+}
+
+.oe-header p {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ── GRID LAYOUT ── */
+.oe-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+/* ── CUSTOM CARD (Giống ảnh Demo 1) ── */
+.oe-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.oe-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.08);
+}
+
+.oe-card-cover {
+  position: relative;
+  height: 150px;
+  width: 100%;
+  background-color: #f8fafc;
+}
+
+.oe-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Badge Góc Trái (Ngày tháng) */
+.oe-badge-date {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: white;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.35rem 0.6rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 58px;
+}
+
+.oe-bd-month {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.oe-bd-day {
+  font-family: "Sora", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+/* Badge Góc Phải (Trạng thái sự kiện) */
+.oe-badge-status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.status-published {
+  color: #16a34a;
+  background: #dcfce7;
+}
+.status-draft {
+  color: #64748b;
+  background: #f1f5f9;
+}
+.status-completed {
+  color: #0284c7;
+  background: #e0f2fe;
+}
+.status-cancelled {
+  color: #dc2626;
+  background: #fee2e2;
+}
+.status-ongoing {
+  color: #ea580c;
+  background: #ffedd5;
+}
+.status-default {
+  color: #475569;
+  background: #e2e8f0;
+}
+
+/* Thân nội dung Card */
+.oe-card-body {
+  padding: 1.25rem 1.25rem 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.oe-card-title {
+  font-family: "Sora", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.oe-card-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 0.2rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.oe-card-info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.truncate-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+/* Khối Nút Bấm Card */
+.oe-card-footer {
+  padding: 0 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.oe-card-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.oe-btn {
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.oe-btn-full {
+  width: 100%;
+}
+.oe-btn-flex {
+  flex: 1;
+}
+.oe-btn-icon-only {
+  padding: 0.6rem;
+  flex: 0 0 auto;
+  min-width: 40px;
+}
+
+.oe-btn-primary {
+  background: #ea580c;
+  color: white;
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.2);
+}
+.oe-btn-primary:hover:not(:disabled) {
+  background: #c2410c;
+}
+
+.oe-btn-outline {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+.oe-btn-outline:hover:not(:disabled) {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.oe-btn-danger {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+.oe-btn-danger:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.oe-btn-publish {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}
+.oe-btn-publish:hover:not(:disabled) {
+  background: #ffedd5;
+}
+
+/* ── MODALS & FORMS TẠO / SỬA ── */
+.oe-inline-edit-wrapper {
+  margin-bottom: 2rem;
+}
+.oe-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  padding: 1.5rem;
+}
+
+.oe-modal {
+  width: 100%;
+  max-width: 800px;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.15);
+}
+
+.oe-form-panel {
+  padding: 1.5rem 2rem;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+}
+.oe-modal .oe-form-panel {
+  border: none;
+  padding: 1.5rem 2rem;
+}
+
+.oe-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 1rem;
+}
+
+.oe-eyebrow {
+  color: #ea580c;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.3rem 0;
+}
+
+.oe-form-header h2 {
+  font-family: "Sora", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.oe-icon-btn {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.oe-icon-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.oe-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+.oe-form-full {
+  grid-column: 1 / -1;
+}
+.oe-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.4rem;
+}
+
+.oe-input,
+.oe-select {
+  width: 100%;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-family: "Nunito", sans-serif;
+  font-size: 0.9rem;
+  color: #0f172a;
+  outline: none;
+  transition:
+    border 0.2s,
+    box-shadow 0.2s;
+}
+.oe-input:focus,
+.oe-select:focus {
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+}
+
+.oe-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.5rem;
+}
+
+.oe-table-wrap {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+.oe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.oe-table th {
+  background: #f8fafc;
+  padding: 0.6rem;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  color: #64748b;
+}
+.oe-table td {
+  padding: 0.6rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.oe-table-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.oe-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.oe-chip {
+  background: #f1f5f9;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+.oe-chip button {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+}
+
+/* ── UPLOAD MODAL ── */
+.oe-upload-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+}
+.oe-upload-modal {
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.15);
+}
+.oe-upload-modal h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+.oe-upload-modal img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+.oe-upload-modal p {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 1.5rem 0;
+  word-break: break-all;
+}
+.oe-upload-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .oe-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .oe-grid {
+    grid-template-columns: 1fr;
+  }
+  .oe-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

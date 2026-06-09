@@ -37,8 +37,13 @@ function OrgDepartmentsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingDept, setEditingDept] = useState(null);
+
+  // State quản lý Popup Xóa và Popup Thêm Task
+  const [deptToDelete, setDeptToDelete] = useState(null);
+  const [taskModalDept, setTaskModalDept] = useState(null);
 
   const canManage = permissions.includes("org.departments.manage");
   const canManageMembers = permissions.includes("org.members.manage");
@@ -91,6 +96,7 @@ function OrgDepartmentsPage() {
       <ForbiddenState message="You are not a member of this organization" />
     );
 
+  // --- Logic Phòng Ban ---
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!canManage) return;
@@ -160,14 +166,13 @@ function OrgDepartmentsPage() {
     }
   };
 
-  const handleDelete = async (deptId) => {
-    if (!canManage) return;
-    if (!window.confirm("Are you sure you want to delete this department?"))
-      return;
+  const confirmDelete = async () => {
+    if (!canManage || !deptToDelete) return;
     setIsSubmitting(true);
     try {
-      await deleteDepartment(deptId);
-      setDepartments((prev) => prev.filter((d) => d.id !== deptId));
+      await deleteDepartment(deptToDelete);
+      setDepartments((prev) => prev.filter((d) => d.id !== deptToDelete));
+      setDeptToDelete(null); // Đóng popup
     } catch (err) {
       alert(err.message || "Không thể xóa phòng ban");
     } finally {
@@ -283,26 +288,37 @@ function OrgDepartmentsPage() {
     }
   };
 
-  const handleCreateTask = async (deptId, taskForm) => {
+  // --- Logic Task ---
+  const handleCreateTaskSubmit = async (e) => {
+    e.preventDefault();
+    if (!taskModalDept) return;
+
     setIsSubmitting(true);
+    const form = e.target;
+
     try {
       const payload = {
         task: {
-          taskName: taskForm.taskName,
-          description: taskForm.description || undefined,
-          assigneeId: taskForm.assigneeId || undefined,
-          deptId: deptId,
-          deadline: taskForm.deadline
-            ? new Date(taskForm.deadline).toISOString()
+          taskName: form.taskName.value,
+          description: form.description.value || undefined,
+          assigneeId: form.assigneeId.value || undefined,
+          deptId: taskModalDept.id,
+          deadline: form.deadline.value
+            ? new Date(form.deadline.value).toISOString()
             : undefined,
-          status: taskForm.status || "Todo",
+          status: form.status.value || "Todo",
         },
       };
-      const created = await createDepartmentTask(orgId, deptId, payload);
+      const created = await createDepartmentTask(
+        orgId,
+        taskModalDept.id,
+        payload,
+      );
       setTasksByDepartment((prev) => ({
         ...prev,
-        [deptId]: [created, ...(prev[deptId] || [])],
+        [taskModalDept.id]: [created, ...(prev[taskModalDept.id] || [])],
       }));
+      setTaskModalDept(null); // Đóng popup
     } catch (err) {
       alert(err.message || "Không thể tạo công việc phòng ban");
     } finally {
@@ -493,6 +509,130 @@ function OrgDepartmentsPage() {
         </div>
       )}
 
+      {/* POPUP: Xác nhận xóa phòng ban */}
+      {deptToDelete && canManage && (
+        <div
+          className="dept-modal-overlay"
+          onClick={() => setDeptToDelete(null)}
+        >
+          <div className="dept-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="dept-modal-header">
+              <h3>Xác nhận xóa</h3>
+              <p>
+                Bạn có chắc chắn muốn xóa phòng ban này không? Toàn bộ dữ liệu
+                và công việc sẽ bị gỡ bỏ. Hành động này không thể hoàn tác.
+              </p>
+            </div>
+            <div className="dept-modal-footer">
+              <button
+                type="button"
+                onClick={() => setDeptToDelete(null)}
+                className="dept-btn dept-btn-secondary"
+                disabled={isSubmitting}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="dept-btn dept-btn-danger"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Đang xóa..." : "Xóa phòng ban"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP: Tạo Task Mới */}
+      {taskModalDept && (
+        <div
+          className="dept-modal-overlay"
+          onClick={() => setTaskModalDept(null)}
+        >
+          <div className="dept-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="dept-modal-header">
+              <h3>Thêm công việc mới</h3>
+              <p>
+                Phòng ban:{" "}
+                <strong>
+                  {taskModalDept.departmentName || taskModalDept.deptName}
+                </strong>
+              </p>
+            </div>
+            <form onSubmit={handleCreateTaskSubmit}>
+              <div className="dept-form-group">
+                <label className="dept-form-label">Tên công việc *</label>
+                <input
+                  name="taskName"
+                  required
+                  className="dept-input"
+                  placeholder="Nhập tên công việc..."
+                />
+              </div>
+              <div className="dept-form-group">
+                <label className="dept-form-label">Mô tả</label>
+                <textarea
+                  name="description"
+                  className="dept-input dept-input--textarea"
+                  placeholder="Nhập mô tả..."
+                />
+              </div>
+              <div className="dept-form-group">
+                <label className="dept-form-label">Người thực hiện</label>
+                <select name="assigneeId" className="dept-select">
+                  <option value="">-- Chọn thành viên --</option>
+                  {getDepartmentMembers(taskModalDept).map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.fullName || member.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div
+                style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}
+              >
+                <div style={{ flex: 1 }}>
+                  <label className="dept-form-label">Hạn chót</label>
+                  {/* Sửa type="datetime-local" thành type="date" ở đây: */}
+                  <input type="date" name="deadline" className="dept-input" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="dept-form-label">Trạng thái</label>
+                  <select
+                    name="status"
+                    className="dept-select"
+                    defaultValue="Todo"
+                  >
+                    <option value="Todo">Cần làm</option>
+                    <option value="InProgress">Đang làm</option>
+                    <option value="Done">Hoàn thành</option>
+                  </select>
+                </div>
+              </div>
+              <div className="dept-modal-footer">
+                <button
+                  type="button"
+                  onClick={() => setTaskModalDept(null)}
+                  className="dept-btn dept-btn-secondary"
+                  disabled={isSubmitting}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="dept-btn dept-btn-primary"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Đang tạo..." : "Tạo công việc"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {departments.length === 0 ? (
         <EmptyState message="Chưa có phòng ban nào được tạo." />
       ) : (
@@ -519,11 +659,11 @@ function OrgDepartmentsPage() {
                   canManageTasks={deptCanManageTasks}
                   isSubmitting={isSubmitting}
                   onEdit={setEditingDept}
-                  onDelete={handleDelete}
+                  onDelete={() => setDeptToDelete(dept.id)} // Truyền trigger thay vì xóa ngay
                   onAddMembers={handleAddMembersToDepartment}
                   onRemoveMember={handleRemoveMemberFromDepartment}
                   tasks={tasksByDepartment[dept.id] || []}
-                  onCreateTask={handleCreateTask}
+                  onOpenCreateTask={() => setTaskModalDept(dept)} // Truyền trigger mở Popup Tạo Task
                   onUpdateTaskStatus={handleUpdateTaskStatus}
                   onAssignTask={handleAssignTask}
                 />

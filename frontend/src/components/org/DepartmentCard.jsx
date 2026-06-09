@@ -51,7 +51,7 @@ const sortByDeadline = (a, b) => {
   return ad - bd;
 };
 
-/* ─── AvatarStack ─────────────────────────────── */
+/* ─── AvatarStack (Đã trả về dạng chữ cái đầu) ── */
 function AvatarStack({ members, max = 4, onClick }) {
   const shown = members.slice(0, max);
   const extra = members.length - max;
@@ -236,89 +236,6 @@ function MembersPopup({
   );
 }
 
-/* ─── AddTaskForm ─────────────────────────────── */
-function AddTaskForm({
-  deptId,
-  departmentMembers,
-  isSubmitting,
-  onCreateTask,
-  onClose,
-}) {
-  const [form, setForm] = useState({
-    taskName: "",
-    description: "",
-    deadline: "",
-    status: "Todo",
-    assigneeId: "",
-  });
-  const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!form.taskName.trim()) return;
-    onCreateTask(deptId, { ...form });
-    onClose();
-  };
-
-  return (
-    <form className="dc-add-task-form" onSubmit={handleSubmit}>
-      <input
-        className="dc-add-input"
-        placeholder="Tên nhiệm vụ *"
-        value={form.taskName}
-        onChange={set("taskName")}
-        required
-        autoFocus
-      />
-      <textarea
-        className="dc-add-input dc-add-textarea"
-        placeholder="Mô tả..."
-        value={form.description}
-        onChange={set("description")}
-      />
-      <div className="dc-add-row">
-        <select
-          className="dc-add-select"
-          value={form.status}
-          onChange={set("status")}
-        >
-          {Object.entries(STATUS_META).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v.label}
-            </option>
-          ))}
-        </select>
-        <input
-          type="date"
-          className="dc-add-select"
-          value={form.deadline}
-          onChange={set("deadline")}
-        />
-        <select
-          className="dc-add-select"
-          value={form.assigneeId}
-          onChange={set("assigneeId")}
-        >
-          <option value="">Giao cho...</option>
-          {departmentMembers.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.fullName || m.email}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="dc-add-footer">
-        <button type="button" className="dc-add-cancel" onClick={onClose}>
-          Hủy
-        </button>
-        <button type="submit" className="dc-add-submit" disabled={isSubmitting}>
-          {isSubmitting ? "Đang lưu..." : "Thêm nhiệm vụ"}
-        </button>
-      </div>
-    </form>
-  );
-}
-
 /* ─── DepartmentCard (main) ───────────────────── */
 function DepartmentCard({
   department,
@@ -336,14 +253,13 @@ function DepartmentCard({
   onAddMembers,
   onRemoveMember,
   tasks,
-  onCreateTask,
+  onOpenCreateTask,
   onUpdateTaskStatus,
   onAssignTask,
   initiallyExpanded = false,
 }) {
   const [expanded, setExpanded] = useState(initiallyExpanded);
   const [showMembers, setShowMembers] = useState(false);
-  const [showAddTask, setShowAddTask] = useState(false);
   const [statusFilter, setStatusFilter] = useState(["All"]);
   const [selectedTaskDetail, setSelectedTaskDetail] = useState(null);
   const [taskDetailLoading, setTaskDetailLoading] = useState(false);
@@ -516,11 +432,11 @@ function DepartmentCard({
                 </span>
               )}
             </div>
-            {canManageTasks && !showAddTask && (
+            {canManageTasks && (
               <button
                 type="button"
                 className="dc-add-task-btn"
-                onClick={() => setShowAddTask(true)}
+                onClick={onOpenCreateTask}
               >
                 + Thêm
               </button>
@@ -559,16 +475,6 @@ function DepartmentCard({
               </button>
             ))}
           </div>
-
-          {showAddTask && (
-            <AddTaskForm
-              deptId={deptId}
-              departmentMembers={departmentMembers}
-              isSubmitting={isSubmitting}
-              onCreateTask={onCreateTask}
-              onClose={() => setShowAddTask(false)}
-            />
-          )}
 
           <div className="dc-task-list">
             {visibleTasks.length === 0 ? (

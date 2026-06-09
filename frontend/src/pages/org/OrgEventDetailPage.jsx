@@ -44,6 +44,9 @@ import ErrorState from "../../components/shared/ErrorState";
 import ForbiddenState from "../../components/shared/ForbiddenState";
 import EventWorkspacePreview from "../../components/event/EventWorkspacePreview.jsx";
 
+// Import file CSS mới
+import "./OrgEventDetailPage.css";
+
 function OrgEventDetailPage() {
   const { eventId } = useParams();
   const [searchParams] = useSearchParams();
@@ -117,7 +120,9 @@ function OrgEventDetailPage() {
         setAttendees(Array.isArray(attendeesData) ? attendeesData : []);
 
         const eventMembersData = await getEventMembers(eventId);
-        setEventMembers(Array.isArray(eventMembersData) ? eventMembersData : []);
+        setEventMembers(
+          Array.isArray(eventMembersData) ? eventMembersData : [],
+        );
 
         const myPermData = await getMyPermissions(orgId);
         setMyRoleName(myPermData?.roleName || "");
@@ -182,17 +187,22 @@ function OrgEventDetailPage() {
 
   const canManage = permissions.includes("org.events.manage");
   const canEditPreviewByRole = ["president", "vice president"].includes(
-    String(myRoleName || "").trim().toLowerCase(),
+    String(myRoleName || "")
+      .trim()
+      .toLowerCase(),
   );
   const isCurrentUserEventOrganizer = eventMembers.some((item) => {
-    const memberId = item.memberId || item.organizationMemberId || item.member?.id;
+    const memberId =
+      item.memberId || item.organizationMemberId || item.member?.id;
     return !!myOrgMemberId && memberId === myOrgMemberId;
   });
   const canEditPreview = canEditPreviewByRole && isCurrentUserEventOrganizer;
   const canManageEventMembers = isCurrentUserEventOrganizer;
   const eventOrganizerMemberIds = new Set(
     eventMembers
-      .map((item) => item.memberId || item.organizationMemberId || item.member?.id)
+      .map(
+        (item) => item.memberId || item.organizationMemberId || item.member?.id,
+      )
       .filter(Boolean),
   );
   const assignableEventMembers = members.filter((member) =>
@@ -255,7 +265,9 @@ function OrgEventDetailPage() {
     try {
       const updated = await reviewAttendeeCheckIn(attendeeId, approve);
       setAttendees((prev) =>
-        prev.map((item) => (item.id === attendeeId ? { ...item, ...updated } : item)),
+        prev.map((item) =>
+          item.id === attendeeId ? { ...item, ...updated } : item,
+        ),
       );
     } catch (err) {
       alert(err.message || "Không thể duyệt check-in");
@@ -609,11 +621,7 @@ function OrgEventDetailPage() {
       return;
     }
 
-    if (
-      !window.confirm(
-        "Xóa category này? Tất cả task bên trong sẽ bị xóa.",
-      )
-    ) {
+    if (!window.confirm("Xóa category này? Tất cả task bên trong sẽ bị xóa.")) {
       return;
     }
 
@@ -645,7 +653,9 @@ function OrgEventDetailPage() {
 
   const handleUpdateEventPreview = async (partialDraft) => {
     if (!canEditPreview || !event) {
-      alert("Bạn không có quyền sửa sự kiện trong preview. Chỉ BTC của sự kiện mới được sửa.");
+      alert(
+        "Bạn không có quyền sửa sự kiện trong preview. Chỉ BTC của sự kiện mới được sửa.",
+      );
       return;
     }
     setIsEventUpdating(true);
@@ -672,7 +682,9 @@ function OrgEventDetailPage() {
           : event.targetParticipants;
 
       const nextTarget =
-        nextTargetRaw === "" || nextTargetRaw === null || nextTargetRaw === undefined
+        nextTargetRaw === "" ||
+        nextTargetRaw === null ||
+        nextTargetRaw === undefined
           ? undefined
           : Number(nextTargetRaw);
 
@@ -687,7 +699,8 @@ function OrgEventDetailPage() {
             ? partialDraft.description || undefined
             : event.description || undefined,
         startDate: nextStartDate || event.startDate,
-        endDate: nextEndDate || event.endDate || nextStartDate || event.startDate,
+        endDate:
+          nextEndDate || event.endDate || nextStartDate || event.startDate,
         location:
           partialDraft.location !== undefined
             ? partialDraft.location || undefined
@@ -701,8 +714,13 @@ function OrgEventDetailPage() {
       });
       setEvent(updated);
     } catch (err) {
-      if (err?.response?.status === 403 || String(err.message || "").includes("403")) {
-        alert("Không đủ quyền cập nhật sự kiện (403). Chỉ thành viên BTC của sự kiện mới được sửa.");
+      if (
+        err?.response?.status === 403 ||
+        String(err.message || "").includes("403")
+      ) {
+        alert(
+          "Không đủ quyền cập nhật sự kiện (403). Chỉ thành viên BTC của sự kiện mới được sửa.",
+        );
       } else {
         alert(err.message || "Không thể cập nhật sự kiện");
       }
@@ -834,7 +852,9 @@ function OrgEventDetailPage() {
       setDraggedTaskId(null);
       return;
     }
-    if (normalizeTaskStatus(draggedTask?.status) !== normalizeTaskStatus(status)) {
+    if (
+      normalizeTaskStatus(draggedTask?.status) !== normalizeTaskStatus(status)
+    ) {
       handleUpdateStatus(draggedTaskId, status, activeCategory.id);
     }
     setDraggedTaskId(null);
@@ -874,7 +894,9 @@ function OrgEventDetailPage() {
     setIsEventMemberSubmitting(true);
     try {
       await removeEventMember(eventMemberId);
-      setEventMembers((prev) => prev.filter((item) => item.id !== eventMemberId));
+      setEventMembers((prev) =>
+        prev.filter((item) => item.id !== eventMemberId),
+      );
       await refreshEventMemberBoard();
     } catch (err) {
       alert(err.message || "Không thể xóa thành viên BTC");
@@ -886,42 +908,91 @@ function OrgEventDetailPage() {
   const Sidebar = () => (
     <aside className="event-sidebar">
       <div className="event-sidebar-header">
-        <button
-          type="button"
-          onClick={() => navigate(`/org/events?orgId=${orgId}`)}
-          className="event-back-button"
-        >
-          ‹ Bảng điều khiển
-        </button>
         <div className="event-title-row">
           <h1>{getEventName(event) || "Chi tiết sự kiện"}</h1>
           <button
             type="button"
             onClick={() => setWorkspaceTab("preview")}
-            className="sidebar-icon-button"
+            className="sidebar-eye-button"
             title="Xem trước & sửa sự kiện"
-            aria-label="Xem trước & sửa sự kiện"
           >
-            ⧉
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
           </button>
         </div>
-        <div className="event-date-row">
-          <span>□</span>
+
+        <div className="event-date-badge">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
           <span>{formatDate(event?.startDate)}</span>
         </div>
+
         <div className="workspace-tab-list">
           <button
             type="button"
-            className={`workspace-tab-btn ${workspaceTab === "preview" ? "active" : ""}`}
-            onClick={() => setWorkspaceTab("preview")}
+            className={`workspace-tab-btn ${workspaceTab === "kanban" ? "active" : ""}`}
+            onClick={() => setWorkspaceTab("kanban")}
           >
-            Xem trước & sửa sự kiện
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="6"></circle>
+              <circle cx="12" cy="12" r="2"></circle>
+            </svg>
+            Lộ trình & Công việc
           </button>
           <button
             type="button"
             className={`workspace-tab-btn ${workspaceTab === "event-members" ? "active" : ""}`}
             onClick={() => setWorkspaceTab("event-members")}
           >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
             Ban tổ chức
           </button>
           <button
@@ -929,15 +1000,40 @@ function OrgEventDetailPage() {
             className={`workspace-tab-btn ${workspaceTab === "attendees" ? "active" : ""}`}
             onClick={() => setWorkspaceTab("attendees")}
           >
-            Danh sách người tham gia
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Danh sách tham gia
           </button>
         </div>
       </div>
 
       <div className="event-roadmap">
-        <div className="roadmap-heading roadmap-heading-clickable" onClick={() => setWorkspaceTab("kanban")}>
-          <span>Lộ trình dự án</span>
-          <div className="roadmap-heading-actions">
+        <div
+          className="roadmap-heading roadmap-heading-clickable"
+          onClick={() => setWorkspaceTab("kanban")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setWorkspaceTab("kanban");
+            }
+          }}
+        >
+          <div className="roadmap-heading-left">
             <button
               type="button"
               className="roadmap-toggle"
@@ -946,24 +1042,63 @@ function OrgEventDetailPage() {
                 setWorkspaceTab("kanban");
                 setIsRoadmapExpanded((prev) => !prev);
               }}
-              title={isRoadmapExpanded ? "Thu gọn lộ trình" : "Mở rộng lộ trình"}
+              aria-label={
+                isRoadmapExpanded
+                  ? "Thu gọn tiến độ dự án"
+                  : "Mở rộng tiến độ dự án"
+              }
             >
-              {isRoadmapExpanded ? "▾" : "▸"}
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{
+                  transform: isRoadmapExpanded
+                    ? "rotate(0deg)"
+                    : "rotate(-90deg)",
+                  transition: "transform 0.2s",
+                }}
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
             </button>
+            <span>TIẾN ĐỘ DỰ ÁN</span>
+          </div>
+          <div className="roadmap-heading-actions">
             {canManage && (
               <button
                 type="button"
-                onClick={() => setShowCreateMilestone(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCreateMilestone(true);
+                }}
                 className="roadmap-add-button"
                 title="Thêm lộ trình"
               >
-                +
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
               </button>
             )}
           </div>
         </div>
 
-        {isRoadmapExpanded && showCreateMilestone && canManage && (
+        {false && isRoadmapExpanded && showCreateMilestone && canManage && (
           <form onSubmit={handleCreateMilestone} className="sidebar-form">
             <input
               name="title"
@@ -1016,7 +1151,21 @@ function OrgEventDetailPage() {
                           setActiveCategoryId(milestoneCategories[0].id);
                       }}
                     >
-                      <span className="flag-icon">⚑</span>
+                      <span className="flag-icon">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                          <line x1="4" y1="22" x2="4" y2="15"></line>
+                        </svg>
+                      </span>
                       <span>{milestone.title || "-"}</span>
                     </button>
                     {canManage && (
@@ -1048,7 +1197,7 @@ function OrgEventDetailPage() {
                     )}
                   </div>
 
-                  {editingMilestone === milestone.id && canManage && (
+                  {false && editingMilestone === milestone.id && canManage && (
                     <form
                       onSubmit={(e) => handleUpdateMilestone(milestone.id, e)}
                       className="sidebar-form nested-form"
@@ -1085,13 +1234,6 @@ function OrgEventDetailPage() {
                       </div>
                     </form>
                   )}
-
-                  {milestone.description &&
-                    editingMilestone !== milestone.id && (
-                      <p className="milestone-description">
-                        {milestone.description}
-                      </p>
-                    )}
 
                   <div className="category-tree">
                     {milestoneCategories.length === 0 && (
@@ -1145,7 +1287,7 @@ function OrgEventDetailPage() {
                           )}
                         </div>
 
-                        {editingCategory === category.id && canManage && (
+                        {false && editingCategory === category.id && canManage && (
                           <form
                             onSubmit={(e) =>
                               handleUpdateCategory(category.id, milestone.id, e)
@@ -1187,7 +1329,7 @@ function OrgEventDetailPage() {
                       </div>
                     ))}
 
-                    {showCreateCategory[milestone.id] && canManage ? (
+                    {false && showCreateCategory[milestone.id] && canManage ? (
                       <form
                         onSubmit={(e) => handleCreateCategory(milestone.id, e)}
                         className="sidebar-form category-create-form"
@@ -1239,7 +1381,20 @@ function OrgEventDetailPage() {
                           }
                           className="add-category-button"
                         >
-                          + Thêm Hạng mục
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                          Thêm hạng mục
                         </button>
                       )
                     )}
@@ -1253,111 +1408,7 @@ function OrgEventDetailPage() {
     </aside>
   );
 
-  const TaskCreatePanel = () => {
-    if (!showCreateTask || !activeCategory || !canManage) return null;
-    return (
-      <form
-        onSubmit={(e) => handleCreateTask(activeCategory.id, e)}
-        className="task-create-panel"
-      >
-        <input
-          name="taskName"
-          placeholder="Task name *"
-          required
-          className="workspace-input"
-        />
-        <input
-          name="description"
-          placeholder="Mô tả"
-          className="workspace-input"
-        />
-        <select
-          name="priority"
-          defaultValue="Medium"
-          className="workspace-select"
-        >
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-          <option value="Urgent">Urgent</option>
-        </select>
-        <input name="deadline" type="date" className="workspace-input" />
-        <button
-          type="submit"
-          disabled={taskLoading[activeCategory.id]}
-          className="workspace-button primary"
-        >
-          {taskLoading[activeCategory.id] ? "Đang tạo..." : "Thêm nhiệm vụ"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowCreateTask(false)}
-          className="workspace-button ghost"
-        >
-          Hủy
-        </button>
-      </form>
-    );
-  };
-
   const TaskCard = ({ task }) => {
-    if (editingTask === task.id) {
-      return (
-        <form
-          onSubmit={(e) => handleUpdateTask(task.id, e)}
-          className="task-card task-card-edit"
-        >
-          <input
-            name="taskName"
-            defaultValue={task.taskName}
-            required
-            className="workspace-input"
-            placeholder="Task name"
-          />
-          <input
-            name="description"
-            defaultValue={task.description || ""}
-            className="workspace-input"
-            placeholder="Mô tả"
-          />
-          <select
-            name="priority"
-            defaultValue={task.priority || "Medium"}
-            className="workspace-select"
-          >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Urgent">Urgent</option>
-          </select>
-          <input
-            name="deadline"
-            type="date"
-            defaultValue={
-              task.deadline ? String(task.deadline).split("T")[0] : ""
-            }
-            className="workspace-input"
-          />
-          <div className="task-card-actions always-visible">
-            <button
-              type="submit"
-              disabled={taskLoading[task.id]}
-              className="mini-primary-button"
-            >
-              {taskLoading[task.id] ? "Đang lưu..." : "Lưu"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditingTask(null)}
-              className="mini-ghost-button"
-            >
-              Hủy
-            </button>
-          </div>
-        </form>
-      );
-    }
-
     const assigneeName = getTaskAssigneeName(task);
 
     const canUpdateStatus = canUpdateTaskStatusByRole(task);
@@ -1401,7 +1452,9 @@ function OrgEventDetailPage() {
         )}
 
         <div className="task-status-row">
-          <span className="task-status-text">{getStatusLabel(task.status)}</span>
+          <span className="task-status-text">
+            {getStatusLabel(task.status)}
+          </span>
         </div>
 
         <div className="task-footer">
@@ -1478,8 +1531,6 @@ function OrgEventDetailPage() {
           )}
         </header>
 
-        <TaskCreatePanel />
-
         <section className="kanban-scroll" aria-label="Bảng Kanban">
           <div className="kanban-board">
             {statusColumns.map((status) => {
@@ -1491,8 +1542,11 @@ function OrgEventDetailPage() {
                   key={status}
                   className="kanban-column"
                   onDragOver={(e) => {
-                    const draggedTask = activeTasks.find((task) => task.id === draggedTaskId);
-                    if (draggedTask && canUpdateTaskStatusByRole(draggedTask)) e.preventDefault();
+                    const draggedTask = activeTasks.find(
+                      (task) => task.id === draggedTaskId,
+                    );
+                    if (draggedTask && canUpdateTaskStatusByRole(draggedTask))
+                      e.preventDefault();
                   }}
                   onDrop={() => handleTaskDrop(status)}
                 >
@@ -1541,34 +1595,50 @@ function OrgEventDetailPage() {
           </p>
         </div>
       </header>
-      <EventWorkspacePreview
-        eventData={event}
-        canEdit={canEditPreview}
-        isSaving={isEventUpdating}
-        onSave={handleUpdateEventPreview}
-      />
+      <div className="workspace-preview-shell">
+        <EventWorkspacePreview
+          eventData={event}
+          canEdit={canEditPreview}
+          isSaving={isEventUpdating}
+          onSave={handleUpdateEventPreview}
+        />
+      </div>
     </div>
   );
 
   const EventMembersBoard = () => {
     const existingMemberIds = new Set(
-      eventMembers.map((item) => item.memberId || item.organizationMemberId || item.userId),
+      eventMembers.map(
+        (item) => item.memberId || item.organizationMemberId || item.userId,
+      ),
     );
     const memberMap = new Map(members.map((m) => [m.id, m]));
-    const selectableMembers = members.filter((m) => !existingMemberIds.has(m.id));
+    const selectableMembers = members.filter(
+      (m) => !existingMemberIds.has(m.id),
+    );
     const normalizedKeyword = memberSearchKeyword.trim().toLowerCase();
     const filteredSelectableMembers = selectableMembers.filter((m) => {
       if (!normalizedKeyword) return true;
-      const fullName = String(m.fullName || m.user?.fullName || "").toLowerCase();
+      const fullName = String(
+        m.fullName || m.user?.fullName || "",
+      ).toLowerCase();
       const email = String(m.email || m.user?.email || "").toLowerCase();
-      const dept = String(m.department?.departmentName || m.department?.deptName || "").toLowerCase();
-      return fullName.includes(normalizedKeyword) || email.includes(normalizedKeyword) || dept.includes(normalizedKeyword);
+      const dept = String(
+        m.department?.departmentName || m.department?.deptName || "",
+      ).toLowerCase();
+      return (
+        fullName.includes(normalizedKeyword) ||
+        email.includes(normalizedKeyword) ||
+        dept.includes(normalizedKeyword)
+      );
     });
     const pendingMembers = pendingMemberIds
       .map((id) => members.find((m) => m.id === id))
       .filter(Boolean);
     const addPendingMember = (memberId) => {
-      setPendingMemberIds((prev) => (prev.includes(memberId) ? prev : [...prev, memberId]));
+      setPendingMemberIds((prev) =>
+        prev.includes(memberId) ? prev : [...prev, memberId],
+      );
     };
     const removePendingMember = (memberId) => {
       setPendingMemberIds((prev) => prev.filter((id) => id !== memberId));
@@ -1604,7 +1674,9 @@ function OrgEventDetailPage() {
             </thead>
             <tbody>
               {eventMembers.length === 0 ? (
-                <tr><td colSpan={6}>Chưa có thành viên BTC.</td></tr>
+                <tr>
+                  <td colSpan={6}>Chưa có thành viên BTC.</td>
+                </tr>
               ) : (
                 eventMembers.map((item) => (
                   <tr key={item.id}>
@@ -1617,11 +1689,14 @@ function OrgEventDetailPage() {
                         "-"}
                     </td>
                     <td>
-                      {memberMap.get(item.memberId)?.department?.departmentName ||
+                      {memberMap.get(item.memberId)?.department
+                        ?.departmentName ||
                         memberMap.get(item.memberId)?.department?.deptName ||
                         "-"}
                     </td>
-                    <td>{formatDate(item.assignedAtUtc || item.createdAtUtc)}</td>
+                    <td>
+                      {formatDate(item.assignedAtUtc || item.createdAtUtc)}
+                    </td>
                     <td>
                       {canManageEventMembers && (
                         <button
@@ -1685,10 +1760,18 @@ function OrgEventDetailPage() {
                   {pendingMembers.map((member) => (
                     <span key={member.id} className="member-chip">
                       <span className="member-chip-avatar">
-                        {(member.fullName || member.email || "?").charAt(0).toUpperCase()}
+                        {(member.fullName || member.email || "?")
+                          .charAt(0)
+                          .toUpperCase()}
                       </span>
                       <span>{member.fullName || member.email || "-"}</span>
-                      <button type="button" onClick={() => removePendingMember(member.id)} aria-label="Bỏ chọn">×</button>
+                      <button
+                        type="button"
+                        onClick={() => removePendingMember(member.id)}
+                        aria-label="Bỏ chọn"
+                      >
+                        ×
+                      </button>
                     </span>
                   ))}
                 </div>
@@ -1696,7 +1779,9 @@ function OrgEventDetailPage() {
 
               <div className="member-pick-list">
                 {filteredSelectableMembers.length === 0 ? (
-                  <p className="member-pick-empty">Không có thành viên khả dụng.</p>
+                  <p className="member-pick-empty">
+                    Không có thành viên khả dụng.
+                  </p>
                 ) : (
                   filteredSelectableMembers.map((member) => {
                     const dept =
@@ -1707,10 +1792,14 @@ function OrgEventDetailPage() {
                       <div key={member.id} className="member-pick-item">
                         <div className="member-pick-main">
                           <span className="member-pick-avatar">
-                            {(member.fullName || member.email || "?").charAt(0).toUpperCase()}
+                            {(member.fullName || member.email || "?")
+                              .charAt(0)
+                              .toUpperCase()}
                           </span>
                           <div>
-                            <strong>{member.fullName || member.email || "-"}</strong>
+                            <strong>
+                              {member.fullName || member.email || "-"}
+                            </strong>
                             <span>{dept}</span>
                           </div>
                         </div>
@@ -1744,7 +1833,9 @@ function OrgEventDetailPage() {
                   type="button"
                   className="workspace-button primary"
                   onClick={handleConfirmAddEventMembers}
-                  disabled={isEventMemberSubmitting || pendingMemberIds.length === 0}
+                  disabled={
+                    isEventMemberSubmitting || pendingMemberIds.length === 0
+                  }
                 >
                   {isEventMemberSubmitting ? "Đang thêm..." : "Thêm"}
                 </button>
@@ -1778,18 +1869,25 @@ function OrgEventDetailPage() {
           </thead>
           <tbody>
             {attendees.length === 0 ? (
-              <tr><td colSpan={6}>Chưa có người tham gia.</td></tr>
+              <tr>
+                <td colSpan={6}>Chưa có người tham gia.</td>
+              </tr>
             ) : (
               attendees.map((attendee) => (
                 <tr key={attendee.id}>
                   <td>{attendee.fullName || "-"}</td>
                   <td>{attendee.email || "-"}</td>
                   <td>{attendee.phoneNumber || "-"}</td>
-                  <td>{formatDate(attendee.registeredAtUtc || attendee.createdAtUtc)}</td>
+                  <td>
+                    {formatDate(
+                      attendee.registeredAtUtc || attendee.createdAtUtc,
+                    )}
+                  </td>
                   <td>{getAttendeeCheckInLabel(attendee.status)}</td>
                   <td>
-                    {String(attendee.status || "") === "CheckInPending" && canManageEventMembers ? (
-                      <div style={{ display: "inline-flex", gap: "8px" }}>
+                    {String(attendee.status || "") === "CheckInPending" &&
+                    canManageEventMembers ? (
+                      <div className="attendee-action-group">
                         <button
                           type="button"
                           className="mini-primary-button"
@@ -1801,7 +1899,9 @@ function OrgEventDetailPage() {
                         <button
                           type="button"
                           className="mini-ghost-button"
-                          onClick={() => handleReviewCheckIn(attendee.id, false)}
+                          onClick={() =>
+                            handleReviewCheckIn(attendee.id, false)
+                          }
                           disabled={isEventMemberSubmitting}
                         >
                           Từ chối
@@ -1820,1153 +1920,419 @@ function OrgEventDetailPage() {
     </div>
   );
 
+  const WorkspaceModalFrame = ({ title, children, onClose }) => (
+    <div className="workspace-modal-backdrop" role="presentation">
+      <div
+        className="workspace-modal workspace-form-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onKeyDown={(e) => e.stopPropagation()}
+        onKeyUp={(e) => e.stopPropagation()}
+      >
+        <div className="workspace-modal-header">
+          <div>
+            <h2>{title}</h2>
+          </div>
+          <button
+            type="button"
+            className="modal-close-button"
+            onClick={onClose}
+            aria-label="Đóng"
+          >
+            ×
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+
+  const WorkspaceFormModals = () => {
+    const createCategoryMilestoneId = Object.keys(showCreateCategory).find(
+      (milestoneId) => showCreateCategory[milestoneId],
+    );
+    const editingMilestoneData = milestones.find(
+      (milestone) => milestone.id === editingMilestone,
+    );
+    const editingCategoryData = allCategories.find(
+      (category) => category.id === editingCategory,
+    );
+    const editingTaskData = allCategories
+      .flatMap((category) =>
+        (category.tasks || []).map((task) => ({
+          ...task,
+          __categoryId: category.id,
+        })),
+      )
+      .find((task) => task.id === editingTask);
+
+    if (showCreateMilestone && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Tạo giai đoạn dự án"
+          onClose={() => setShowCreateMilestone(false)}
+        >
+          <form onSubmit={handleCreateMilestone} className="workspace-modal-form">
+            <div className="workspace-form-grid">
+              <label className="workspace-form-field">
+                <span>Tên giai đoạn *</span>
+                <input
+                  name="title"
+                  placeholder="VD: Chuẩn bị"
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  placeholder="Mục tiêu hoặc ghi chú của giai đoạn"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setShowCreateMilestone(false)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={milestoneLoading.create}
+                className="workspace-button primary"
+              >
+                {milestoneLoading.create ? "Đang tạo..." : "Tạo"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (editingMilestoneData && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Sửa giai đoạn"
+          onClose={() => setEditingMilestone(null)}
+        >
+          <form
+            onSubmit={(e) => handleUpdateMilestone(editingMilestoneData.id, e)}
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid">
+              <label className="workspace-form-field">
+                <span>Tên giai đoạn *</span>
+                <input
+                  name="title"
+                  defaultValue={editingMilestoneData.title}
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  defaultValue={editingMilestoneData.description || ""}
+                  placeholder="Mô tả"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setEditingMilestone(null)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={milestoneLoading[editingMilestoneData.id]}
+                className="workspace-button primary"
+              >
+                {milestoneLoading[editingMilestoneData.id]
+                  ? "Đang lưu..."
+                  : "Lưu"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (createCategoryMilestoneId && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Thêm hạng mục"
+          onClose={() => setShowCreateCategory({})}
+        >
+          <form
+            onSubmit={(e) => handleCreateCategory(createCategoryMilestoneId, e)}
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid">
+              <label className="workspace-form-field">
+                <span>Tên hạng mục *</span>
+                <input
+                  name="categoryName"
+                  placeholder="VD: Hậu cần, Truyền thông..."
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  placeholder="Mô tả ngắn cho hạng mục"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setShowCreateCategory({})}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={categoryLoading[createCategoryMilestoneId]}
+                className="workspace-button primary"
+              >
+                {categoryLoading[createCategoryMilestoneId]
+                  ? "Đang tạo..."
+                  : "Tạo"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (editingCategoryData && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Sửa hạng mục"
+          onClose={() => setEditingCategory(null)}
+        >
+          <form
+            onSubmit={(e) =>
+              handleUpdateCategory(
+                editingCategoryData.id,
+                editingCategoryData.milestoneId,
+                e,
+              )
+            }
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid">
+              <label className="workspace-form-field">
+                <span>Tên hạng mục *</span>
+                <input
+                  name="categoryName"
+                  defaultValue={editingCategoryData.categoryName}
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  defaultValue={editingCategoryData.description || ""}
+                  placeholder="Mô tả"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setEditingCategory(null)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={categoryLoading[editingCategoryData.id]}
+                className="workspace-button primary"
+              >
+                {categoryLoading[editingCategoryData.id]
+                  ? "Đang lưu..."
+                  : "Lưu"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (showCreateTask && activeCategory && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Thêm tác vụ"
+          onClose={() => setShowCreateTask(false)}
+        >
+          <form
+            onSubmit={(e) => handleCreateTask(activeCategory.id, e)}
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid two-columns">
+              <label className="workspace-form-field span-2">
+                <span>Tên tác vụ *</span>
+                <input
+                  name="taskName"
+                  placeholder="Nhập tên tác vụ"
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field span-2">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  placeholder="Ghi chú thêm"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Độ ưu tiên</span>
+                <select
+                  name="priority"
+                  defaultValue="Medium"
+                  className="workspace-select"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </label>
+              <label className="workspace-form-field">
+                <span>Deadline</span>
+                <input name="deadline" type="date" className="workspace-input" />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setShowCreateTask(false)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={taskLoading[activeCategory.id]}
+                className="workspace-button primary"
+              >
+                {taskLoading[activeCategory.id] ? "Đang tạo..." : "Thêm tác vụ"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    if (editingTaskData && canManage) {
+      return (
+        <WorkspaceModalFrame
+          title="Sửa tác vụ"
+          onClose={() => setEditingTask(null)}
+        >
+          <form
+            onSubmit={(e) => handleUpdateTask(editingTaskData.id, e)}
+            className="workspace-modal-form"
+          >
+            <div className="workspace-form-grid two-columns">
+              <label className="workspace-form-field span-2">
+                <span>Tên tác vụ *</span>
+                <input
+                  name="taskName"
+                  defaultValue={editingTaskData.taskName}
+                  required
+                  className="workspace-input"
+                  autoFocus
+                />
+              </label>
+              <label className="workspace-form-field span-2">
+                <span>Mô tả</span>
+                <textarea
+                  name="description"
+                  defaultValue={editingTaskData.description || ""}
+                  placeholder="Mô tả"
+                  className="workspace-input workspace-textarea"
+                />
+              </label>
+              <label className="workspace-form-field">
+                <span>Độ ưu tiên</span>
+                <select
+                  name="priority"
+                  defaultValue={editingTaskData.priority || "Medium"}
+                  className="workspace-select"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </label>
+              <label className="workspace-form-field">
+                <span>Deadline</span>
+                <input
+                  name="deadline"
+                  type="date"
+                  defaultValue={
+                    editingTaskData.deadline
+                      ? String(editingTaskData.deadline).split("T")[0]
+                      : ""
+                  }
+                  className="workspace-input"
+                />
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => setEditingTask(null)}
+                className="workspace-button ghost"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={taskLoading[editingTaskData.id]}
+                className="workspace-button primary"
+              >
+                {taskLoading[editingTaskData.id] ? "Đang lưu..." : "Lưu"}
+              </button>
+            </div>
+          </form>
+        </WorkspaceModalFrame>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="event-workspace">
-      <style>{`
-        .event-workspace {
-          display: flex;
-          min-height: 100vh;
-          height: 100vh;
-          overflow: hidden;
-          background: #FFFFFF;
-          color: #0F172A;
-        }
-
-        .event-sidebar {
-          width: 260px;
-          flex: 0 0 260px;
-          display: flex;
-          flex-direction: column;
-          min-height: 100%;
-          background: #F9FBFF;
-          border-right: 1px solid #E6EDF5;
-        }
-
-        .event-sidebar-header {
-          padding: 18px 14px 14px;
-          border-bottom: 1px solid #E6EDF5;
-        }
-
-        .event-back-button {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          margin: 0 0 12px;
-          padding: 0;
-          border: 0;
-          background: transparent;
-          color: #64748B;
-          font-size: 14px;
-          font-weight: 650;
-          cursor: pointer;
-        }
-
-        .event-back-button:hover {
-          color: #0F172A;
-        }
-
-        .event-title-row {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 8px;
-        }
-
-        .event-title-row h1 {
-          margin: 0;
-          color: #0F172A;
-          font-size: 19px;
-          line-height: 1.28;
-          font-weight: 800;
-          letter-spacing: -0.025em;
-        }
-
-        .event-date-row {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          margin-top: 10px;
-          color: #526A8A;
-          font-size: 13px;
-          font-weight: 600;
-        }
-
-        .workspace-tab-list {
-          display: grid;
-          gap: 7px;
-          margin-top: 12px;
-        }
-
-        .workspace-tab-btn {
-          border: 1px solid #E2E8F0;
-          background: #FDFEFF;
-          color: #334155;
-          border-radius: 9px;
-          text-align: left;
-          padding: 9px 10px;
-          font-size: 12.5px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 140ms ease;
-        }
-
-        .workspace-tab-btn:hover {
-          border-color: #CBD5E1;
-          background: #F8FAFC;
-        }
-
-        .workspace-tab-btn.active {
-          border-color: #FDBA74;
-          background: #FFF3E8;
-          color: #C2410C;
-          box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.12);
-        }
-
-        .event-roadmap {
-          flex: 1;
-          overflow-y: auto;
-          padding: 14px 14px 20px;
-        }
-
-        .event-roadmap::-webkit-scrollbar,
-        .kanban-scroll::-webkit-scrollbar,
-        .kanban-column-body::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
-
-        .event-roadmap::-webkit-scrollbar-track,
-        .kanban-scroll::-webkit-scrollbar-track,
-        .kanban-column-body::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        .event-roadmap::-webkit-scrollbar-thumb,
-        .kanban-scroll::-webkit-scrollbar-thumb,
-        .kanban-column-body::-webkit-scrollbar-thumb {
-          background: #CBD5E1;
-          border-radius: 999px;
-        }
-
-        .roadmap-heading {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 10px;
-          color: #94A3B8;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.07em;
-          text-transform: uppercase;
-        }
-
-        .roadmap-heading-clickable {
-          padding: 8px 10px;
-          border: 1px solid #E2E8F0;
-          border-radius: 10px;
-          background: #FFFFFF;
-          cursor: pointer;
-          transition: all 140ms ease;
-        }
-
-        .roadmap-heading-clickable:hover {
-          border-color: #CBD5E1;
-          background: #F8FAFC;
-        }
-
-        .roadmap-heading-actions {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .roadmap-toggle {
-          width: 24px;
-          height: 24px;
-          border: 0;
-          border-radius: 8px;
-          background: transparent;
-          color: #94A3B8;
-          font-size: 15px;
-          font-weight: 800;
-          cursor: pointer;
-          line-height: 1;
-        }
-
-        .roadmap-toggle:hover {
-          background: #EEF2F7;
-          color: #F97316;
-        }
-
-        .roadmap-add-button,
-        .sidebar-icon-button,
-        .task-icon-button,
-        .modal-close-button {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border: 0;
-          background: transparent;
-          cursor: pointer;
-          transition: color 150ms ease, background 150ms ease;
-        }
-
-        .roadmap-add-button {
-          width: 28px;
-          height: 28px;
-          border-radius: 8px;
-          color: #94A3B8;
-          font-size: 19px;
-        }
-
-        .roadmap-add-button:hover,
-        .sidebar-icon-button:hover,
-        .task-icon-button:hover {
-          background: #EEF2F7;
-          color: #F97316;
-        }
-
-        .sidebar-empty {
-          padding: 20px 0;
-        }
-
-        .milestone-list {
-          display: grid;
-          gap: 18px;
-        }
-
-        .milestone-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          margin-bottom: 6px;
-        }
-
-        .milestone-title-button {
-          display: inline-flex;
-          min-width: 0;
-          align-items: center;
-          gap: 8px;
-          padding: 0;
-          border: 0;
-          background: transparent;
-          color: #0F172A;
-          font-size: 13px;
-          font-weight: 800;
-          text-align: left;
-          cursor: pointer;
-        }
-
-        .milestone-title-button span:last-child {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .flag-icon {
-          color: #F97316;
-          flex: 0 0 auto;
-        }
-
-        .milestone-actions,
-        .category-actions {
-          display: flex;
-          flex: 0 0 auto;
-          align-items: center;
-          gap: 2px;
-          opacity: 0;
-          transition: opacity 150ms ease;
-        }
-
-        .milestone-block:hover .milestone-actions,
-        .category-row:hover .category-actions {
-          opacity: 1;
-        }
-
-        .sidebar-icon-button {
-          width: 24px;
-          height: 24px;
-          border-radius: 6px;
-          color: #94A3B8;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .sidebar-icon-button.danger:hover,
-        .task-icon-button.danger:hover,
-        .modal-close-button:hover {
-          background: #FEF2F2;
-          color: #DC2626;
-        }
-
-        .milestone-description {
-          margin: 4px 0 10px 24px;
-          color: #64748B;
-          font-size: 12px;
-          line-height: 1.45;
-        }
-
-        .category-tree {
-          display: grid;
-          gap: 4px;
-          margin-left: 6px;
-          padding-left: 12px;
-          border-left: 1px solid #DDE7F2;
-        }
-
-        .category-row {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .category-button {
-          flex: 1;
-          min-width: 0;
-          padding: 8px 10px;
-          border: 0;
-          border-radius: 8px;
-          background: transparent;
-          color: #334155;
-          font-size: 14px;
-          font-weight: 650;
-          text-align: left;
-          cursor: pointer;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          transition: background 150ms ease, color 150ms ease;
-        }
-
-        .category-button:hover {
-          background: #EEF2F7;
-          color: #0F172A;
-        }
-
-        .category-button.active {
-          background: #FFF1E8;
-          color: #F97316;
-        }
-
-        .category-empty {
-          padding: 8px 12px;
-          color: #94A3B8;
-          font-size: 12px;
-        }
-
-        .add-category-button {
-          width: 100%;
-          margin-top: 2px;
-          padding: 9px 12px;
-          border: 0;
-          border-radius: 8px;
-          background: transparent;
-          color: #94A3B8;
-          font-size: 13px;
-          font-weight: 700;
-          text-align: left;
-          cursor: pointer;
-        }
-
-        .add-category-button:hover {
-          background: #EEF2F7;
-          color: #334155;
-        }
-
-        .sidebar-form {
-          display: grid;
-          gap: 8px;
-          margin-bottom: 16px;
-          padding: 12px;
-          border: 1px solid #E2E8F0;
-          border-radius: 10px;
-          background: #FFFFFF;
-        }
-
-        .sidebar-form.nested-form,
-        .category-create-form {
-          margin: 6px 0 8px;
-        }
-
-        .category-edit-form {
-          margin-left: 0;
-        }
-
-        .sidebar-input,
-        .workspace-input,
-        .workspace-select,
-        .task-status-select,
-        .assignee-select {
-          width: 100%;
-          border: 1px solid #DDE7F2;
-          border-radius: 8px;
-          background: #FFFFFF;
-          color: #0F172A;
-          font-size: 13px;
-          outline: none;
-          transition: border-color 150ms ease, box-shadow 150ms ease;
-        }
-
-        .sidebar-input,
-        .workspace-input,
-        .workspace-select {
-          min-height: 38px;
-          padding: 8px 10px;
-        }
-
-        .sidebar-input:focus,
-        .workspace-input:focus,
-        .workspace-select:focus,
-        .task-status-select:focus,
-        .assignee-select:focus {
-          border-color: #F97316;
-          box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
-        }
-
-        .sidebar-form-actions {
-          display: flex;
-          gap: 8px;
-        }
-
-        .mini-primary-button,
-        .mini-ghost-button,
-        .workspace-button {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          border-radius: 8px;
-          border: 1px solid transparent;
-          font-weight: 750;
-          cursor: pointer;
-          transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
-        }
-
-        .mini-primary-button,
-        .mini-ghost-button {
-          min-height: 32px;
-          padding: 0 10px;
-          font-size: 12px;
-        }
-
-        .mini-primary-button,
-        .workspace-button.primary {
-          background: #F97316;
-          color: #FFFFFF;
-        }
-
-        .mini-primary-button:hover:not(:disabled),
-        .workspace-button.primary:hover:not(:disabled) {
-          background: #EA580C;
-        }
-
-        .mini-ghost-button,
-        .workspace-button.ghost {
-          background: #FFFFFF;
-          border-color: #E2E8F0;
-          color: #334155;
-        }
-
-        .mini-ghost-button:hover:not(:disabled),
-        .workspace-button.ghost:hover:not(:disabled) {
-          background: #F8FAFC;
-          border-color: #CBD5E1;
-        }
-
-        .mini-primary-button:disabled,
-        .mini-ghost-button:disabled,
-        .workspace-button:disabled {
-          cursor: not-allowed;
-          opacity: 0.65;
-        }
-
-        .workspace-main {
-          flex: 1;
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          background: #FFFFFF;
-        }
-
-        .workspace-main-content {
-          display: flex;
-          flex: 1;
-          min-height: 0;
-          flex-direction: column;
-        }
-
-        .workspace-main-content.preview-mode {
-          overflow: auto;
-          padding-bottom: 60px;
-        }
-
-        .workspace-preview-shell {
-          border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          background: #fff;
-          overflow: hidden;
-          margin: 16px 20px 20px;
-          min-height: 0;
-          flex: 1;
-        }
-
-        .workspace-preview-iframe {
-          width: 128%;
-          height: 128%;
-          min-height: 720px;
-          border: 0;
-          display: block;
-          transform: scale(0.78);
-          transform-origin: top left;
-        }
-
-        .workspace-table-wrap {
-          margin: 16px 20px 20px;
-          border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          background: #fff;
-          overflow: auto;
-        }
-
-        .workspace-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 14px;
-        }
-
-        .workspace-table th,
-        .workspace-table td {
-          text-align: left;
-          padding: 12px;
-          border-bottom: 1px solid #F1F5F9;
-        }
-
-        .workspace-table th {
-          background: #F8FAFC;
-          color: #475569;
-          font-weight: 800;
-          font-size: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-        }
-
-        .workspace-member-modal {
-          width: min(760px, 100%);
-        }
-
-        .member-chip-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-top: 12px;
-        }
-
-        .member-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          border: 1px solid #FDBA74;
-          background: #FFF7ED;
-          color: #9A3412;
-          border-radius: 999px;
-          padding: 4px 8px 4px 6px;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .member-chip-avatar,
-        .member-pick-avatar {
-          width: 24px;
-          height: 24px;
-          border-radius: 999px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          background: #FFEDD5;
-          color: #C2410C;
-          font-size: 12px;
-          font-weight: 800;
-          flex: 0 0 24px;
-        }
-
-        .member-chip button {
-          width: 20px;
-          height: 20px;
-          border: 0;
-          border-radius: 999px;
-          background: #FED7AA;
-          color: #9A3412;
-          cursor: pointer;
-          font-weight: 800;
-          line-height: 1;
-        }
-
-        .member-pick-list {
-          margin-top: 12px;
-          border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          max-height: 320px;
-          overflow: auto;
-          background: #fff;
-        }
-
-        .member-pick-empty {
-          margin: 0;
-          padding: 16px;
-          color: #64748B;
-          font-size: 13px;
-        }
-
-        .member-pick-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          padding: 10px 12px;
-          border-bottom: 1px solid #F1F5F9;
-        }
-
-        .member-pick-item:last-child {
-          border-bottom: none;
-        }
-
-        .member-pick-main {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          min-width: 0;
-        }
-
-        .member-pick-main div {
-          display: grid;
-          min-width: 0;
-        }
-
-        .member-pick-main strong {
-          color: #0F172A;
-          font-size: 14px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .member-pick-main span {
-          color: #64748B;
-          font-size: 12px;
-        }
-
-        .member-pick-add {
-          width: 28px;
-          height: 28px;
-          border-radius: 8px;
-          border: 1px solid #FDBA74;
-          background: #FFF7ED;
-          color: #C2410C;
-          font-size: 18px;
-          font-weight: 800;
-          cursor: pointer;
-          line-height: 1;
-        }
-
-        .member-pick-add:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .workspace-member-actions {
-          display: grid;
-          gap: 10px;
-          margin: 0 20px 20px;
-          max-width: 420px;
-        }
-
-        .kanban-header {
-          display: flex;
-          min-height: 80px;
-          align-items: center;
-          justify-content: space-between;
-          gap: 24px;
-          padding: 18px 32px;
-          border-bottom: 1px solid #E2E8F0;
-          background: #FFFFFF;
-        }
-
-        .breadcrumb-line {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 4px;
-          color: #94A3B8;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .kanban-header h2 {
-          margin: 0;
-          color: #0F172A;
-          font-size: 22px;
-          line-height: 1.2;
-          font-weight: 850;
-          letter-spacing: -0.03em;
-        }
-
-        .kanban-header p {
-          margin: 5px 0 0;
-          color: #64748B;
-          font-size: 13px;
-        }
-
-        .workspace-button {
-          min-height: 40px;
-          padding: 0 16px;
-          font-size: 14px;
-        }
-
-        .task-create-panel {
-          display: grid;
-          grid-template-columns: 1.2fr 1.2fr 150px 150px auto auto;
-          gap: 10px;
-          align-items: center;
-          padding: 16px 32px;
-          border-bottom: 1px solid #E2E8F0;
-          background: #FFFFFF;
-        }
-
-        .kanban-scroll {
-          flex: 1;
-          min-height: 0;
-          overflow: auto;
-          padding: 24px;
-          background: #F8FAFC;
-        }
-
-        .kanban-board {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          align-items: stretch;
-          gap: 16px;
-          width: 100%;
-          min-width: 0;
-          height: 100%;
-        }
-
-        .kanban-column {
-          width: auto;
-          min-width: 0;
-          display: flex;
-          min-height: 420px;
-          max-height: 100%;
-          flex-direction: column;
-          border: 1px solid #DDE7F2;
-          border-radius: 12px;
-          background: rgba(241, 245, 249, 0.66);
-          overflow: hidden;
-        }
-
-        .kanban-column-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 16px;
-          border-bottom: 1px solid #DDE7F2;
-        }
-
-        .kanban-column-header h3 {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          margin: 0;
-          color: #0F172A;
-          font-size: 14px;
-          font-weight: 800;
-        }
-
-        .status-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 999px;
-        }
-
-        .status-todo { background: #E2E8F0; }
-        .status-progress { background: #F97316; }
-        .status-blocked { background: #EF4444; }
-        .status-done { background: #10B981; }
-        .status-cancelled { background: #94A3B8; }
-        .status-unknown { background: #A855F7; }
-
-        .task-count {
-          display: inline-flex;
-          min-width: 24px;
-          height: 24px;
-          align-items: center;
-          justify-content: center;
-          border-radius: 6px;
-          background: #FFFFFF;
-          color: #64748B;
-          font-size: 12px;
-          font-weight: 800;
-          border: 1px solid #E2E8F0;
-          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-        }
-
-        .kanban-column-body {
-          flex: 1;
-          min-height: 0;
-          overflow-y: auto;
-          padding: 14px;
-        }
-
-        .column-empty {
-          display: flex;
-          min-height: 92px;
-          align-items: center;
-          justify-content: center;
-          border: 1px dashed #CBD5E1;
-          border-radius: 10px;
-          color: #94A3B8;
-          font-size: 12px;
-          font-weight: 650;
-        }
-
-        .task-card {
-          position: relative;
-          display: grid;
-          gap: 12px;
-          padding: 15px;
-          margin-bottom: 12px;
-          border: 1px solid #DDE7F2;
-          border-radius: 12px;
-          background: #FFFFFF;
-          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-          cursor: grab;
-          transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
-        }
-
-        .task-card:hover {
-          transform: translateY(-1px);
-          border-color: #CBD5E1;
-          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.07);
-        }
-
-        .task-card.is-loading {
-          opacity: 0.72;
-          pointer-events: none;
-        }
-
-        .task-card-edit {
-          cursor: default;
-        }
-
-        .task-card-top {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-        }
-
-        .priority-badge {
-          display: inline-flex;
-          align-items: center;
-          width: fit-content;
-          min-height: 20px;
-          padding: 4px 8px;
-          border-radius: 5px;
-          font-size: 10px;
-          line-height: 1;
-          font-weight: 850;
-          letter-spacing: 0.04em;
-        }
-
-        .priority-high {
-          background: #FFF1F2;
-          color: #E11D48;
-        }
-
-        .priority-medium {
-          background: #FFFBEB;
-          color: #D97706;
-        }
-
-        .priority-low {
-          background: #F1F5F9;
-          color: #475569;
-        }
-
-        .task-card h3 {
-          margin: 0;
-          color: #0F172A;
-          font-size: 14px;
-          line-height: 1.45;
-          font-weight: 760;
-        }
-
-        .task-description {
-          margin: -4px 0 0;
-          color: #64748B;
-          font-size: 12px;
-          line-height: 1.45;
-        }
-
-        .task-card-actions {
-          display: flex;
-          align-items: center;
-          gap: 2px;
-          opacity: 0;
-          transition: opacity 150ms ease;
-        }
-
-        .task-card:hover .task-card-actions,
-        .task-card-actions.always-visible {
-          opacity: 1;
-        }
-
-        .task-icon-button {
-          width: 24px;
-          height: 24px;
-          border-radius: 6px;
-          color: #94A3B8;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .task-status-row {
-          display: flex;
-          align-items: center;
-        }
-
-        .task-status-select {
-          min-height: 32px;
-          padding: 6px 8px;
-          font-size: 12px;
-        }
-
-        .task-status-text {
-          color: #475569;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .task-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding-top: 10px;
-          border-top: 1px solid #F1F5F9;
-        }
-
-        .assignee-wrap {
-          display: flex;
-          min-width: 0;
-          align-items: center;
-          gap: 8px;
-          flex: 0 1 132px;
-        }
-
-        .avatar-dot {
-          display: inline-flex;
-          width: 24px;
-          height: 24px;
-          flex: 0 0 24px;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid #DDE7F2;
-          border-radius: 999px;
-          background: #F8FAFC;
-          color: #64748B;
-          font-size: 11px;
-          font-weight: 800;
-        }
-
-        .assignee-select {
-          width: 100%;
-          min-width: 0;
-          max-width: 100px;
-          height: 30px;
-          padding: 4px 6px;
-          color: #64748B;
-          font-size: 11px;
-          border-color: transparent;
-          background: transparent;
-        }
-
-        .assignee-select:hover {
-          border-color: #DDE7F2;
-          background: #FFFFFF;
-        }
-
-        .assignee-name {
-          min-width: 0;
-          color: #64748B;
-          font-size: 11px;
-          font-weight: 700;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .deadline-text {
-          flex: 0 0 auto;
-          color: #94A3B8;
-          font-size: 12px;
-          font-weight: 800;
-          white-space: nowrap;
-        }
-
-        .workspace-empty-state {
-          display: flex;
-          flex: 1;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 40px;
-          text-align: center;
-        }
-
-        .workspace-empty-icon {
-          display: flex;
-          width: 80px;
-          height: 80px;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 24px;
-          border: 1px solid #E2E8F0;
-          border-radius: 999px;
-          background: #F8FAFC;
-          color: #CBD5E1;
-          font-size: 36px;
-          font-weight: 600;
-        }
-
-        .workspace-empty-state h2 {
-          margin: 0 0 8px;
-          color: #0F172A;
-          font-size: 26px;
-          font-weight: 850;
-          letter-spacing: -0.035em;
-        }
-
-        .workspace-empty-state p {
-          max-width: 420px;
-          margin: 0;
-          color: #64748B;
-          font-size: 14px;
-          line-height: 1.55;
-        }
-
-        .workspace-modal-backdrop {
-          position: fixed;
-          inset: 0;
-          z-index: 60;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 24px;
-          background: rgba(15, 23, 42, 0.34);
-          backdrop-filter: blur(4px);
-        }
-
-        .workspace-modal {
-          width: min(760px, 100%);
-          max-height: calc(100vh - 48px);
-          overflow-y: auto;
-          padding: 24px;
-          border-radius: 16px;
-          background: #FFFFFF;
-          box-shadow: 0 24px 64px rgba(15, 23, 42, 0.2);
-        }
-
-        .workspace-modal-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 16px;
-          margin-bottom: 20px;
-        }
-
-        .workspace-eyebrow {
-          margin: 0 0 4px;
-          color: #F97316;
-          font-size: 11px;
-          font-weight: 850;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-
-        .workspace-modal-header h2 {
-          margin: 0;
-          color: #0F172A;
-          font-size: 22px;
-          font-weight: 850;
-          letter-spacing: -0.025em;
-        }
-
-        .modal-close-button {
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
-          color: #94A3B8;
-          font-size: 24px;
-        }
-
-        .event-edit-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 16px;
-        }
-
-        .modal-actions {
-          grid-column: 1 / -1;
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-        }
-
-        @media (max-width: 860px) {
-          .event-workspace {
-            height: auto;
-            min-height: 100vh;
-            flex-direction: column;
-            overflow: visible;
-          }
-
-          .event-sidebar {
-            width: 100%;
-            flex-basis: auto;
-            max-height: none;
-          }
-
-          .workspace-main {
-            min-height: 70vh;
-          }
-
-          .kanban-header {
-            align-items: flex-start;
-            flex-direction: column;
-            padding: 18px;
-          }
-
-          .kanban-scroll {
-            padding: 18px;
-          }
-
-          .task-create-panel {
-            grid-template-columns: 1fr;
-            padding: 16px 18px;
-          }
-
-          .event-edit-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .modal-actions {
-            flex-direction: column-reverse;
-          }
-        }
-      `}</style>
-
       <Sidebar />
       <main className="workspace-main">
         {workspaceTab === "kanban" && <KanbanBoard />}
@@ -2974,6 +2340,7 @@ function OrgEventDetailPage() {
         {workspaceTab === "event-members" && <EventMembersBoard />}
         {workspaceTab === "attendees" && <AttendeesBoard />}
       </main>
+      <WorkspaceFormModals />
     </div>
   );
 }

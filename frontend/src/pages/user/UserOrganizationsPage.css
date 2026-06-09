@@ -1,11 +1,10 @@
 .org-layout {
-  --org-card-height: 410px;
   background-color: #f8fafc;
   min-height: 100vh;
   padding: 2.5rem;
   color: #0f172a;
-  max-width: 1280px;
-  margin: 0 auto;
+  width: 100%; /* Dịch sang trái toàn bộ */
+  box-sizing: border-box;
 }
 
 /* Header Styles */
@@ -266,7 +265,7 @@
 .org-card-action {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #334155;
+  color: #ff9b51;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -452,4 +451,21 @@ textarea.org-input {
   .org-header-text p {
     letter-spacing: 0.08em;
   }
+}
+
+/* ========================================= */
+/* CSS CHO NÚT DANGER TRONG POPUP XÓA        */
+/* ========================================= */
+.org-btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.org-btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.org-btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
