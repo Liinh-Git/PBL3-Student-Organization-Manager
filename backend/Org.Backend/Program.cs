@@ -183,6 +183,6 @@ app.UseFastEndpoints(c =>
     c.Endpoints.ShortNames = true;
 });
 
-app.MapGet("/", () => "PBL3 Rescue - Phase 4A-1 Auth Backend Implementation");
+app.MapGet("/", () => "PBL3 Backend is running...");
 
 app.Run();
